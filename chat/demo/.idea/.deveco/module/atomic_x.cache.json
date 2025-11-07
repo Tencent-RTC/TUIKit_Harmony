@@ -1,0 +1,22 @@
+{
+	"CommonInfo":{
+		"current.select.target":"default"
+	},
+	"BuildOptions":{
+		"SELECT_BUILD_TARGET":"default",
+		"BUILD_PATH":{
+			"OUTPUT_METADATA_JSON":"/Volumes/CaseSensitive/Tencent/waifa_harmony/TUIKit_Harmony/atomic_x/build/default/intermediates/hap_metadata/default/output_metadata.json",
+			"OUTPUT_PATH":"/Volumes/CaseSensitive/Tencent/waifa_harmony/TUIKit_Harmony/atomic_x/build/default/outputs/default",
+			"RES_PATH":"/Volumes/CaseSensitive/Tencent/waifa_harmony/TUIKit_Harmony/atomic_x/build/default/intermediates/res/default",
+			"ETS_SUPER_VISUAL_PATH":"/Volumes/CaseSensitive/Tencent/waifa_harmony/TUIKit_Harmony/atomic_x/build/default/cache/default/default@HarCompileArkTS/esmodule",
+			"JS_ASSETS_PATH":"/Volumes/CaseSensitive/Tencent/waifa_harmony/TUIKit_Harmony/atomic_x/build/default/intermediates/loader_out/default",
+			"SOURCE_MAP_DIR":"/Volumes/CaseSensitive/Tencent/waifa_harmony/TUIKit_Harmony/atomic_x/build/default/intermediates/source_map/default",
+			"INTERMEDIA_PATH":"/Volumes/CaseSensitive/Tencent/waifa_harmony/TUIKit_Harmony/atomic_x/build/default/intermediates",
+			"RES_PROFILE_PATH":"/Volumes/CaseSensitive/Tencent/waifa_harmony/TUIKit_Harmony/atomic_x/build/default/intermediates/res/default/resources/base/profile",
+			"WORKER_LOADER":"/Volumes/CaseSensitive/Tencent/waifa_harmony/TUIKit_Harmony/atomic_x/build/default/intermediates/loader/default/loader.json",
+			"MANIFEST_JSON":"/Volumes/CaseSensitive/Tencent/waifa_harmony/TUIKit_Harmony/atomic_x/build/default/intermediates/manifest/default",
+			"JS_LITE_ASSETS_PATH":"/Volumes/CaseSensitive/Tencent/waifa_harmony/TUIKit_Harmony/atomic_x/build/default/intermediates/loader_out_lite/default",
+			"JS_SUPER_VISUAL_PATH":"/Volumes/CaseSensitive/Tencent/waifa_harmony/TUIKit_Harmony/atomic_x/build/default/cache/default/default@HarCompileJS/jsbundle"
+		}
+	}
+}

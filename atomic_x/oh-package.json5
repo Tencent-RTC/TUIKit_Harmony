@@ -7,7 +7,7 @@
   "license": "Apache-2.0",
   "packageType": "InterfaceHar",
   "dependencies": {
-    "@tencentcloud/atomicxcore": "file:../chat/demo/entry/atomicxcore-3.5.0.har",
+    "@tencentcloud/atomicxcore": "^3.5.0",
     "@tencent/mmkv": "1.3.5"
   }
 }

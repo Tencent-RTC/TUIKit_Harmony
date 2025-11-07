@@ -2,20 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4256a5f4-83d0-45eb-a962-289d36503887" name="更改" comment="">
-      <change beforePath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_handsfree.imageset/icon_handsfree@2x.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_handsfree.imageset/icon_handsfree@2x.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_handsfree.imageset/icon_handsfree@3x.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_handsfree.imageset/icon_handsfree@3x.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_handsfree_on.imageset/icon_handsfree_on@2x.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_handsfree_on.imageset/icon_handsfree_on@2x.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_handsfree_on.imageset/icon_handsfree_on@3x.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_handsfree_on.imageset/icon_handsfree_on@3x.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_hangup.imageset/ic_hangup@2x.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_hangup.imageset/ic_hangup@2x.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_hangup.imageset/ic_hangup@3x.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_hangup.imageset/ic_hangup@3x.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_mic_off.imageset/icon_mic_off@2x.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_mic_off.imageset/icon_mic_off@2x.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_mic_off.imageset/icon_mic_off@3x.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_mic_off.imageset/icon_mic_off@3x.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_mute.imageset/icon_mute@2x.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_mute.imageset/icon_mute@2x.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_mute.imageset/icon_mute@3x.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_mute.imageset/icon_mute@3x.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_mute_on.imageset/icon_mute_on@2x.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_mute_on.imageset/icon_mute_on@2x.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_mute_on.imageset/icon_mute_on@3x.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_mute_on.imageset/icon_mute_on@3x.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_volume.imageset/icon_speak@2x.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_volume.imageset/icon_speak@2x.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_volume.imageset/icon_speak@3x.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ios/atomic_x/Resources/AtomicX.xcassets/icon/call/icon_volume.imageset/icon_speak@3x.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../atomic_x/oh-package-lock.json5" beforeDir="false" afterPath="$PROJECT_DIR$/../../atomic_x/oh-package-lock.json5" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,7 +10,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../../../../tuikit_engine" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
   </component>
   <component name="HiLogStateProjectLevelPreference">
     <panelStates>
@@ -49,30 +36,30 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;127.0.0.1:5555&quot;: &quot;5371798501762423668451&quot;,
-    &quot;2MM0223907012168&quot;: &quot;5378765231762418575976&quot;,
-    &quot;Application.entry.executor&quot;: &quot;Run&quot;,
-    &quot;MODULE_HAP_TIME&quot;: &quot;{\&quot;2MM0223907012168entry\&quot;:\&quot;2025-11-06T08:42:54.125887649Z\&quot;,\&quot;127.0.0.1:5555entry\&quot;:\&quot;2025-11-06T10:07:48.075017758Z\&quot;}&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;ace.nodejs.version&quot;: &quot;18.20.1&quot;,
-    &quot;auto_debug_bundleName&quot;: &quot;00000026F6D38E884A08FBE0E9660FB78B4965FBF8BF63D948E289A47F9689B180248B9DFF5AC85E11CA872AF56424EF55D2D7335817&quot;,
-    &quot;auto_debug_cert_list&quot;: &quot;000000232FA6A078F1BFC3699D786BEDF4648D1101B3886F6FA1C494A6FE273BBDBB22034DF6C28282D474862A5C808BB90908&quot;,
-    &quot;auto_debug_device_list&quot;: &quot;0000005F96FDBECADC36D7D3094869CCFD27C059A8C367675413E7A9C2BB638E3A5138E67E727E8CAC4A25290E6E19FE19E76768D278953F076A53F83DA61B20715CB49A77FF72A05FDBF6E503EDF207C744CC162A568E4E150B281225D72324C5CEC2A716A426A77A5A3A628CDD87&quot;,
-    &quot;auto_debug_package_name&quot;: &quot;000000261BEC0639C26A2617E8FBEB964EC15D2F2CFCC49B18D1D3E7CBCB0FCA64B2869BD67AB6A9BB68AC76B068826626D645109935&quot;,
-    &quot;auto_debug_team_id&quot;: &quot;00000021D53B31693E1AA026AF17D7AE8E3CBC06305F60C112ABA7736D0DF434AE5BB88AD2A1DC7FF91B8CD5D23C1B7C76&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Volumes/CaseSensitive/Tencent/harmony/imsdk/client_uikit/atomic-x/harmony/chat/uikit&quot;,
-    &quot;resolution&quot;: &quot;1080*2340&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.huawei.deveco.sdkmanager.ohos.idea.ui.OhSdkConfigProvider&quot;,
-    &quot;shape&quot;: &quot;phone&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "127.0.0.1:5555": "5371798501762505847625",
+    "2MM0223907012168": "5378765231762418575976",
+    "Application.entry.executor": "Run",
+    "MODULE_HAP_TIME": "{\"2MM0223907012168entry\":\"2025-11-06T08:42:54.125887649Z\",\"127.0.0.1:5555entry\":\"2025-11-07T08:57:27.664780232Z\"}",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "ace.nodejs.version": "18.20.1",
+    "auto_debug_bundleName": "00000026F6D38E884A08FBE0E9660FB78B4965FBF8BF63D948E289A47F9689B180248B9DFF5AC85E11CA872AF56424EF55D2D7335817",
+    "auto_debug_cert_list": "000000232FA6A078F1BFC3699D786BEDF4648D1101B3886F6FA1C494A6FE273BBDBB22034DF6C28282D474862A5C808BB90908",
+    "auto_debug_device_list": "0000005F96FDBECADC36D7D3094869CCFD27C059A8C367675413E7A9C2BB638E3A5138E67E727E8CAC4A25290E6E19FE19E76768D278953F076A53F83DA61B20715CB49A77FF72A05FDBF6E503EDF207C744CC162A568E4E150B281225D72324C5CEC2A716A426A77A5A3A628CDD87",
+    "auto_debug_package_name": "000000261BEC0639C26A2617E8FBEB964EC15D2F2CFCC49B18D1D3E7CBCB0FCA64B2869BD67AB6A9BB68AC76B068826626D645109935",
+    "auto_debug_team_id": "00000021D53B31693E1AA026AF17D7AE8E3CBC06305F60C112ABA7736D0DF434AE5BB88AD2A1DC7FF91B8CD5D23C1B7C76",
+    "last_opened_file_path": "/Volumes/CaseSensitive/Tencent/harmony/imsdk/client_uikit/atomic-x/harmony/chat/uikit",
+    "resolution": "1080*2340",
+    "settings.editor.selected.configurable": "com.huawei.deveco.sdkmanager.ohos.idea.ui.OhSdkConfigProvider",
+    "shape": "phone"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;reqPermissions&quot;: [
+  "keyToStringList": {
+    "reqPermissions": [
     ]
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/../uikit" />

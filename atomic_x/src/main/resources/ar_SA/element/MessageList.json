@@ -1,0 +1,152 @@
+{
+  "string": [
+    {
+      "name": "action_copy",
+      "value": "نسخ"
+    },
+    {
+      "name": "action_forward",
+      "value": "إعادة توجيه"
+    },
+    {
+      "name": "action_multi_select",
+      "value": "تحديد متعدد"
+    },
+    {
+      "name": "action_quote",
+      "value": "اقتباس"
+    },
+    {
+      "name": "action_more",
+      "value": "المزيد"
+    },
+    {
+      "name": "action_reply",
+      "value": "رد"
+    },
+    {
+      "name": "action_translate",
+      "value": "ترجمة"
+    },
+    {
+      "name": "action_recall",
+      "value": "استدعاء"
+    },
+    {
+      "name": "action_delete",
+      "value": "حذف"
+    },
+    {
+      "name": "action_back",
+      "value": "رجوع"
+    },
+    {
+      "name": "messagelist_loading",
+      "value": "جاري التحميل..."
+    },
+    {
+      "name": "messagelist_loading_history",
+      "value": "جاري تحميل التاريخ..."
+    },
+    {
+      "name": "messagelist_loading_new",
+      "value": "جاري تحميل رسائل جديدة..."
+    },
+    {
+      "name": "messagelist_delete_failed_invalid_state",
+      "value": "فشل الحذف: حالة غير صالحة"
+    },
+    {
+      "name": "messagelist_message_deleted",
+      "value": "تم حذف الرسالة"
+    },
+    {
+      "name": "messagelist_delete_message_failed",
+      "value": "فشل في حذف الرسالة"
+    },
+    {
+      "name": "messagelist_delete_failed_not_found",
+      "value": "فشل الحذف: الرسالة غير موجودة"
+    },
+    {
+      "name": "messagelist_recall_failed_invalid_state",
+      "value": "فشل الاستدعاء: حالة غير صالحة"
+    },
+    {
+      "name": "messagelist_recall_only_own",
+      "value": "يمكنك فقط استدعاء رسالتك الخاصة"
+    },
+    {
+      "name": "messagelist_recall_failed",
+      "value": "فشل الاستدعاء"
+    },
+    {
+      "name": "messagelist_recall_failed_not_found",
+      "value": "فشل الاستدعاء: الرسالة غير موجودة"
+    },
+    {
+      "name": "messagelist_image_load_failed",
+      "value": "فشل في تحميل الصورة"
+    },
+    {
+      "name": "messagelist_unknown_file",
+      "value": "ملف غير معروف"
+    },
+    {
+      "name": "messagelist_downloading",
+      "value": "جاري التحميل..."
+    },
+    {
+      "name": "messagelist_file_download_success",
+      "value": "تم تحميل الملف بنجاح"
+    },
+    {
+      "name": "messagelist_file_download_failed",
+      "value": "فشل في تحميل الملف"
+    },
+    {
+      "name": "messagelist_unknown_size",
+      "value": "حجم غير معروف"
+    },
+    {
+      "name": "messagelist_copy_unsupported",
+      "value": "لا يمكن نسخ هذا النوع من الرسائل"
+    },
+    {
+      "name": "messagelist_copy_failed",
+      "value": "فشل النسخ"
+    },
+    {
+      "name": "messagelist_copied",
+      "value": "تم النسخ"
+    },
+    {
+      "name": "messagelist_recall_failed_no_callback",
+      "value": "فشل الاستدعاء: لا يوجد استدعاء"
+    },
+    {
+      "name": "messagelist_delete_failed_no_callback",
+      "value": "فشل الحذف: لا يوجد استدعاء"
+    },
+    {
+      "name": "action_resend",
+      "value": "إعادة إرسال"
+    },
+    {
+      "name": "resend_confirm_title",
+      "value": "إعادة إرسال الرسالة"
+    },
+    {
+      "name": "resend_confirm_message",
+      "value": "هل أنت متأكد من إعادة إرسال هذه الرسالة؟"
+    },
+    {
+      "name": "messagelist_resend_success",
+      "value": "تم إعادة إرسال الرسالة بنجاح"
+    },
+    {
+      "name": "messagelist_resend_failed",
+      "value": "فشل في إعادة إرسال الرسالة"
+    }
+  ]
+}

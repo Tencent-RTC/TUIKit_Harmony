@@ -1,0 +1,12 @@
+{
+  "name": "chatuikit",
+  "version": "1.0.0",
+  "description": "Please describe the basic information.",
+  "main": "Index.ets",
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@tencentcloud/atomicx": "file:../../atomic_x/",
+    "@tencentcloud/atomicxcore": "file:../../../../../tuikit_engine/atomicx/harmony/atomicxcore"
+  }
+}

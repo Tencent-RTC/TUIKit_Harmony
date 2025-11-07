@@ -1,0 +1,13 @@
+{
+  "name": "@tencentcloud/atomicx",
+  "version": "1.0.0",
+  "description": "Atomic_X unified component library for HarmonyOS - combines all UI components into a single module",
+  "main": "Index.ets",
+  "author": "Tencent Cloud",
+  "license": "Apache-2.0",
+  "packageType": "InterfaceHar",
+  "dependencies": {
+    "@tencentcloud/atomicxcore": "file:../../../../tuikit_engine/atomicx/harmony/atomicxcore",
+    "@tencent/mmkv": "1.3.5"
+  }
+}

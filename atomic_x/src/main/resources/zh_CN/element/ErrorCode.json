@@ -1,0 +1,1104 @@
+{
+  "string": [
+    {
+      "name": "error_code_in_progress",
+      "value": "执行中"
+    },
+    {
+      "name": "error_code_invalid_parameters",
+      "value": "参数无效"
+    },
+    {
+      "name": "error_code_io_operation_failed",
+      "value": "IO操作失败"
+    },
+    {
+      "name": "error_code_invalid_json",
+      "value": "错误的 JSON 格式"
+    },
+    {
+      "name": "error_code_out_of_memory",
+      "value": "内存不足"
+    },
+    {
+      "name": "error_code_parse_response_failed",
+      "value": "PB 解析失败"
+    },
+    {
+      "name": "error_code_serialize_request_failed",
+      "value": "PB 序列化失败"
+    },
+    {
+      "name": "error_code_sdk_not_initialized",
+      "value": "IM SDK 未初始化"
+    },
+    {
+      "name": "error_code_load_message_failed",
+      "value": "加载消息失败"
+    },
+    {
+      "name": "error_code_database_operation_failed",
+      "value": "数据库操作失败"
+    },
+    {
+      "name": "error_code_cross_thread_operation",
+      "value": "跨线程操作"
+    },
+    {
+      "name": "error_code_tiny_id_empty",
+      "value": "Tiny ID为空"
+    },
+    {
+      "name": "error_code_invalid_identifier",
+      "value": "Identifier 非法"
+    },
+    {
+      "name": "error_code_file_not_found",
+      "value": "文件不存在"
+    },
+    {
+      "name": "error_code_file_too_large",
+      "value": "文件大小超出了限制"
+    },
+    {
+      "name": "error_code_empty_file",
+      "value": "空文件"
+    },
+    {
+      "name": "error_code_file_open_failed",
+      "value": "文件打开失败"
+    },
+    {
+      "name": "error_code_interface_not_supported",
+      "value": "接口不支持"
+    },
+    {
+      "name": "error_code_not_logged_in",
+      "value": "未登录"
+    },
+    {
+      "name": "error_code_no_previous_login",
+      "value": "并没有登录过该用户"
+    },
+    {
+      "name": "error_code_user_signature_expired",
+      "value": "用户签名已过期"
+    },
+    {
+      "name": "error_code_kicked_off_by_other_login",
+      "value": "被其他登录踢下线"
+    },
+    {
+      "name": "error_code_tls_init_failed",
+      "value": "TLS初始化失败"
+    },
+    {
+      "name": "error_code_tls_not_initialized",
+      "value": "TLS未初始化"
+    },
+    {
+      "name": "error_code_tls_transpkg_error",
+      "value": "TLS传输包错误"
+    },
+    {
+      "name": "error_code_tls_decrypt_failed",
+      "value": "TLS解密失败"
+    },
+    {
+      "name": "error_code_tls_request_failed",
+      "value": "TLS请求失败"
+    },
+    {
+      "name": "error_code_tls_request_timeout",
+      "value": "TLS请求超时"
+    },
+    {
+      "name": "error_code_invalid_conversation",
+      "value": "会话无效"
+    },
+    {
+      "name": "error_code_file_transfer_auth_failed",
+      "value": "文件传输认证失败"
+    },
+    {
+      "name": "error_code_no_file_transfer_server",
+      "value": "无文件传输服务器"
+    },
+    {
+      "name": "error_code_file_upload_failed",
+      "value": "文件上传失败"
+    },
+    {
+      "name": "error_code_upload_failed_not_image",
+      "value": "上传失败：不是图片"
+    },
+    {
+      "name": "error_code_file_download_failed",
+      "value": "文件下载失败"
+    },
+    {
+      "name": "error_code_http_request_failed",
+      "value": "HTTP 请求失败"
+    },
+    {
+      "name": "error_code_invalid_message_element",
+      "value": "消息元素无效"
+    },
+    {
+      "name": "error_code_invalid_sdk_object",
+      "value": "无效的对象"
+    },
+    {
+      "name": "error_code_message_body_size_limit_exceeded",
+      "value": "消息体大小超限"
+    },
+    {
+      "name": "error_code_message_key_req_differ_rsp",
+      "value": "消息密钥请求与响应不符"
+    },
+    {
+      "name": "error_code_invalid_group_id",
+      "value": "群组ID无效"
+    },
+    {
+      "name": "error_code_invalid_group_name",
+      "value": "群组名称无效"
+    },
+    {
+      "name": "error_code_invalid_group_introduction",
+      "value": "群组介绍无效"
+    },
+    {
+      "name": "error_code_invalid_group_notification",
+      "value": "群组通知无效"
+    },
+    {
+      "name": "error_code_invalid_group_face_url",
+      "value": "群组头像URL无效"
+    },
+    {
+      "name": "error_code_invalid_group_name_card",
+      "value": "群组名片无效"
+    },
+    {
+      "name": "error_code_group_member_count_limit_exceeded",
+      "value": "群组成员数量超限"
+    },
+    {
+      "name": "error_code_join_private_group_denied",
+      "value": "加入私有群组被拒绝"
+    },
+    {
+      "name": "error_code_invite_super_group_denied",
+      "value": "邀请加入超级群组被拒绝"
+    },
+    {
+      "name": "error_code_invite_no_member",
+      "value": "无成员可邀请"
+    },
+    {
+      "name": "error_code_invalid_profile_key",
+      "value": "资料字段无效"
+    },
+    {
+      "name": "error_code_invalid_add_remark",
+      "value": "添加备注无效"
+    },
+    {
+      "name": "error_code_invalid_add_wording",
+      "value": "添加验证信息无效"
+    },
+    {
+      "name": "error_code_invalid_add_source",
+      "value": "添加来源无效"
+    },
+    {
+      "name": "error_code_friend_group_empty",
+      "value": "好友分组为空"
+    },
+    {
+      "name": "error_code_network_encode_failed",
+      "value": "网络编码失败"
+    },
+    {
+      "name": "error_code_network_decode_failed",
+      "value": "网络解码失败"
+    },
+    {
+      "name": "error_code_network_auth_invalid",
+      "value": "网络认证无效"
+    },
+    {
+      "name": "error_code_network_compress_failed",
+      "value": "网络压缩失败"
+    },
+    {
+      "name": "error_code_network_uncompress_failed",
+      "value": "网络解压失败"
+    },
+    {
+      "name": "error_code_network_freq_limit",
+      "value": "网络频率限制"
+    },
+    {
+      "name": "error_code_network_req_count_limit",
+      "value": "网络请求次数限制"
+    },
+    {
+      "name": "error_code_network_disconnected",
+      "value": "网络断开连接"
+    },
+    {
+      "name": "error_code_network_already_connected",
+      "value": "网络已连接"
+    },
+    {
+      "name": "error_code_connection_timeout",
+      "value": "连接超时"
+    },
+    {
+      "name": "error_code_connection_refused",
+      "value": "连接被拒绝"
+    },
+    {
+      "name": "error_code_network_unreachable",
+      "value": "网络不可达"
+    },
+    {
+      "name": "error_code_socket_no_buffer",
+      "value": "套接字无缓冲区"
+    },
+    {
+      "name": "error_code_reset_by_peer",
+      "value": "连接被对端重置"
+    },
+    {
+      "name": "error_code_socket_invalid",
+      "value": "套接字无效"
+    },
+    {
+      "name": "error_code_host_getaddrinfo_failed",
+      "value": "主机地址解析失败"
+    },
+    {
+      "name": "error_code_connect_reset",
+      "value": "连接重置"
+    },
+    {
+      "name": "error_code_wait_inqueue_timeout",
+      "value": "队列等待超时"
+    },
+    {
+      "name": "error_code_wait_send_timeout",
+      "value": "发送等待超时"
+    },
+    {
+      "name": "error_code_wait_ack_timeout",
+      "value": "ACK等待超时"
+    },
+    {
+      "name": "error_code_wait_send_remaining_timeout",
+      "value": "剩余发送等待超时"
+    },
+    {
+      "name": "error_code_pkg_size_limit",
+      "value": "包大小超限"
+    },
+    {
+      "name": "error_code_wait_send_timeout_no_network",
+      "value": "发送等待超时（无网络）"
+    },
+    {
+      "name": "error_code_wait_ack_timeout_no_network",
+      "value": "ACK等待超时（无网络）"
+    },
+    {
+      "name": "error_code_send_remaining_timeout_no_network",
+      "value": "剩余发送超时（无网络）"
+    },
+    {
+      "name": "error_code_server_connection_limit",
+      "value": "服务器连接数限制"
+    },
+    {
+      "name": "error_code_server_verification_code",
+      "value": "服务器验证码错误"
+    },
+    {
+      "name": "error_code_server_empty_key",
+      "value": "服务器密钥为空"
+    },
+    {
+      "name": "error_code_server_invalid_uin",
+      "value": "服务器UIN无效"
+    },
+    {
+      "name": "error_code_server_verification_timeout",
+      "value": "服务器验证超时"
+    },
+    {
+      "name": "error_code_server_invalid_cookie",
+      "value": "服务器Cookie无效"
+    },
+    {
+      "name": "error_code_server_down_tip",
+      "value": "服务器宕机"
+    },
+    {
+      "name": "error_code_server_disconnect",
+      "value": "服务器断开连接"
+    },
+    {
+      "name": "error_code_server_invalid_identifier",
+      "value": "服务器标识符无效"
+    },
+    {
+      "name": "error_code_server_client_close",
+      "value": "服务器客户端关闭"
+    },
+    {
+      "name": "error_code_server_msfsdk_quit",
+      "value": "服务器MSFSDK退出"
+    },
+    {
+      "name": "error_code_server_unsupported",
+      "value": "服务器不支持"
+    },
+    {
+      "name": "error_code_server_prepaid_arrears",
+      "value": "预付费欠费。"
+    },
+    {
+      "name": "error_code_server_packet_wrong",
+      "value": "服务器数据包错误"
+    },
+    {
+      "name": "error_code_server_appid_blacklist",
+      "value": "服务器AppID在黑名单中"
+    },
+    {
+      "name": "error_code_server_cmd_blacklist",
+      "value": "服务器命令在黑名单中"
+    },
+    {
+      "name": "error_code_server_appid_without_using",
+      "value": "服务器AppID未使用"
+    },
+    {
+      "name": "error_code_server_freq_limit",
+      "value": "服务器频率限制"
+    },
+    {
+      "name": "error_code_server_overload",
+      "value": "服务器过载"
+    },
+    {
+      "name": "error_code_server_resource_not_found",
+      "value": "服务器资源未找到"
+    },
+    {
+      "name": "error_code_server_resource_access_denied",
+      "value": "服务器资源访问被拒绝"
+    },
+    {
+      "name": "error_code_server_resource_size_limit",
+      "value": "服务器资源大小超限"
+    },
+    {
+      "name": "error_code_server_resource_send_cancel",
+      "value": "服务器资源发送取消"
+    },
+    {
+      "name": "error_code_server_resource_read_failed",
+      "value": "服务器资源读取失败"
+    },
+    {
+      "name": "error_code_server_resource_transfer_timeout",
+      "value": "服务器资源传输超时"
+    },
+    {
+      "name": "error_code_server_resource_invalid_parameters",
+      "value": "服务器资源参数无效"
+    },
+    {
+      "name": "error_code_server_invalid_http_url",
+      "value": "服务器HTTP URL无效"
+    },
+    {
+      "name": "error_code_server_req_json_parse_failed",
+      "value": "服务器请求JSON解析失败"
+    },
+    {
+      "name": "error_code_server_invalid_account",
+      "value": "服务器账号无效"
+    },
+    {
+      "name": "error_code_server_invalid_account_ex",
+      "value": "服务器账号无效（扩展）"
+    },
+    {
+      "name": "error_code_server_invalid_sdkappid",
+      "value": "服务器SDK AppID无效"
+    },
+    {
+      "name": "error_code_server_rest_freq_limit",
+      "value": "服务器REST频率限制"
+    },
+    {
+      "name": "error_code_server_request_timeout",
+      "value": "服务器请求超时"
+    },
+    {
+      "name": "error_code_server_invalid_resource",
+      "value": "服务器资源无效"
+    },
+    {
+      "name": "error_code_server_id_not_admin",
+      "value": "服务器ID不是管理员"
+    },
+    {
+      "name": "error_code_server_sdkappid_freq_limit",
+      "value": "服务器SDK AppID频率限制"
+    },
+    {
+      "name": "error_code_server_sdkappid_miss",
+      "value": "服务器SDK AppID缺失"
+    },
+    {
+      "name": "error_code_server_rsp_json_parse_failed",
+      "value": "服务器响应JSON解析失败"
+    },
+    {
+      "name": "error_code_server_exchange_account_timeout",
+      "value": "服务器交换账号超时"
+    },
+    {
+      "name": "error_code_server_invalid_id_format",
+      "value": "服务器ID格式无效"
+    },
+    {
+      "name": "error_code_server_sdkappid_forbidden",
+      "value": "服务器SDK AppID被禁止"
+    },
+    {
+      "name": "error_code_server_req_forbidden",
+      "value": "服务器请求被禁止"
+    },
+    {
+      "name": "error_code_server_req_freq_limit",
+      "value": "服务器请求频率限制"
+    },
+    {
+      "name": "error_code_server_req_freq_limit_ex",
+      "value": "服务器请求频率限制（扩展）"
+    },
+    {
+      "name": "error_code_server_invalid_service",
+      "value": "服务器服务无效"
+    },
+    {
+      "name": "error_code_server_sensitive_text",
+      "value": "文本安全打击，文本中可能包含敏感词汇。"
+    },
+    {
+      "name": "error_code_server_body_size_limit",
+      "value": "发消息包体过长，目前支持最大12k消息包体长度，请减少包体大小重试。"
+    },
+    {
+      "name": "error_code_login_in_process",
+      "value": "登录正在进行中"
+    },
+    {
+      "name": "error_code_logout_in_process",
+      "value": "登出正在进行中"
+    },
+    {
+      "name": "error_code_image_convert_error",
+      "value": "图片转换错误"
+    },
+    {
+      "name": "error_code_signaling_invalid_invite_id",
+      "value": "信令邀请ID无效"
+    },
+    {
+      "name": "error_code_signaling_no_permission",
+      "value": "信令操作无权限"
+    },
+    {
+      "name": "error_code_signaling_already_exists",
+      "value": "信令邀请已存在"
+    },
+    {
+      "name": "error_code_group_attr_frequency_limit",
+      "value": "群属性操作频率限制"
+    },
+    {
+      "name": "error_code_server_resource_invalid_file_md5",
+      "value": "文件 MD5 校验失败。"
+    },
+    {
+      "name": "error_code_server_resource_invalid_part_md5",
+      "value": "分片 MD5 校验失败。"
+    },
+    {
+      "name": "error_code_success",
+      "value": "成功"
+    },
+    {
+      "name": "error_code_no_success_result",
+      "value": "批量操作无成功结果"
+    },
+    {
+      "name": "error_code_invalid_receiver",
+      "value": "无效接收方"
+    },
+    {
+      "name": "error_code_request_timeout",
+      "value": "请求超时"
+    },
+    {
+      "name": "error_code_init_core_failed",
+      "value": "初始化核心模块失败"
+    },
+    {
+      "name": "error_code_expired_session_node",
+      "value": "会话节点已过期"
+    },
+    {
+      "name": "error_code_logged_out_before_login_finished",
+      "value": "登录完成前进行了登出"
+    },
+    {
+      "name": "error_code_tls_sdk_not_initialized",
+      "value": "TLS SDK未初始化"
+    },
+    {
+      "name": "error_code_tls_sdk_user_not_found",
+      "value": "TLS SDK未找到用户信息"
+    },
+    {
+      "name": "error_code_server_d2_expired",
+      "value": "服务器D2已过期"
+    },
+    {
+      "name": "error_code_server_a2_up_invalid",
+      "value": "服务器A2上行校验失败"
+    },
+    {
+      "name": "error_code_server_a2_down_invalid",
+      "value": "服务器A2下行校验失败"
+    },
+    {
+      "name": "error_code_server_no_imei_and_a2",
+      "value": "服务器需要IMEI和A2"
+    },
+    {
+      "name": "error_code_server_d2key_wrong",
+      "value": "解密失败次数超过阈值，通知终端需要重置，请重新调用 TIMManager.getInstance().login 登录接口生成新的 Key。"
+    },
+    {
+      "name": "error_code_server_account_usersig_expired",
+      "value": "UserSig 已过期，请重新生成 UserSig"
+    },
+    {
+      "name": "error_code_server_account_usersig_empty",
+      "value": "UserSig 长度为0"
+    },
+    {
+      "name": "error_code_server_account_usersig_check_failed",
+      "value": "UserSig 校验失败"
+    },
+    {
+      "name": "error_code_server_account_usersig_check_failed_ex",
+      "value": "服务器UserSig校验失败（扩展）"
+    },
+    {
+      "name": "error_code_server_account_usersig_mismatch_publickey",
+      "value": "用公钥验证 UserSig 失败"
+    },
+    {
+      "name": "error_code_server_account_usersig_mismatch_id",
+      "value": "请求的 Identifier 与生成 UserSig 的 Identifier 不匹配。"
+    },
+    {
+      "name": "error_code_server_account_usersig_mismatch_sdkappid",
+      "value": "请求的 SDKAppID 与生成 UserSig 的 SDKAppID 不匹配。"
+    },
+    {
+      "name": "error_code_server_account_usersig_publickey_not_found",
+      "value": "验证 UserSig 时公钥不存在"
+    },
+    {
+      "name": "error_code_server_account_sdkappid_not_found",
+      "value": "SDKAppID 未找到，请在云通信 IM 控制台确认应用信息。"
+    },
+    {
+      "name": "error_code_server_account_freq_limit",
+      "value": "因失败且重试次数过多导致被限制，请检查 UserSig 是否正确，一分钟之后再试。"
+    },
+    {
+      "name": "error_code_server_account_blacklist",
+      "value": "账号被拉入黑名单。"
+    },
+    {
+      "name": "error_code_server_account_invalid_usersig",
+      "value": "UserSig 已经失效，请重新生成，再次尝试。"
+    },
+    {
+      "name": "error_code_server_account_not_found",
+      "value": "请求的用户账号不存在。"
+    },
+    {
+      "name": "error_code_server_account_sec_rstr",
+      "value": "安全原因被限制。"
+    },
+    {
+      "name": "error_code_server_account_internal_timeout",
+      "value": "服务端内部超时，请重试。"
+    },
+    {
+      "name": "error_code_server_account_invalid_count",
+      "value": "请求中批量数量不合法。"
+    },
+    {
+      "name": "error_code_server_account_count_limit",
+      "value": "创建账号数量超过免费体验版数量限制，请升级为专业版。"
+    },
+    {
+      "name": "error_code_server_account_invalid_parameters",
+      "value": "参数非法，请检查必填字段是否填充，或者字段的填充是否满足协议要求。"
+    },
+    {
+      "name": "error_code_server_account_admin_required",
+      "value": "请求需要 App 管理员权限。"
+    },
+    {
+      "name": "error_code_server_account_internal_error",
+      "value": "服务端内部错误，请重试。"
+    },
+    {
+      "name": "error_code_server_profile_invalid_parameters",
+      "value": "请求参数错误，请根据错误描述检查请求是否正确。"
+    },
+    {
+      "name": "error_code_server_profile_account_miss",
+      "value": "请求参数错误，没有指定需要拉取资料的用户账号。"
+    },
+    {
+      "name": "error_code_server_profile_account_not_found",
+      "value": "请求的用户账号不存在。"
+    },
+    {
+      "name": "error_code_server_profile_admin_required",
+      "value": "请求需要 App 管理员权限。"
+    },
+    {
+      "name": "error_code_server_profile_sensitive_text",
+      "value": "资料字段中包含敏感词。"
+    },
+    {
+      "name": "error_code_server_profile_internal_error",
+      "value": "服务端内部错误，请稍后重试。"
+    },
+    {
+      "name": "error_code_server_profile_read_permission_required",
+      "value": "没有资料字段的读权限，详情可参见 资料字段。"
+    },
+    {
+      "name": "error_code_server_profile_write_permission_required",
+      "value": "没有资料字段的读权限，详情可参见 资料字段。"
+    },
+    {
+      "name": "error_code_server_profile_tag_not_found",
+      "value": "资料字段的 Tag 不存在。"
+    },
+    {
+      "name": "error_code_server_profile_size_limit",
+      "value": "资料字段的 Value 长度超过500字节。"
+    },
+    {
+      "name": "error_code_server_profile_value_error",
+      "value": "标配资料字段的 Value 错误，详情可参见 标配资料字段。"
+    },
+    {
+      "name": "error_code_server_profile_invalid_value_format",
+      "value": "资料字段的 Value 类型不匹配，详情可参见 标配资料字段。"
+    },
+    {
+      "name": "error_code_server_friendship_invalid_parameters",
+      "value": "请求参数错误，请根据错误描述检查请求是否正确。"
+    },
+    {
+      "name": "error_code_server_friendship_invalid_sdkappid",
+      "value": "SDKAppID 不匹配。"
+    },
+    {
+      "name": "error_code_server_friendship_account_not_found",
+      "value": "请求的用户账号不存在。"
+    },
+    {
+      "name": "error_code_server_friendship_admin_required",
+      "value": "请求需要 App 管理员权限。"
+    },
+    {
+      "name": "error_code_server_friendship_sensitive_text",
+      "value": "关系链字段中包含敏感词。"
+    },
+    {
+      "name": "error_code_server_friendship_internal_error",
+      "value": "服务器好友关系内部错误"
+    },
+    {
+      "name": "error_code_server_friendship_net_timeout",
+      "value": "网络超时，请稍后重试。"
+    },
+    {
+      "name": "error_code_server_friendship_write_conflict",
+      "value": "并发写导致写冲突，建议使用批量方式。"
+    },
+    {
+      "name": "error_code_server_friendship_add_friend_deny",
+      "value": "后台禁止该用户发起加好友请求。"
+    },
+    {
+      "name": "error_code_server_friendship_count_limit",
+      "value": "您的好友数已达系统上限。"
+    },
+    {
+      "name": "error_code_server_friendship_group_count_limit",
+      "value": "分组已达系统上限。"
+    },
+    {
+      "name": "error_code_server_friendship_pendency_limit",
+      "value": "未决数已达系统上限。"
+    },
+    {
+      "name": "error_code_server_friendship_blacklist_limit",
+      "value": "黑名单数已达系统上限。"
+    },
+    {
+      "name": "error_code_server_friendship_peer_friend_limit",
+      "value": "对方的好友数已达系统上限。"
+    },
+    {
+      "name": "error_code_server_friendship_in_self_blacklist",
+      "value": "对方在自己的黑名单中，不允许加好友。"
+    },
+    {
+      "name": "error_code_server_friendship_allow_type_deny_any",
+      "value": "对方不允许任何人添加自己为好友。"
+    },
+    {
+      "name": "error_code_server_friendship_in_peer_blacklist",
+      "value": "自己在对方的黑名单中，不允许加好友。"
+    },
+    {
+      "name": "error_code_server_friendship_allow_type_need_confirm",
+      "value": "请求已发送，等待对方同意"
+    },
+    {
+      "name": "error_code_server_friendship_add_friend_sec_rstr",
+      "value": "添加好友请求被安全策略打击，请勿频繁发起添加好友请求。"
+    },
+    {
+      "name": "error_code_server_friendship_pendency_not_found",
+      "value": "请求的未决不存在。"
+    },
+    {
+      "name": "error_code_server_friendship_del_nonfriend",
+      "value": "删除好友请求被安全策略打击，请勿频繁发起删除好友请求。"
+    },
+    {
+      "name": "error_code_server_friendship_del_friend_sec_rstr",
+      "value": "删除好友请求被安全策略打击，请勿频繁发起删除好友请求。"
+    },
+    {
+      "name": "error_code_server_friendship_account_not_found_ex",
+      "value": "请求的用户账号不存在。"
+    },
+    {
+      "name": "error_code_server_conv_account_not_found",
+      "value": "请求的用户账号不存在。"
+    },
+    {
+      "name": "error_code_server_conv_invalid_parameters",
+      "value": "请求参数错误，请根据错误描述检查请求是否正确。"
+    },
+    {
+      "name": "error_code_server_conv_admin_required",
+      "value": "请求需要 App 管理员权限。"
+    },
+    {
+      "name": "error_code_server_conv_internal_error",
+      "value": "服务器会话内部错误"
+    },
+    {
+      "name": "error_code_server_conv_net_timeout",
+      "value": "网络超时，请稍后重试。"
+    },
+    {
+      "name": "error_code_server_msg_pkg_parse_failed",
+      "value": "解析请求包失败。"
+    },
+    {
+      "name": "error_code_server_msg_internal_auth_failed",
+      "value": "内部鉴权失败。"
+    },
+    {
+      "name": "error_code_server_msg_invalid_id",
+      "value": "Identifier 无效"
+    },
+    {
+      "name": "error_code_server_msg_net_error",
+      "value": "网络异常，请重试。"
+    },
+    {
+      "name": "error_code_server_msg_internal_error1",
+      "value": "网络异常，请重试。"
+    },
+    {
+      "name": "error_code_server_msg_push_deny",
+      "value": "触发发送单聊消息之前回调，App 后台返回禁止下发该消息。"
+    },
+    {
+      "name": "error_code_server_msg_in_peer_blacklist",
+      "value": "发送单聊消息，被对方拉黑，禁止发送。"
+    },
+    {
+      "name": "error_code_server_msg_both_not_friend",
+      "value": "消息发送双方互相不是好友，禁止发送。"
+    },
+    {
+      "name": "error_code_server_msg_not_peer_friend",
+      "value": "发送单聊消息，自己不是对方的好友（单向关系），禁止发送。"
+    },
+    {
+      "name": "error_code_server_msg_not_self_friend",
+      "value": "发送单聊消息，对方不是自己的好友（单向关系），禁止发送。"
+    },
+    {
+      "name": "error_code_server_msg_shutup_deny",
+      "value": "因禁言，禁止发送消息。"
+    },
+    {
+      "name": "error_code_server_msg_revoke_time_limit",
+      "value": "消息撤回超过了时间限制（默认2分钟）。"
+    },
+    {
+      "name": "error_code_server_msg_del_ramble_internal_error",
+      "value": "删除漫游内部错误。"
+    },
+    {
+      "name": "error_code_server_msg_json_parse_failed",
+      "value": "JSON 格式解析失败，请检查请求包是否符合 JSON 规范。"
+    },
+    {
+      "name": "error_code_server_msg_invalid_json_body_format",
+      "value": "JSON 格式请求包中 MsgBody 不符合消息格式描述"
+    },
+    {
+      "name": "error_code_server_msg_invalid_to_account",
+      "value": "JSON 格式请求包体中缺少 To_Account 字段或者 To_Account 字段不是 Integer 类型"
+    },
+    {
+      "name": "error_code_server_msg_invalid_rand",
+      "value": "JSON 格式请求包体中缺少 MsgRandom 字段或者 MsgRandom 字段不是 Integer 类型"
+    },
+    {
+      "name": "error_code_server_msg_invalid_timestamp",
+      "value": "JSON 格式请求包体中缺少 MsgTimeStamp 字段或者 MsgTimeStamp 字段不是 Integer 类型"
+    },
+    {
+      "name": "error_code_server_msg_body_not_array",
+      "value": "JSON 格式请求包体中 MsgBody 类型不是 Array 类型"
+    },
+    {
+      "name": "error_code_server_msg_admin_required",
+      "value": "JSON 格式请求包不符合消息格式描述"
+    },
+    {
+      "name": "error_code_server_msg_invalid_json_format",
+      "value": "JSON 格式请求包不符合消息格式描述"
+    },
+    {
+      "name": "error_code_server_msg_to_account_count_limit",
+      "value": "批量发消息目标账号超过500"
+    },
+    {
+      "name": "error_code_server_msg_to_account_not_found",
+      "value": "To_Account 没有注册或不存在"
+    },
+    {
+      "name": "error_code_server_msg_time_limit",
+      "value": "消息离线存储时间错误（最多不能超过7天）。"
+    },
+    {
+      "name": "error_code_server_msg_invalid_syncothermachine",
+      "value": "JSON 格式请求包体中 SyncOtherMachine 字段不是 Integer 类型"
+    },
+    {
+      "name": "error_code_server_msg_invalid_msglifetime",
+      "value": "JSON 格式请求包体中 MsgLifeTime 字段不是 Integer 类型"
+    },
+    {
+      "name": "error_code_server_msg_account_not_found",
+      "value": "To_Account 没有注册或不存在"
+    },
+    {
+      "name": "error_code_server_msg_internal_error2",
+      "value": "服务器消息内部错误2"
+    },
+    {
+      "name": "error_code_server_msg_internal_error3",
+      "value": "服务器消息内部错误3"
+    },
+    {
+      "name": "error_code_server_msg_internal_error4",
+      "value": "服务器消息内部错误4"
+    },
+    {
+      "name": "error_code_server_msg_internal_error5",
+      "value": "服务器消息内部错误5"
+    },
+    {
+      "name": "error_code_server_msg_body_size_limit",
+      "value": "JSON 数据包超长，消息包体请不要超过12k。"
+    },
+    {
+      "name": "error_code_server_msg_longpolling_count_limit",
+      "value": "Web 端长轮询被踢（Web 端同时在线实例个数超出限制）。"
+    },
+    {
+      "name": "error_code_server_group_internal_error",
+      "value": "请求非法"
+    },
+    {
+      "name": "error_code_server_group_api_name_error",
+      "value": "请求中的接口名称错误"
+    },
+    {
+      "name": "error_code_server_group_invalid_parameters",
+      "value": "请求非法"
+    },
+    {
+      "name": "error_code_server_group_account_count_limit",
+      "value": "请求包体中携带的账号数量过多。"
+    },
+    {
+      "name": "error_code_server_group_freq_limit",
+      "value": "操作频率限制，请尝试降低调用的频率。"
+    },
+    {
+      "name": "error_code_server_group_permission_deny",
+      "value": "操作权限不足"
+    },
+    {
+      "name": "error_code_server_group_invalid_req",
+      "value": "请求非法"
+    },
+    {
+      "name": "error_code_server_group_super_not_allow_quit",
+      "value": "该群不允许群主主动退出。"
+    },
+    {
+      "name": "error_code_server_group_not_found",
+      "value": "群组不存在"
+    },
+    {
+      "name": "error_code_server_group_json_parse_failed",
+      "value": "解析 JSON 包体失败，请检查包体的格式是否符合 JSON 格式。"
+    },
+    {
+      "name": "error_code_server_group_invalid_id",
+      "value": "发起操作的 Identifier 非法，请检查发起操作的用户 Identifier 是否填写正确。"
+    },
+    {
+      "name": "error_code_server_group_already_member",
+      "value": "已经是群成员。"
+    },
+    {
+      "name": "error_code_server_group_full_member_count",
+      "value": "群已满员，无法将请求中的用户加入群组"
+    },
+    {
+      "name": "error_code_server_group_invalid_groupid",
+      "value": "群组 ID 非法，请检查群组 ID 是否填写正确。"
+    },
+    {
+      "name": "error_code_server_group_reject_from_thirdparty",
+      "value": "App 后台通过第三方回调拒绝本次操作。"
+    },
+    {
+      "name": "error_code_server_group_shutup_deny",
+      "value": "因被禁言而不能发送消息，请检查发送者是否被设置禁言。"
+    },
+    {
+      "name": "error_code_server_group_rsp_size_limit",
+      "value": "应答包长度超过最大包长"
+    },
+    {
+      "name": "error_code_server_group_account_not_found",
+      "value": "请求的用户账号不存在。"
+    },
+    {
+      "name": "error_code_server_group_groupid_in_used",
+      "value": "群组 ID 已被使用，请选择其他的群组 ID。"
+    },
+    {
+      "name": "error_code_server_group_send_msg_freq_limit",
+      "value": "发消息的频率超限，请延长两次发消息时间的间隔。"
+    },
+    {
+      "name": "error_code_server_group_req_already_been_processed",
+      "value": "此邀请或者申请请求已经被处理。"
+    },
+    {
+      "name": "error_code_server_group_groupid_in_used_for_super",
+      "value": "群组 ID 已被使用，并且操作者为群主，可以直接使用。"
+    },
+    {
+      "name": "error_code_server_group_sdkappid_deny",
+      "value": "该 SDKAppID 请求的命令字已被禁用"
+    },
+    {
+      "name": "error_code_server_group_revoke_msg_not_found",
+      "value": "请求撤回的消息不存在。"
+    },
+    {
+      "name": "error_code_server_group_revoke_msg_time_limit",
+      "value": "消息撤回超过了时间限制（默认2分钟）。"
+    },
+    {
+      "name": "error_code_server_group_revoke_msg_deny",
+      "value": "请求撤回的消息不支持撤回操作。"
+    },
+    {
+      "name": "error_code_server_group_not_allow_revoke_msg",
+      "value": "群组类型不支持消息撤回操作。"
+    },
+    {
+      "name": "error_code_server_group_remove_msg_deny",
+      "value": "该消息类型不支持删除操作。"
+    },
+    {
+      "name": "error_code_server_group_not_allow_remove_msg",
+      "value": "音视频聊天室和在线成员广播大群不支持删除消息。"
+    },
+    {
+      "name": "error_code_server_group_avchatroom_count_limit",
+      "value": "音视频聊天室创建数量超过了限制"
+    },
+    {
+      "name": "error_code_server_group_count_limit",
+      "value": "单个用户可创建和加入的群组数量超过了限制”。"
+    },
+    {
+      "name": "error_code_server_group_member_count_limit",
+      "value": "群成员数量超过限制"
+    },
+    {
+      "name": "error_code_unknown_format",
+      "value": "未知错误 (%s)"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "string": [
+    {
+      "name": "shared_desc",
+      "value": "描述"
+    },
+    {
+      "name": "cancel_button",
+      "value": "取消"
+    },
+    {
+      "name": "delete_button",
+      "value": "删除"
+    },
+    {
+      "name": "video_play_failed",
+      "value": "播放失败"
+    },
+    {
+      "name": "back_button",
+      "value": "返回"
+    }
+  ]
+}

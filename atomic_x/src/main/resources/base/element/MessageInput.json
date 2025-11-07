@@ -1,0 +1,104 @@
+{
+  "string": [
+    {
+      "name": "input_message_placeholder",
+      "value": "Type a message..."
+    },
+    {
+      "name": "send_button",
+      "value": "Send"
+    },
+    {
+      "name": "permission_read_media",
+      "value": "Read media files"
+    },
+    {
+      "name": "permission_write_media",
+      "value": "Write media files"
+    },
+    {
+      "name": "permission_media_location",
+      "value": "Access media location information"
+    },
+    {
+      "name": "permission_camera",
+      "value": "Use camera to take photos and record videos"
+    },
+    {
+      "name": "permission_read_imagevideo",
+      "value": "Read images and videos"
+    },
+    {
+      "name": "permission_write_imagevideo",
+      "value": "Write images and videos"
+    },
+    {
+      "name": "permission_read_audio",
+      "value": "Read audio files"
+    },
+    {
+      "name": "permission_read_storage",
+      "value": "Read user storage"
+    },
+    {
+      "name": "permission_write_storage",
+      "value": "Write user storage"
+    },
+    {
+      "name": "menu_image",
+      "value": "Image"
+    },
+    {
+      "name": "menu_photo",
+      "value": "Photo"
+    },
+    {
+      "name": "menu_video",
+      "value": "Video"
+    },
+    {
+      "name": "menu_file",
+      "value": "File"
+    },
+    {
+      "name": "menu_custom",
+      "value": "Custom"
+    },
+    {
+      "name": "cancel",
+      "value": "Cancel"
+    },
+    {
+      "name": "file_too_large_error",
+      "value": "File is too large"
+    },
+    {
+      "name": "image_too_large_error",
+      "value": "Image size exceeds 28MB limit"
+    },
+    {
+      "name": "audio_too_large_error",
+      "value": "Audio size exceeds 28MB limit"
+    },
+    {
+      "name": "video_too_large_error",
+      "value": "Video size exceeds 100MB limit"
+    },
+    {
+      "name": "file_size_too_large_error",
+      "value": "File size exceeds 100MB limit"
+    },
+    {
+      "name": "empty_file_error",
+      "value": "Cannot send empty file"
+    },
+    {
+      "name": "voice_release_to_cancel",
+      "value": "Release to cancel"
+    },
+    {
+      "name": "voice_release_to_send_slide_to_cancel",
+      "value": "Release to send, slide up to cancel"
+    }
+  ]
+}

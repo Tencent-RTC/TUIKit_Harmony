@@ -1,0 +1,312 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "وصف الوحدة"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "الوصف"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "تينسنت كلاود شات"
+    },
+    {
+      "name": "demo_title",
+      "value": "تينسنت كلاود شات"
+    },
+    {
+      "name": "demo_conversation_tab_name",
+      "value": "الرسائل"
+    },
+    {
+      "name": "demo_contact_tab_name",
+      "value": "جهات الاتصال"
+    },
+    {
+      "name": "demo_profile_tab_name",
+      "value": "الإعدادات"
+    },
+    {
+      "name": "demo_profile_signature_label",
+      "value": "التوقيع: "
+    },
+    {
+      "name": "demo_dev_login_user_name",
+      "value": "اسم المستخدم"
+    },
+    {
+      "name": "demo_login_button_name",
+      "value": "تسجيل الدخول"
+    },
+    {
+      "name": "demo_logout_button_name",
+      "value": "تسجيل الخروج"
+    },
+    {
+      "name": "demo_switch_language_button_name",
+      "value": "تغيير اللغة"
+    },
+    {
+      "name": "demo_about_button_name",
+      "value": "حول"
+    },
+    {
+      "name": "chat_title",
+      "value": "المحادثة"
+    },
+    {
+      "name": "search_placeholder",
+      "value": "البحث"
+    },
+    {
+      "name": "confirm",
+      "value": "تأكيد"
+    },
+    {
+      "name": "cancel_button",
+      "value": "إلغاء"
+    },
+    {
+      "name": "delete_button",
+      "value": "حذف"
+    },
+    {
+      "name": "no_messages_title",
+      "value": "لا توجد رسائل"
+    },
+    {
+      "name": "no_messages_desc",
+      "value": "ابدأ محادثة جديدة بالنقر على رمز +"
+    },
+    {
+      "name": "demo_theme_button_name",
+      "value": "المظهر"
+    },
+    {
+      "name": "theme_select_title",
+      "value": "اختر المظهر"
+    },
+    {
+      "name": "theme_light",
+      "value": "فاتح"
+    },
+    {
+      "name": "theme_dark",
+      "value": "داكن"
+    },
+    {
+      "name": "theme_system",
+      "value": "النظام"
+    },
+    {
+      "name": "cancel",
+      "value": "إلغاء"
+    },
+    {
+      "name": "permission_read_media",
+      "value": "نحتاج إلى قراءة ملفات الوسائط لاختيار وإرسال الصور ومقاطع الفيديو والرسائل الوسائطية الأخرى"
+    },
+    {
+      "name": "permission_write_media",
+      "value": "نحتاج إلى حفظ الصور ومقاطع الفيديو وملفات الوسائط المستلمة الأخرى"
+    },
+    {
+      "name": "permission_media_location",
+      "value": "نحتاج إلى الوصول إلى معلومات الموقع لملفات الوسائط"
+    },
+    {
+      "name": "permission_camera",
+      "value": "نحتاج إلى استخدام الكاميرا لالتقاط الصور وتسجيل مقاطع الفيديو لإرسال الرسائل"
+    },
+    {
+      "name": "permission_microphone",
+      "value": "نحتاج إلى استخدام الميكروفون لتسجيل الرسائل الصوتية"
+    },
+    {
+      "name": "permission_read_imagevideo",
+      "value": "نحتاج إلى قراءة ملفات الصور ومقاطع الفيديو لاختيار وإرسال الرسائل الوسائطية"
+    },
+    {
+      "name": "permission_write_imagevideo",
+      "value": "نحتاج إلى حفظ ملفات الصور ومقاطع الفيديو المستلمة"
+    },
+    {
+      "name": "permission_read_audio",
+      "value": "نحتاج إلى قراءة الملفات الصوتية لاختيار وإرسال الرسائل الصوتية"
+    },
+    {
+      "name": "permission_file_access",
+      "value": "نحتاج إلى الوصول إلى نظام الملفات لاختيار وإرسال رسائل الملفات"
+    },
+    {
+      "name": "contacts_title",
+      "value": "جهات الاتصال"
+    },
+    {
+      "name": "contacts_search_placeholder",
+      "value": "البحث"
+    },
+    {
+      "name": "add_friend",
+      "value": "إضافة صديق"
+    },
+    {
+      "name": "add_group_chat",
+      "value": "إضافة محادثة جماعية"
+    },
+    {
+      "name": "add_contacts",
+      "value": "إضافة جهات اتصال"
+    },
+    {
+      "name": "user_id_placeholder",
+      "value": "معرف المستخدم"
+    },
+    {
+      "name": "start_conversation",
+      "value": "بدء المحادثة"
+    },
+    {
+      "name": "create_group_chat",
+      "value": "إنشاء محادثة جماعية"
+    },
+    {
+      "name": "setting_title",
+      "value": "الإعدادات"
+    },
+    {
+      "name": "friend_request_setting",
+      "value": "إعدادات طلب الصداقة"
+    },
+    {
+      "name": "friend_request_title",
+      "value": "عندما يضيفني شخص كصديق"
+    },
+    {
+      "name": "friend_request_allow_any",
+      "value": "السماح لأي شخص"
+    },
+    {
+      "name": "friend_request_need_confirm",
+      "value": "يحتاج إلى تأكيد"
+    },
+    {
+      "name": "friend_request_deny_any",
+      "value": "رفض أي شخص"
+    },
+    {
+      "name": "friend_request_updated",
+      "value": "تم تحديث إعدادات طلب الصداقة إلى: %s"
+    },
+    {
+      "name": "friend_request_update_failed",
+      "value": "فشل في تحديث الإعدادات، يرجى المحاولة مرة أخرى"
+    },
+    {
+      "name": "profile_details",
+      "value": "تفاصيل الملف الشخصي"
+    },
+    {
+      "name": "profile_account",
+      "value": "الحساب"
+    },
+    {
+      "name": "profile_signature",
+      "value": "التوقيع"
+    },
+    {
+      "name": "profile_gender",
+      "value": "الجنس"
+    },
+    {
+      "name": "profile_birthday",
+      "value": "تاريخ الميلاد"
+    },
+    {
+      "name": "profile_edit_name",
+      "value": "تحرير الاسم"
+    },
+    {
+      "name": "profile_edit_name_desc",
+      "value": "يرجى إدخال اسمك"
+    },
+    {
+      "name": "profile_edit_signature",
+      "value": "تحرير التوقيع"
+    },
+    {
+      "name": "profile_edit_gender",
+      "value": "اختر الجنس"
+    },
+    {
+      "name": "no_self_signature",
+      "value": "لا يوجد توقيع"
+    },
+    {
+      "name": "gender_male",
+      "value": "ذكر"
+    },
+    {
+      "name": "gender_female",
+      "value": "أنثى"
+    },
+    {
+      "name": "gender_unknown",
+      "value": "غير محدد"
+    },
+    {
+      "name": "unsetted",
+      "value": "غير محدد"
+    },
+    {
+      "name": "feature_coming_soon",
+      "value": "الميزة قادمة قريباً"
+    },
+    {
+      "name": "update_profile_success",
+      "value": "تم تحديث الملف الشخصي بنجاح"
+    },
+    {
+      "name": "update_profile_failed",
+      "value": "فشل في تحديث الملف الشخصي"
+    },
+    {
+      "name": "edit",
+      "value": "تحرير"
+    },
+    {
+      "name": "please_input",
+      "value": "يرجى الإدخال"
+    },
+    {
+      "name": "language_select_title",
+      "value": "اختر اللغة"
+    },
+    {
+      "name": "profile_select_avatar",
+      "value": "اختر الصورة الشخصية"
+    },
+    {
+      "name": "language_chinese",
+      "value": "الصينية"
+    },
+    {
+      "name": "language_english",
+      "value": "الإنجليزية"
+    },
+    {
+      "name": "language_arabic",
+      "value": "العربية"
+    },
+    {
+      "name": "login_success_message",
+      "value": "تم تسجيل دخول المستخدم %s بنجاح"
+    },
+    {
+      "name": "theme_random_color",
+      "value": "لون عشوائي"
+    }
+  ]
+}

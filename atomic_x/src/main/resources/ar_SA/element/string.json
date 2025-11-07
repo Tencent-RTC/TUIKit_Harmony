@@ -1,0 +1,24 @@
+{
+  "string": [
+    {
+      "name": "shared_desc",
+      "value": "الوصف"
+    },
+    {
+      "name": "cancel_button",
+      "value": "إلغاء"
+    },
+    {
+      "name": "delete_button",
+      "value": "حذف"
+    },
+    {
+      "name": "video_play_failed",
+      "value": "فشل التشغيل"
+    },
+    {
+      "name": "back_button",
+      "value": "رجوع"
+    }
+  ]
+}

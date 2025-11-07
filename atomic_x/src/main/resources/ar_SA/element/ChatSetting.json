@@ -1,0 +1,904 @@
+{
+  "string": [
+    {
+      "name": "chatsetting_select_user",
+      "value": "اختر المستخدم"
+    },
+    {
+      "name": "chatsetting_complete",
+      "value": "إكمال"
+    },
+    {
+      "name": "chatsetting_cancel_button",
+      "value": "إلغاء"
+    },
+    {
+      "name": "chatsetting_user_picker_selected",
+      "value": "تم اختيار {count} أشخاص"
+    },
+    {
+      "name": "chatsetting_people_count",
+      "value": "أشخاص"
+    },
+    {
+      "name": "chatsetting_user_picker_selected_tag",
+      "value": "مختار"
+    },
+    {
+      "name": "chatsetting_max_select_tip",
+      "value": "يمكن اختيار %s مستخدمين كحد أقصى"
+    },
+    {
+      "name": "chatsetting_select_avatar",
+      "value": "اختر الصورة الشخصية"
+    },
+    {
+      "name": "chatsetting_confirm_select",
+      "value": "تأكيد"
+    },
+    {
+      "name": "chatsetting_no_avatar_available",
+      "value": "لا توجد صورة شخصية متاحة"
+    },
+    {
+      "name": "chatsetting_please_select_image_first",
+      "value": "يرجى اختيار صورة أولاً"
+    },
+    {
+      "name": "chatsetting_member_detail",
+      "value": "التفاصيل"
+    },
+    {
+      "name": "chatsetting_member_set_admin",
+      "value": "تعيين كمدير"
+    },
+    {
+      "name": "chatsetting_member_remove_admin",
+      "value": "إزالة المدير"
+    },
+    {
+      "name": "chatsetting_member_remove",
+      "value": "إزالة العضو"
+    },
+    {
+      "name": "chatsetting_navigate_to_single_chat_fail",
+      "value": "فشل في الانتقال إلى صفحة المحادثة الفردية"
+    },
+    {
+      "name": "chatsetting_group_info_unavailable_toast",
+      "value": "معلومات المجموعة غير متاحة"
+    },
+    {
+      "name": "chatsetting_member_setting_admin",
+      "value": "جاري تعيين المدير..."
+    },
+    {
+      "name": "chatsetting_member_setting_admin_fail",
+      "value": "فشل في تعيين المدير"
+    },
+    {
+      "name": "chatsetting_member_removing_admin",
+      "value": "جاري إزالة المدير..."
+    },
+    {
+      "name": "chatsetting_member_remove_admin_fail",
+      "value": "فشل في إزالة المدير"
+    },
+    {
+      "name": "chatsetting_member_removing",
+      "value": "جاري إزالة العضو..."
+    },
+    {
+      "name": "chatsetting_member_remove_fail",
+      "value": "فشل في إزالة العضو"
+    },
+    {
+      "name": "chatsetting_load_group_info_fail_toast",
+      "value": "فشل في تحميل معلومات المجموعة"
+    },
+    {
+      "name": "chatsetting_unmute",
+      "value": "إلغاء الكتم"
+    },
+    {
+      "name": "chatsetting_group_info_unavailable",
+      "value": "معلومات المجموعة غير متاحة"
+    },
+    {
+      "name": "chatsetting_muting_all_members_start",
+      "value": "جاري تفعيل كتم جميع الأعضاء..."
+    },
+    {
+      "name": "chatsetting_unmuting_all_members_start",
+      "value": "جاري إلغاء كتم جميع الأعضاء..."
+    },
+    {
+      "name": "chatsetting_mute_all_members_success",
+      "value": "تم تفعيل كتم جميع الأعضاء"
+    },
+    {
+      "name": "chatsetting_unmute_all_members_success",
+      "value": "تم إلغاء كتم جميع الأعضاء"
+    },
+    {
+      "name": "chatsetting_enable_mute_all_members_fail",
+      "value": "فشل في تفعيل كتم جميع الأعضاء"
+    },
+    {
+      "name": "chatsetting_disable_mute_all_members_fail",
+      "value": "فشل في إلغاء كتم جميع الأعضاء"
+    },
+    {
+      "name": "chatsetting_work_group_mute_members_unsupported",
+      "value": "نوع مجموعة العمل لا يدعم كتم أعضاء محددين"
+    },
+    {
+      "name": "chatsetting_no_members_to_mute",
+      "value": "لا يوجد أعضاء للكتم"
+    },
+    {
+      "name": "chatsetting_select_members_to_mute",
+      "value": "اختر الأعضاء للكتم"
+    },
+    {
+      "name": "chatsetting_mute",
+      "value": "كتم"
+    },
+    {
+      "name": "chatsetting_mute_title",
+      "value": "قائمة الأعضاء المكتومين (%s)"
+    },
+    {
+      "name": "chatsetting_open_member_picker_fail",
+      "value": "فشل في فتح منتقي الأعضاء"
+    },
+    {
+      "name": "chatsetting_mute_confirm",
+      "value": "تأكيد الكتم"
+    },
+    {
+      "name": "chatsetting_mute_confirm_message",
+      "value": "هل أنت متأكد من كتم %s أعضاء؟"
+    },
+    {
+      "name": "chatsetting_confirm",
+      "value": "تأكيد"
+    },
+    {
+      "name": "chatsetting_cancel",
+      "value": "إلغاء"
+    },
+    {
+      "name": "chatsetting_muting_members",
+      "value": "جاري كتم الأعضاء..."
+    },
+    {
+      "name": "chatsetting_mute_success",
+      "value": "تم كتم %s أعضاء بنجاح"
+    },
+    {
+      "name": "chatsetting_mute_fail",
+      "value": "فشل في كتم الأعضاء"
+    },
+    {
+      "name": "chatsetting_mute_time_text_unmuted",
+      "value": "غير مكتوم"
+    },
+    {
+      "name": "chatsetting_mute_time_text_remaining",
+      "value": "متبقي %s أيام %s ساعات"
+    },
+    {
+      "name": "chatsetting_mute_time_text_remaining2",
+      "value": "متبقي %s ساعات %s دقيقة"
+    },
+    {
+      "name": "chatsetting_mute_time_text_remaining3",
+      "value": "متبقي %s دقائق"
+    },
+    {
+      "name": "chatsetting_unmute_confirm",
+      "value": "تأكيد إلغاء الكتم"
+    },
+    {
+      "name": "chatsetting_unmute_confirm_message",
+      "value": "هل أنت متأكد من إلغاء كتم %s؟"
+    },
+    {
+      "name": "chatsetting_unmuting_member",
+      "value": "جاري إلغاء كتم العضو..."
+    },
+    {
+      "name": "chatsetting_unmute_success",
+      "value": "تم إلغاء كتم %s بنجاح"
+    },
+    {
+      "name": "chatsetting_unmute_fail",
+      "value": "فشل في إلغاء كتم العضو"
+    },
+    {
+      "name": "chatsetting_load_group_info_fail",
+      "value": "فشل في تحميل معلومات المجموعة"
+    },
+    {
+      "name": "chatsetting_set_remark",
+      "value": "تعيين ملاحظة"
+    },
+    {
+      "name": "chatsetting_input_remark_name",
+      "value": "يرجى إدخال اسم الملاحظة"
+    },
+    {
+      "name": "chatsetting_remark_help_text",
+      "value": "يُسمح فقط بالأحرف الصينية والإنجليزية والأرقام والشرطة السفلية"
+    },
+    {
+      "name": "chatsetting_added_to_blacklist",
+      "value": "تمت الإضافة إلى القائمة السوداء"
+    },
+    {
+      "name": "chatsetting_add_blacklist_fail",
+      "value": "فشل في الإضافة إلى القائمة السوداء"
+    },
+    {
+      "name": "chatsetting_removed_from_blacklist",
+      "value": "تمت الإزالة من القائمة السوداء"
+    },
+    {
+      "name": "chatsetting_remove_blacklist_fail",
+      "value": "فشل في الإزالة من القائمة السوداء"
+    },
+    {
+      "name": "chatsetting_clear_chat_success",
+      "value": "تم مسح المحادثة بنجاح"
+    },
+    {
+      "name": "chatsetting_clear_chat_fail",
+      "value": "فشل في مسح المحادثة"
+    },
+    {
+      "name": "chatsetting_delete_friend",
+      "value": "حذف الصديق"
+    },
+    {
+      "name": "chatsetting_delete_friend_success",
+      "value": "تم حذف الصديق بنجاح"
+    },
+    {
+      "name": "chatsetting_delete_friend_fail",
+      "value": "فشل في حذف الصديق"
+    },
+    {
+      "name": "chatsetting_user_status_error",
+      "value": "خطأ في حالة المستخدم"
+    },
+    {
+      "name": "chatsetting_remark_set_success",
+      "value": "تم تعيين الملاحظة بنجاح"
+    },
+    {
+      "name": "chatsetting_remark_set_fail",
+      "value": "فشل في تعيين الملاحظة: %s"
+    },
+    {
+      "name": "chatsetting_unknown_error",
+      "value": "خطأ غير معروف"
+    },
+    {
+      "name": "chatsetting_forbid_add_group",
+      "value": "منع إضافة المجموعة"
+    },
+    {
+      "name": "chatsetting_require_admin_approval",
+      "value": "يتطلب موافقة المدير"
+    },
+    {
+      "name": "chatsetting_auto_approve",
+      "value": "موافقة تلقائية"
+    },
+    {
+      "name": "chatsetting_forbid_invite",
+      "value": "منع الدعوة"
+    },
+    {
+      "name": "chatsetting_edit_group_name",
+      "value": "تحرير اسم المجموعة"
+    },
+    {
+      "name": "chatsetting_input_group_name",
+      "value": "يرجى إدخال اسم المجموعة"
+    },
+    {
+      "name": "chatsetting_group_name_help_text",
+      "value": "يُسمح فقط بالأحرف الصينية والإنجليزية والأرقام والشرطة السفلية"
+    },
+    {
+      "name": "chatsetting_group_announcement_loading",
+      "value": "جاري تحميل إعلان المجموعة..."
+    },
+    {
+      "name": "chatsetting_group_announcement_title",
+      "value": "إعلان المجموعة"
+    },
+    {
+      "name": "chatsetting_save",
+      "value": "حفظ"
+    },
+    {
+      "name": "chatsetting_edit",
+      "value": "تحرير"
+    },
+    {
+      "name": "chatsetting_announcement_content",
+      "value": "محتوى الإعلان"
+    },
+    {
+      "name": "chatsetting_input_announcement_placeholder",
+      "value": "يرجى إدخال محتوى الإعلان..."
+    },
+    {
+      "name": "chatsetting_group_announcement_empty",
+      "value": "لا يوجد إعلان للمجموعة"
+    },
+    {
+      "name": "chatsetting_group_announcement_add_tip",
+      "value": "انقر على زر التحرير في الأعلى لإضافة إعلان المجموعة"
+    },
+    {
+      "name": "chatsetting_edit_help",
+      "value": "تعليمات التحرير"
+    },
+    {
+      "name": "chatsetting_announcement_notify_all",
+      "value": "• إعلان المجموعة سيخطر جميع الأعضاء"
+    },
+    {
+      "name": "chatsetting_announcement_max_length",
+      "value": "• يدعم حتى 300 حرف"
+    },
+    {
+      "name": "chatsetting_announcement_edit_permission",
+      "value": "• يمكن لمالك المجموعة والمديرين فقط تحرير الإعلانات"
+    },
+    {
+      "name": "chatsetting_leave_confirm",
+      "value": "تأكيد المغادرة"
+    },
+    {
+      "name": "chatsetting_unsaved_changes_leave",
+      "value": "لديك تغييرات غير محفوظة، هل أنت متأكد من المغادرة؟"
+    },
+    {
+      "name": "chatsetting_dont_save",
+      "value": "عدم الحفظ"
+    },
+    {
+      "name": "chatsetting_group_announcement_save_success",
+      "value": "تم حفظ إعلان المجموعة بنجاح"
+    },
+    {
+      "name": "chatsetting_group_announcement_save_fail",
+      "value": "فشل في حفظ إعلان المجموعة"
+    },
+    {
+      "name": "chatsetting_open_group_member_list_fail",
+      "value": "فشل في فتح قائمة أعضاء المجموعة"
+    },
+    {
+      "name": "chatsetting_open_group_management_fail",
+      "value": "فشل في فتح إدارة المجموعة"
+    },
+    {
+      "name": "chatsetting_open_group_announcement_fail",
+      "value": "فشل في فتح إعلان المجموعة"
+    },
+    {
+      "name": "chatsetting_open_avatar_picker_fail",
+      "value": "فشل في فتح منتقي الصورة الشخصية"
+    },
+    {
+      "name": "chatsetting_select_group_avatar",
+      "value": "اختر صورة المجموعة"
+    },
+    {
+      "name": "chatsetting_group_name_update_success",
+      "value": "تم تحديث اسم المجموعة بنجاح"
+    },
+    {
+      "name": "chatsetting_group_name_update_fail",
+      "value": "فشل في تحديث اسم المجموعة"
+    },
+    {
+      "name": "chatsetting_edit_my_group_nickname",
+      "value": "تحرير لقبي في المجموعة"
+    },
+    {
+      "name": "chatsetting_input_group_nickname_placeholder",
+      "value": "يرجى إدخال لقب المجموعة"
+    },
+    {
+      "name": "chatsetting_group_nickname_help_text",
+      "value": "يُسمح فقط بالأحرف الصينية والإنجليزية والأرقام والشرطة السفلية"
+    },
+    {
+      "name": "chatsetting_group_nickname_update_success",
+      "value": "تم تحديث لقب المجموعة بنجاح"
+    },
+    {
+      "name": "chatsetting_group_nickname_update_fail",
+      "value": "فشل في تحديث لقب المجموعة"
+    },
+    {
+      "name": "chatsetting_no_transferable_member",
+      "value": "لا يوجد عضو قابل للنقل"
+    },
+    {
+      "name": "chatsetting_select_new_owner",
+      "value": "اختر المالك الجديد"
+    },
+    {
+      "name": "chatsetting_transfer_ownership_button",
+      "value": "نقل الملكية"
+    },
+    {
+      "name": "chatsetting_open_friend_picker_fail",
+      "value": "فشل في فتح منتقي الأصدقاء"
+    },
+    {
+      "name": "chatsetting_getting_friend_list",
+      "value": "جاري الحصول على قائمة الأصدقاء..."
+    },
+    {
+      "name": "chatsetting_no_friends_to_add",
+      "value": "لا يوجد أصدقاء للإضافة"
+    },
+    {
+      "name": "chatsetting_select_friends_to_add",
+      "value": "اختر الأصدقاء"
+    },
+    {
+      "name": "chatsetting_invite_to_group_button",
+      "value": "دعوة إلى المجموعة"
+    },
+    {
+      "name": "chatsetting_online",
+      "value": "متصل"
+    },
+    {
+      "name": "chatsetting_offline",
+      "value": "غير متصل"
+    },
+    {
+      "name": "chatsetting_get_friend_list_fail_log",
+      "value": "فشل في الحصول على قائمة الأصدقاء"
+    },
+    {
+      "name": "chatsetting_get_friend_list_fail",
+      "value": "فشل في الحصول على قائمة الأصدقاء"
+    },
+    {
+      "name": "chatsetting_invite_friends_to_group",
+      "value": "دعوة الأصدقاء إلى المجموعة"
+    },
+    {
+      "name": "chatsetting_confirm_add_members_dialog",
+      "value": "هل أنت متأكد من دعوة المختارين"
+    },
+    {
+      "name": "chatsetting_confirm_add_members_dialog_unit",
+      "value": "أصدقاء للانضمام إلى المجموعة؟"
+    },
+    {
+      "name": "chatsetting_inviting_friends_to_group",
+      "value": "جاري دعوة الأصدقاء إلى المجموعة..."
+    },
+    {
+      "name": "chatsetting_success_invite_friends",
+      "value": "تم دعوة"
+    },
+    {
+      "name": "chatsetting_success_invite_friends_unit",
+      "value": "أصدقاء للانضمام إلى المجموعة بنجاح"
+    },
+    {
+      "name": "chatsetting_invite_friends_to_group_fail",
+      "value": "فشل في دعوة الأصدقاء إلى المجموعة"
+    },
+    {
+      "name": "chatsetting_transfer_ownership_title",
+      "value": "نقل الملكية"
+    },
+    {
+      "name": "chatsetting_confirm_transfer_ownership_dialog",
+      "value": "هل أنت متأكد من نقل الملكية إلى"
+    },
+    {
+      "name": "chatsetting_confirm_transfer_ownership_dialog_note",
+      "value": "بعد النقل، ستصبح عضواً عادياً. هذه العملية لا يمكن التراجع عنها."
+    },
+    {
+      "name": "chatsetting_cancel_transfer",
+      "value": "إلغاء"
+    },
+    {
+      "name": "chatsetting_confirm_transfer",
+      "value": "تأكيد النقل"
+    },
+    {
+      "name": "chatsetting_transferring_ownership",
+      "value": "جاري نقل الملكية..."
+    },
+    {
+      "name": "chatsetting_transfer_ownership_failed",
+      "value": "فشل في نقل الملكية"
+    },
+    {
+      "name": "chatsetting_owner_role",
+      "value": "المالك"
+    },
+    {
+      "name": "chatsetting_admin_role",
+      "value": "المدير"
+    },
+    {
+      "name": "chatsetting_regular_member_role",
+      "value": "عضو عادي"
+    },
+    {
+      "name": "chatsetting_member_role",
+      "value": "عضو"
+    },
+    {
+      "name": "chatsetting_updating_group_avatar",
+      "value": "جاري تحديث صورة المجموعة..."
+    },
+    {
+      "name": "chatsetting_group_avatar_update_successful",
+      "value": "تم تحديث صورة المجموعة بنجاح"
+    },
+    {
+      "name": "chatsetting_group_avatar_update_failed",
+      "value": "فشل في تحديث صورة المجموعة"
+    },
+    {
+      "name": "chatsetting_avatar_processing_failed",
+      "value": "فشل في معالجة الصورة الشخصية"
+    },
+    {
+      "name": "chatsetting_group_default",
+      "value": "المجموعة"
+    },
+    {
+      "name": "chatsetting_dismiss_group_title",
+      "value": "حل المجموعة"
+    },
+    {
+      "name": "chatsetting_cancel_dismiss",
+      "value": "إلغاء"
+    },
+    {
+      "name": "chatsetting_confirm_dismiss",
+      "value": "تأكيد الحل"
+    },
+    {
+      "name": "chatsetting_dismissing_group_progress",
+      "value": "جاري حل المجموعة..."
+    },
+    {
+      "name": "chatsetting_dismiss_group_successful",
+      "value": "تم حل المجموعة بنجاح"
+    },
+    {
+      "name": "chatsetting_dismiss_group_failed",
+      "value": "فشل في حل المجموعة"
+    },
+    {
+      "name": "chatsetting_clear_chat_history_title",
+      "value": "مسح تاريخ المحادثة"
+    },
+    {
+      "name": "chatsetting_cancel_clear",
+      "value": "إلغاء"
+    },
+    {
+      "name": "chatsetting_confirm_clear",
+      "value": "تأكيد المسح"
+    },
+    {
+      "name": "chatsetting_clearing_chat_history",
+      "value": "جاري مسح تاريخ المحادثة..."
+    },
+    {
+      "name": "chatsetting_clear_chat_history_successful",
+      "value": "تم مسح تاريخ المحادثة بنجاح"
+    },
+    {
+      "name": "chatsetting_clear_chat_history_failed",
+      "value": "فشل في مسح تاريخ المحادثة"
+    },
+    {
+      "name": "chatsetting_leave_group_title",
+      "value": "مغادرة المجموعة"
+    },
+    {
+      "name": "chatsetting_cancel_leave",
+      "value": "إلغاء"
+    },
+    {
+      "name": "chatsetting_confirm_leave",
+      "value": "تأكيد المغادرة"
+    },
+    {
+      "name": "chatsetting_leaving_group_progress",
+      "value": "جاري مغادرة المجموعة..."
+    },
+    {
+      "name": "chatsetting_leave_group_successful",
+      "value": "تم مغادرة المجموعة بنجاح"
+    },
+    {
+      "name": "chatsetting_leave_group_failed",
+      "value": "فشل في مغادرة المجموعة"
+    },
+    {
+      "name": "chatsetting_report_group",
+      "value": "الإبلاغ عن المجموعة"
+    },
+    {
+      "name": "chatsetting_report_group_toast",
+      "value": "الإبلاغ عن المجموعة"
+    },
+    {
+      "name": "chatsetting_audio",
+      "value": "صوتي"
+    },
+    {
+      "name": "chatsetting_video",
+      "value": "فيديو"
+    },
+    {
+      "name": "chatsetting_search",
+      "value": "البحث"
+    },
+    {
+      "name": "chatsetting_clear_chat_history",
+      "value": "مسح تاريخ المحادثة"
+    },
+    {
+      "name": "chatsetting_transfer_ownership",
+      "value": "نقل الملكية"
+    },
+    {
+      "name": "chatsetting_dismiss_group",
+      "value": "حل المجموعة"
+    },
+    {
+      "name": "chatsetting_leave_group",
+      "value": "مغادرة المجموعة"
+    },
+    {
+      "name": "chatsetting_loading_group_information",
+      "value": "جاري تحميل معلومات المجموعة..."
+    },
+    {
+      "name": "chatsetting_group_info",
+      "value": "معلومات المجموعة"
+    },
+    {
+      "name": "chatsetting_conversation_settings",
+      "value": "إعدادات المحادثة"
+    },
+    {
+      "name": "chatsetting_group_members",
+      "value": "أعضاء المجموعة"
+    },
+    {
+      "name": "chatsetting_member_settings",
+      "value": "إعدادات الأعضاء"
+    },
+    {
+      "name": "chatsetting_mute_notifications",
+      "value": "كتم الإشعارات"
+    },
+    {
+      "name": "chatsetting_pin_conversation",
+      "value": "تثبيت المحادثة"
+    },
+    {
+      "name": "chatsetting_group_announcement",
+      "value": "إعلان المجموعة"
+    },
+    {
+      "name": "chatsetting_chat_background",
+      "value": "خلفية المحادثة"
+    },
+    {
+      "name": "chatsetting_blacklist",
+      "value": "القائمة السوداء"
+    },
+    {
+      "name": "chatsetting_group_management",
+      "value": "إدارة المجموعة"
+    },
+    {
+      "name": "chatsetting_group_type",
+      "value": "نوع المجموعة"
+    },
+    {
+      "name": "chatsetting_join_group_method",
+      "value": "طريقة الانضمام للمجموعة"
+    },
+    {
+      "name": "chatsetting_invite_method",
+      "value": "طريقة الدعوة"
+    },
+    {
+      "name": "chatsetting_mygroup_nickname",
+      "value": "لقبي في المجموعة"
+    },
+    {
+      "name": "chatsetting_background",
+      "value": "خلفية المحادثة"
+    },
+    {
+      "name": "chatsetting_members",
+      "value": "الأعضاء"
+    },
+    {
+      "name": "chatsetting_default_group_name",
+      "value": "ريجينا جونز"
+    },
+    {
+      "name": "chatsetting_group_management_title",
+      "value": "إدارة المجموعة"
+    },
+    {
+      "name": "chatsetting_loading_group_management",
+      "value": "جاري تحميل إعدادات إدارة المجموعة..."
+    },
+    {
+      "name": "chatsetting_mute_all_members",
+      "value": "كتم جميع الأعضاء"
+    },
+    {
+      "name": "chatsetting_mute_all_members_description",
+      "value": "منع جميع الأعضاء من إرسال الرسائل"
+    },
+    {
+      "name": "chatsetting_add_muted_members",
+      "value": "إضافة أعضاء مكتومين"
+    },
+    {
+      "name": "chatsetting_add_muted_members_description",
+      "value": "اختر الأعضاء للكتم بشكل فردي"
+    },
+    {
+      "name": "chatsetting_group_members_title",
+      "value": "أعضاء المجموعة"
+    },
+    {
+      "name": "chatsetting_loading_group_members",
+      "value": "جاري تحميل أعضاء المجموعة..."
+    },
+    {
+      "name": "chatsetting_owner",
+      "value": "المالك"
+    },
+    {
+      "name": "chatsetting_admin",
+      "value": "المدير"
+    },
+    {
+      "name": "chatsetting_muted",
+      "value": "مكتوم"
+    },
+    {
+      "name": "chatsetting_contact_info",
+      "value": "معلومات جهة الاتصال"
+    },
+    {
+      "name": "chatsetting_loading_contact_information",
+      "value": "جاري تحميل معلومات جهة الاتصال..."
+    },
+    {
+      "name": "chatsetting_contact_info_title",
+      "value": "معلومات جهة الاتصال"
+    },
+    {
+      "name": "chatsetting_default_contact_name",
+      "value": "دومينيك"
+    },
+    {
+      "name": "chatsetting_unknown_user",
+      "value": "غير معروف"
+    },
+    {
+      "name": "chatsetting_message",
+      "value": "رسالة"
+    },
+    {
+      "name": "chatsetting_set_remark_title",
+      "value": "تعيين ملاحظة"
+    },
+    {
+      "name": "chatsetting_add_member",
+      "value": "إضافة عضو"
+    },
+    {
+      "name": "chatsetting_default",
+      "value": "افتراضي"
+    },
+    {
+      "name": "chatsetting_confirm_add_members_dialog_format",
+      "value": "هل أنت متأكد من دعوة أصدقاء للانضمام إلى المجموعة؟"
+    },
+    {
+      "name": "chatsetting_success_invite_friends_format",
+      "value": "تم دعوة  أصدقاء للانضمام إلى المجموعة بنجاح"
+    },
+    {
+      "name": "chatsetting_confirm_transfer_ownership_dialog_format",
+      "value": "هل أنت متأكد من نقل ملكية المجموعة إلى \"%s\"؟ ستفقد امتيازات مالك المجموعة بعد النقل."
+    },
+    {
+      "name": "chatsetting_transfer_ownership_success_format",
+      "value": "تم نقل ملكية المجموعة بنجاح إلى %s"
+    },
+    {
+      "name": "chatsetting_dismiss_group_confirm_format",
+      "value": "هل أنت متأكد من حل \"%s\"؟ ستحذف المجموعة نهائياً وسيتم إزالة جميع الأعضاء."
+    },
+    {
+      "name": "chatsetting_clear_chat_history_confirm_format",
+      "value": "هل أنت متأكد من مسح تاريخ محادثة \"%s\"؟ هذا الإجراء لا يمكن التراجع عنه."
+    },
+    {
+      "name": "chatsetting_leave_group_confirm_format",
+      "value": "هل أنت متأكد من مغادرة \"%s\"؟ لن تتلقى رسائل المجموعة بعد المغادرة."
+    },
+    {
+      "name": "chatsetting_group_type_work_group",
+      "value": "مجموعة عمل"
+    },
+    {
+      "name": "chatsetting_group_type_work",
+      "value": "عمل"
+    },
+    {
+      "name": "chatsetting_group_type_public_group",
+      "value": "مجموعة عامة"
+    },
+    {
+      "name": "chatsetting_group_type_meeting",
+      "value": "اجتماع"
+    },
+    {
+      "name": "chatsetting_group_type_chat_room",
+      "value": "غرفة دردشة"
+    },
+    {
+      "name": "chatsetting_group_type_community",
+      "value": "مجتمع"
+    },
+    {
+      "name": "chatsetting_join_method_need_approval",
+      "value": "يحتاج موافقة"
+    },
+    {
+      "name": "chatsetting_join_method_need_admin_approval",
+      "value": "يحتاج موافقة المدير"
+    },
+    {
+      "name": "chatsetting_join_method_anyone_can_join",
+      "value": "يمكن لأي شخص الانضمام"
+    },
+    {
+      "name": "chatsetting_join_method_forbidden",
+      "value": "محظور"
+    },
+    {
+      "name": "chatsetting_invite_method_anyone_can_invite",
+      "value": "يمكن لأي شخص الدعوة"
+    }
+  ]
+}

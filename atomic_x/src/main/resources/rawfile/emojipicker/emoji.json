@@ -1,0 +1,312 @@
+[
+  {
+    "face_name": "[TUIEmoji_Smile]",
+    "face_file": "emoji_0",
+    "face_id": "001"
+  },
+  {
+    "face_name": "[TUIEmoji_Expect]",
+    "face_file": "emoji_1",
+    "face_id": "002"
+  },
+  {
+    "face_name": "[TUIEmoji_Blink]",
+    "face_file": "emoji_2",
+    "face_id": "003"
+  },
+  {
+    "face_name": "[TUIEmoji_Guffaw]",
+    "face_file": "emoji_3",
+    "face_id": "004"
+  },
+  {
+    "face_name": "[TUIEmoji_KindSmile]",
+    "face_file": "emoji_4",
+    "face_id": "005"
+  },
+  {
+    "face_name": "[TUIEmoji_Haha]",
+    "face_file": "emoji_5",
+    "face_id": "006"
+  },
+  {
+    "face_name": "[TUIEmoji_Cheerful]",
+    "face_file": "emoji_6",
+    "face_id": "007"
+  },
+  {
+    "face_name": "[TUIEmoji_Speechless]",
+    "face_file": "emoji_7",
+    "face_id": "008"
+  },
+  {
+    "face_name": "[TUIEmoji_Amazed]",
+    "face_file": "emoji_8",
+    "face_id": "009"
+  },
+  {
+    "face_name": "[TUIEmoji_Sorrow]",
+    "face_file": "emoji_9",
+    "face_id": "010"
+  },
+  {
+    "face_name": "[TUIEmoji_Complacent]",
+    "face_file": "emoji_10",
+    "face_id": "011"
+  },
+  {
+    "face_name": "[TUIEmoji_Silly]",
+    "face_file": "emoji_11",
+    "face_id": "012"
+  },
+  {
+    "face_name": "[TUIEmoji_Lustful]",
+    "face_file": "emoji_12",
+    "face_id": "013"
+  },
+  {
+    "face_name": "[TUIEmoji_Giggle]",
+    "face_file": "emoji_13",
+    "face_id": "014"
+  },
+  {
+    "face_name": "[TUIEmoji_Kiss]",
+    "face_file": "emoji_14",
+    "face_id": "015"
+  },
+  {
+    "face_name": "[TUIEmoji_Wail]",
+    "face_file": "emoji_15",
+    "face_id": "016"
+  },
+  {
+    "face_name": "[TUIEmoji_TearsLaugh]",
+    "face_file": "emoji_16",
+    "face_id": "017"
+  },
+  {
+    "face_name": "[TUIEmoji_Trapped]",
+    "face_file": "emoji_17",
+    "face_id": "018"
+  },
+  {
+    "face_name": "[TUIEmoji_Mask]",
+    "face_file": "emoji_18",
+    "face_id": "019"
+  },
+  {
+    "face_name": "[TUIEmoji_Fear]",
+    "face_file": "emoji_19",
+    "face_id": "020"
+  },
+  {
+    "face_name": "[TUIEmoji_BareTeeth]",
+    "face_file": "emoji_20",
+    "face_id": "021"
+  },
+  {
+    "face_name": "[TUIEmoji_FlareUp]",
+    "face_file": "emoji_21",
+    "face_id": "022"
+  },
+  {
+    "face_name": "[TUIEmoji_Yawn]",
+    "face_file": "emoji_22",
+    "face_id": "023"
+  },
+  {
+    "face_name": "[TUIEmoji_Tact]",
+    "face_file": "emoji_23",
+    "face_id": "024"
+  },
+  {
+    "face_name": "[TUIEmoji_Stareyes]",
+    "face_file": "emoji_24",
+    "face_id": "025"
+  },
+  {
+    "face_name": "[TUIEmoji_ShutUp]",
+    "face_file": "emoji_25",
+    "face_id": "026"
+  },
+  {
+    "face_name": "[TUIEmoji_Sigh]",
+    "face_file": "emoji_26",
+    "face_id": "027"
+  },
+  {
+    "face_name": "[TUIEmoji_Hehe]",
+    "face_file": "emoji_27",
+    "face_id": "028"
+  },
+  {
+    "face_name": "[TUIEmoji_Silent]",
+    "face_file": "emoji_28",
+    "face_id": "029"
+  },
+  {
+    "face_name": "[TUIEmoji_Surprised]",
+    "face_file": "emoji_29",
+    "face_id": "030"
+  },
+  {
+    "face_name": "[TUIEmoji_Askance]",
+    "face_file": "emoji_30",
+    "face_id": "031"
+  },
+  {
+    "face_name": "[TUIEmoji_Ok]",
+    "face_file": "emoji_31",
+    "face_id": "032"
+  },
+  {
+    "face_name": "[TUIEmoji_Shit]",
+    "face_file": "emoji_32",
+    "face_id": "033"
+  },
+  {
+    "face_name": "[TUIEmoji_Monster]",
+    "face_file": "emoji_33",
+    "face_id": "034"
+  },
+  {
+    "face_name": "[TUIEmoji_Daemon]",
+    "face_file": "emoji_34",
+    "face_id": "035"
+  },
+  {
+    "face_name": "[TUIEmoji_Rage]",
+    "face_file": "emoji_35",
+    "face_id": "036"
+  },
+  {
+    "face_name": "[TUIEmoji_Fool]",
+    "face_file": "emoji_36",
+    "face_id": "037"
+  },
+  {
+    "face_name": "[TUIEmoji_Pig]",
+    "face_file": "emoji_37",
+    "face_id": "038"
+  },
+  {
+    "face_name": "[TUIEmoji_Cow]",
+    "face_file": "emoji_38",
+    "face_id": "039"
+  },
+  {
+    "face_name": "[TUIEmoji_Ai]",
+    "face_file": "emoji_39",
+    "face_id": "040"
+  },
+  {
+    "face_name": "[TUIEmoji_Skull]",
+    "face_file": "emoji_40",
+    "face_id": "041"
+  },
+  {
+    "face_name": "[TUIEmoji_Bombs]",
+    "face_file": "emoji_41",
+    "face_id": "042"
+  },
+  {
+    "face_name": "[TUIEmoji_Coffee]",
+    "face_file": "emoji_42",
+    "face_id": "043"
+  },
+  {
+    "face_name": "[TUIEmoji_Cake]",
+    "face_file": "emoji_43",
+    "face_id": "044"
+  },
+  {
+    "face_name": "[TUIEmoji_Beer]",
+    "face_file": "emoji_44",
+    "face_id": "045"
+  },
+  {
+    "face_name": "[TUIEmoji_Flower]",
+    "face_file": "emoji_45",
+    "face_id": "046"
+  },
+  {
+    "face_name": "[TUIEmoji_Watermelon]",
+    "face_file": "emoji_46",
+    "face_id": "047"
+  },
+  {
+    "face_name": "[TUIEmoji_Rich]",
+    "face_file": "emoji_47",
+    "face_id": "048"
+  },
+  {
+    "face_name": "[TUIEmoji_Heart]",
+    "face_file": "emoji_48",
+    "face_id": "049"
+  },
+  {
+    "face_name": "[TUIEmoji_Moon]",
+    "face_file": "emoji_49",
+    "face_id": "050"
+  },
+  {
+    "face_name": "[TUIEmoji_Sun]",
+    "face_file": "emoji_50",
+    "face_id": "051"
+  },
+  {
+    "face_name": "[TUIEmoji_Star]",
+    "face_file": "emoji_51",
+    "face_id": "052"
+  },
+  {
+    "face_name": "[TUIEmoji_RedPacket]",
+    "face_file": "emoji_52",
+    "face_id": "053"
+  },
+  {
+    "face_name": "[TUIEmoji_Celebrate]",
+    "face_file": "emoji_53",
+    "face_id": "054"
+  },
+  {
+    "face_name": "[TUIEmoji_Bless]",
+    "face_file": "emoji_54",
+    "face_id": "055"
+  },
+  {
+    "face_name": "[TUIEmoji_Fortune]",
+    "face_file": "emoji_55",
+    "face_id": "056"
+  },
+  {
+    "face_name": "[TUIEmoji_Convinced]",
+    "face_file": "emoji_56",
+    "face_id": "057"
+  },
+  {
+    "face_name": "[TUIEmoji_Prohibit]",
+    "face_file": "emoji_57",
+    "face_id": "058"
+  },
+  {
+    "face_name": "[TUIEmoji_666]",
+    "face_file": "emoji_58",
+    "face_id": "059"
+  },
+  {
+    "face_name": "[TUIEmoji_857]",
+    "face_file": "emoji_59",
+    "face_id": "060"
+  },
+  {
+    "face_name": "[TUIEmoji_Knife]",
+    "face_file": "emoji_60",
+    "face_id": "061"
+  },
+  {
+    "face_name": "[TUIEmoji_Like]",
+    "face_file": "emoji_61",
+    "face_id": "062"
+  }
+]

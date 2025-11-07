@@ -1,0 +1,172 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "وصف الوحدة"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "الوصف"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "تينسنت كلاود شات"
+    },
+    {
+      "name": "demo_title",
+      "value": "تينسنت كلاود شات"
+    },
+    {
+      "name": "demo_conversation_tab_name",
+      "value": "الرسائل"
+    },
+    {
+      "name": "demo_contact_tab_name",
+      "value": "جهات الاتصال"
+    },
+    {
+      "name": "demo_profile_tab_name",
+      "value": "الإعدادات"
+    },
+    {
+      "name": "demo_profile_signature_label",
+      "value": "التوقيع: "
+    },
+    {
+      "name": "demo_dev_login_user_name",
+      "value": "اسم المستخدم"
+    },
+    {
+      "name": "demo_login_button_name",
+      "value": "تسجيل الدخول"
+    },
+    {
+      "name": "demo_logout_button_name",
+      "value": "تسجيل الخروج"
+    },
+    {
+      "name": "demo_about_button_name",
+      "value": "حول"
+    },
+    {
+      "name": "chat_title",
+      "value": "المحادثة"
+    },
+    {
+      "name": "search_placeholder",
+      "value": "البحث"
+    },
+    {
+      "name": "cancel_button",
+      "value": "إلغاء"
+    },
+    {
+      "name": "delete_button",
+      "value": "حذف"
+    },
+    {
+      "name": "no_messages_title",
+      "value": "لا توجد رسائل"
+    },
+    {
+      "name": "no_messages_desc",
+      "value": "ابدأ محادثة جديدة بالنقر على رمز +"
+    },
+    {
+      "name": "demo_theme_button_name",
+      "value": "المظهر"
+    },
+    {
+      "name": "theme_select_title",
+      "value": "اختر المظهر"
+    },
+    {
+      "name": "theme_light",
+      "value": "فاتح"
+    },
+    {
+      "name": "theme_dark",
+      "value": "داكن"
+    },
+    {
+      "name": "theme_system",
+      "value": "النظام"
+    },
+    {
+      "name": "cancel",
+      "value": "إلغاء"
+    },
+    {
+      "name": "permission_read_media",
+      "value": "نحتاج إلى قراءة ملفات الوسائط لاختيار وإرسال الصور ومقاطع الفيديو والرسائل الوسائطية الأخرى"
+    },
+    {
+      "name": "permission_write_media",
+      "value": "نحتاج إلى حفظ الصور ومقاطع الفيديو وملفات الوسائط المستلمة الأخرى"
+    },
+    {
+      "name": "permission_media_location",
+      "value": "نحتاج إلى الوصول إلى معلومات الموقع لملفات الوسائط"
+    },
+    {
+      "name": "permission_camera",
+      "value": "نحتاج إلى استخدام الكاميرا لالتقاط الصور وتسجيل مقاطع الفيديو لإرسال الرسائل"
+    },
+    {
+      "name": "permission_microphone",
+      "value": "نحتاج إلى استخدام الميكروفون لتسجيل الرسائل الصوتية"
+    },
+    {
+      "name": "permission_read_imagevideo",
+      "value": "نحتاج إلى قراءة ملفات الصور ومقاطع الفيديو لاختيار وإرسال الرسائل الوسائطية"
+    },
+    {
+      "name": "permission_write_imagevideo",
+      "value": "نحتاج إلى حفظ ملفات الصور ومقاطع الفيديو المستلمة"
+    },
+    {
+      "name": "permission_read_audio",
+      "value": "نحتاج إلى قراءة الملفات الصوتية لاختيار وإرسال الرسائل الصوتية"
+    },
+    {
+      "name": "permission_file_access",
+      "value": "نحتاج إلى الوصول إلى نظام الملفات لاختيار وإرسال رسائل الملفات"
+    },
+    {
+      "name": "contacts_title",
+      "value": "جهات الاتصال"
+    },
+    {
+      "name": "contacts_search_placeholder",
+      "value": "البحث"
+    },
+    {
+      "name": "add_friend",
+      "value": "إضافة صديق"
+    },
+    {
+      "name": "add_group_chat",
+      "value": "إضافة مجموعة"
+    },
+    {
+      "name": "add_contacts",
+      "value": "إضافة جهات اتصال"
+    },
+    {
+      "name": "user_id_placeholder",
+      "value": "معرف المستخدم"
+    },
+    {
+      "name": "start_conversation",
+      "value": "بدء المحادثة"
+    },
+    {
+      "name": "create_group_chat",
+      "value": "إنشاء محادثة جماعية"
+    },
+    {
+      "name": "setting_title",
+      "value": "الإعدادات"
+    }
+  ]
+}

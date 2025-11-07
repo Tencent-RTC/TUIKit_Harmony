@@ -1,0 +1,296 @@
+{
+  "string": [
+    {
+      "name": "TUIEmoji_Smile",
+      "value": "ابتسامة"
+    },
+    {
+      "name": "TUIEmoji_Expect",
+      "value": "توقع"
+    },
+    {
+      "name": "TUIEmoji_Blink",
+      "value": "رمشة"
+    },
+    {
+      "name": "TUIEmoji_Guffaw",
+      "value": "ضحك عالي"
+    },
+    {
+      "name": "TUIEmoji_KindSmile",
+      "value": "ابتسامة لطيفة"
+    },
+    {
+      "name": "TUIEmoji_Haha",
+      "value": "هاها"
+    },
+    {
+      "name": "TUIEmoji_Cheerful",
+      "value": "مرح"
+    },
+    {
+      "name": "TUIEmoji_Speechless",
+      "value": "عاجز عن الكلام"
+    },
+    {
+      "name": "TUIEmoji_Amazed",
+      "value": "مندهش"
+    },
+    {
+      "name": "TUIEmoji_Sorrow",
+      "value": "حزن"
+    },
+    {
+      "name": "TUIEmoji_Complacent",
+      "value": "راضي"
+    },
+    {
+      "name": "TUIEmoji_Silly",
+      "value": "سخيف"
+    },
+    {
+      "name": "TUIEmoji_Lustful",
+      "value": "شهواني"
+    },
+    {
+      "name": "TUIEmoji_Giggle",
+      "value": "قهقهة"
+    },
+    {
+      "name": "TUIEmoji_Kiss",
+      "value": "قبلة"
+    },
+    {
+      "name": "TUIEmoji_Wail",
+      "value": "عويل"
+    },
+    {
+      "name": "TUIEmoji_TearsLaugh",
+      "value": "ضحك بدموع"
+    },
+    {
+      "name": "TUIEmoji_Trapped",
+      "value": "محاصر"
+    },
+    {
+      "name": "TUIEmoji_Mask",
+      "value": "قناع"
+    },
+    {
+      "name": "TUIEmoji_Fear",
+      "value": "خوف"
+    },
+    {
+      "name": "TUIEmoji_BareTeeth",
+      "value": "كشر الأسنان"
+    },
+    {
+      "name": "TUIEmoji_FlareUp",
+      "value": "اشتعال"
+    },
+    {
+      "name": "TUIEmoji_Yawn",
+      "value": "تثاؤب"
+    },
+    {
+      "name": "TUIEmoji_Tact",
+      "value": "لباقة"
+    },
+    {
+      "name": "TUIEmoji_Stareyes",
+      "value": "عيون نجوم"
+    },
+    {
+      "name": "TUIEmoji_ShutUp",
+      "value": "اصمت"
+    },
+    {
+      "name": "TUIEmoji_Sigh",
+      "value": "تنهد"
+    },
+    {
+      "name": "TUIEmoji_Hehe",
+      "value": "هيهي"
+    },
+    {
+      "name": "TUIEmoji_Silent",
+      "value": "صامت"
+    },
+    {
+      "name": "TUIEmoji_Surprised",
+      "value": "مفاجأ"
+    },
+    {
+      "name": "TUIEmoji_Askance",
+      "value": "نظرة جانبية"
+    },
+    {
+      "name": "TUIEmoji_Ok",
+      "value": "موافق"
+    },
+    {
+      "name": "TUIEmoji_Shit",
+      "value": "تبا"
+    },
+    {
+      "name": "TUIEmoji_Monster",
+      "value": "وحش"
+    },
+    {
+      "name": "TUIEmoji_Daemon",
+      "value": "شيطان"
+    },
+    {
+      "name": "TUIEmoji_Rage",
+      "value": "غضب"
+    },
+    {
+      "name": "TUIEmoji_Fool",
+      "value": "أحمق"
+    },
+    {
+      "name": "TUIEmoji_Pig",
+      "value": "خنزير"
+    },
+    {
+      "name": "TUIEmoji_Cow",
+      "value": "بقرة"
+    },
+    {
+      "name": "TUIEmoji_Ai",
+      "value": "ذكي"
+    },
+    {
+      "name": "TUIEmoji_Skull",
+      "value": "جمجمة"
+    },
+    {
+      "name": "TUIEmoji_Bombs",
+      "value": "قنابل"
+    },
+    {
+      "name": "TUIEmoji_Coffee",
+      "value": "قهوة"
+    },
+    {
+      "name": "TUIEmoji_Cake",
+      "value": "كعكة"
+    },
+    {
+      "name": "TUIEmoji_Beer",
+      "value": "بيرة"
+    },
+    {
+      "name": "TUIEmoji_Flower",
+      "value": "زهرة"
+    },
+    {
+      "name": "TUIEmoji_Watermelon",
+      "value": "بطيخ"
+    },
+    {
+      "name": "TUIEmoji_Rich",
+      "value": "غني"
+    },
+    {
+      "name": "TUIEmoji_Heart",
+      "value": "قلب"
+    },
+    {
+      "name": "TUIEmoji_Moon",
+      "value": "قمر"
+    },
+    {
+      "name": "TUIEmoji_Sun",
+      "value": "شمس"
+    },
+    {
+      "name": "TUIEmoji_Star",
+      "value": "نجمة"
+    },
+    {
+      "name": "TUIEmoji_RedPacket",
+      "value": "ظرف أحمر"
+    },
+    {
+      "name": "TUIEmoji_Celebrate",
+      "value": "احتفال"
+    },
+    {
+      "name": "TUIEmoji_Bless",
+      "value": "بركة"
+    },
+    {
+      "name": "TUIEmoji_Fortune",
+      "value": "حظ"
+    },
+    {
+      "name": "TUIEmoji_Convinced",
+      "value": "مقتنع"
+    },
+    {
+      "name": "TUIEmoji_Prohibit",
+      "value": "منع"
+    },
+    {
+      "name": "TUIEmoji_666",
+      "value": "666"
+    },
+    {
+      "name": "TUIEmoji_857",
+      "value": "857"
+    },
+    {
+      "name": "TUIEmoji_Knife",
+      "value": "سكين"
+    },
+    {
+      "name": "TUIEmoji_Like",
+      "value": "إعجاب"
+    },
+    {
+      "name": "emoji_category_recent",
+      "value": "الأخيرة"
+    },
+    {
+      "name": "emoji_category_all",
+      "value": "جميع الرموز التعبيرية"
+    },
+    {
+      "name": "emoji_category_people",
+      "value": "الأشخاص"
+    },
+    {
+      "name": "emoji_category_nature",
+      "value": "الطبيعة"
+    },
+    {
+      "name": "emoji_category_food",
+      "value": "الطعام"
+    },
+    {
+      "name": "emoji_category_activity",
+      "value": "الأنشطة"
+    },
+    {
+      "name": "emoji_category_travel",
+      "value": "السفر"
+    },
+    {
+      "name": "emoji_category_objects",
+      "value": "الأشياء"
+    },
+    {
+      "name": "emoji_category_symbols",
+      "value": "الرموز"
+    },
+    {
+      "name": "emoji_type_normal",
+      "value": "رمز تعبيري عادي"
+    },
+    {
+      "name": "emoji_type_large",
+      "value": "رمز تعبيري كبير"
+    }
+  ]
+}

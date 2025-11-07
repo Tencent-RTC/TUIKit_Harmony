@@ -1,0 +1,484 @@
+{
+  "string": [
+    {
+      "name": "new_contacts",
+      "value": "جهات اتصال جديدة"
+    },
+    {
+      "name": "group_chat_notifications",
+      "value": "إشعارات المحادثة الجماعية"
+    },
+    {
+      "name": "my_group",
+      "value": "مجموعاتي"
+    },
+    {
+      "name": "the_blacklist",
+      "value": "القائمة السوداء"
+    },
+    {
+      "name": "no_results_found",
+      "value": "لم يتم العثور على نتائج"
+    },
+    {
+      "name": "no_contacts_title",
+      "value": "لا توجد جهات اتصال"
+    },
+    {
+      "name": "no_contacts_desc",
+      "value": "ابدأ بإضافة جهات الاتصال لرؤيتها هنا"
+    },
+    {
+      "name": "loading_contacts",
+      "value": "جاري تحميل جهات الاتصال..."
+    },
+    {
+      "name": "send_message",
+      "value": "إرسال رسالة"
+    },
+    {
+      "name": "search_contacts",
+      "value": "البحث في جهات الاتصال"
+    },
+    {
+      "name": "no_matching_contacts",
+      "value": "لم يتم العثور على جهات اتصال ذات صلة"
+    },
+    {
+      "name": "view_profile",
+      "value": "عرض الملف الشخصي"
+    },
+    {
+      "name": "set_remark",
+      "value": "تعيين ملاحظة"
+    },
+    {
+      "name": "add_to_blacklist",
+      "value": "إضافة إلى القائمة السوداء"
+    },
+    {
+      "name": "delete_friend",
+      "value": "حذف الصديق"
+    },
+    {
+      "name": "set_remark_title",
+      "value": "تعيين ملاحظة"
+    },
+    {
+      "name": "set_remark_message",
+      "value": "يرجى إدخال اسم الملاحظة"
+    },
+    {
+      "name": "delete_friend_title",
+      "value": "حذف الصديق"
+    },
+    {
+      "name": "delete_friend_message",
+      "value": "هل أنت متأكد من حذف هذا الصديق؟ لن تتمكن من تلقي رسائل منه بعد الحذف."
+    },
+    {
+      "name": "delete_friend_failed",
+      "value": "فشل في حذف الصديق"
+    },
+    {
+      "name": "set_remark_failed",
+      "value": "فشل في تعيين الملاحظة"
+    },
+    {
+      "name": "add_to_blacklist_failed",
+      "value": "فشل في الإضافة إلى القائمة السوداء"
+    },
+    {
+      "name": "contact_operation_failed",
+      "value": "فشلت عملية جهة الاتصال"
+    },
+    {
+      "name": "new_contacts_title",
+      "value": "جهات اتصال جديدة"
+    },
+    {
+      "name": "new_application_single",
+      "value": "طلب جديد"
+    },
+    {
+      "name": "new_applications_multiple",
+      "value": "طلبات جديدة"
+    },
+    {
+      "name": "done_button",
+      "value": "تم"
+    },
+    {
+      "name": "agree_button",
+      "value": "موافق"
+    },
+    {
+      "name": "refuse_button",
+      "value": "رفض"
+    },
+    {
+      "name": "no_friend_applications_title",
+      "value": "لا توجد طلبات صداقة"
+    },
+    {
+      "name": "no_friend_applications_desc",
+      "value": "لا توجد طلبات صداقة في الوقت الحالي"
+    },
+    {
+      "name": "loading_applications",
+      "value": "جاري تحميل الطلبات..."
+    },
+    {
+      "name": "processing_request",
+      "value": "جاري المعالجة..."
+    },
+    {
+      "name": "request_processed_successfully",
+      "value": "تم معالجة الطلب بنجاح"
+    },
+    {
+      "name": "request_processing_failed",
+      "value": "فشل في معالجة الطلب"
+    },
+    {
+      "name": "user_detail_title",
+      "value": "معلومات المستخدم"
+    },
+    {
+      "name": "group_detail_title",
+      "value": "معلومات المجموعة"
+    },
+    {
+      "name": "friend_request_info",
+      "value": "معلومات"
+    },
+    {
+      "name": "validation_message",
+      "value": "رسائل التحقق"
+    },
+    {
+      "name": "search_placeholder",
+      "value": "البحث"
+    },
+    {
+      "name": "loading_groups",
+      "value": "جاري تحميل المجموعات..."
+    },
+    {
+      "name": "loading_blacklist",
+      "value": "جاري تحميل القائمة السوداء..."
+    },
+    {
+      "name": "no_blacklist_users_title",
+      "value": "لا يوجد مستخدمون في القائمة السوداء"
+    },
+    {
+      "name": "no_blacklist_users_desc",
+      "value": "لا يوجد مستخدمون في القائمة السوداء في الوقت الحالي"
+    },
+    {
+      "name": "unblock_user_title",
+      "value": "إلغاء حظر المستخدم"
+    },
+    {
+      "name": "unblock_user_message",
+      "value": "هل أنت متأكد من إلغاء حظر"
+    },
+    {
+      "name": "unblock_button",
+      "value": "إلغاء الحظر"
+    },
+    {
+      "name": "no_groups_title",
+      "value": "لا توجد مجموعات"
+    },
+    {
+      "name": "no_groups_desc",
+      "value": "لا توجد مجموعات أصدقاء في الوقت الحالي"
+    },
+    {
+      "name": "add_contacts_title",
+      "value": "إضافة جهات اتصال"
+    },
+    {
+      "name": "my_user_id_label",
+      "value": "معرف المستخدم الخاص بي: "
+    },
+    {
+      "name": "id_label",
+      "value": "المعرف:"
+    },
+    {
+      "name": "contacts",
+      "value": "جهات الاتصال"
+    },
+    {
+      "name": "info",
+      "value": "معلومات"
+    },
+    {
+      "name": "searching",
+      "value": "جاري البحث..."
+    },
+    {
+      "name": "no_users_found",
+      "value": "لا توجد معلومات"
+    },
+    {
+      "name": "try_different_keyword",
+      "value": "جرب مصطلح بحث مختلف"
+    },
+    {
+      "name": "add_contact",
+      "value": "إضافة جهة اتصال"
+    },
+    {
+      "name": "friend_request_default_message",
+      "value": "أود إضافتك كصديق."
+    },
+    {
+      "name": "adding_contact",
+      "value": "جاري الإضافة..."
+    },
+    {
+      "name": "added_successfully",
+      "value": "تمت الإضافة بنجاح"
+    },
+    {
+      "name": "add_contacts",
+      "value": "إضافة جهات اتصال"
+    },
+    {
+      "name": "user_id_placeholder",
+      "value": "معرف المستخدم"
+    },
+    {
+      "name": "search_users",
+      "value": "البحث عن المستخدمين"
+    },
+    {
+      "name": "search_groups",
+      "value": "البحث عن المجموعات"
+    },
+    {
+      "name": "group_id_placeholder",
+      "value": "معرف المجموعة"
+    },
+    {
+      "name": "search_group_placeholder",
+      "value": "أدخل معرف المجموعة"
+    },
+    {
+      "name": "join_group",
+      "value": "الانضمام للمجموعة"
+    },
+    {
+      "name": "add_group_title",
+      "value": "إضافة مجموعة"
+    },
+    {
+      "name": "create_group_chat",
+      "value": "إنشاء محادثة جماعية"
+    },
+    {
+      "name": "create_group_chat_message",
+      "value": "إنشاء محادثة جماعية"
+    },
+    {
+      "name": "create_group_desc",
+      "value": "بدء محادثة جماعية جديدة"
+    },
+    {
+      "name": "join_group_chat",
+      "value": "الانضمام لمحادثة جماعية"
+    },
+    {
+      "name": "join_group_desc",
+      "value": "الانضمام لمجموعة موجودة بالمعرف"
+    },
+    {
+      "name": "remarks",
+      "value": "ملاحظات"
+    },
+    {
+      "name": "group",
+      "value": "مجموعة"
+    },
+    {
+      "name": "my_friend",
+      "value": "صديقي"
+    },
+    {
+      "name": "remarks_and_grouping",
+      "value": "الملاحظات والتجميع"
+    },
+    {
+      "name": "fill_verification_info",
+      "value": "املأ معلومات التحقق"
+    },
+    {
+      "name": "send",
+      "value": "إرسال"
+    },
+    {
+      "name": "sending",
+      "value": "جاري الإرسال..."
+    },
+    {
+      "name": "personal_signature",
+      "value": "التوقيع الشخصي"
+    },
+    {
+      "name": "create_group_chat_title",
+      "value": "إنشاء محادثة جماعية"
+    },
+    {
+      "name": "select_contacts_title",
+      "value": "اختر جهات الاتصال"
+    },
+    {
+      "name": "next_step_button",
+      "value": "الخطوة التالية"
+    },
+    {
+      "name": "start_conversation_button",
+      "value": "بدء المحادثة"
+    },
+    {
+      "name": "group_type_selector_cancel",
+      "value": "إلغاء"
+    },
+    {
+      "name": "group_type_selector_title",
+      "value": "نوع المجموعة"
+    },
+    {
+      "name": "group_portrait",
+      "value": "صورة المجموعة"
+    },
+    {
+      "name": "frequently_contacted",
+      "value": "جهات الاتصال المتكررة"
+    },
+    {
+      "name": "selected_count_prefix",
+      "value": "مختار "
+    },
+    {
+      "name": "group_type_work_title",
+      "value": "مجموعة عمل"
+    },
+    {
+      "name": "group_type_work_description",
+      "value": "مجموعات العمل مشابهة لمجموعات WeChat العادية. بعد الإنشاء، يمكن للأصدقاء الموجودين في المجموعة فقط دعوة آخرين للانضمام، دون الحاجة لموافقة المدعوين أو مالك المجموعة. راجع وثائق المنتج للتفاصيل."
+    },
+    {
+      "name": "group_type_public_title",
+      "value": "مجموعة عامة"
+    },
+    {
+      "name": "group_type_public_description",
+      "value": "المجموعات العامة مشابهة لمجموعات QQ. بعد الإنشاء، يمكن لمالك المجموعة تعيين مديرين. يحتاج المستخدمون للبحث عن معرف المجموعة والتقدم للانضمام، مما يتطلب موافقة مالك المجموعة أو المديرين. راجع وثائق المنتج للتفاصيل."
+    },
+    {
+      "name": "group_type_meeting_title",
+      "value": "مجموعة اجتماع"
+    },
+    {
+      "name": "group_type_meeting_description",
+      "value": "مجموعات الاجتماع تسمح للمستخدمين بالانضمام والمغادرة بحرية، مع دعم عرض الرسائل المرسلة قبل الانضمام. مناسبة لسيناريوهات المؤتمرات الصوتية/المرئية، وسيناريوهات التعليم عبر الإنترنت، وسيناريوهات أخرى مدمجة مع منتجات الصوت/الفيديو في الوقت الفعلي. راجع وثائق المنتج للتفاصيل."
+    },
+    {
+      "name": "group_type_avchatroom_title",
+      "value": "مجموعة البث المباشر"
+    },
+    {
+      "name": "group_type_avchatroom_description",
+      "value": "مجموعات البث المباشر تسمح للمستخدمين بالانضمام والمغادرة بحرية دون حد لعدد أعضاء المجموعة، لكنها لا تدعم تخزين الرسائل التاريخية. مناسبة للدمج مع منتجات البث المباشر لسيناريوهات الدردشة السريعة. راجع وثائق المنتج للتفاصيل."
+    },
+    {
+      "name": "group_type_community_title",
+      "value": "مجتمع"
+    },
+    {
+      "name": "group_type_community_description",
+      "value": "المجتمع: يمكن للمستخدمين الانضمام والمغادرة بحرية، يدعم حتى 100,000 عضو، يدعم تخزين الرسائل التاريخية. يمكن للمستخدمين البحث عن معرف المجموعة للتقدم للانضمام دون موافقة المدير."
+    },
+    {
+      "name": "view_product_documentation",
+      "value": "عرض وثائق المنتج"
+    },
+    {
+      "name": "no_group_applications_title",
+      "value": "لا توجد طلبات مجموعة"
+    },
+    {
+      "name": "request_message",
+      "value": "التحقق"
+    },
+    {
+      "name": "group_request_info",
+      "value": "معلومات"
+    },
+    {
+      "name": "loading_group_applications",
+      "value": "جاري التحميل..."
+    },
+    {
+      "name": "new_group_requests",
+      "value": "طلبات مجموعة جديدة"
+    },
+    {
+      "name": "group_application_refused",
+      "value": "مرفوض"
+    },
+    {
+      "name": "group_application_accepted",
+      "value": "مقبول"
+    },
+    {
+      "name": "enter_verification_info",
+      "value": "يرجى إدخال التحقق"
+    },
+    {
+      "name": "friend_request_sent",
+      "value": "تم إرسال طلب الصداقة"
+    },
+    {
+      "name": "add_friend_failed",
+      "value": "فشل في إضافة الصديق"
+    },
+    {
+      "name": "group_request_sent",
+      "value": "تم إرسال طلب المجموعة"
+    },
+    {
+      "name": "already_in_group",
+      "value": "موجود بالفعل في المجموعة"
+    },
+    {
+      "name": "user_id_label",
+      "value": "المعرف: %s"
+    },
+    {
+      "name": "group_id_label",
+      "value": "المجموعة: %s"
+    },
+    {
+      "name": "new_group_request_title",
+      "value": "طلب مجموعة جديد"
+    },
+    {
+      "name": "want_to_join_group",
+      "value": "يريد الانضمام للمجموعة: %s"
+    },
+    {
+      "name": "no_group_applications_desc",
+      "value": "لا توجد طلبات مجموعة"
+    },
+    {
+      "name": "create_group_failed",
+      "value": "فشل في إنشاء المجموعة، رمز الخطأ: %s"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "string": [
+    {
+      "name": "shared_desc",
+      "value": "description"
+    },
+    {
+      "name": "cancel_button",
+      "value": "Cancel"
+    },
+    {
+      "name": "delete_button",
+      "value": "Delete"
+    },
+    {
+      "name": "video_play_failed",
+      "value": "Playback Failed"
+    },
+    {
+      "name": "back_button",
+      "value": "Back"
+    }
+  ]
+}

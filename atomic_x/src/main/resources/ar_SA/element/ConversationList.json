@@ -1,0 +1,104 @@
+{
+  "string": [
+    {
+      "name": "no_messages_title",
+      "value": "لا توجد رسائل"
+    },
+    {
+      "name": "no_messages_desc",
+      "value": "ابدأ محادثة جديدة بالنقر على رمز +"
+    },
+    {
+      "name": "loading_message",
+      "value": "جاري تحميل الرسالة..."
+    },
+    {
+      "name": "mark_unread",
+      "value": "غير مقروء"
+    },
+    {
+      "name": "more",
+      "value": "المزيد"
+    },
+    {
+      "name": "more_options",
+      "value": "خيارات أكثر"
+    },
+    {
+      "name": "pin_conversation",
+      "value": "تثبيت المحادثة"
+    },
+    {
+      "name": "unpin_conversation",
+      "value": "إلغاء تثبيت المحادثة"
+    },
+    {
+      "name": "clear_messages",
+      "value": "مسح الرسائل"
+    },
+    {
+      "name": "delete_conversation",
+      "value": "حذف المحادثة"
+    },
+    {
+      "name": "clear_messages_title",
+      "value": "مسح الرسائل"
+    },
+    {
+      "name": "clear_messages_confirm",
+      "value": "هل أنت متأكد من مسح جميع الرسائل في هذه المحادثة؟"
+    },
+    {
+      "name": "delete_conversation_title",
+      "value": "حذف المحادثة"
+    },
+    {
+      "name": "delete_conversation_confirm",
+      "value": "هل أنت متأكد من حذف هذه المحادثة؟"
+    },
+    {
+      "name": "mark_unread_failed",
+      "value": "فشل في وضع علامة غير مقروء"
+    },
+    {
+      "name": "hide_conversation",
+      "value": "إخفاء المحادثة"
+    },
+    {
+      "name": "mark_as_read",
+      "value": "وضع علامة كمقروء"
+    },
+    {
+      "name": "mark_as_unread",
+      "value": "وضع علامة كغير مقروء"
+    },
+    {
+      "name": "theme_select_title",
+      "value": "اختر المظهر"
+    },
+    {
+      "name": "theme_light",
+      "value": "فاتح"
+    },
+    {
+      "name": "theme_dark",
+      "value": "داكن"
+    },
+    {
+      "name": "theme_system",
+      "value": "النظام"
+    },
+    {
+      "name": "conversationlist_title_placeholder",
+      "value": "محادثة"
+    },
+    {
+      "name": "conversationlist_copyright",
+      "value": "© 2023 Tencent. جميع الحقوق محفوظة."
+    },
+    {
+      "name": "conversation_list_message_count_unit",
+      "value": " رسائل"
+    }
+  ]
+}

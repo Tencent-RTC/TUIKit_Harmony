@@ -1,0 +1,1104 @@
+{
+  "string": [
+    {
+      "name": "error_code_in_progress",
+      "value": "جاري التنفيذ"
+    },
+    {
+      "name": "error_code_invalid_parameters",
+      "value": "معلمات غير صالحة"
+    },
+    {
+      "name": "error_code_io_operation_failed",
+      "value": "فشلت عملية الإدخال/الإخراج"
+    },
+    {
+      "name": "error_code_invalid_json",
+      "value": "تنسيق JSON غير صالح"
+    },
+    {
+      "name": "error_code_out_of_memory",
+      "value": "نفاد الذاكرة"
+    },
+    {
+      "name": "error_code_parse_response_failed",
+      "value": "فشل تحليل PB"
+    },
+    {
+      "name": "error_code_serialize_request_failed",
+      "value": "فشل تسلسل PB"
+    },
+    {
+      "name": "error_code_sdk_not_initialized",
+      "value": "SDK IM غير مهيأ"
+    },
+    {
+      "name": "error_code_load_message_failed",
+      "value": "فشل في تحميل الرسالة"
+    },
+    {
+      "name": "error_code_database_operation_failed",
+      "value": "فشلت عملية قاعدة البيانات"
+    },
+    {
+      "name": "error_code_cross_thread_operation",
+      "value": "عملية عبر الخيوط"
+    },
+    {
+      "name": "error_code_tiny_id_empty",
+      "value": "معرف Tiny فارغ"
+    },
+    {
+      "name": "error_code_invalid_identifier",
+      "value": "معرف غير صالح"
+    },
+    {
+      "name": "error_code_file_not_found",
+      "value": "الملف غير موجود"
+    },
+    {
+      "name": "error_code_file_too_large",
+      "value": "حجم الملف أكبر من الحد المسموح به"
+    },
+    {
+      "name": "error_code_empty_file",
+      "value": "ملف فارغ"
+    },
+    {
+      "name": "error_code_file_open_failed",
+      "value": "فشل فتح الملف"
+    },
+    {
+      "name": "error_code_interface_not_supported",
+      "value": "الواجهة غير مدعومة"
+    },
+    {
+      "name": "error_code_not_logged_in",
+      "value": "غير مسجل الدخول"
+    },
+    {
+      "name": "error_code_no_previous_login",
+      "value": "لم يتم تسجيل الدخول بهذا المستخدم من قبل"
+    },
+    {
+      "name": "error_code_user_signature_expired",
+      "value": "انتهت صلاحية توقيع المستخدم"
+    },
+    {
+      "name": "error_code_kicked_off_by_other_login",
+      "value": "تم طردك بواسطة تسجيل دخول آخر"
+    },
+    {
+      "name": "error_code_tls_init_failed",
+      "value": "فشل في تهيئة TLS"
+    },
+    {
+      "name": "error_code_tls_not_initialized",
+      "value": "TLS غير مهيأ"
+    },
+    {
+      "name": "error_code_tls_transpkg_error",
+      "value": "خطأ في حزمة نقل TLS"
+    },
+    {
+      "name": "error_code_tls_decrypt_failed",
+      "value": "فشل في فك تشفير TLS"
+    },
+    {
+      "name": "error_code_tls_request_failed",
+      "value": "فشل في طلب TLS"
+    },
+    {
+      "name": "error_code_tls_request_timeout",
+      "value": "انتهت مهلة طلب TLS"
+    },
+    {
+      "name": "error_code_invalid_conversation",
+      "value": "المحادثة غير صالحة"
+    },
+    {
+      "name": "error_code_file_transfer_auth_failed",
+      "value": "فشل في مصادقة نقل الملف"
+    },
+    {
+      "name": "error_code_no_file_transfer_server",
+      "value": "لا يوجد خادم نقل ملفات"
+    },
+    {
+      "name": "error_code_file_upload_failed",
+      "value": "فشل في رفع الملف"
+    },
+    {
+      "name": "error_code_upload_failed_not_image",
+      "value": "فشل الرفع: ليس صورة"
+    },
+    {
+      "name": "error_code_file_download_failed",
+      "value": "فشل في تحميل الملف"
+    },
+    {
+      "name": "error_code_http_request_failed",
+      "value": "فشل طلب HTTP"
+    },
+    {
+      "name": "error_code_invalid_message_element",
+      "value": "عنصر رسالة غير صالح"
+    },
+    {
+      "name": "error_code_invalid_sdk_object",
+      "value": "كائن غير صالح"
+    },
+    {
+      "name": "error_code_message_body_size_limit_exceeded",
+      "value": "تم تجاوز حد حجم نص الرسالة"
+    },
+    {
+      "name": "error_code_message_key_req_differ_rsp",
+      "value": "مفتاح الرسالة في الطلب يختلف عن الاستجابة"
+    },
+    {
+      "name": "error_code_invalid_group_id",
+      "value": "معرف المجموعة غير صالح"
+    },
+    {
+      "name": "error_code_invalid_group_name",
+      "value": "اسم المجموعة غير صالح"
+    },
+    {
+      "name": "error_code_invalid_group_introduction",
+      "value": "مقدمة المجموعة غير صالحة"
+    },
+    {
+      "name": "error_code_invalid_group_notification",
+      "value": "إشعار المجموعة غير صالح"
+    },
+    {
+      "name": "error_code_invalid_group_face_url",
+      "value": "رابط صورة المجموعة غير صالح"
+    },
+    {
+      "name": "error_code_invalid_group_name_card",
+      "value": "بطاقة اسم المجموعة غير صالحة"
+    },
+    {
+      "name": "error_code_group_member_count_limit_exceeded",
+      "value": "تم تجاوز حد عدد أعضاء المجموعة"
+    },
+    {
+      "name": "error_code_join_private_group_denied",
+      "value": "تم رفض الانضمام للمجموعة الخاصة"
+    },
+    {
+      "name": "error_code_invite_super_group_denied",
+      "value": "تم رفض الدعوة للمجموعة الفائقة"
+    },
+    {
+      "name": "error_code_invite_no_member",
+      "value": "لا يوجد عضو للدعوة"
+    },
+    {
+      "name": "error_code_invalid_profile_key",
+      "value": "مفتاح الملف الشخصي غير صالح"
+    },
+    {
+      "name": "error_code_invalid_add_remark",
+      "value": "إضافة ملاحظة غير صالحة"
+    },
+    {
+      "name": "error_code_invalid_add_wording",
+      "value": "صياغة الإضافة غير صالحة"
+    },
+    {
+      "name": "error_code_invalid_add_source",
+      "value": "مصدر الإضافة غير صالح"
+    },
+    {
+      "name": "error_code_friend_group_empty",
+      "value": "مجموعة الأصدقاء فارغة"
+    },
+    {
+      "name": "error_code_network_encode_failed",
+      "value": "فشل في ترميز الشبكة"
+    },
+    {
+      "name": "error_code_network_decode_failed",
+      "value": "فشل في فك ترميز الشبكة"
+    },
+    {
+      "name": "error_code_network_auth_invalid",
+      "value": "مصادقة الشبكة غير صالحة"
+    },
+    {
+      "name": "error_code_network_compress_failed",
+      "value": "فشل في ضغط الشبكة"
+    },
+    {
+      "name": "error_code_network_uncompress_failed",
+      "value": "فشل في إلغاء ضغط الشبكة"
+    },
+    {
+      "name": "error_code_network_freq_limit",
+      "value": "تم تجاوز حد تردد الشبكة"
+    },
+    {
+      "name": "error_code_network_req_count_limit",
+      "value": "تم تجاوز حد عدد طلبات الشبكة"
+    },
+    {
+      "name": "error_code_network_disconnected",
+      "value": "انقطع الاتصال بالشبكة"
+    },
+    {
+      "name": "error_code_network_already_connected",
+      "value": "الشبكة متصلة بالفعل"
+    },
+    {
+      "name": "error_code_connection_timeout",
+      "value": "انتهت مهلة الاتصال"
+    },
+    {
+      "name": "error_code_connection_refused",
+      "value": "تم رفض الاتصال"
+    },
+    {
+      "name": "error_code_network_unreachable",
+      "value": "الشبكة غير قابلة للوصول"
+    },
+    {
+      "name": "error_code_socket_no_buffer",
+      "value": "المقبس بلا مخزن مؤقت"
+    },
+    {
+      "name": "error_code_reset_by_peer",
+      "value": "تم إعادة تعيين الاتصال بواسطة النظير"
+    },
+    {
+      "name": "error_code_socket_invalid",
+      "value": "مقبس غير صالح"
+    },
+    {
+      "name": "error_code_host_getaddrinfo_failed",
+      "value": "فشل في حل عنوان المضيف"
+    },
+    {
+      "name": "error_code_connect_reset",
+      "value": "إعادة تعيين الاتصال"
+    },
+    {
+      "name": "error_code_wait_inqueue_timeout",
+      "value": "انتهت مهلة الانتظار في الطابور"
+    },
+    {
+      "name": "error_code_wait_send_timeout",
+      "value": "انتهت مهلة انتظار الإرسال"
+    },
+    {
+      "name": "error_code_wait_ack_timeout",
+      "value": "انتهت مهلة انتظار ACK"
+    },
+    {
+      "name": "error_code_wait_send_remaining_timeout",
+      "value": "انتهت مهلة انتظار الإرسال المتبقي"
+    },
+    {
+      "name": "error_code_pkg_size_limit",
+      "value": "تم تجاوز حد حجم الحزمة"
+    },
+    {
+      "name": "error_code_wait_send_timeout_no_network",
+      "value": "انتهت مهلة انتظار الإرسال (لا توجد شبكة)"
+    },
+    {
+      "name": "error_code_wait_ack_timeout_no_network",
+      "value": "انتهت مهلة انتظار ACK (لا توجد شبكة)"
+    },
+    {
+      "name": "error_code_send_remaining_timeout_no_network",
+      "value": "انتهت مهلة الإرسال المتبقي (لا توجد شبكة)"
+    },
+    {
+      "name": "error_code_server_connection_limit",
+      "value": "تم تجاوز حد اتصالات الخادم"
+    },
+    {
+      "name": "error_code_server_verification_code",
+      "value": "خطأ في رمز التحقق من الخادم"
+    },
+    {
+      "name": "error_code_server_empty_key",
+      "value": "مفتاح الخادم فارغ"
+    },
+    {
+      "name": "error_code_server_invalid_uin",
+      "value": "UIN الخادم غير صالح"
+    },
+    {
+      "name": "error_code_server_verification_timeout",
+      "value": "انتهت مهلة التحقق من الخادم"
+    },
+    {
+      "name": "error_code_server_invalid_cookie",
+      "value": "ملف تعريف ارتباط الخادم غير صالح"
+    },
+    {
+      "name": "error_code_server_down_tip",
+      "value": "الخادم معطل"
+    },
+    {
+      "name": "error_code_server_disconnect",
+      "value": "انقطع الاتصال بالخادم"
+    },
+    {
+      "name": "error_code_server_invalid_identifier",
+      "value": "معرف الخادم غير صالح"
+    },
+    {
+      "name": "error_code_server_client_close",
+      "value": "إغلاق عميل الخادم"
+    },
+    {
+      "name": "error_code_server_msfsdk_quit",
+      "value": "خروج MSFSDK من الخادم"
+    },
+    {
+      "name": "error_code_server_unsupported",
+      "value": "غير مدعوم من الخادم"
+    },
+    {
+      "name": "error_code_server_prepaid_arrears",
+      "value": "تأخير في الدفع المسبق."
+    },
+    {
+      "name": "error_code_server_packet_wrong",
+      "value": "حزمة الخادم خاطئة"
+    },
+    {
+      "name": "error_code_server_appid_blacklist",
+      "value": "معرف التطبيق في القائمة السوداء للخادم"
+    },
+    {
+      "name": "error_code_server_cmd_blacklist",
+      "value": "أمر الخادم في القائمة السوداء"
+    },
+    {
+      "name": "error_code_server_appid_without_using",
+      "value": "معرف تطبيق الخادم غير مستخدم"
+    },
+    {
+      "name": "error_code_server_freq_limit",
+      "value": "تم تجاوز حد تردد الخادم"
+    },
+    {
+      "name": "error_code_server_overload",
+      "value": "الخادم محمل بشكل مفرط"
+    },
+    {
+      "name": "error_code_server_resource_not_found",
+      "value": "مورد الخادم غير موجود"
+    },
+    {
+      "name": "error_code_server_resource_access_denied",
+      "value": "تم رفض الوصول لمورد الخادم"
+    },
+    {
+      "name": "error_code_server_resource_size_limit",
+      "value": "تم تجاوز حد حجم مورد الخادم"
+    },
+    {
+      "name": "error_code_server_resource_send_cancel",
+      "value": "تم إلغاء إرسال مورد الخادم"
+    },
+    {
+      "name": "error_code_server_resource_read_failed",
+      "value": "فشل في قراءة مورد الخادم"
+    },
+    {
+      "name": "error_code_server_resource_transfer_timeout",
+      "value": "انتهت مهلة نقل مورد الخادم"
+    },
+    {
+      "name": "error_code_server_resource_invalid_parameters",
+      "value": "معاملات مورد الخادم غير صالحة"
+    },
+    {
+      "name": "error_code_server_invalid_http_url",
+      "value": "رابط HTTP للخادم غير صالح"
+    },
+    {
+      "name": "error_code_server_req_json_parse_failed",
+      "value": "فشل في تحليل JSON لطلب الخادم"
+    },
+    {
+      "name": "error_code_server_invalid_account",
+      "value": "حساب الخادم غير صالح"
+    },
+    {
+      "name": "error_code_server_invalid_account_ex",
+      "value": "حساب الخادم غير صالح (موسع)"
+    },
+    {
+      "name": "error_code_server_invalid_sdkappid",
+      "value": "معرف تطبيق SDK للخادم غير صالح"
+    },
+    {
+      "name": "error_code_server_rest_freq_limit",
+      "value": "تم تجاوز حد تردد REST للخادم"
+    },
+    {
+      "name": "error_code_server_request_timeout",
+      "value": "انتهت مهلة طلب الخادم"
+    },
+    {
+      "name": "error_code_server_invalid_resource",
+      "value": "مورد الخادم غير صالح"
+    },
+    {
+      "name": "error_code_server_id_not_admin",
+      "value": "معرف الخادم ليس مديراً"
+    },
+    {
+      "name": "error_code_server_sdkappid_freq_limit",
+      "value": "تم تجاوز حد تردد معرف تطبيق SDK للخادم"
+    },
+    {
+      "name": "error_code_server_sdkappid_miss",
+      "value": "معرف تطبيق SDK للخادم مفقود"
+    },
+    {
+      "name": "error_code_server_rsp_json_parse_failed",
+      "value": "فشل في تحليل JSON لاستجابة الخادم"
+    },
+    {
+      "name": "error_code_server_exchange_account_timeout",
+      "value": "انتهت مهلة تبادل حساب الخادم"
+    },
+    {
+      "name": "error_code_server_invalid_id_format",
+      "value": "تنسيق معرف الخادم غير صالح"
+    },
+    {
+      "name": "error_code_server_sdkappid_forbidden",
+      "value": "معرف تطبيق SDK للخادم محظور"
+    },
+    {
+      "name": "error_code_server_req_forbidden",
+      "value": "طلب الخادم محظور"
+    },
+    {
+      "name": "error_code_server_req_freq_limit",
+      "value": "تم تجاوز حد تردد طلب الخادم"
+    },
+    {
+      "name": "error_code_server_req_freq_limit_ex",
+      "value": "تم تجاوز حد تردد طلب الخادم (موسع)"
+    },
+    {
+      "name": "error_code_server_invalid_service",
+      "value": "خدمة الخادم غير صالحة"
+    },
+    {
+      "name": "error_code_server_sensitive_text",
+      "value": "هجوم على النص الآمن، قد يحتوي النص على كلمات حساسة."
+    },
+    {
+      "name": "error_code_server_body_size_limit",
+      "value": "حجم حزمة إرسال الرسالة طويل جدًا، يتم دعم حجم حزمة الرسالة حتى 12 كيلوبايت، يرجى تقليل حجم الحزمة وإعادة المحاولة."
+    },
+    {
+      "name": "error_code_login_in_process",
+      "value": "تسجيل الدخول قيد التنفيذ"
+    },
+    {
+      "name": "error_code_logout_in_process",
+      "value": "تسجيل الخروج قيد التنفيذ"
+    },
+    {
+      "name": "error_code_image_convert_error",
+      "value": "خطأ في تحويل الصورة"
+    },
+    {
+      "name": "error_code_signaling_invalid_invite_id",
+      "value": "معرف دعوة الإشارة غير صالح"
+    },
+    {
+      "name": "error_code_signaling_no_permission",
+      "value": "لا توجد صلاحية لعملية الإشارة"
+    },
+    {
+      "name": "error_code_signaling_already_exists",
+      "value": "دعوة الإشارة موجودة بالفعل"
+    },
+    {
+      "name": "error_code_group_attr_frequency_limit",
+      "value": "حد تكرار عملية خاصية المجموعة"
+    },
+    {
+      "name": "error_code_server_resource_invalid_file_md5",
+      "value": "فشل التحقق من صحة MD5 للملف."
+    },
+    {
+      "name": "error_code_server_resource_invalid_part_md5",
+      "value": "فشل التحقق من صحة MD5 للجزء المقسم."
+    },
+    {
+      "name": "error_code_success",
+      "value": "نجح"
+    },
+    {
+      "name": "error_code_no_success_result",
+      "value": "لا توجد نتيجة ناجحة في العملية المجمعة"
+    },
+    {
+      "name": "error_code_invalid_receiver",
+      "value": "مستقبل غير صالح"
+    },
+    {
+      "name": "error_code_request_timeout",
+      "value": "انتهت مهلة الطلب"
+    },
+    {
+      "name": "error_code_init_core_failed",
+      "value": "فشل في تهيئة الوحدة الأساسية"
+    },
+    {
+      "name": "error_code_expired_session_node",
+      "value": "انتهت صلاحية عقدة الجلسة"
+    },
+    {
+      "name": "error_code_logged_out_before_login_finished",
+      "value": "تم تسجيل الخروج قبل انتهاء تسجيل الدخول"
+    },
+    {
+      "name": "error_code_tls_sdk_not_initialized",
+      "value": "TLS SDK غير مهيأ"
+    },
+    {
+      "name": "error_code_tls_sdk_user_not_found",
+      "value": "لم يتم العثور على مستخدم TLS SDK"
+    },
+    {
+      "name": "error_code_server_d2_expired",
+      "value": "انتهت صلاحية D2 للخادم"
+    },
+    {
+      "name": "error_code_server_a2_up_invalid",
+      "value": "فشل التحقق من A2 الصاعد للخادم"
+    },
+    {
+      "name": "error_code_server_a2_down_invalid",
+      "value": "فشل التحقق من A2 النازل للخادم"
+    },
+    {
+      "name": "error_code_server_no_imei_and_a2",
+      "value": "الخادم يتطلب IMEI و A2"
+    },
+    {
+      "name": "error_code_server_d2key_wrong",
+      "value": "فشل فك التشفير للمفتاح عدة مرات تجاوز الحد المسموح به، يُطلب إعادة تعيينه، يرجى استدعاء واجهة تسجيل الدخول TIMManager.getInstance().login مرة أخرى لتوليد مفتاح جديد."
+    },
+    {
+      "name": "error_code_server_account_usersig_expired",
+      "value": "انتهت صلاحية UserSig، يرجى إعادة توليد UserSig."
+    },
+    {
+      "name": "error_code_server_account_usersig_empty",
+      "value": "طول UserSig يساوي 0."
+    },
+    {
+      "name": "error_code_server_account_usersig_check_failed",
+      "value": "فشل التحقق من صحة UserSig."
+    },
+    {
+      "name": "error_code_server_account_usersig_check_failed_ex",
+      "value": "فشل التحقق من UserSig للخادم (موسع)"
+    },
+    {
+      "name": "error_code_server_account_usersig_mismatch_publickey",
+      "value": "فشل التحقق من صحة UserSig باستخدام المفتاح العام."
+    },
+    {
+      "name": "error_code_server_account_usersig_mismatch_id",
+      "value": "المعرف المطلوب في الطلب لا يتطابق مع المعرف المستخدم في إنشاء UserSig."
+    },
+    {
+      "name": "error_code_server_account_usersig_mismatch_sdkappid",
+      "value": "SDKAppID المطلوب في الطلب لا يتطابق مع SDKAppID المستخدم في إنشاء UserSig."
+    },
+    {
+      "name": "error_code_server_account_usersig_publickey_not_found",
+      "value": "فشل العثور على المفتاح العام أثناء التحقق من صحة UserSig."
+    },
+    {
+      "name": "error_code_server_account_sdkappid_not_found",
+      "value": "لم يتم العثور على SDKAppID، يرجى التحقق من معلومات التطبيق في وحدة التحكم لـ IM الخاصة بالاتصال السحابي."
+    },
+    {
+      "name": "error_code_server_account_freq_limit",
+      "value": "تم تقييد الطلب بسبب الفشل المتكرر وعدد محاولات إعادة المحاولة الكثيرة، يرجى الت"
+    },
+    {
+      "name": "error_code_server_account_blacklist",
+      "value": "تم إدراج الحساب في القائمة السوداء."
+    },
+    {
+      "name": "error_code_server_account_invalid_usersig",
+      "value": "انتهت صلاحية UserSig، يرجى إعادة توليد UserSig والمحاولة مرة أخرى."
+    },
+    {
+      "name": "error_code_server_account_not_found",
+      "value": "حساب المستخدم المطلوب غير موجود."
+    },
+    {
+      "name": "error_code_server_account_sec_rstr",
+      "value": "تم تقييد الوصول لأسباب أمان."
+    },
+    {
+      "name": "error_code_server_account_internal_timeout",
+      "value": "انتهت مهلة الخادم الداخلية، يرجى إعادة المحاولة."
+    },
+    {
+      "name": "error_code_server_account_invalid_count",
+      "value": "الكمية المجمعة في الطلب غير صالحة."
+    },
+    {
+      "name": "error_code_server_account_count_limit",
+      "value": "تجاوز الحد الأقصى لعدد الحسابات المسموح به في الإصدار التجريبي المجاني، يرجى الترقية إلى الإصدار المتخصص."
+    },
+    {
+      "name": "error_code_server_account_invalid_parameters",
+      "value": "معلمات غير صالحة في الطلب، يرجى التحقق من ملء الحقول المطلوبة ومطابقة متطلبات البروتوكول."
+    },
+    {
+      "name": "error_code_server_account_admin_required",
+      "value": "الطلب يتطلب صلاحيات المسؤول في التطبيق."
+    },
+    {
+      "name": "error_code_server_account_internal_error",
+      "value": "خطأ داخلي في الخادم، يرجى إعادة المحاولة لاحقًا."
+    },
+    {
+      "name": "error_code_server_profile_invalid_parameters",
+      "value": "معلمات طلب غير صالحة، يرجى التحقق من صحة الطلب وفقًا لوصف الخطأ."
+    },
+    {
+      "name": "error_code_server_profile_account_miss",
+      "value": "معلمات الطلب غير صالحة، لم يتم تحديد حساب المستخدم الذي يجب جلب بياناته."
+    },
+    {
+      "name": "error_code_server_profile_account_not_found",
+      "value": "حساب المستخدم المطلوب غير موجود."
+    },
+    {
+      "name": "error_code_server_profile_admin_required",
+      "value": "الطلب يتطلب صلاحيات المسؤول في التطبيق."
+    },
+    {
+      "name": "error_code_server_profile_sensitive_text",
+      "value": "يحتوي حقل البيانات على كلمات حساسة."
+    },
+    {
+      "name": "error_code_server_profile_internal_error",
+      "value": "خطأ داخلي في الخادم، يرجى إعادة المحاولة لاحقًا."
+    },
+    {
+      "name": "error_code_server_profile_read_permission_required",
+      "value": "لا يوجد إذن لقراءة حقل البيانات، يرجى الرجوع إلى وصف حقل البيانات."
+    },
+    {
+      "name": "error_code_server_profile_write_permission_required",
+      "value": "لا يوجد إذن لقراءة حقل البيانات، يرجى الرجوع إلى وصف حقل البيانات."
+    },
+    {
+      "name": "error_code_server_profile_tag_not_found",
+      "value": "لا يوجد علامة لحقل البيانات."
+    },
+    {
+      "name": "error_code_server_profile_size_limit",
+      "value": "تجاوز طول قيمة حقل البيانات الحد الأقصى المسموح به والذي يبلغ 500 بايت."
+    },
+    {
+      "name": "error_code_server_profile_value_error",
+      "value": "قيمة حقل البيانات القياسية غير صحيحة، يرجى الرجوع إلى وصف حقل البيانات القياسية."
+    },
+    {
+      "name": "error_code_server_profile_invalid_value_format",
+      "value": "نوع قيمة حقل البيانات غير متطابق، يرجى الرجوع إلى وصف حقل البيانات القياسية."
+    },
+    {
+      "name": "error_code_server_friendship_invalid_parameters",
+      "value": "معلمات الطلب غير صالحة، يرجى التحقق من صحة الطلب وفقًا لوصف الخطأ."
+    },
+    {
+      "name": "error_code_server_friendship_invalid_sdkappid",
+      "value": "SDKAppID غير متطابق."
+    },
+    {
+      "name": "error_code_server_friendship_account_not_found",
+      "value": "حساب المستخدم المطلوب غير موجود."
+    },
+    {
+      "name": "error_code_server_friendship_admin_required",
+      "value": "الطلب يتطلب صلاحيات المسؤول في التطبيق."
+    },
+    {
+      "name": "error_code_server_friendship_sensitive_text",
+      "value": "يحتوي حقل علاقة الأصدقاء على كلمات حساسة."
+    },
+    {
+      "name": "error_code_server_friendship_internal_error",
+      "value": "خطأ داخلي في الخادم، يرجى إعادة المحاولة لاحقًا."
+    },
+    {
+      "name": "error_code_server_friendship_net_timeout",
+      "value": "انتهت مهلة الشبكة، يرجى إعادة المحاولة لاحقًا."
+    },
+    {
+      "name": "error_code_server_friendship_write_conflict",
+      "value": "تعارض الكتابة المتزامنة يؤدي إلى تعارض الكتابة، يرجى استخدام الطريقة الدفعية."
+    },
+    {
+      "name": "error_code_server_friendship_add_friend_deny",
+      "value": "تم منع المستخدم من إرسال طلبات صداقة من الخلفية."
+    },
+    {
+      "name": "error_code_server_friendship_count_limit",
+      "value": "لقد وصلت إلى الحد الأقصى لعدد الأصدقاء في النظام."
+    },
+    {
+      "name": "error_code_server_friendship_group_count_limit",
+      "value": "لقد وصلت إلى الحد الأقصى لعدد المجموعات في النظام."
+    },
+    {
+      "name": "error_code_server_friendship_pendency_limit",
+      "value": "لقد وصلت إلى الحد الأقصى لعدد الطلبات المعلقة في النظام."
+    },
+    {
+      "name": "error_code_server_friendship_blacklist_limit",
+      "value": "لقد وصلت إلى الحد الأقصى لعدد الأشخاص في القائمة السوداء في النظام."
+    },
+    {
+      "name": "error_code_server_friendship_peer_friend_limit",
+      "value": "لقد وصل الصديق الخاص بك إلى الحد الأقصى لعدد الأصدقاء في النظام."
+    },
+    {
+      "name": "error_code_server_friendship_in_self_blacklist",
+      "value": "الشخص الذي تحاول إضافته في القائمة السوداء الخاصة بك، لا يسمح بإضافته كصديق."
+    },
+    {
+      "name": "error_code_server_friendship_allow_type_deny_any",
+      "value": "الشخص الذي تحاول إضافته كصديق، لا يسمح بإضافته كصديق لأي شخص."
+    },
+    {
+      "name": "error_code_server_friendship_in_peer_blacklist",
+      "value": "أنت في القائمة السوداء الخاصة بالشخص الذي تحاول إضافته كصديق، لا يسمح بإضافته كصديق."
+    },
+    {
+      "name": "error_code_server_friendship_allow_type_need_confirm",
+      "value": "تم إرسال الطلب ويتم انتظار الموافقة من الشخص الآخر."
+    },
+    {
+      "name": "error_code_server_friendship_add_friend_sec_rstr",
+      "value": "تم منع طلب الصداقة بسبب سياسة الأمان، يرجى عدم إرسال طلبات صداقة بشكل متكرر."
+    },
+    {
+      "name": "error_code_server_friendship_pendency_not_found",
+      "value": "الطلب المعلق المطلوب غير موجود."
+    },
+    {
+      "name": "error_code_server_friendship_del_nonfriend",
+      "value": "تم منع طلب حذف الصديق بسبب سياسة الأمان، يرجى عدم إرسال طلبات حذف الصديق بشكل متكرر."
+    },
+    {
+      "name": "error_code_server_friendship_del_friend_sec_rstr",
+      "value": "تم منع طلب حذف الصديق بسبب سياسة الأمان، يرجى عدم إرسال طلبات حذف الصديق بشكل متكرر."
+    },
+    {
+      "name": "error_code_server_friendship_account_not_found_ex",
+      "value": "حساب المستخدم المطلوب غير موجود."
+    },
+    {
+      "name": "error_code_server_conv_account_not_found",
+      "value": "حساب المستخدم المطلوب غير موجود."
+    },
+    {
+      "name": "error_code_server_conv_invalid_parameters",
+      "value": "معلمات الطلب غير صالحة، يرجى التحقق من صحة الطلب وفقًا لوصف الخطأ."
+    },
+    {
+      "name": "error_code_server_conv_admin_required",
+      "value": "الطلب يتطلب صلاحيات المسؤول في التطبيق."
+    },
+    {
+      "name": "error_code_server_conv_internal_error",
+      "value": "خطأ داخلي في محادثة الخادم"
+    },
+    {
+      "name": "error_code_server_conv_net_timeout",
+      "value": "انتهت مهلة الشبكة، يرجى إعادة المحاولة لاحقًا."
+    },
+    {
+      "name": "error_code_server_msg_pkg_parse_failed",
+      "value": "فشل تحليل حزمة الطلب."
+    },
+    {
+      "name": "error_code_server_msg_internal_auth_failed",
+      "value": "فشل المصادقة الداخلية."
+    },
+    {
+      "name": "error_code_server_msg_invalid_id",
+      "value": "معرف غير صالح."
+    },
+    {
+      "name": "error_code_server_msg_net_error",
+      "value": "خطأ في الشبكة، يرجى إعادة المحاولة."
+    },
+    {
+      "name": "error_code_server_msg_internal_error1",
+      "value": "خطأ في الشبكة، يرجى إعادة المحاولة."
+    },
+    {
+      "name": "error_code_server_msg_push_deny",
+      "value": "تم منع إرسال رسالة الدردشة الفردية قبل تنفيذها، تطبيق الخلفية يمنع إرسال هذه الرسالة."
+    },
+    {
+      "name": "error_code_server_msg_in_peer_blacklist",
+      "value": "تم حظر إرسال رسالة الدردشة الفردية بواسطة الشخص الآخر، يمنع إرسالها."
+    },
+    {
+      "name": "error_code_server_msg_both_not_friend",
+      "value": "الشخصين اللذين يحاولان إرسال رسالة الدردشة الفردية ليسا صديقين، يمنع إرسالها."
+    },
+    {
+      "name": "error_code_server_msg_not_peer_friend",
+      "value": "تم إرسال رسالة الدردشة الفردية وأنت لست صديق الشخص الآخر (علاقة من جانب واحد)، يمنع إرسالها."
+    },
+    {
+      "name": "error_code_server_msg_not_self_friend",
+      "value": "تم إرسال رسالة الدردشة الفردية والشخص الآخر ليس صديقك (علاقة من جانب واحد)، يمنع إرسالها."
+    },
+    {
+      "name": "error_code_server_msg_shutup_deny",
+      "value": "تم منع إرسال الرسائل بسبب الحظر عن الكلام."
+    },
+    {
+      "name": "error_code_server_msg_revoke_time_limit",
+      "value": "تم تجاوز الحد الزمني لسحب الرسالة (الافتراضي 2 دقيقة)."
+    },
+    {
+      "name": "error_code_server_msg_del_ramble_internal_error",
+      "value": "خطأ داخلي في حذف الرسائل المتجولة."
+    },
+    {
+      "name": "error_code_server_msg_json_parse_failed",
+      "value": "فشل تحليل تنسيق JSON، يرجى التحقق من صحة حزمة الطلب وفقًا لوصف JSON."
+    },
+    {
+      "name": "error_code_server_msg_invalid_json_body_format",
+      "value": "تنسيق حزمة الطلب JSON غير صحيح، يرجى التحقق من صحة حقل MsgBody وفقًا لوصف تنسيق الرسالة."
+    },
+    {
+      "name": "error_code_server_msg_invalid_to_account",
+      "value": "حقل To_Account مفقود أو ليس من نوع Integer في حزمة الطلب بتنسيق JSON."
+    },
+    {
+      "name": "error_code_server_msg_invalid_rand",
+      "value": "حقل MsgRandom مفقود أو ليس من نوع Integer في حزمة الطلب بتنسيق JSON."
+    },
+    {
+      "name": "error_code_server_msg_invalid_timestamp",
+      "value": "حقل MsgTimeStamp مفقود أو ليس من نوع Integer في حزمة الطلب بتنسيق JSON."
+    },
+    {
+      "name": "error_code_server_msg_body_not_array",
+      "value": "نوع حقل MsgBody في حزمة الطلب بتنسيق JSON ليس من نوع Array."
+    },
+    {
+      "name": "error_code_server_msg_admin_required",
+      "value": "حزمة الطلب بتنسيق JSON لا تتوافق مع وصف تنسيق الرسالة."
+    },
+    {
+      "name": "error_code_server_msg_invalid_json_format",
+      "value": "حزمة الطلب بتنسيق JSON لا تتوافق مع وصف تنسيق الرسالة."
+    },
+    {
+      "name": "error_code_server_msg_to_account_count_limit",
+      "value": "عدد حسابات الوجهة في إرسال الرسائل الجماعية تجاوز الحد الأقصى (500)."
+    },
+    {
+      "name": "error_code_server_msg_to_account_not_found",
+      "value": "حساب To_Account غير مسجل أو غير موجود."
+    },
+    {
+      "name": "error_code_server_msg_time_limit",
+      "value": "خطأ في وقت تخزين الرسالة غير المتصلة (لا يمكن أن يتجاوز 7 أيام)."
+    },
+    {
+      "name": "error_code_server_msg_invalid_syncothermachine",
+      "value": "حقل SyncOtherMachine في حزمة الطلب بتنسيق JSON ليس من نوع Integer."
+    },
+    {
+      "name": "error_code_server_msg_invalid_msglifetime",
+      "value": "حقل MsgLifeTime في حزمة الطلب بتنسيق JSON ليس من نوع Integer."
+    },
+    {
+      "name": "error_code_server_msg_account_not_found",
+      "value": "حساب To_Account غير مسجل أو غير موجود."
+    },
+    {
+      "name": "error_code_server_msg_internal_error2",
+      "value": "خطأ داخلي 2 في رسالة الخادم"
+    },
+    {
+      "name": "error_code_server_msg_internal_error3",
+      "value": "خطأ داخلي 3 في رسالة الخادم"
+    },
+    {
+      "name": "error_code_server_msg_internal_error4",
+      "value": "خطأ داخلي 4 في رسالة الخادم"
+    },
+    {
+      "name": "error_code_server_msg_internal_error5",
+      "value": "خطأ داخلي 5 في رسالة الخادم"
+    },
+    {
+      "name": "error_code_server_msg_body_size_limit",
+      "value": "حزمة بيانات JSON طويلة جدًا، يرجى عدم تجاوز حجم حزمة الرسالة 12 كيلوبايت."
+    },
+    {
+      "name": "error_code_server_msg_longpolling_count_limit",
+      "value": "تم طرد الاستعلام الطويل على الويب (تم تجاوز الحد الأقصى لعدد الجلسات المتصلة في الويب)."
+    },
+    {
+      "name": "error_code_server_group_internal_error",
+      "value": "طلب غير صالح."
+    },
+    {
+      "name": "error_code_server_group_api_name_error",
+      "value": "اسم الواجهة في الطلب غير صحيح."
+    },
+    {
+      "name": "error_code_server_group_invalid_parameters",
+      "value": "طلب غير صالح."
+    },
+    {
+      "name": "error_code_server_group_account_count_limit",
+      "value": "عدد الحسابات المرفقة في حزمة الطلب كثير جدًا."
+    },
+    {
+      "name": "error_code_server_group_freq_limit",
+      "value": "تم تقييد تكرار العملية، يرجى محاولة تقليل تكرار الاستدعاء."
+    },
+    {
+      "name": "error_code_server_group_permission_deny",
+      "value": "ليس لديك صلاحيات كافية للقيام بالعملية."
+    },
+    {
+      "name": "error_code_server_group_invalid_req",
+      "value": "طلب غير صالح."
+    },
+    {
+      "name": "error_code_server_group_super_not_allow_quit",
+      "value": "لا يُسمح لمالك المجموعة بالخروج من المجموعة بنفسه."
+    },
+    {
+      "name": "error_code_server_group_not_found",
+      "value": "المجموعة غير موجودة."
+    },
+    {
+      "name": "error_code_server_group_json_parse_failed",
+      "value": "فشل تحليل حزمة JSON، يرجى التحقق من تنسيق الحزمة."
+    },
+    {
+      "name": "error_code_server_group_invalid_id",
+      "value": "معرف المستخدم الذي يقوم بالعملية غير صالح، يرجى التحقق من صحة معرف المستخدم الذي يقوم بالعملية."
+    },
+    {
+      "name": "error_code_server_group_already_member",
+      "value": "عضو في المجموعة بالفعل"
+    },
+    {
+      "name": "error_code_server_group_full_member_count",
+      "value": "المجموعة مكتملة العدد، لا يمكن إضافة المستخدمين المحددين في الطلب إلى المجموعة."
+    },
+    {
+      "name": "error_code_server_group_invalid_groupid",
+      "value": "معرف المجموعة غير صالح، يرجى التحقق من صحة معرف المجموعة."
+    },
+    {
+      "name": "error_code_server_group_reject_from_thirdparty",
+      "value": "تم رفض العملية من قبل خلفية التطبيق من خلال رد فعل طرف ثالث."
+    },
+    {
+      "name": "error_code_server_group_shutup_deny",
+      "value": "لا يمكن إرسال الرسائل بسبب الحظر عن الكلام، يرجى التحقق مما إذا كان المرسل محظورًا عن الكلام."
+    },
+    {
+      "name": "error_code_server_group_rsp_size_limit",
+      "value": "تجاوز طول حزمة الاستجابة الحد الأقصى."
+    },
+    {
+      "name": "error_code_server_group_account_not_found",
+      "value": "حساب المستخدم المطلوب غير موجود."
+    },
+    {
+      "name": "error_code_server_group_groupid_in_used",
+      "value": "معرف المجموعة قيد الاستخدام، يرجى اختيار معرف مجموعة آخر."
+    },
+    {
+      "name": "error_code_server_group_send_msg_freq_limit",
+      "value": "تجاوز تكرار إرسال الرسائل، يرجى زيادة الفاصل الزمني بين إرسال الرسائل."
+    },
+    {
+      "name": "error_code_server_group_req_already_been_processed",
+      "value": "تم معالجة طلب الدعوة أو الطلب هذا بالفعل."
+    },
+    {
+      "name": "error_code_server_group_groupid_in_used_for_super",
+      "value": "معرف المجموعة قيد الاستخدام والمستخدم هو المالك، يمكن استخدامه مباشرة."
+    },
+    {
+      "name": "error_code_server_group_sdkappid_deny",
+      "value": "تم تعطيل كلمة الأمر المطلوبة من قبل SDKAppID المطلوب."
+    },
+    {
+      "name": "error_code_server_group_revoke_msg_not_found",
+      "value": "الرسالة المطلوبة للإلغاء غير موجودة."
+    },
+    {
+      "name": "error_code_server_group_revoke_msg_time_limit",
+      "value": "تجاوز الوقت المحدد لإلغاء الرسالة (الافتراضي 2 دقيقة)."
+    },
+    {
+      "name": "error_code_server_group_revoke_msg_deny",
+      "value": "الرسالة المطلوبة للإلغاء لا تدعم عملية الإلغاء."
+    },
+    {
+      "name": "error_code_server_group_not_allow_revoke_msg",
+      "value": "نوع المجموعة لا يدعم عملية إلغاء الرسالة."
+    },
+    {
+      "name": "error_code_server_group_remove_msg_deny",
+      "value": "نوع الرسالة غير مدعوم لعملية الحذف."
+    },
+    {
+      "name": "error_code_server_group_not_allow_remove_msg",
+      "value": "غرفة الدردشة الصوتية والفيديو والبث الكبير للأعضاء المتصلين لا تدعم حذف الرسائل."
+    },
+    {
+      "name": "error_code_server_group_avchatroom_count_limit",
+      "value": "تجاوز الحد الأقصى لعدد غرف الدردشة الصوتية والفيديو المنشأة."
+    },
+    {
+      "name": "error_code_server_group_count_limit",
+      "value": "تجاوز الحد الأقصى لعدد المجموعات التي يمكن للمستخدم الفردي إنشاؤها والانضمام إليها."
+    },
+    {
+      "name": "error_code_server_group_member_count_limit",
+      "value": "تجاوز الحد الأقصى لعدد أعضاء المجموعة."
+    },
+    {
+      "name": "error_code_unknown_format",
+      "value": "خطأ غير معروف (%s)"
+    }
+  ]
+}

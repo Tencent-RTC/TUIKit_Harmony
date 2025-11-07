@@ -1,0 +1,21 @@
+{
+  "string": [
+    { "name": "search_cancel", "value": "إلغاء" },
+    { "name": "search_back", "value": "رجوع" },
+    { "name": "search_loading", "value": "جاري التحميل..." },
+    { "name": "search_loading_more", "value": "جاري تحميل المزيد..." },
+    { "name": "search_no_results", "value": "لا توجد نتائج" },
+    { "name": "search_no_contacts", "value": "لا توجد جهات اتصال" },
+    { "name": "search_no_groups", "value": "لا توجد مجموعات" },
+    { "name": "search_no_messages", "value": "لا توجد رسائل" },
+    { "name": "search_no_matched_messages", "value": "لا توجد رسائل مطابقة" },
+    { "name": "search_search_placeholder", "value": "البحث" },
+    { "name": "search_search_contacts_placeholder", "value": "البحث في جهات الاتصال" },
+    { "name": "search_search_messages_placeholder", "value": "البحث في الرسائل" },
+    { "name": "search_search_in_conversation_placeholder", "value": "البحث في المحادثة" },
+    { "name": "search_suggest_text", "value": "البحث في جهات الاتصال أو المجموعات أو الرسائل" },
+    { "name": "search_contacts_title", "value": "جهات الاتصال" },
+    { "name": "search_groups_title", "value": "المجموعات" },
+    { "name": "search_messages_title", "value": "الرسائل" }
+  ]
+}

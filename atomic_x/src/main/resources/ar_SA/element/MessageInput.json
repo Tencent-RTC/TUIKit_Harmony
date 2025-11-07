@@ -1,0 +1,104 @@
+{
+  "string": [
+    {
+      "name": "input_message_placeholder",
+      "value": "اكتب رسالة..."
+    },
+    {
+      "name": "send_button",
+      "value": "إرسال"
+    },
+    {
+      "name": "permission_read_media",
+      "value": "قراءة ملفات الوسائط"
+    },
+    {
+      "name": "permission_write_media",
+      "value": "كتابة ملفات الوسائط"
+    },
+    {
+      "name": "permission_media_location",
+      "value": "الوصول إلى معلومات موقع الوسائط"
+    },
+    {
+      "name": "permission_camera",
+      "value": "استخدام الكاميرا لالتقاط الصور وتسجيل مقاطع الفيديو"
+    },
+    {
+      "name": "permission_read_imagevideo",
+      "value": "قراءة الصور ومقاطع الفيديو"
+    },
+    {
+      "name": "permission_write_imagevideo",
+      "value": "كتابة الصور ومقاطع الفيديو"
+    },
+    {
+      "name": "permission_read_audio",
+      "value": "قراءة الملفات الصوتية"
+    },
+    {
+      "name": "permission_read_storage",
+      "value": "قراءة تخزين المستخدم"
+    },
+    {
+      "name": "permission_write_storage",
+      "value": "كتابة تخزين المستخدم"
+    },
+    {
+      "name": "menu_image",
+      "value": "صورة"
+    },
+    {
+      "name": "menu_photo",
+      "value": "صورة فوتوغرافية"
+    },
+    {
+      "name": "menu_video",
+      "value": "فيديو"
+    },
+    {
+      "name": "menu_file",
+      "value": "ملف"
+    },
+    {
+      "name": "menu_custom",
+      "value": "مخصص"
+    },
+    {
+      "name": "cancel",
+      "value": "إلغاء"
+    },
+    {
+      "name": "file_too_large_error",
+      "value": "الملف كبير جداً"
+    },
+    {
+      "name": "image_too_large_error",
+      "value": "حجم الصورة يتجاوز حد 28 ميجابايت"
+    },
+    {
+      "name": "audio_too_large_error",
+      "value": "حجم الصوت يتجاوز حد 28 ميجابايت"
+    },
+    {
+      "name": "video_too_large_error",
+      "value": "حجم الفيديو يتجاوز حد 100 ميجابايت"
+    },
+    {
+      "name": "file_size_too_large_error",
+      "value": "حجم الملف يتجاوز حد 100 ميجابايت"
+    },
+    {
+      "name": "empty_file_error",
+      "value": "لا يمكن إرسال ملف فارغ"
+    },
+    {
+      "name": "voice_release_to_cancel",
+      "value": "اتركه للإلغاء"
+    },
+    {
+      "name": "voice_release_to_send_slide_to_cancel",
+      "value": "اتركه للإرسال، اسحب لأعلى للإلغاء"
+    }
+  ]
+}

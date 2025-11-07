@@ -1,0 +1,300 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "وصف الوحدة"
+    },
+    {
+      "name": "merge_message_title",
+      "value": "دمج الرسالة"
+    },
+    {
+      "name": "message_type_image",
+      "value": "[صورة]"
+    },
+    {
+      "name": "message_type_voice",
+      "value": "[صوت]"
+    },
+    {
+      "name": "message_type_video",
+      "value": "[فيديو]"
+    },
+    {
+      "name": "message_type_file",
+      "value": "[ملف]"
+    },
+    {
+      "name": "message_type_animate_emoji",
+      "value": "[رمز تعبيري متحرك]"
+    },
+    {
+      "name": "message_tips_unsupport_custom",
+      "value": "[رسالة مخصصة غير مدعومة]"
+    },
+    {
+      "name": "group_create_tips_message",
+      "value": "إنشاء مجموعة"
+    },
+    {
+      "name": "community_create_tips_message",
+      "value": "إنشاء مجتمع"
+    },
+    {
+      "name": "community_create_tips_format",
+      "value": "%s إنشاء مجتمع"
+    },
+    {
+      "name": "group_create_tips_format",
+      "value": "%s إنشاء مجموعة"
+    },
+    {
+      "name": "message_tips_you_recall",
+      "value": "لقد استدعيت رسالة"
+    },
+    {
+      "name": "message_tips_others_recall",
+      "value": "الطرف الآخر استدعى رسالة"
+    },
+    {
+      "name": "message_tips_recall",
+      "value": "استدعى رسالة"
+    },
+    {
+      "name": "message_tips_recall_format",
+      "value": "%s استدعى رسالة"
+    },
+    {
+      "name": "message_tips_normal_recall",
+      "value": "تم استدعاء الرسالة"
+    },
+    {
+      "name": "message_tips_join_group",
+      "value": "%s انضم إلى المجموعة"
+    },
+    {
+      "name": "message_tips_invite_join_group",
+      "value": "%s دعا %s للانضمام إلى المجموعة"
+    },
+    {
+      "name": "message_tips_leave_group",
+      "value": "%s غادر المجموعة"
+    },
+    {
+      "name": "message_tips_kickoff_group",
+      "value": "%s أزال %s من المجموعة"
+    },
+    {
+      "name": "you",
+      "value": "أنت"
+    },
+    {
+      "name": "message_tips_unmute",
+      "value": "إلغاء الكتم"
+    },
+    {
+      "name": "message_tips_mute",
+      "value": "كتم"
+    },
+    {
+      "name": "message_tips_mute_format",
+      "value": "%s %s"
+    },
+    {
+      "name": "message_tips_self_unmute",
+      "value": "تم إلغاء كتمك"
+    },
+    {
+      "name": "message_tips_member_unmute",
+      "value": "تم إلغاء كتم %s"
+    },
+    {
+      "name": "message_tips_self_mute",
+      "value": "تم كتمك لمدة %s"
+    },
+    {
+      "name": "message_tips_member_mute",
+      "value": "تم كتم %s لمدة %s"
+    },
+    {
+      "name": "message_tips_group_pin",
+      "value": "%s ثبت رسالة"
+    },
+    {
+      "name": "message_tips_group_unpin",
+      "value": "%s ألغى تثبيت رسالة"
+    },
+    {
+      "name": "message_tips_set_admin",
+      "value": "%s تم تعيينه كمدير"
+    },
+    {
+      "name": "message_tips_cancel_admin",
+      "value": "%s تم إزالته من المديرين"
+    },
+    {
+      "name": "message_tips_edit_group_name",
+      "value": "%s غير اسم المجموعة إلى \"%s\""
+    },
+    {
+      "name": "message_tips_edit_group_intro",
+      "value": "%s غير مقدمة المجموعة إلى \"%s\""
+    },
+    {
+      "name": "message_tips_edit_group_announce",
+      "value": "%s غير إعلان المجموعة إلى \"%s\""
+    },
+    {
+      "name": "message_tips_delete_group_announce",
+      "value": "%s حذف إعلان المجموعة"
+    },
+    {
+      "name": "message_tips_edit_group_avatar",
+      "value": "%s غير صورة المجموعة"
+    },
+    {
+      "name": "message_tips_edit_group_owner",
+      "value": "%s نقل ملكية المجموعة إلى \"%s\""
+    },
+    {
+      "name": "message_tips_shutup_all",
+      "value": "%s فعل كتم المجموعة بالكامل"
+    },
+    {
+      "name": "message_tips_cancel_shutup_all",
+      "value": "%s ألغى كتم المجموعة بالكامل"
+    },
+    {
+      "name": "message_tips_edit_group_join",
+      "value": "%s غير خيار الانضمام إلى \"%s\""
+    },
+    {
+      "name": "message_tips_edit_group_invite",
+      "value": "%s غير خيار الدعوة إلى \"%s\""
+    },
+    {
+      "name": "group_join_disable",
+      "value": "الانضمام معطل"
+    },
+    {
+      "name": "group_admin_approve",
+      "value": "موافقة المدير"
+    },
+    {
+      "name": "group_auto_approval",
+      "value": "موافقة تلقائية"
+    },
+    {
+      "name": "group_invite_disable",
+      "value": "الدعوة معطلة"
+    },
+    {
+      "name": "unknown",
+      "value": "غير معروف"
+    },
+    {
+      "name": "sunday",
+      "value": "الأحد"
+    },
+    {
+      "name": "monday",
+      "value": "الإثنين"
+    },
+    {
+      "name": "tuesday",
+      "value": "الثلاثاء"
+    },
+    {
+      "name": "wednesday",
+      "value": "الأربعاء"
+    },
+    {
+      "name": "thursday",
+      "value": "الخميس"
+    },
+    {
+      "name": "friday",
+      "value": "الجمعة"
+    },
+    {
+      "name": "saturday",
+      "value": "السبت"
+    },
+    {
+      "name": "conversation_fetch_failed",
+      "value": "فشل في جلب قائمة المحادثات"
+    },
+    {
+      "name": "conversation_no_more",
+      "value": "لا توجد محادثات أكثر"
+    },
+    {
+      "name": "conversation_fetch_first",
+      "value": "يرجى جلب قائمة المحادثات أولاً"
+    },
+    {
+      "name": "conversation_load_more_failed",
+      "value": "فشل في تحميل المزيد من المحادثات"
+    },
+    {
+      "name": "conversation_delete_failed",
+      "value": "فشل في حذف المحادثة"
+    },
+    {
+      "name": "conversation_clear_unread_failed",
+      "value": "فشل في مسح عدد غير المقروء"
+    },
+    {
+      "name": "conversation_set_draft_failed",
+      "value": "فشل في تعيين المسودة"
+    },
+    {
+      "name": "conversation_pin_failed",
+      "value": "فشل في تثبيت المحادثة"
+    },
+    {
+      "name": "conversation_unpin_failed",
+      "value": "فشل في إلغاء تثبيت المحادثة"
+    },
+    {
+      "name": "conversation_unsupported_action",
+      "value": "إجراء محادثة غير مدعوم"
+    },
+    {
+      "name": "group_id_empty",
+      "value": "معرف المجموعة فارغ"
+    },
+    {
+      "name": "message_empty",
+      "value": "الرسالة فارغة"
+    },
+    {
+      "name": "fetch_members_first",
+      "value": "يرجى جلب أعضاء المجموعة أولاً"
+    },
+    {
+      "name": "fetch_members_failed",
+      "value": "فشل في جلب أعضاء المجموعة"
+    },
+    {
+      "name": "message_not_found",
+      "value": "الرسالة غير موجودة"
+    },
+    {
+      "name": "conversation_hide_failed",
+      "value": "فشل في إخفاء المحادثة"
+    },
+    {
+      "name": "conversation_clear_message_failed",
+      "value": "فشل في مسح رسالة المحادثة"
+    },
+    {
+      "name": "conversation_mark_read_failed",
+      "value": "فشل في وضع علامة قراءة المحادثة"
+    },
+    {
+      "name": "conversation_mark_unread_failed",
+      "value": "فشل في وضع علامة عدم قراءة المحادثة"
+    }
+  ]
+}

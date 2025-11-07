@@ -1,0 +1,308 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "模块描述"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "描述"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "腾讯云通信"
+    },
+    {
+      "name": "demo_title",
+      "value": "腾讯云通信"
+    },
+    {
+      "name": "demo_conversation_tab_name",
+      "value": "消息"
+    },
+    {
+      "name": "demo_contact_tab_name",
+      "value": "联系人"
+    },
+    {
+      "name": "demo_profile_tab_name",
+      "value": "设置"
+    },
+    {
+      "name": "demo_profile_signature_label",
+      "value": "个性签名："
+    },
+    {
+      "name": "demo_dev_login_user_name",
+      "value": "用户名"
+    },
+    {
+      "name": "demo_login_button_name",
+      "value": "登录"
+    },
+    {
+      "name": "demo_logout_button_name",
+      "value": "退出登录"
+    },
+    {
+      "name": "demo_switch_language_button_name",
+      "value": "切换语言"
+    },
+    {
+      "name": "demo_about_button_name",
+      "value": "关于"
+    },
+    {
+      "name": "chat_title",
+      "value": "聊天"
+    },
+    {
+      "name": "search_placeholder",
+      "value": "搜索"
+    },
+    {
+      "name": "cancel_button",
+      "value": "取消"
+    },
+    {
+      "name": "delete_button",
+      "value": "删除"
+    },
+    {
+      "name": "no_messages_title",
+      "value": "没有消息"
+    },
+    {
+      "name": "no_messages_desc",
+      "value": "点击+图标开始新的会话"
+    },
+    {
+      "name": "demo_theme_button_name",
+      "value": "主题"
+    },
+    {
+      "name": "theme_select_title",
+      "value": "选择主题"
+    },
+    {
+      "name": "theme_light",
+      "value": "明亮"
+    },
+    {
+      "name": "theme_dark",
+      "value": "暗黑"
+    },
+    {
+      "name": "theme_system",
+      "value": "跟随系统"
+    },
+    {
+      "name": "confirm",
+      "value": "确定"
+    },
+    {
+      "name": "cancel",
+      "value": "取消"
+    },
+    {
+      "name": "permission_read_media",
+      "value": "需要读取媒体文件以选择和发送图片、视频等媒体消息"
+    },
+    {
+      "name": "permission_write_media",
+      "value": "需要保存接收的图片、视频等媒体文件"
+    },
+    {
+      "name": "permission_media_location",
+      "value": "需要访问媒体文件的位置信息"
+    },
+    {
+      "name": "permission_camera",
+      "value": "需要使用相机拍摄照片和录制视频以发送消息"
+    },
+    {
+      "name": "permission_microphone",
+      "value": "需要使用麦克风录制语音消息"
+    },
+    {
+      "name": "permission_read_imagevideo",
+      "value": "需要读取图片和视频文件以选择和发送媒体消息"
+    },
+    {
+      "name": "permission_write_imagevideo",
+      "value": "需要保存接收的图片和视频文件"
+    },
+    {
+      "name": "permission_read_audio",
+      "value": "需要读取音频文件以选择和发送语音消息"
+    },
+    {
+      "name": "permission_file_access",
+      "value": "需要访问文件系统以选择和发送文件消息"
+    },
+    {
+      "name": "contacts_title",
+      "value": "联系人"
+    },
+    {
+      "name": "contacts_search_placeholder",
+      "value": "搜索"
+    },
+    {
+      "name": "add_friend",
+      "value": "添加好友"
+    },
+    {
+      "name": "add_group_chat",
+      "value": "添加群聊"
+    },
+    {
+      "name": "add_contacts",
+      "value": "添加联系人"
+    },
+    {
+      "name": "user_id_placeholder",
+      "value": "用户ID"
+    },
+    {
+      "name": "start_conversation",
+      "value": "发起会话"
+    },
+    {
+      "name": "create_group_chat",
+      "value": "创建群聊"
+    },
+    {
+      "name": "setting_title",
+      "value": "设置"
+    },
+    {
+      "name": "friend_request_setting",
+      "value": "加我为好友时"
+    },
+    {
+      "name": "friend_request_title",
+      "value": "加我为好友时"
+    },
+    {
+      "name": "friend_request_allow_any",
+      "value": "同意任何人"
+    },
+    {
+      "name": "friend_request_need_confirm",
+      "value": "需要验证"
+    },
+    {
+      "name": "friend_request_deny_any",
+      "value": "拒绝任何人"
+    },
+    {
+      "name": "friend_request_updated",
+      "value": "好友验证设置已更新为：%s"
+    },
+    {
+      "name": "friend_request_update_failed",
+      "value": "设置失败，请重试"
+    },
+    {
+      "name": "profile_details",
+      "value": "个人资料"
+    },
+    {
+      "name": "profile_account",
+      "value": "账号"
+    },
+    {
+      "name": "profile_signature",
+      "value": "个性签名"
+    },
+    {
+      "name": "profile_gender",
+      "value": "性别"
+    },
+    {
+      "name": "profile_birthday",
+      "value": "生日"
+    },
+    {
+      "name": "profile_edit_name",
+      "value": "编辑昵称"
+    },
+    {
+      "name": "profile_edit_name_desc",
+      "value": "请输入您的昵称"
+    },
+    {
+      "name": "profile_edit_signature",
+      "value": "编辑个性签名"
+    },
+    {
+      "name": "profile_edit_gender",
+      "value": "选择性别"
+    },
+    {
+      "name": "no_self_signature",
+      "value": "暂无个性签名"
+    },
+    {
+      "name": "gender_male",
+      "value": "男"
+    },
+    {
+      "name": "gender_female",
+      "value": "女"
+    },
+    {
+      "name": "gender_unknown",
+      "value": "未知"
+    },
+    {
+      "name": "unsetted",
+      "value": "未设置"
+    },
+    {
+      "name": "feature_coming_soon",
+      "value": "功能即将上线"
+    },
+    {
+      "name": "update_profile_success",
+      "value": "个人资料更新成功"
+    },
+    {
+      "name": "update_profile_failed",
+      "value": "个人资料更新失败"
+    },
+    {
+      "name": "edit",
+      "value": "编辑"
+    },
+    {
+      "name": "please_input",
+      "value": "请输入"
+    },
+    {
+      "name": "language_select_title",
+      "value": "选择语言"
+    },
+    {
+      "name": "language_chinese",
+      "value": "简体中文"
+    },
+    {
+      "name": "language_english",
+      "value": "英语"
+    },
+    {
+      "name": "language_arabic",
+      "value": "阿拉伯语"
+    },
+    {
+      "name": "login_success_message",
+      "value": "用户 %s 登录成功"
+    },
+    {
+      "name": "theme_random_color",
+      "value": "随机颜色"
+    }
+  ]
+} 

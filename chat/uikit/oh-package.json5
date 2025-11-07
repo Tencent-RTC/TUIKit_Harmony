@@ -7,6 +7,6 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@tencentcloud/atomicx": "file:../../atomic_x/",
-    "@tencentcloud/atomicxcore": "file:../../../../../tuikit_engine/atomicx/harmony/atomicxcore"
+    "@tencentcloud/atomicxcore": "file:../demo/entry/atomicxcore-3.5.0.har"
   }
 }

@@ -37,18 +37,6 @@
       ]
     },
     {
-      "name": "atomicxcore",
-      "srcPath": "../../../../../tuikit_engine/atomicx/harmony/atomicxcore",
-      "targets": [
-        {
-          "name": "default",
-          "applyToProducts": [
-            "default"
-          ]
-        }
-      ]
-    },
-    {
       "name": "atomic_x",
       "srcPath": "../../atomic_x",
       "targets": [

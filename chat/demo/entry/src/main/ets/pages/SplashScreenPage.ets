@@ -26,10 +26,10 @@ struct SplashScreenPage {
         })
         .catch((reason: Object) => {
           Log.e("SplashScreenPage", "auto login failed, " + reason);
-          router.replaceUrl({ url: "pages/LoginPage" });
+          router.replaceUrl({ url: "pages/DevLoginPage" });
         });
     } else {
-      router.replaceUrl({ url: "pages/LoginPage" })
+      router.replaceUrl({ url: "pages/DevLoginPage" })
     }
   }
 

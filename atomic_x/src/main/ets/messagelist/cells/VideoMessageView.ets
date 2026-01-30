@@ -2,6 +2,9 @@ import { MessageInfo } from '@tencentcloud/atomicxcore';
 import { ImageSizeUtil, ThemeState } from '../../basecomponent/Index';
 import { MessageBody } from '@tencentcloud/atomicxcore';
 import router from '@ohos.router';
+import { AppBuilderConfig } from '../../basecomponent/utils/AppBuilderHelper';
+import { MessageListStyleProtocol } from '../config/MessageListConfig';
+import { MessageUtils } from '../utils/MessageUtils';
 import {
   MediaType,
   MediaItem,
@@ -9,6 +12,7 @@ import {
   VideoPlayerDialog
 } from '../../videoplayer/Index';
 import { MessageMediaFileType, MessageListStore } from '@tencentcloud/atomicxcore';
+import { MessageRenderContext } from '../context/MessageRenderContext';
 
 // import { AppContext } from '../../basecomponent/Index';
 
@@ -18,6 +22,8 @@ const DEFAULT_IMAGE_MAX_SIZE = 180;
 export struct VideoMessageViewContent {
   @State message?: MessageInfo = undefined;
   @ObjectLink messageBody: MessageBody;
+  @Prop config?: MessageListStyleProtocol = undefined;
+  @Prop isInMergedDetailView: boolean = false;
   @State isPlaying: boolean = false;
   @ObjectLink messageListStore: MessageListStore;
   
@@ -73,6 +79,15 @@ export struct VideoMessageViewContent {
       }
       .margin({ right: 8, bottom: 8 })
       .alignItems(VerticalAlign.Bottom)
+
+      if (this.message && MessageUtils.shouldShowReadReceipt(this.message,
+        this.config?.enableReadReceipt ?? AppBuilderConfig.getInstance().enableReadReceipt,
+        this.isInMergedDetailView)) {
+        Image(MessageUtils.getReadReceiptIconResource(this.message))
+          .width(14)
+          .height(14)
+          .margin({ right: 45, bottom: 6 })
+      }
     }
      .size({ width: `${this.getImageSize().width}vp`, height: `${this.getImageSize().height}vp` })
     .onClick(() => {
@@ -150,12 +165,14 @@ export struct VideoMessageViewContent {
 }
 
 @Builder
-export function VideoMessageView(messageData: MessageInfo, MessageListStore: MessageListStore) {
-  if (messageData && messageData.messageBody) {
+export function VideoMessageView(context: MessageRenderContext) {
+  if (context.message && context.message.messageBody) {
     VideoMessageViewContent({
-      message: messageData,
-      messageBody: messageData.messageBody,
-      messageListStore: MessageListStore
+      message: context.message,
+      messageBody: context.message.messageBody,
+      messageListStore: context.messageListStore,
+      config: context.config,
+      isInMergedDetailView: context.isInMergedDetailView ?? false
     })
   }
 }

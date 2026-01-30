@@ -1,5 +1,7 @@
 import { ThemeState, Toast ,IMErrorCode } from '../../basecomponent/Index';
-import { MessageBody, MessageInfo, MessageInputStore, MessageType, ErrorInfo } from '@tencentcloud/atomicxcore';
+import { EventBus } from '../../basecomponent/utils/EventBus';
+import emitter from '@ohos.events.emitter';
+import { MessageBody, MessageInfo, MessageInputStore, MessageType, ErrorInfo, ConversationListStore, ConversationType } from '@tencentcloud/atomicxcore';
 import { MessageInputMoreDialog, MenuItem } from './MessageInputMoreDialog';
 import { EmojiDataManager, EmojiItem, EmojiPicker } from '../../emojipicker/Index';
 import { AudioRecorder } from '../../audiorecorder/Index';
@@ -13,7 +15,11 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import photoAccessHelper from '@ohos.file.photoAccessHelper';
 import { dataSharePredicates } from '@kit.ArkData';
 import image from '@ohos.multimedia.image';
-import { MessageInputConfigProtocol, ChatMessageInputConfig } from '../config/MessageInputConfig';
+import { MessageInputConfigProtocol, ChatMessageInputConfig, InputStyle } from '../config/MessageInputConfig';
+import { MentionInfo } from './MentionInfo';
+import { MentionMemberDialog } from './MentionMemberDialog';
+import { ClassicInputBar, ClassicInputBarCallbacks } from './ClassicInputBar';
+import { MinimalistInputBar, MinimalistInputBarCallbacks } from './MinimalistInputBar';
 
 @Component
 export struct MessageInput {
@@ -39,10 +45,25 @@ export struct MessageInput {
   private readonly cancelThreshold: number = -50; // Upward drag threshold for cancel
   private longPressTimer?: number;
   private initialTouchY: number = 0;
+  // Draft related properties
+  private conversationStore: ConversationListStore = ConversationListStore.create();
+  private draftSaveTimer?: number;
+  private isLoadingDraft: boolean = false;
+  private static readonly DRAFT_SAVE_DELAY: number = 800; // 800ms debounce
+  // @ mention related properties
+  @State private mentionList: MentionInfo[] = [];
+  private mentionDialogController?: CustomDialogController;
+  private atPosition: number = 0; // Position where "@" was typed
+  private isRemovingMention: boolean = false;
+  // Parsed from conversationID for @ mention feature
+  private parsedGroupID: string = '';
+  private parsedConversationType: ConversationType = ConversationType.UNKNOWN;
 
   aboutToAppear() {
     if (this.conversationID) {
       this.inputState = MessageInputStore.create(this.conversationID);
+      // Parse conversationType and groupID from conversationID
+      this.parseConversationID();
     } else {
       console.error('[MessageInputBar] No conversationID provided, input state will not be created');
     }
@@ -56,6 +77,124 @@ export struct MessageInput {
     
     // Initialize dialog controller with dynamic menu items
     this.initializeDialogController();
+    
+    // Load draft when component appears
+    this.loadDraft();
+    
+    // Subscribe to EventBus for @ mention events
+    EventBus.getInstance().on('onUserLongPress', (eventData) => {
+      this.handleMentionEvent(eventData);
+    });
+  }
+
+  /**
+   * Parse conversationID to extract conversationType and groupID
+   * Format: "group_xxx" for group, "c2c_xxx" for C2C
+   */
+  private parseConversationID(): void {
+    if (this.conversationID.startsWith('group_')) {
+      this.parsedConversationType = ConversationType.GROUP;
+      this.parsedGroupID = this.conversationID.substring(6); // Remove "group_" prefix
+    } else if (this.conversationID.startsWith('c2c_')) {
+      this.parsedConversationType = ConversationType.C2C;
+      this.parsedGroupID = '';
+    } else {
+      this.parsedConversationType = ConversationType.UNKNOWN;
+      this.parsedGroupID = '';
+    }
+  }
+
+  /**
+   * Handle @ mention event from EventBus
+   * Called when user long presses avatar in message list
+   */
+  private handleMentionEvent(eventData: emitter.EventData): void {
+    const data = eventData.data as Record<string, Object>;
+    const source = data['source'] as string;
+    const event = data['event'] as string;
+    const userID = data['userID'] as string;
+    const nickname = data['nickname'] as string;
+    
+    console.log(`[MessageInput] 📨 Received mention event: source=${source}, event=${event}, userID=${userID}, nickname=${nickname}`);
+    
+    if (source !== 'MessageList' || event !== 'onUserLongPress') {
+      console.log(`[MessageInput] ⚠️ Ignored event - wrong source or type`);
+      return;
+    }
+    
+    // Only works in group chat
+    if (this.parsedConversationType !== ConversationType.GROUP) {
+      console.log('[MessageInput] ⚠️ Not a group chat, ignoring mention event');
+      return;
+    }
+    
+    if (!userID || !nickname) {
+      console.log('[MessageInput] ⚠️ Empty userID or nickname, ignoring');
+      return;
+    }
+    
+    console.log(`[MessageInput]  Inserting mention: userID=${userID}, nickname=${nickname}`);
+    this.insertMentionInternal(userID, nickname);
+  }
+
+  /**
+   * Internal method to insert a mention into the input field
+   * @param userID The user ID to mention
+   * @param displayName The display name to show (nickname or userID)
+   */
+  private insertMentionInternal(userID: string, displayName: string): void {
+    // Only works in group chat
+    if (this.parsedConversationType !== ConversationType.GROUP) {
+      console.log('[MessageInput] insertMention: Not a group chat, ignoring');
+      return;
+    }
+
+    if (!userID || userID.length === 0) {
+      console.log('[MessageInput] insertMention: Empty userID, ignoring');
+      return;
+    }
+
+    console.log(`[MessageInput] 📝 Inserting mention: userID=${userID}, displayName=${displayName}`);
+
+    // Get current cursor position
+    const currentOffset = this.richEditorController.getCaretOffset();
+
+    // Create MentionInfo with constructor parameters
+    const mention = new MentionInfo(userID, displayName, currentOffset);
+
+    const fullMentionText = mention.mentionText;
+    console.log(`[MessageInput]   Insert mention at ${currentOffset}: "${fullMentionText}"`);
+
+    // Insert BuilderSpan (atomic, non-editable block)
+    this.richEditorController.addBuilderSpan(
+      () => {
+        this.MentionSpanBuilder(fullMentionText);
+      },
+      { offset: currentOffset }
+    );
+
+    // Add to mention list
+    this.mentionList.push(mention);
+
+    // Move cursor to end of inserted mention (BuilderSpan = 1 position)
+    setTimeout(() => {
+      this.richEditorController.setCaretOffset(currentOffset + 1);
+    }, 50);
+
+    console.log(`[MessageInput] ✅ mentionList now has ${this.mentionList.length} items`);
+  }
+
+  aboutToDisappear() {
+    // Save draft immediately when component disappears (fallback mechanism)
+    this.saveDraftImmediately();
+    // Cancel any pending draft save timer
+    if (this.draftSaveTimer) {
+      clearTimeout(this.draftSaveTimer);
+      this.draftSaveTimer = undefined;
+    }
+    
+    // Unsubscribe from EventBus
+    EventBus.getInstance().off('onUserLongPress');
   }
 
   // Initialize dialog controller with menu items based on style
@@ -121,327 +260,394 @@ export struct MessageInput {
 
   build() {
     Column() {
-
-      if (this.isVoiceRecording) {
-        // Voice recording overlay
-        AudioRecorderView({
-          recordingDuration: this.recordingDuration,
-          shouldCancelRecording: this.shouldCancelRecording,
-          primaryColor: this.themeState.colors.textColorLink || '#4A90E2',
-          onCancel: () => {
-            this.cancelVoiceRecording();
-          },
-          onSend: () => {
-            this.finishVoiceRecording();
-          },
-          onTimeLimitReached: () => {
-            this.finishVoiceRecording();
-          }
-        })
+      // Route to different input bar styles based on configuration
+      if (this.effectiveConfig.inputStyle === 'classic') {
+        this.buildClassicStyle()
       } else {
-
-        Row() {
-
-          // Show more actions button if enabled
-          if (this.effectiveConfig.isShowMore) {
-            Button() {
-              Image($rawfile('messageinput/plus_icon.svg'))
-                .width(20)
-                .height(20)
-            }
-            .width(36)
-            .height(36)
-            .backgroundColor(this.themeState.getCurrentTheme().bgColorOperate)
-            .borderRadius(18)
-            .onClick(() => {
-
-              this.showEmojiPicker = false;
-              this.hideKeyboard();
-              if (this.dialogController) {
-                this.dialogController.open();
-              }
-            })
-          }
-
-
-          Stack() {
-
-            Row() {
-
-              RichEditor({
-                controller: this.richEditorController
-              })
-                .backgroundColor(this.themeState.colors.bgColorInput)
-                .borderRadius(0)
-                .layoutWeight(1)
-                .constraintSize({
-                  minHeight: 36,
-                  maxHeight: 120
-                })
-                .padding({
-                  left: 0,
-                  right: 8,
-                  top: 8,
-                  bottom: 8
-                })
-                .focusable(true)
-                .defaultFocus(this.inputFocused && !this.showEmojiPicker)
-                .enterKeyType(EnterKeyType.Send)
-                .placeholder($r('app.string.input_message_placeholder'), {
-                  fontColor: this.themeState.colors.textColorTertiary,
-                  font: {
-                    size: 14,
-                    weight: FontWeight.Normal,
-                    family: "HarmonyOS Sans",
-                    style: FontStyle.Normal
-                  }
-                })
-                .onReady(() => {
-
-                })
-                .onFocus(() => {
-                  console.log('[MessageInput] RichEditor onFocus triggered');
-                  this.inputFocused = true;
-
-                  if (this.showEmojiPicker) {
-                    this.showEmojiPicker = false;
-                  }
-
-                  // Delay showing keyboard placeholder to ensure focus is stable
-                  setTimeout(() => {
-                    if (this.inputFocused) {
-                      this.showKeyboardPlaceholder = true;
-                      console.log('[MessageInput] Keyboard placeholder shown');
-                    }
-                  }, 100);
-                })
-                .onBlur(() => {
-                  console.log('[MessageInput] RichEditor onBlur triggered');
-                  this.inputFocused = false;
-                  this.showKeyboardPlaceholder = false;
-                  console.log('[MessageInput] Keyboard placeholder hidden');
-                })
-                .onClick(() => {
-                  console.log('[MessageInput] RichEditor onClick triggered');
-
-                  if (this.showEmojiPicker) {
-                    this.showEmojiPicker = false;
-                  }
-
-                  this.inputFocused = true;
-                })
-                .onSubmit(() => {
-
-
-                  this.sendTextMessage();
-                })
-                .onIMEInputComplete((value: RichEditorTextSpanResult) => {
-
-                  if (value.value && value.value.length > 0) {
-
-                    const selection = this.richEditorController.getSelection();
-                    const start = selection.selection[0];
-                    const end = selection.selection[1];
-
-
-                    this.richEditorController.updateSpanStyle({
-                      start: start - value.value.length,
-                      end: start,
-                      textStyle: {
-                        fontColor: this.themeState.colors.textColorPrimary
-                      }
-                    });
-                  }
-                })
-
-
-              // Show emoji button if enabled
-                Image(this.showEmojiPicker ? $rawfile('messageinput/keyboard_icon.svg') :
-                $rawfile('messageinput/emoji_icon.svg'))
-                  .width(19)
-                  .height(19)
-                  .onClick(() => {
-                    if (this.showEmojiPicker) {
-                      // Switch from emoji picker to keyboard
-                      this.showEmojiPicker = false;
-                      this.inputFocused = true;
-                      // Don't set showKeyboardPlaceholder here, let onFocus handle it
-                      setTimeout(() => {
-                        try {
-                          this.richEditorController.getCaretOffset();
-                        } catch (error) {
-                          console.warn('[MessageInput] Failed to get caret offset:', error);
-                        }
-                      }, 50);
-                    } else {
-                      // Switch from keyboard to emoji picker
-                      this.hideKeyboard();
-                      this.showEmojiPicker = true;
-                    }
-                  })
-            }
-            .width('100%')
-            .constraintSize({
-              minHeight: 36,
-              maxHeight: 120
-            })
-            .backgroundColor(this.themeState.colors.bgColorInput)
-            .borderRadius(18)
-            .padding({ left: 16, right: 16 })
-            .justifyContent(FlexAlign.SpaceBetween)
-            .alignItems(VerticalAlign.Center)
-          }
-          .layoutWeight(1)
-          .constraintSize({
-            minHeight: 36,
-            maxHeight: 120
-          })
-          .backgroundColor(this.themeState.colors.bgColorInput)
-          .borderRadius(18)
-          .padding({ left: 16, right: 16 })
-
-
-          // Show voice input button if enabled
-          if (this.effectiveConfig.isShowAudioRecorder) {
-            Button() {
-              Image($rawfile('messageinput/microphone_icon.svg'))
-                .width(24)
-                .height(24)
-            }
-            .width(36)
-            .height(36)
-            .backgroundColor(this.isVoiceRecording ? '#4A90E2' : this.themeState.colors.bgColorOperate)
-            .borderRadius(18)
-            .onTouch((event: TouchEvent) => {
-            if (event.type === TouchType.Down) {
-              console.log('[MessageInput] Touch down - start long press timer');
-              this.initialTouchY = event.touches[0].y;
-              this.startLongPressTimer();
-            } else if (event.type === TouchType.Move) {
-              if (this.isVoiceRecording) {
-                // Calculate drag offset from initial touch position
-                this.dragOffset = event.touches[0].y - this.initialTouchY;
-                this.shouldCancelRecording = this.dragOffset < this.cancelThreshold;
-                console.log(`[MessageInput] Touch move - drag offset: ${this.dragOffset}, shouldCancel: ${this.shouldCancelRecording}`);
-              }
-            } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
-              console.log('[MessageInput] Touch up/cancel');
-              this.cancelLongPressTimer();
-              if (this.isVoiceRecording) {
-                if (this.shouldCancelRecording) {
-                  this.cancelVoiceRecording();
-                } else {
-                  this.finishVoiceRecording();
-                }
-              }
-            }
-          })
-            .gesture(
-              // Pan gesture for drag detection during recording
-              PanGesture({ fingers: 1, direction: PanDirection.Vertical, distance: 1 })
-                .onActionUpdate((event: GestureEvent) => {
-                  if (this.isVoiceRecording) {
-                    this.dragOffset = event.offsetY;
-                    this.shouldCancelRecording = this.dragOffset < this.cancelThreshold;
-                    console.log(`[MessageInput] Pan update - drag offset: ${this.dragOffset}, shouldCancel: ${this.shouldCancelRecording}`);
-                  }
-                })
-            )
-          }
-
-          // Show camera button if image input is enabled
-          if (this.effectiveConfig.isShowPhotoTaker) {
-            Button() {
-              Image($rawfile('messageinput/camera_icon.svg'))
-                .width(24)
-                .height(24)
-            }
-            .width(36)
-            .height(36)
-            .backgroundColor(this.themeState.colors.bgColorOperate)
-            .borderRadius(18)
-            .onClick(() => {
-
-              this.showEmojiPicker = false;
-              this.hideKeyboard();
-              this.takePhoto();
-            })
-          }
-        }
-        .width('100%')
-        .constraintSize({
-          minHeight: 50,
-          maxHeight: 120
-        })
-        .padding({ left: 16, right: 16 })
-        .backgroundColor(this.themeState.colors.bgColorOperate)
-        .justifyContent(FlexAlign.SpaceBetween)
-        .alignItems(VerticalAlign.Center)
-      }
-
-
-      Button()
-        .width(0)
-        .height(0)
-        .opacity(0)
-        .focusable(true)
-        .id(this.hiddenButtonId)
-
-
-      if (this.showEmojiPicker) {
-        EmojiPicker({
-          onEmojiClick: (emoji: EmojiItem) => {
-            this.handleEmojiSelected(emoji);
-          },
-          onDeleteClick: () => {
-            this.handleDeleteLastCharacter();
-          },
-          onSendClick: () => {
-            this.sendTextMessage();
-            // this.showEmojiPicker = false;
-          }
-        })
-          .transition({
-            type: TransitionType.Insert,
-            opacity: 1,
-            translate: { y: 0 }
-          })
-          .transition({
-            type: TransitionType.Delete,
-            opacity: 0,
-            translate: { y: 280 }
-          })
-      }
-
-      // Keyboard placeholder to push input bar up
-      if (this.showKeyboardPlaceholder && !this.showEmojiPicker) {
-        Column()
-          .width('100%')
-          .height(280) // Same height as emoji picker
-          .backgroundColor('transparent')
-          .transition({
-            type: TransitionType.Insert,
-            opacity: 1,
-            translate: { y: 0 }
-          })
-          .transition({
-            type: TransitionType.Delete,
-            opacity: 0,
-            translate: { y: 280 }
-          })
+        this.buildMinimalistStyle()
       }
     }
     .width('100%')
     .justifyContent(FlexAlign.End)
     .alignItems(HorizontalAlign.Center)
+    .expandSafeArea([SafeAreaType.SYSTEM, SafeAreaType.KEYBOARD], [SafeAreaEdge.BOTTOM])
+  }
+
+  /**
+   * Build the classic (WeChat-style) input bar
+   * Layout: [voice] [input/press-to-speak] [emoji] [+/send]
+   * Features: voice mode toggle, expand panels, press-to-speak
+   */
+  @Builder
+  private buildClassicStyle() {
+    if (this.isVoiceRecording) {
+      // Voice recording overlay - same as minimalist style
+      AudioRecorderView({
+        recordingDuration: this.recordingDuration,
+        shouldCancelRecording: this.shouldCancelRecording,
+        primaryColor: this.themeState.colors.textColorLink || '#4A90E2',
+        onCancel: () => {
+          this.cancelVoiceRecording();
+        },
+        onSend: () => {
+          this.finishVoiceRecording();
+        },
+        onTimeLimitReached: () => {
+          this.finishVoiceRecording();
+        },
+        onDragUpdate: (shouldCancel: boolean) => {
+          this.shouldCancelRecording = shouldCancel;
+        }
+      })
+    } else {
+      ClassicInputBar({
+        inputFocused: $inputFocused,
+        isVoiceRecording: $isVoiceRecording,
+        showKeyboardPlaceholder: $showKeyboardPlaceholder,
+        effectiveConfig: this.effectiveConfig,
+        richEditorController: this.richEditorController,
+        actionMenuItems: this.getActionMenuItems(),
+        callbacks: {
+          onSend: () => {
+            this.sendTextMessage();
+          },
+          onVoiceRecordStart: () => {
+            this.startVoiceRecording();
+          },
+          onVoiceRecordEnd: (cancelled: boolean) => {
+            if (cancelled) {
+              this.cancelVoiceRecording();
+            } else {
+              this.finishVoiceRecording();
+            }
+          },
+          onVoiceRecordDragUpdate: (dragOffset: number, shouldCancel: boolean) => {
+            this.dragOffset = dragOffset;
+            this.shouldCancelRecording = shouldCancel;
+          },
+          onEmojiSelected: (emoji: EmojiItem) => {
+            this.handleEmojiSelected(emoji);
+          },
+          onDeleteClick: () => {
+            this.handleDeleteLastCharacter();
+          },
+          onInputFocusChange: (focused: boolean) => {
+            if (focused) {
+              setTimeout(() => {
+                if (this.inputFocused) {
+                  this.showKeyboardPlaceholder = true;
+                }
+              }, 100);
+            } else {
+              this.showKeyboardPlaceholder = false;
+            }
+          },
+          onInputChange: () => {
+            if (!this.isLoadingDraft) {
+              this.saveDraftWithDebounce();
+            }
+          },
+          onAtTrigger: (cursorPosition: number) => {
+            if (this.shouldEnableMention()) {
+              this.handleAtInput(cursorPosition);
+            }
+          },
+          onActionItemClick: (menuItem: MenuItem) => {
+            menuItem.action();
+          },
+          onDidChange: (rangeBefore: TextRange, rangeAfter: TextRange) => {
+            // Save draft with debounce when content changes
+            if (!this.isLoadingDraft) {
+              this.saveDraftWithDebounce();
+            }
+            
+            const beforeStart = rangeBefore.start ?? 0;
+            const beforeEnd = rangeBefore.end ?? beforeStart;
+            const afterStart = rangeAfter.start ?? 0;
+            const afterEnd = rangeAfter.end ?? afterStart;
+            
+            const beforeLen = beforeEnd - beforeStart;
+            const afterLen = afterEnd - afterStart;
+            
+            if (afterLen > beforeLen) {
+              // Text was inserted
+              const insertPos = beforeStart;
+              const insertLen = afterLen - beforeLen;
+              console.log(`[MessageInput] onDidChange: INSERT at ${insertPos}, len=${insertLen}`);
+              
+              // Update mention positions - mentions at or after insertion point shift right
+              this.mentionList.forEach((mention: MentionInfo) => {
+                if (mention.startIndex >= insertPos) {
+                  mention.startIndex += insertLen;
+                  console.log(`[MessageInput]   mention shifted to ${mention.startIndex}`);
+                }
+              });
+            } else if (beforeLen > afterLen) {
+              // Text was deleted
+              const deleteStart = afterStart;
+              const deleteLen = beforeLen - afterLen;
+              const deleteEnd = deleteStart + deleteLen;
+              console.log(`[MessageInput] onDidChange: DELETE from ${deleteStart} to ${deleteEnd}`);
+              this.handleMentionDeletion(deleteStart, deleteEnd);
+            }
+
+            return true;
+          }
+        } as ClassicInputBarCallbacks
+      })
+    }
+  }
+
+  /**
+   * Build the minimalist (default) input bar
+   * Layout: [+] [input + emoji] [microphone] [camera]
+   */
+  @Builder
+  private buildMinimalistStyle() {
+    if (this.isVoiceRecording) {
+      // Voice recording overlay
+      AudioRecorderView({
+        recordingDuration: this.recordingDuration,
+        shouldCancelRecording: this.shouldCancelRecording,
+        primaryColor: this.themeState.colors.textColorLink || '#4A90E2',
+        onCancel: () => {
+          this.cancelVoiceRecording();
+        },
+        onSend: () => {
+          this.finishVoiceRecording();
+        },
+        onTimeLimitReached: () => {
+          this.finishVoiceRecording();
+        },
+        onDragUpdate: (shouldCancel: boolean) => {
+          this.shouldCancelRecording = shouldCancel;
+        }
+      })
+    } else {
+      MinimalistInputBar({
+        showEmojiPicker: $showEmojiPicker,
+        inputFocused: $inputFocused,
+        isVoiceRecording: $isVoiceRecording,
+        effectiveConfig: this.effectiveConfig,
+        richEditorController: this.richEditorController,
+        callbacks: {
+          onMoreClick: () => {
+            if (this.dialogController) {
+              this.dialogController.open();
+            }
+          },
+          onEmojiToggle: (showEmoji: boolean) => {
+            // Emoji toggle handled by MinimalistInputBar
+          },
+          onVoiceRecordStart: () => {
+            this.startVoiceRecording();
+          },
+          onVoiceRecordEnd: (cancelled: boolean) => {
+            if (cancelled) {
+              this.cancelVoiceRecording();
+            } else {
+              this.finishVoiceRecording();
+            }
+          },
+          onVoiceRecordDragUpdate: (dragOffset: number, shouldCancel: boolean) => {
+            this.dragOffset = dragOffset;
+            this.shouldCancelRecording = shouldCancel;
+          },
+          onCameraClick: () => {
+            this.takePhoto();
+          },
+          onInputFocusChange: (focused: boolean) => {
+            if (focused) {
+              setTimeout(() => {
+                if (this.inputFocused) {
+                  this.showKeyboardPlaceholder = true;
+                }
+              }, 100);
+            } else {
+              this.showKeyboardPlaceholder = false;
+            }
+          },
+          onSubmit: () => {
+            this.sendTextMessage();
+          },
+          onInputChange: () => {
+            if (!this.isLoadingDraft) {
+              this.saveDraftWithDebounce();
+            }
+          },
+          onAtTrigger: (cursorPosition: number) => {
+            if (this.shouldEnableMention()) {
+              this.handleAtInput(cursorPosition);
+            }
+          },
+          onDidChange: (rangeBefore: TextRange, rangeAfter: TextRange) => {
+            // Save draft with debounce when content changes
+            if (!this.isLoadingDraft) {
+              this.saveDraftWithDebounce();
+            }
+            
+            const beforeStart = rangeBefore.start ?? 0;
+            const beforeEnd = rangeBefore.end ?? beforeStart;
+            const afterStart = rangeAfter.start ?? 0;
+            const afterEnd = rangeAfter.end ?? afterStart;
+            
+            const beforeLen = beforeEnd - beforeStart;
+            const afterLen = afterEnd - afterStart;
+            
+            if (afterLen > beforeLen) {
+              // Text was inserted
+              const insertPos = beforeStart;
+              const insertLen = afterLen - beforeLen;
+              console.log(`[MessageInput] onDidChange: INSERT at ${insertPos}, len=${insertLen}`);
+              
+              // Update mention positions - mentions at or after insertion point shift right
+              this.mentionList.forEach((mention: MentionInfo) => {
+                if (mention.startIndex >= insertPos) {
+                  mention.startIndex += insertLen;
+                  console.log(`[MessageInput]   mention shifted to ${mention.startIndex}`);
+                }
+              });
+            } else if (beforeLen > afterLen) {
+              // Text was deleted
+              const deleteStart = afterStart;
+              const deleteLen = beforeLen - afterLen;
+              const deleteEnd = deleteStart + deleteLen;
+              console.log(`[MessageInput] onDidChange: DELETE from ${deleteStart} to ${deleteEnd}`);
+              this.handleMentionDeletion(deleteStart, deleteEnd);
+            }
+
+            return true;
+          },
+          onEmojiSelected: (emoji: EmojiItem) => {
+            this.handleEmojiSelected(emoji);
+          },
+          onDeleteClick: () => {
+            this.handleDeleteLastCharacter();
+          }
+        } as MinimalistInputBarCallbacks
+      })
+    }
+
+
+    Button()
+      .width(0)
+      .height(0)
+      .opacity(0)
+      .focusable(true)
+      .id(this.hiddenButtonId)
+
+
+    if (this.showEmojiPicker) {
+      EmojiPicker({
+        onEmojiClick: (emoji: EmojiItem) => {
+          this.handleEmojiSelected(emoji);
+        },
+        onDeleteClick: () => {
+          this.handleDeleteLastCharacter();
+        },
+        onSendClick: () => {
+          this.sendTextMessage();
+        }
+      })
+        .transition({
+          type: TransitionType.Insert,
+          opacity: 1,
+          translate: { y: 0 }
+        })
+        .transition({
+          type: TransitionType.Delete,
+          opacity: 0,
+          translate: { y: 280 }
+        })
+    }
+
+    // Keyboard placeholder to push input bar up
+    if (this.showKeyboardPlaceholder && !this.showEmojiPicker) {
+      Column()
+        .width('100%')
+        .height(280) // Same height as emoji picker
+        .backgroundColor('transparent')
+        .transition({
+          type: TransitionType.Insert,
+          opacity: 1,
+          translate: { y: 0 }
+        })
+        .transition({
+          type: TransitionType.Delete,
+          opacity: 0,
+          translate: { y: 280 }
+        })
+    }
+  }
+
+  /**
+   * Get action menu items for classic input bar
+   */
+  private getActionMenuItems(): MenuItem[] {
+    const menuItems: MenuItem[] = [];
+    
+    menuItems.push({
+      id: 'image',
+      text: $r('app.string.menu_image'),
+      icon: $rawfile('messageinput/classic/image_icon.svg'),
+      action: () => {
+        this.selectImage();
+      }
+    });
+
+    if (this.effectiveConfig.isShowPhotoTaker) {
+      menuItems.push({
+        id: 'photo',
+        text: $r('app.string.menu_photo'),
+        icon: $rawfile('messageinput/classic/camera_action_icon.svg'),
+        action: () => {
+          this.takePhoto();
+        }
+      });
+    }
+
+    if (this.effectiveConfig.isShowPhotoTaker) {
+      menuItems.push({
+        id: 'video',
+        text: $r('app.string.menu_video'),
+        icon: $rawfile('messageinput/classic/video_icon.svg'),
+        action: () => {
+          this.recordVideo();
+        }
+      });
+    }
+
+    menuItems.push({
+      id: 'file',
+      text: $r('app.string.menu_file'),
+      icon: $rawfile('messageinput/classic/document_icon.svg'),
+      action: () => {
+        this.selectFile();
+      }
+    });
+
+    return menuItems;
   }
 
   private async sendTextMessage() {
+    console.log(`[MessageInput] === sendTextMessage START ===`);
     const messageText = await this.getMessageText();
+    console.log(`[MessageInput] Message text received: "${messageText}"`);
+    
     if (!messageText.trim() || !this.inputState) {
+      console.warn(`[MessageInput] Message is empty or inputState not ready, aborting send`);
       return;
     }
 
+    // Build atUserList from mentionList
+    const atUserList: string[] = this.mentionList.map((mention: MentionInfo): string => mention.userID);
+    console.log(`[MessageInput] atUserList: [${atUserList.join(', ')}]`);
+
+    // Clear draft BEFORE sending message (not dependent on send result)
+    this.clearDraft();
+
+    // Clear mention list
+    this.mentionList = [];
 
     this.clearEditor();
 
@@ -455,17 +661,28 @@ export struct MessageInput {
       message.isSelf = true;
       message.timestamp = new Date().getTime();
       message.ID = '';
+      message.needReadReceipt = this.effectiveConfig.enableReadReceipt;
+      // Set atUserList on MessageInfo if there are mentions
+      if (atUserList.length > 0) {
+        message.atUserList = atUserList;
+        console.log(`[MessageInput] Message has ${atUserList.length} mentions`);
+      }
 
+      console.log(`[MessageInput] Sending message: "${messageText.trim()}", mentions: ${atUserList.length}`);
+      
       this.inputState.sendMessage(message)
         .then(() => {
-            //send success
+            console.log(`[MessageInput] Message sent successfully`);
         })
         .catch((error: ErrorInfo) => {
+          console.error(`[MessageInput] Send failed: code=${error.code}, message=${error.message}`);
           const localizedMessage = IMErrorCode.getErrorMessage(error.code ??-1,""+error.code +error.message);
           Toast.error(localizedMessage, this.getUIContext());
         });
     } catch (error) {
+      console.error(`[MessageInput] sendTextMessage exception: ${error}`);
     }
+    console.log(`[MessageInput] === sendTextMessage END ===`);
   }
 
   private async selectImage(): Promise<void> {
@@ -574,6 +791,9 @@ export struct MessageInput {
         }
       } else if (messageType === MessageType.Video) {
         messageBody.videoPath = app_file_path;
+        const fileExtension = app_file_path.split(".").pop()?.toLowerCase() || "mp4";
+        messageBody.videoType = fileExtension;
+        console.log(`[MessageInput] Video type: ${fileExtension}`);
 
         const videoFileName = app_file_path.split("/").pop()?.split(".")[0] || "video_cover";
         const thumbnail_file_path = tempDir + videoFileName + "_cover.jpg";
@@ -619,6 +839,7 @@ export struct MessageInput {
       message.isSelf = true;
       message.timestamp = new Date().getTime();
       message.ID = '';
+      message.needReadReceipt = this.effectiveConfig.enableReadReceipt;
 
       // Send message
       if (this.inputState) {
@@ -672,6 +893,11 @@ export struct MessageInput {
     }
   }
 
+  /**
+   * Get message text from RichEditor spans
+   * Key insight: BuilderSpan occupies 1 position in editor, but represents full mentionText
+   * We track spans sequentially and match mentions by their startIndex
+   */
   private async getMessageText(): Promise<string> {
     try {
       const spans = await this.richEditorController.getSpans({
@@ -679,13 +905,41 @@ export struct MessageInput {
         end: -1
       });
 
+      console.log(`[MessageInput] === getMessageText ===`);
+      console.log(`[MessageInput] spans.length=${spans.length}, mentionList.length=${this.mentionList.length}`);
+
       let messageText = '';
-      spans.forEach((span, index) => {
+      let currentPosition = 0;
+      
+      // Create a map of mention positions for O(1) lookup
+      const mentionMap = new Map<number, MentionInfo>();
+      this.mentionList.forEach((m: MentionInfo) => {
+        mentionMap.set(m.startIndex, m);
+        console.log(`[MessageInput]   mention: startIndex=${m.startIndex}, text="${m.mentionText}"`);
+      });
+      
+      for (let i = 0; i < spans.length; i++) {
+        const span = spans[i];
+        
+        // Check if this position has a mention
+        const mention = mentionMap.get(currentPosition);
+        if (mention) {
+          console.log(`[MessageInput] [${i}] pos=${currentPosition} -> Mention: "${mention.mentionText}"`);
+          messageText += mention.mentionText;
+          currentPosition += 1; // BuilderSpan = 1 position
+          continue;
+        }
+        
+        // Check TextSpan
         const textSpan = span as RichEditorTextSpanResult;
         if (textSpan.value !== undefined && textSpan.value !== null) {
+          console.log(`[MessageInput] [${i}] pos=${currentPosition} -> Text: "${textSpan.value}"`);
           messageText += textSpan.value;
-          return;
+          currentPosition += textSpan.value.length;
+          continue;
         }
+        
+        // Check ImageSpan (emoji)
         const imageSpan = span as RichEditorImageSpanResult;
         if (imageSpan.valueResourceStr !== undefined || imageSpan.valuePixelMap !== undefined) {
           let imageResource: string | Resource | undefined = imageSpan.valueResourceStr;
@@ -694,32 +948,28 @@ export struct MessageInput {
             if (typeof imageResource === 'string') {
               resourceStr = imageResource;
             } else {
-
               resourceStr = JSON.stringify(imageResource);
             }
-
-
             const emojiName = EmojiDataManager.getEmojiNameByResourceString(resourceStr);
-
             if (emojiName) {
-
+              console.log(`[MessageInput] [${i}] pos=${currentPosition} -> Emoji: "${emojiName}"`);
               messageText += emojiName;
-            } else {
-              console.warn(`[MessageInputBar] No corresponding emoticon name found，Resource: ${resourceStr}`);
             }
-          } else {
-            console.warn(`[MessageInputBar] Resource attribute not found in image span`);
           }
-        } else {
-          console.warn(`[MessageInputBar] span of unknown type: ${JSON.stringify(span)}`);
+          currentPosition += 1;
+          continue;
         }
-      });
+        
+        // Unknown span - likely a BuilderSpan without matching mention (shouldn't happen)
+        console.warn(`[MessageInput] [${i}] pos=${currentPosition} -> Unknown span, skipping`);
+        currentPosition += 1;
+      }
 
-
+      console.log(`[MessageInput] Final text: "${messageText}"`);
       return messageText;
 
     } catch (error) {
-
+      console.error(`[MessageInput] getMessageText error: ${error}`);
       return '';
     }
   }
@@ -780,6 +1030,7 @@ export struct MessageInput {
     this.hideKeyboard();
     
     // Reset recording state
+    this.recordingDuration = 0;
     this.shouldCancelRecording = false;
     this.dragOffset = 0;
     
@@ -788,11 +1039,16 @@ export struct MessageInput {
         this.recordingDuration = duration;
       },
       onRecordingStart: () => {
+        this.recordingDuration = 0;
         this.isVoiceRecording = true;
         console.log('[MessageInput] Voice recording started');
       },
       onRecordingStop: (filePath: string, duration: number) => {
         this.isVoiceRecording = false;
+        // Reset UI state immediately after stopping
+        this.recordingDuration = 0;
+        this.shouldCancelRecording = false;
+        this.dragOffset = 0;
         this.sendVoiceMessage(duration, filePath);
         console.log('[MessageInput] Voice recording stopped');
       },
@@ -838,6 +1094,7 @@ export struct MessageInput {
       message.isSelf = true;
       message.timestamp = new Date().getTime();
       message.ID = '';
+      message.needReadReceipt = this.effectiveConfig.enableReadReceipt;
 
       // Send message
       this.inputState.sendMessage(message)
@@ -924,6 +1181,7 @@ export struct MessageInput {
       message.isSelf = true;
       message.timestamp = new Date().getTime();
       message.ID = '';
+      message.needReadReceipt = this.effectiveConfig.enableReadReceipt;
 
       // Send message
       this.inputState.sendMessage(message)
@@ -938,5 +1196,290 @@ export struct MessageInput {
     } catch (error) {
 
     }
+  }
+
+  // MARK: - Draft Management
+
+  /**
+   * Load draft from ConversationListStore when component appears
+   */
+  private loadDraft(): void {
+    if (!this.conversationID) {
+      return;
+    }
+
+    this.isLoadingDraft = true;
+    this.conversationStore.fetchConversationInfo(this.conversationID)
+      .then(() => {
+        const conversations = this.conversationStore.state.conversationDataSource;
+        const conversationCount = conversations.totalCount();
+        
+        for (let i = 0; i < conversationCount; i++) {
+          const conversation = conversations.getData(i);
+          if (conversation && conversation.ID === this.conversationID) {
+            const draft = conversation.draft;
+            if (draft && draft.length > 0) {
+              this.setDraftToEditor(draft);
+              console.log(`[MessageInput] Draft loaded: ${draft}`);
+            }
+            break;
+          }
+        }
+        
+        // Reset loading flag after a short delay to allow UI update
+        setTimeout(() => {
+          this.isLoadingDraft = false;
+        }, 200);
+      })
+      .catch((error: ErrorInfo) => {
+        console.error(`[MessageInput] Failed to load draft: ${error.message}`);
+        this.isLoadingDraft = false;
+      });
+  }
+
+  /**
+   * Set draft content to RichEditor
+   * Parses emoji codes and inserts them as image spans
+   */
+  private setDraftToEditor(draft: string): void {
+    // Clear current content first
+    this.clearEditor();
+    
+    // Parse emoji text and insert content
+    const segments = EmojiDataManager.parseEmojiText(draft);
+    
+    segments.forEach((segment) => {
+      if (segment.type === 'text') {
+        // Insert text span
+        this.richEditorController.addTextSpan(segment.content, {
+          style: {
+            fontColor: this.themeState.colors.textColorPrimary,
+            fontSize: 14
+          }
+        });
+      } else if (segment.type === 'emoji' && segment.imageFile) {
+        // Insert emoji image span
+        const emojiResource = EmojiDataManager.getEmojiImageResource(segment.imageFile);
+        this.richEditorController.addImageSpan(emojiResource, {
+          imageStyle: {
+            size: [20, 20],
+            verticalAlign: ImageSpanAlignment.CENTER,
+            objectFit: ImageFit.Contain
+          }
+        });
+      }
+    });
+    
+    // Auto focus and move cursor to end after draft is loaded
+    setTimeout(() => {
+      this.inputFocused = true;
+    }, 150);
+  }
+
+  /**
+   * Save draft with debounce (800ms delay)
+   */
+  private saveDraftWithDebounce(): void {
+    // Cancel previous timer
+    if (this.draftSaveTimer) {
+      clearTimeout(this.draftSaveTimer);
+    }
+    
+    // Create new timer with debounce delay
+    this.draftSaveTimer = setTimeout(() => {
+      this.saveDraftImmediately();
+    }, MessageInput.DRAFT_SAVE_DELAY);
+  }
+
+  /**
+   * Save draft immediately to ConversationListStore
+   */
+  private async saveDraftImmediately(): Promise<void> {
+    if (!this.conversationID) {
+      return;
+    }
+    
+    const draftText = await this.getMessageText();
+    
+    if (draftText.trim().length === 0) {
+      // Clear draft if input is empty
+      this.conversationStore.setConversationDraft(this.conversationID, '')
+        .catch((error: ErrorInfo) => {
+          console.error(`[MessageInput] Failed to clear draft: ${error.message}`);
+        });
+    } else {
+      // Save draft with emoji codes
+      this.conversationStore.setConversationDraft(this.conversationID, draftText)
+        .catch((error: ErrorInfo) => {
+          console.error(`[MessageInput] Failed to save draft: ${error.message}`);
+        });
+    }
+  }
+
+  /**
+   * Clear draft from ConversationListStore
+   */
+  private clearDraft(): void {
+    // Cancel any pending draft save timer
+    if (this.draftSaveTimer) {
+      clearTimeout(this.draftSaveTimer);
+      this.draftSaveTimer = undefined;
+    }
+    
+    if (!this.conversationID) {
+      return;
+    }
+    
+    this.conversationStore.setConversationDraft(this.conversationID, '')
+      .catch((error: ErrorInfo) => {
+        console.error(`[MessageInput] Failed to clear draft: ${error.message}`);
+      });
+  }
+
+  // MARK: - @ Mention Management
+
+  /**
+   * Check if @ mention feature should be enabled
+   * Only enabled for group conversations with a valid groupID and enableMention config is true
+   */
+  private shouldEnableMention(): boolean {
+    const configEnabled = this.effectiveConfig.enableMention ?? true;
+    return configEnabled && this.parsedConversationType === ConversationType.GROUP && this.parsedGroupID.length > 0;
+  }
+
+  /**
+   * Handle "@" character input - show mention member picker
+   * @param cursorPosition Current cursor position after "@" was typed
+   */
+  private handleAtInput(cursorPosition: number): void {
+    // Record the position where "@" was typed (cursor position - 1 because cursor is after "@")
+    this.atPosition = cursorPosition - 1;
+    
+    // Show mention member dialog
+    this.showMentionMemberDialog();
+  }
+
+  /**
+   * Show the mention member picker dialog
+   */
+  private showMentionMemberDialog(): void {
+    if (!this.parsedGroupID) {
+      console.warn('[MessageInput] Cannot show mention dialog: groupID is empty');
+      return;
+    }
+
+    this.mentionDialogController = new CustomDialogController({
+      builder: MentionMemberDialog({
+        groupID: this.parsedGroupID,
+        atPosition: this.atPosition,
+        onMembersSelected: (mentions: MentionInfo[]) => {
+          this.handleMentionSelected(mentions);
+        },
+        onCancel: () => {
+          // Keep the "@" character when user cancels
+        }
+      }),
+      alignment: DialogAlignment.Bottom,
+      customStyle: true,
+      maskColor: 'rgba(0, 0, 0, 0.6)',
+      autoCancel: false
+    });
+
+    this.mentionDialogController.open();
+  }
+
+  /**
+   * Handle selected members from mention picker
+   * @param mentions Array of selected MentionInfo
+   */
+  private handleMentionSelected(mentions: MentionInfo[]): void {
+    console.log(`[MessageInput] handleMentionSelected: ${mentions.length} mentions`);
+    
+    if (mentions.length === 0) {
+      return;
+    }
+
+    // Delete the "@" character first
+    this.richEditorController.deleteSpans({
+      start: this.atPosition,
+      end: this.atPosition + 1
+    });
+
+    // Insert each mention as BuilderSpan
+    let insertOffset = this.atPosition;
+    mentions.forEach((mention: MentionInfo) => {
+      // Set the startIndex for this mention
+      mention.startIndex = insertOffset;
+      
+      const fullMentionText = mention.mentionText;
+      console.log(`[MessageInput]   Insert mention at ${insertOffset}: "${fullMentionText}"`);
+      
+      // Insert BuilderSpan (atomic, non-editable block)
+      this.richEditorController.addBuilderSpan(
+        () => {
+          this.MentionSpanBuilder(fullMentionText);
+        },
+        { offset: insertOffset }
+      );
+      
+      // BuilderSpan = 1 position
+      insertOffset += 1;
+      
+      // Add to mention list
+      this.mentionList.push(mention);
+    });
+
+    // Move cursor to end of inserted mentions
+    setTimeout(() => {
+      this.richEditorController.setCaretOffset(insertOffset);
+    }, 50);
+
+    console.log(`[MessageInput] mentionList now has ${this.mentionList.length} items`);
+  }
+
+  /**
+   * Builder for mention span - creates an atomic, non-editable mention block
+   */
+  @Builder
+  MentionSpanBuilder(text: string) {
+    Text(text)
+      .fontSize(14)
+      .fontColor(this.themeState.colors.textColorLink || '#4A90E2')
+      .fontWeight(FontWeight.Medium)
+  }
+
+  /**
+   * Handle mention deletion when text is deleted
+   * BuilderSpan is atomic - when deleted, remove from mentionList and update positions
+   */
+  private handleMentionDeletion(deleteStart: number, deleteEnd: number): void {
+    if (this.isRemovingMention) {
+      return;
+    }
+
+    const deleteLength = deleteEnd - deleteStart;
+    if (deleteLength <= 0 || this.mentionList.length === 0) {
+      return;
+    }
+
+    // Find mentions that were deleted
+    const deletedCount = this.mentionList.filter((mention: MentionInfo) => {
+      return mention.startIndex >= deleteStart && mention.startIndex < deleteEnd;
+    }).length;
+
+    if (deletedCount > 0) {
+      // Remove deleted mentions
+      this.mentionList = this.mentionList.filter((mention: MentionInfo) => {
+        return mention.startIndex < deleteStart || mention.startIndex >= deleteEnd;
+      });
+      console.log(`[MessageInput] Removed ${deletedCount} mentions, remaining: ${this.mentionList.length}`);
+    }
+
+    // Update positions of remaining mentions after deletion point
+    this.mentionList.forEach((mention: MentionInfo) => {
+      if (mention.startIndex >= deleteEnd) {
+        mention.startIndex -= deleteLength;
+      }
+    });
   }
 }

@@ -21,10 +21,6 @@ export struct ContactsPage {
   private addContactDialogController: CustomDialogController | null = null;
   onContactClick?: (contact: ContactInfo) => void;
   onGroupClick?: (group: ContactInfo) => void;
-  onNewFriendsClick?: () => void;
-  onGroupApplicationsClick?: () => void;
-  onGroupListClick?: () => void;
-  onBlackListClick?: () => void;
 
   @Builder
   LargeTitleBuilder() {
@@ -51,27 +47,7 @@ export struct ContactsPage {
     .padding({ left: 16, right: 16 })
     .backgroundColor(this.themeState.colors.bgColorOperate)
   }
-
-  @Builder
-  SearchBarBuilder() {
-    Row() {
-      Image($r('app.media.search_icon'))
-        .width(16)
-        .height(16)
-        .fillColor(this.themeState.colors.textColorLink)
-        .margin({ left: 16 })
-
-    }
-    .height(ContactsPage.SEARCH_BAR_HEIGHT)
-    .backgroundColor(this.themeState.colors.bgColorInput)
-    .borderRadius(10)
-    .margin({
-      left: 16,
-      right: 16,
-      top: 9,
-      bottom: 16
-    })
-  }
+  
 
   @Builder
   AddMenuDialog() {
@@ -155,10 +131,6 @@ export struct ContactsPage {
       Column() {
 
         this.LargeTitleBuilder()
-
-        if (!AppBuilderConfig.getInstance().hideSearch) {
-          this.SearchBarBuilder()
-        }
         ContactList({
           contactListStore: this.contactListStore,
           onContactClick: (contact: ContactInfo) => {
@@ -170,11 +142,7 @@ export struct ContactsPage {
             if (this.onGroupClick) {
               this.onGroupClick(group);
             }
-          },
-          onNewFriendsClick: this.onNewFriendsClick,
-          onGroupApplicationsClick: this.onGroupApplicationsClick,
-          onGroupListClick: this.onGroupListClick,
-          onBlackListClick: this.onBlackListClick
+          }
         })
           .layoutWeight(1)
       }

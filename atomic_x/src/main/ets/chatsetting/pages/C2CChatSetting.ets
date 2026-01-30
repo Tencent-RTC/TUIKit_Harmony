@@ -6,7 +6,8 @@ import {
   SwitchType,
   TextUtils,
   ThemeState,
-  Toast
+  Toast,
+  LanguageState
 } from '../../basecomponent/Index';
 import {
   C2CSettingState,
@@ -49,6 +50,7 @@ export struct C2CChatSetting {
   private static readonly HORIZONTAL_PADDING: number = 8;
   private static readonly BORDER_RADIUS: number = 12;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
+  @StorageLink('LanguageState') languageState: LanguageState = LanguageState.getInstance();
   @State c2cStore?: C2CSettingStore = undefined;
   @State c2cState?: C2CSettingState = undefined;
   @State conversationStore?: ConversationListStore = ConversationListStore.create();
@@ -120,6 +122,7 @@ export struct C2CChatSetting {
     .width('100%')
     .height('100%')
     .backgroundColor(this.themeState.colors.bgColorOperate)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 
   @Builder
@@ -149,10 +152,14 @@ export struct C2CChatSetting {
   NavigationBarBuilder() {
     Row() {
       // Back button
-      Image($rawfile('search/back_icon.svg'))
-        .width(24)
-        .height(24)
+      Image($rawfile('basecomponent/common_back_icon.svg'))
+        .width(16)
+        .height(16)
         .fillColor(this.themeState.colors.textColorLink)
+        .scale({
+          x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
+          y: 1
+        })
         .onClick(() => {
           if (this.dialogController) {
             this.dialogController.close();

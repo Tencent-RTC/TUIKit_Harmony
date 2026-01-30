@@ -6,7 +6,8 @@ import {
   AvatarSize,
   TextUtils,
   ThemeState,
-  Toast
+  Toast,
+  LanguageState
 } from '../../basecomponent/Index';
 import { GroupMember, GroupMemberRole, GroupSettingState, GroupSettingStore, GroupType, LoginStore } from '@tencentcloud/atomicxcore';
 import { GroupPermission, GroupPermissionManager } from '../manager/GroupPermissionManager';
@@ -22,6 +23,7 @@ export struct GroupMemberListPage {
   private static readonly MEMBER_AVATAR_SIZE: number = 40;
   private static readonly SEARCH_BAR_HEIGHT: number = 36;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
+  @StorageLink('LanguageState') languageState: LanguageState = LanguageState.getInstance();
   @State groupStore?: GroupSettingStore = undefined;
   @State groupState?: GroupSettingState = this.groupStore?.state;
   @State isLoading: boolean = true;
@@ -80,6 +82,7 @@ export struct GroupMemberListPage {
     .width('100%')
     .height('100%')
     .backgroundColor(this.themeState.colors.bgColorInput)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 
   onBackPress(): boolean {
@@ -91,10 +94,14 @@ export struct GroupMemberListPage {
   NavigationBarBuilder() {
     Row() {
       // Back button
-      Image($rawfile('search/back_icon.svg'))
-        .width(24)
-        .height(24)
+      Image($rawfile('basecomponent/common_back_icon.svg'))
+        .width(16)
+        .height(16)
         .fillColor(this.themeState.colors.textColorLink)
+        .scale({
+          x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
+          y: 1
+        })
         .onClick(() => {
           this.closeDialog();
         })
@@ -216,7 +223,7 @@ export struct GroupMemberListPage {
         content: {
           type: AvatarContentType.Image,
           url: member.avatarURL,
-          name: TextUtils.getAvatarLetter(member.nickname) || '',
+          name: TextUtils.getAvatarLetter((member.nameCard || member.nickname || member.userID).toString()) || '',
         },
         avatarSize: AvatarSize.M,
       })
@@ -330,7 +337,7 @@ export struct GroupMemberListPage {
     try {
       await Promise.all([
         this.groupStore.fetchGroupInfo(),
-        this.groupStore.fetchGroupMemberList()
+        this.groupStore.fetchGroupMemberList(GroupMemberRole.ALL)
       ]);
       this.filterMembers();
       console.log('[GroupMemberListPage] Group data loaded successfully');

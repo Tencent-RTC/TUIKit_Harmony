@@ -3,6 +3,7 @@ import { ThemeState } from '../../basecomponent/Index';
 import { MessageBody } from '@tencentcloud/atomicxcore';
 import { MessageListStore } from '@tencentcloud/atomicxcore';
 import { MessageUtils } from '../utils/MessageUtils';
+import { MessageRenderContext } from '../context/MessageRenderContext';
 
 @Component
 export struct SystemMessageViewContent {
@@ -38,11 +39,11 @@ export struct SystemMessageViewContent {
 }
 
 @Builder
-export function SystemMessageView(messageData: MessageInfo, MessageListStore?: MessageListStore) {
-  if (messageData && messageData.messageBody) {
+export function SystemMessageView(context: MessageRenderContext) {
+  if (context.message && context.message.messageBody) {
     SystemMessageViewContent({
-      message: messageData,
-      messageBody: messageData.messageBody
+      message: context.message,
+      messageBody: context.message.messageBody
     })
   }
 } 

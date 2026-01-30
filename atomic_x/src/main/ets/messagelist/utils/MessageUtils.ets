@@ -1,6 +1,7 @@
 import {
   MessageInfo,
   MessageType,
+  MessageStatus,
   SystemMessageInfo,
   GroupJoinOption,
   RecallMessageSystemMessage,
@@ -218,6 +219,8 @@ export class MessageUtils {
         return $r('app.string.message_type_video');
       case MessageType.Face:
         return $r('app.string.message_type_animate_emoji');
+      case MessageType.Merged:
+        return $r('app.string.message_type_merged');
       case MessageType.Custom:
         const customMessage = messageInfo.messageBody?.customMessage;
         const data = customMessage?.data;
@@ -328,6 +331,88 @@ export class MessageUtils {
         return $r('app.string.group_auto_approval');
       default:
         return $r('app.string.unknown');
+    }
+  }
+
+  static getMessageAbstractString(messageInfo?: MessageInfo): string {
+    const abstract = MessageUtils.getMessageAbstract(messageInfo);
+    if (typeof abstract === 'string') {
+      return abstract;
+    }
+    try {
+      return getContext().resourceManager.getStringSync(abstract.id);
+    } catch (e) {
+      return '';
+    }
+  }
+
+  static shouldShowReadReceipt(message: MessageInfo, enableReadReceipt: boolean, isInMergedDetailView: boolean = false): boolean {
+    return !isInMergedDetailView &&
+      enableReadReceipt === true &&
+      message.isSelf === true &&
+      !!message.needReadReceipt &&
+      message.status === MessageStatus.sendSuccess &&
+      message.messageType !== MessageType.System;
+  }
+
+  static getReadReceiptIconResource(message: MessageInfo): Resource {
+    const isGroup = !!message.groupID && message.groupID.length > 0;
+
+    if (!isGroup) {
+      const peerRead = message.receipt?.isPeerRead === true;
+      return peerRead ? $rawfile('messagelist/msg_status_all_people_read.svg') : $rawfile('messagelist/msg_status_send_succ.svg');
+    }
+
+    const readCount = message.receipt?.readCount ?? 0;
+    const unreadCount = message.receipt?.unreadCount ?? 0;
+    const totalCount = readCount + unreadCount;
+
+    if (readCount === 0) {
+      return $rawfile('messagelist/msg_status_send_succ.svg');
+    }
+
+    if (readCount === totalCount && totalCount > 0) {
+      return $rawfile('messagelist/msg_status_all_people_read.svg');
+    }
+
+    return $rawfile('messagelist/msg_status_some_people_read.svg');
+  }
+
+  /**
+   * Compute a stable hash from message properties for LazyForEach key generation.
+   */
+  static getMessageStateHash(message: MessageInfo): string {
+    try {
+      const stateObj: Map<string, Object | undefined> = new Map();
+      stateObj.set('msgID', message.msgID);
+      stateObj.set('status', message.status);
+      stateObj.set('timestamp', message.timestamp);
+      stateObj.set('isSelf', message.isSelf);
+      stateObj.set('messageType', message.messageType);
+      // Receipt info
+      stateObj.set('receiptIsPeerRead', message.receipt?.isPeerRead);
+      stateObj.set('receiptReadCount', message.receipt?.readCount);
+      stateObj.set('receiptUnreadCount', message.receipt?.unreadCount);
+      // Other reactive properties
+      stateObj.set('progress', message.progress);
+      stateObj.set('extensionListLength', message.extensionList?.length);
+      stateObj.set('reactionListLength', message.reactionList?.length);
+
+      // Convert Map to array for JSON serialization
+      const entries: Array<[string, Object | undefined]> = [];
+      stateObj.forEach((value: Object | undefined, key: string) => {
+        entries.push([key, value]);
+      });
+      const jsonStr = JSON.stringify(entries);
+      let hash = 0;
+      for (let i = 0; i < jsonStr.length; i++) {
+        const char = jsonStr.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+      }
+      return hash.toString();
+    } catch (e) {
+      // Fallback to stable ID
+      return message.ID;
     }
   }
 }

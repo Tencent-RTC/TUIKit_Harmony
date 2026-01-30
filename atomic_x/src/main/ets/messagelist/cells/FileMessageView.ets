@@ -1,15 +1,20 @@
 import { MessageInfo, MessageStatus, MessageBody, MessageListStore, MessageMediaFileType } from '@tencentcloud/atomicxcore';
-import { ThemeState } from '../../basecomponent/Index';
-import { promptAction } from '@kit.ArkUI';
+import { ThemeState, Toast } from '../../basecomponent/Index';
+import { AppBuilderConfig } from '../../basecomponent/utils/AppBuilderHelper';
+import { MessageListStyleProtocol } from '../config/MessageListConfig';
+import { MessageUtils } from '../utils/MessageUtils';
 import { filePreview } from '@kit.PreviewKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 import { fileUri } from '@kit.CoreFileKit';
+import { MessageRenderContext } from '../context/MessageRenderContext';
 
 @Component
 export struct FileMessageViewContent {
   @State message?: MessageInfo = undefined;
   @ObjectLink messageBody: MessageBody;
   @ObjectLink messageListStore: MessageListStore;
+  @Prop config?: MessageListStyleProtocol = undefined;
+  @Prop isInMergedDetailView: boolean = false;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
 
   build() {
@@ -50,6 +55,15 @@ export struct FileMessageViewContent {
           .margin({ left: 1, top: 4 })
         // Right side - Status and time
         Row() {
+          if (this.message && MessageUtils.shouldShowReadReceipt(this.message,
+            this.config?.enableReadReceipt ?? AppBuilderConfig.getInstance().enableReadReceipt,
+            this.isInMergedDetailView)) {
+            Image(MessageUtils.getReadReceiptIconResource(this.message))
+              .width(14)
+              .height(14)
+              .margin({ right: 4 })
+          }
+
           if (this.message?.status === MessageStatus.sending) {
             LoadingProgress()
               .width(12)
@@ -222,10 +236,7 @@ export struct FileMessageViewContent {
   private showDownloadToast(message: string | Resource) {
     console.info('[FileMessageView] Toast:', message);
     try {
-      promptAction.showToast({
-        message: message,
-        duration: 2000
-      });
+      Toast.info(message, this.getUIContext());
     } catch (error) {
       console.error('[FileMessageView] Download error:', error);
     }
@@ -249,12 +260,14 @@ export struct FileMessageViewContent {
 }
 
 @Builder
-export function FileMessageView(messageData: MessageInfo, messageListStore: MessageListStore) {
-  if (messageData && messageData.messageBody && MessageListStore) {
+export function FileMessageView(context: MessageRenderContext) {
+  if (context.message && context.message.messageBody && context.messageListStore) {
     FileMessageViewContent({
-      message: messageData,
-      messageBody: messageData.messageBody,
-      messageListStore: messageListStore
+      message: context.message,
+      messageBody: context.message.messageBody,
+      messageListStore: context.messageListStore,
+      config: context.config,
+      isInMergedDetailView: context.isInMergedDetailView ?? false
     })
   }
 }

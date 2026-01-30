@@ -29,6 +29,10 @@
       "value": "[Animated Emoji]"
     },
     {
+      "name": "message_type_merged",
+      "value": "[Chat History]"
+    },
+    {
       "name": "message_tips_unsupport_custom",
       "value": "[Unsupported custom message]"
     },
@@ -295,6 +299,26 @@
     {
       "name": "conversation_mark_unread_failed",
       "value": "conversation mark unread failed"
+    },
+    {
+      "name": "forward_group_chat_history",
+      "value": "Group Chat History"
+    },
+    {
+      "name": "forward_and_text",
+      "value": "and"
+    },
+    {
+      "name": "forward_chat_history_c2c",
+      "value": "'s Chat History"
+    },
+    {
+      "name": "forward_compatible_text",
+      "value": "Please upgrade to the latest version to view chat history"
+    },
+    {
+      "name": "message_type_message",
+      "value": "[Message]"
     }
   ]
 }

@@ -1,5 +1,10 @@
 import { BadgeControl, BadgeType, ThemeState, AZOrderedList, AZOrderedListItem, AZOrderedListConfig } from '../../basecomponent/Index';
 import { ErrorInfo, ContactInfo, ContactListState, ContactListStore } from '@tencentcloud/atomicxcore';
+import { GroupListView } from './manager/GroupListView';
+import { BlackListView } from './manager/BlackListView';
+import { FriendApplicationListView } from './manager/FriendApplicationListView';
+import { GroupApplicationListView } from './manager/GroupApplicationListView';
+import { ImmersiveMode, LevelMode } from '@kit.ArkUI';
 
 
 @Component
@@ -19,13 +24,11 @@ export struct ContactList {
   @State currentSelectedLetter: string = '';
   onContactClick?: (item: ContactInfo) => void;
   onGroupClick?: (item: ContactInfo) => void;
-  onNewFriendsClick?: () => void;
-  onGroupApplicationsClick?: () => void;
-  onGroupListClick?: () => void;
-  onBlackListClick?: () => void;
-  dialogController: CustomDialogController | null = null;
+  private friendApplicationDialogController: CustomDialogController | null = null;
+  private groupApplicationDialogController: CustomDialogController | null = null;
+  private groupListDialogController: CustomDialogController | null = null;
+  private blackListDialogController: CustomDialogController | null = null;
   @State private dialogAnimationOffset: number = 0;
-  private listScroller: Scroller = new Scroller();
   private dataChangeListener?: DataChangeListener | undefined;
 
   aboutToAppear() {
@@ -80,9 +83,7 @@ export struct ContactList {
       .backgroundColor(this.themeState.colors.bgColorInput)
       .onClick(() => {
         console.info('Navigate to new contacts page');
-        if (this.onNewFriendsClick) {
-          this.onNewFriendsClick();
-        }
+        this.showFriendApplicationDialogInternal();
       })
 
 
@@ -114,9 +115,7 @@ export struct ContactList {
       .backgroundColor(this.themeState.colors.bgColorInput)
       .onClick(() => {
         console.info('Navigate to new group requests page');
-        if (this.onGroupApplicationsClick) {
-          this.onGroupApplicationsClick();
-        }
+        this.showGroupApplicationDialogInternal();
       })
 
 
@@ -138,9 +137,7 @@ export struct ContactList {
       .backgroundColor(this.themeState.colors.bgColorInput)
       .onClick(() => {
         console.info('Navigate to my groups');
-        if (this.onGroupListClick) {
-          this.onGroupListClick();
-        }
+        this.showGroupListDialogInternal();
       })
 
 
@@ -162,9 +159,7 @@ export struct ContactList {
       .backgroundColor(this.themeState.colors.bgColorInput)
       .onClick(() => {
         console.info('Navigate to blacklist management');
-        if (this.onBlackListClick) {
-          this.onBlackListClick();
-        }
+        this.showBlackListDialogInternal();
       })
     }
     .margin({ left: 0, right: 0 })
@@ -416,5 +411,275 @@ export struct ContactList {
     }));
   }
 
+  // Dialog builders for sub-pages
+  @Builder
+  FriendApplicationDialogBuilder() {
+    Column() {
+      FriendApplicationListView({
+        contactListStore: this.contactListStore,
+        onBack: () => {
+          this.friendApplicationDialogController?.close();
+          this.friendApplicationDialogController = null;
+        }
+      })
+    }
+    .width('100%')
+    .height('100%')
+    .translate({ x: `${this.dialogAnimationOffset}%` })
+    .onAppear(() => {
+      animateTo({
+        duration: 300,
+        curve: Curve.EaseInOut
+      }, () => {
+        this.dialogAnimationOffset = 0;
+      });
+    })
+  }
+
+  @Builder
+  GroupApplicationDialogBuilder() {
+    Column() {
+      GroupApplicationListView({
+        contactListStore: this.contactListStore,
+        onBack: () => {
+          this.groupApplicationDialogController?.close();
+          this.groupApplicationDialogController = null;
+        }
+      })
+    }
+    .width('100%')
+    .height('100%')
+    .translate({ x: `${this.dialogAnimationOffset}%` })
+    .onAppear(() => {
+      animateTo({
+        duration: 300,
+        curve: Curve.EaseInOut
+      }, () => {
+        this.dialogAnimationOffset = 0;
+      });
+    })
+  }
+
+  @Builder
+  GroupListDialogBuilder() {
+    Column() {
+      GroupListView({
+        contactListStore: this.contactListStore,
+        onBack: () => {
+          this.groupListDialogController?.close();
+          this.groupListDialogController = null;
+        },
+        onShowProfile: (group: ContactInfo) => {
+          console.log('[ContactList] Selected group:', group.title);
+          this.groupListDialogController?.close();
+          this.groupListDialogController = null;
+          // Trigger onGroupClick callback
+          if (this.onGroupClick) {
+            this.onGroupClick(group);
+          }
+        }
+      })
+    }
+    .width('100%')
+    .height('100%')
+    .translate({ x: `${this.dialogAnimationOffset}%` })
+    .onAppear(() => {
+      animateTo({
+        duration: 300,
+        curve: Curve.EaseInOut
+      }, () => {
+        this.dialogAnimationOffset = 0;
+      });
+    })
+  }
+
+  @Builder
+  BlackListDialogBuilder() {
+    Column() {
+      BlackListView({
+        contactListStore: this.contactListStore,
+        onBack: () => {
+          this.blackListDialogController?.close();
+          this.blackListDialogController = null;
+        },
+        onShowProfile: (item: ContactInfo) => {
+          this.blackListDialogController?.close();
+          this.blackListDialogController = null;
+          // Trigger onContactClick callback
+          if (this.onContactClick) {
+            this.onContactClick(item);
+          }
+        }
+      })
+    }
+    .width('100%')
+    .height('100%')
+    .translate({ x: `${this.dialogAnimationOffset}%` })
+    .onAppear(() => {
+      animateTo({
+        duration: 300,
+        curve: Curve.EaseInOut
+      }, () => {
+        this.dialogAnimationOffset = 0;
+      });
+    })
+  }
+
+  // Internal dialog display methods
+  private showFriendApplicationDialogInternal(): void {
+    try {
+      if (this.friendApplicationDialogController) {
+        this.friendApplicationDialogController.close();
+        this.friendApplicationDialogController = null;
+      }
+
+      this.dialogAnimationOffset = 100;
+
+      this.friendApplicationDialogController = new CustomDialogController({
+        builder: this.FriendApplicationDialogBuilder.bind(this),
+        autoCancel: false,
+        alignment: DialogAlignment.Center,
+        customStyle: true,
+        keyboardAvoidMode: KeyboardAvoidMode.NONE,
+        maskColor: 'rgba(0, 0, 0, 0)',
+        cancel: () => {
+          this.friendApplicationDialogController = null;
+        },
+        levelMode: LevelMode.EMBEDDED,
+        immersiveMode: ImmersiveMode.EXTEND,
+        openAnimation: {
+          duration: 300,
+          curve: Curve.EaseInOut,
+          playMode: PlayMode.Normal
+        },
+        closeAnimation: {
+          duration: 250,
+          curve: Curve.EaseInOut,
+          playMode: PlayMode.Normal
+        }
+      });
+
+      this.friendApplicationDialogController.open();
+    } catch (error) {
+      console.error('[ContactList] showFriendApplicationDialog error:', error);
+    }
+  }
+
+  private showGroupApplicationDialogInternal(): void {
+    try {
+      if (this.groupApplicationDialogController) {
+        this.groupApplicationDialogController.close();
+        this.groupApplicationDialogController = null;
+      }
+
+      this.dialogAnimationOffset = 100;
+
+      this.groupApplicationDialogController = new CustomDialogController({
+        builder: this.GroupApplicationDialogBuilder.bind(this),
+        autoCancel: false,
+        alignment: DialogAlignment.Center,
+        customStyle: true,
+        keyboardAvoidMode: KeyboardAvoidMode.NONE,
+        maskColor: 'rgba(0, 0, 0, 0)',
+        cancel: () => {
+          this.groupApplicationDialogController = null;
+        },
+        levelMode: LevelMode.EMBEDDED,
+        immersiveMode: ImmersiveMode.EXTEND,
+        openAnimation: {
+          duration: 300,
+          curve: Curve.EaseInOut,
+          playMode: PlayMode.Normal
+        },
+        closeAnimation: {
+          duration: 250,
+          curve: Curve.EaseInOut,
+          playMode: PlayMode.Normal
+        }
+      });
+
+      this.groupApplicationDialogController.open();
+    } catch (error) {
+      console.error('[ContactList] showGroupApplicationDialog error:', error);
+    }
+  }
+
+  private showGroupListDialogInternal(): void {
+    try {
+      if (this.groupListDialogController) {
+        this.groupListDialogController.close();
+        this.groupListDialogController = null;
+      }
+
+      this.dialogAnimationOffset = 100;
+
+      this.groupListDialogController = new CustomDialogController({
+        builder: this.GroupListDialogBuilder.bind(this),
+        autoCancel: false,
+        alignment: DialogAlignment.Center,
+        customStyle: true,
+        keyboardAvoidMode: KeyboardAvoidMode.NONE,
+        maskColor: 'rgba(0, 0, 0, 0)',
+        cancel: () => {
+          this.groupListDialogController = null;
+        },
+        levelMode: LevelMode.EMBEDDED,
+        immersiveMode: ImmersiveMode.EXTEND,
+        openAnimation: {
+          duration: 300,
+          curve: Curve.EaseInOut,
+          playMode: PlayMode.Normal
+        },
+        closeAnimation: {
+          duration: 250,
+          curve: Curve.EaseInOut,
+          playMode: PlayMode.Normal
+        }
+      });
+
+      this.groupListDialogController.open();
+    } catch (error) {
+      console.error('[ContactList] showGroupListDialog error:', error);
+    }
+  }
+
+  private showBlackListDialogInternal(): void {
+    try {
+      if (this.blackListDialogController) {
+        this.blackListDialogController.close();
+        this.blackListDialogController = null;
+      }
+
+      this.dialogAnimationOffset = 100;
+
+      this.blackListDialogController = new CustomDialogController({
+        builder: this.BlackListDialogBuilder.bind(this),
+        autoCancel: false,
+        alignment: DialogAlignment.Center,
+        customStyle: true,
+        keyboardAvoidMode: KeyboardAvoidMode.NONE,
+        maskColor: 'rgba(0, 0, 0, 0)',
+        cancel: () => {
+          this.blackListDialogController = null;
+        },
+        levelMode: LevelMode.EMBEDDED,
+        immersiveMode: ImmersiveMode.EXTEND,
+        openAnimation: {
+          duration: 300,
+          curve: Curve.EaseInOut,
+          playMode: PlayMode.Normal
+        },
+        closeAnimation: {
+          duration: 250,
+          curve: Curve.EaseInOut,
+          playMode: PlayMode.Normal
+        }
+      });
+
+      this.blackListDialogController.open();
+    } catch (error) {
+      console.error('[ContactList] showBlackListDialog error:', error);
+    }
+  }
 
 }

@@ -5,7 +5,7 @@ import {
   GroupMember,
   ErrorInfo
 } from '@tencentcloud/atomicxcore';
-import { ThemeState, TextUtils } from '../../basecomponent/Index';
+import { ThemeState, TextUtils, LanguageState } from '../../basecomponent/Index';
 import { ContactDetailPage } from '../../contactlist/pages/dialog/ContactDetailPage';
 import { C2CChatSetting } from '../pages/C2CChatSetting';
 import { ComponentContent, ImmersiveMode, LevelMode, promptAction } from '@kit.ArkUI';
@@ -276,16 +276,21 @@ struct C2CDialogComponent {
 @Component
 struct ContactDetailDialogComponent {
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
+  @StorageLink('LanguageState') languageState: LanguageState = LanguageState.getInstance();
   @Prop userInfo?: ContactInfo = undefined;
 
   @Builder
   NavigationBarBuilder() {
     Row() {
       // Back button
-      Image($rawfile('search/back_icon.svg'))
-        .width(24)
-        .height(24)
+      Image($rawfile('basecomponent/common_back_icon.svg'))
+        .width(16)
+        .height(16)
         .fillColor(this.themeState.colors.textColorLink)
+        .scale({
+          x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
+          y: 1
+        })
         .onClick(() => {
           UserInteractionHelper.closeDialog();
         })

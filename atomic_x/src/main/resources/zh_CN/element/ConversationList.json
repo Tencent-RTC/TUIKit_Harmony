@@ -107,6 +107,18 @@
     {
       "name": "conversation_list_message_count_unit",
       "value": "条"
+    },
+    {
+      "name": "conversation_draft_label",
+      "value": "[草稿]"
+    },
+    {
+      "name": "conversation_at_me_tag",
+      "value": "[有人@我]"
+    },
+    {
+      "name": "conversation_at_all_tag",
+      "value": "[@所有人]"
     }
   ]
 }

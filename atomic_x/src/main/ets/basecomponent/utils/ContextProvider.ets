@@ -1,7 +1,10 @@
 import common from '@ohos.app.ability.common'
 import { hilog } from '@kit.PerformanceAnalysisKit'
-import { Configuration } from '@kit.AbilityKit'
+import { Configuration as AbilityConfiguration } from '@kit.AbilityKit'
+import { Configuration } from '@kit.ArkUI'
 import { ThemeState } from '../theme/ThemeState'
+import { LanguageState } from '../language/LanguageState'
+import { i18n } from '@kit.LocalizationKit'
 
 /**
  * Global Context Provider
@@ -66,7 +69,7 @@ export class ContextProvider {
    * Handle configuration updates
    * @param newConfig New configuration
    */
-  static onConfigurationUpdate(newConfig: Configuration): void {
+  static onConfigurationUpdate(newConfig: AbilityConfiguration): void {
     try {
       // Update the system color mode to AppStorage
       AppStorage.setOrCreate('currentColorMode', newConfig.colorMode);
@@ -76,6 +79,9 @@ export class ContextProvider {
       if (newConfig.language) {
         AppStorage.setOrCreate('currentLanguage', newConfig.language);
         hilog.info(0x0000, 'ContextProvider', 'Configuration updated - language: %{public}s', newConfig.language);
+        
+        // Notify LanguageState to update layout direction
+        ContextProvider.notifyLanguageStateUpdate(newConfig.language);
       }
 
       // Notify ThemeState to check color mode changes
@@ -105,7 +111,7 @@ export class ContextProvider {
    * Initialize system configuration to AppStorage
    * @param config System configuration
    */
-  private static initSystemConfig(config: Configuration): void {
+  private static initSystemConfig(config: AbilityConfiguration): void {
     try {
       // 设置系统颜色模式到 AppStorage
       AppStorage.setOrCreate('currentColorMode', config.colorMode);
@@ -130,6 +136,34 @@ export class ContextProvider {
     } catch (error) {
       hilog.warn(0x0000, 'ContextProvider', 'Failed to notify ThemeState: %{public}s', JSON.stringify(error));
     }
+  }
+
+  /**
+   * Notify LanguageState to update layout direction
+   */
+  private static notifyLanguageStateUpdate(language: string): void {
+    try {
+      LanguageState.getInstance().updateLanguage(language);
+    } catch (error) {
+      hilog.warn(0x0000, 'ContextProvider', 'Failed to notify LanguageState: %{public}s', JSON.stringify(error));
+    }
+  }
+
+  /**
+   * Check if current language is RTL (Right-to-Left)
+   * Supports Arabic (ar), Hebrew (he), Persian (fa), and Urdu (ur)
+   * @returns true if current language is RTL, false otherwise
+   */
+  static isRTL(): boolean {
+    return LanguageState.getInstance().isRTL();
+  }
+
+  /**
+   * Get current layout direction based on language
+   * @returns LayoutDirection.RTL for RTL languages, LayoutDirection.LTR otherwise
+   */
+  static getLayoutDirection(): LayoutDirection {
+    return LanguageState.getInstance().getLayoutDirection();
   }
 }
 

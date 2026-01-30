@@ -1,4 +1,4 @@
-import { ThemeState, Toast } from '../../basecomponent/Index';
+import { ThemeState, Toast, LanguageState } from '../../basecomponent/Index';
 import { GroupSettingState, GroupSettingStore, GroupType } from '@tencentcloud/atomicxcore';
 import { GroupPermission, GroupPermissionManager } from '../manager/GroupPermissionManager';
 
@@ -10,6 +10,7 @@ export struct GroupAnnouncementView {
   private static readonly MIN_HEIGHT: number = 120;
   private static readonly MAX_LENGTH: number = 300;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
+  @StorageLink('LanguageState') languageState: LanguageState = LanguageState.getInstance();
   @State groupStore?: GroupSettingStore = undefined;
   @State groupState?: GroupSettingState = this.groupStore?.state;
   @State isEditing: boolean = false;
@@ -69,6 +70,7 @@ export struct GroupAnnouncementView {
     .width('100%')
     .height('100%')
     .backgroundColor(this.themeState.colors.bgColorOperate)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 
   @Builder
@@ -98,10 +100,14 @@ export struct GroupAnnouncementView {
   NavigationBarBuilder() {
     Row() {
       // Back button
-      Image($rawfile('search/back_icon.svg'))
-        .width(24)
-        .height(24)
+      Image($rawfile('basecomponent/common_back_icon.svg'))
+        .width(16)
+        .height(16)
         .fillColor(this.themeState.colors.textColorLink)
+        .scale({
+          x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
+          y: 1
+        })
         .onClick(() => {
           this.handleBackClick();
         })

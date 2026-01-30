@@ -43,6 +43,7 @@ struct ToastIcon {
       Image(this.getIconResource())
         .width(this.iconSize)
         .height(this.iconSize)
+        .fillColor(this.getIconColor())
     }
   }
 
@@ -62,6 +63,23 @@ struct ToastIcon {
         return $rawfile('basecomponent/check_circle_filled.svg')
     }
   }
+
+  private getIconColor(): ResourceColor {
+    switch (this.type) {
+      case ToastType.Info:
+        return '#1C66E5' 
+      case ToastType.Help:
+        return '#1C66E5' 
+      case ToastType.Success:
+        return '#00A870' 
+      case ToastType.Warning:
+        return '#FF8800' 
+      case ToastType.Error:
+        return '#E34D59' 
+      default:
+        return '#1C66E5'
+    }
+  }
 }
 
 @Component
@@ -77,6 +95,7 @@ struct ToastContent {
           type: this.type,
           iconSize: 16
         })
+          .margin({ top: 3 })
       }
       Text(this.message)
         .fontSize(14)
@@ -84,8 +103,9 @@ struct ToastContent {
         .fontColor(this.themeState.colors.textColorPrimary)
         .lineHeight(14 * 1.57)
         .textAlign(TextAlign.Start)
+        .maxLines(10)
+        .textOverflow({ overflow: TextOverflow.Clip })
     }
-    .height(40)
     .padding({
       left: 16,
       right: 16,
@@ -101,10 +121,11 @@ struct ToastContent {
       offsetY: 2
     })
     .constraintSize({
+      minHeight: 40,
       maxWidth: 340
     })
-    .justifyContent(FlexAlign.Center)
-    .alignItems(VerticalAlign.Center)
+    .justifyContent(FlexAlign.Start)
+    .alignItems(VerticalAlign.Top)
   }
 }
 

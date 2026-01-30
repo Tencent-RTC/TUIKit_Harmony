@@ -2,6 +2,7 @@ import { MessageInfo, MessageStatus } from '@tencentcloud/atomicxcore';
 import { ThemeState } from '../../basecomponent/Index';
 import { MessageBody, MessageListStore } from '@tencentcloud/atomicxcore';
 import { util } from '@kit.ArkTS';
+import { MessageRenderContext } from '../context/MessageRenderContext';
 
 @Component
 export struct CreateGroupMessageViewContent {
@@ -30,7 +31,7 @@ export struct CreateGroupMessageViewContent {
     }
     const displayName = this.message.rawMessage?.nickName ||
       this.message.rawMessage?.sender ||
-    this.message.sender ||
+    this.message.sender?.userID ||
       '';
 
     return displayName;
@@ -60,11 +61,11 @@ export struct CreateGroupMessageViewContent {
 }
 
 @Builder
-export function CreateGroupMessageView(messageData: MessageInfo, MessageListStore?: MessageListStore) {
-  if (messageData && messageData.messageBody) {
+export function CreateGroupMessageView(context: MessageRenderContext) {
+  if (context.message && context.message.messageBody) {
     CreateGroupMessageViewContent({
-      message: messageData,
-      messageBody: messageData.messageBody
+      message: context.message,
+      messageBody: context.message.messageBody
     })
   }
 } 

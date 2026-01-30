@@ -1,4 +1,4 @@
-import { ThemeState, Toast } from '../../basecomponent/Index';
+import { ThemeState, Toast, LanguageState } from '../../basecomponent/Index';
 @Component
 export struct AvatarSelector {
   
@@ -8,6 +8,7 @@ export struct AvatarSelector {
   private static readonly SELECTED_BORDER_WIDTH: number = 2;
   private static readonly HEADER_HEIGHT: number = 56;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
+  @StorageLink('LanguageState') languageState: LanguageState = LanguageState.getInstance();
   
   title?: string | Resource = $r('app.string.chatsetting_select_avatar');
   urlList: string[] = [];
@@ -43,10 +44,14 @@ export struct AvatarSelector {
     Row() {
       // Back button
       Button() {
-        Image($rawfile('search/back_icon.svg'))
-          .width(24)
-          .height(24)
+        Image($rawfile('basecomponent/common_back_icon.svg'))
+          .width(16)
+          .height(16)
           .fillColor(this.themeState.colors.textColorLink)
+          .scale({
+            x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
+            y: 1
+          })
       }
       .backgroundColor('transparent')
       .onClick(() => {

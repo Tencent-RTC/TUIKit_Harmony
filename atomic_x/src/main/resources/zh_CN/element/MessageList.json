@@ -29,6 +29,14 @@
       "value": "翻译"
     },
     {
+      "name": "messagelist_translate_failed",
+      "value": "翻译失败"
+    },
+    {
+      "name": "action_hide",
+      "value": "隐藏"
+    },
+    {
       "name": "action_recall",
       "value": "撤回"
     },
@@ -37,9 +45,18 @@
       "value": "删除"
     },
     {
+      "name": "action_detail",
+      "value": "详情"
+    },
+    {
       "name": "action_back",
       "value": "返回"
     },
+    { "name": "read_receipt_detail_title", "value": "已读回执" },
+    { "name": "read_receipt_read_by", "value": "已读" },
+    { "name": "read_receipt_delivered_to", "value": "未读" },
+    { "name": "read_receipt_load_failed", "value": "加载失败" },
+    { "name": "messagelist_loading_more", "value": "加载更多" },
     { "name": "messagelist_loading", "value": "加载中..." },
     { "name": "messagelist_loading_history", "value": "加载历史消息..." },
     { "name": "messagelist_loading_new", "value": "加载新消息..." },
@@ -60,12 +77,36 @@
     { "name": "messagelist_copy_unsupported", "value": "该类型消息不支持复制" },
     { "name": "messagelist_copy_failed", "value": "复制失败" },
     { "name": "messagelist_copied", "value": "已复制" },
+    { "name": "messagelist_translation_tips", "value": "由腾讯云 IM 提供翻译支持" },
     { "name": "messagelist_recall_failed_no_callback", "value": "撤回失败：未设置撤回回调" },
     { "name": "messagelist_delete_failed_no_callback", "value": "删除失败：未设置删除回调" },
     { "name": "action_resend", "value": "重发" },
     { "name": "resend_confirm_title", "value": "重发消息" },
     { "name": "resend_confirm_message", "value": "确定要重新发送这条消息吗？" },
     { "name": "messagelist_resend_success", "value": "消息重发成功" },
-    { "name": "messagelist_resend_failed", "value": "消息重发失败" }
+    { "name": "messagelist_resend_failed", "value": "消息重发失败" },
+    { "name": "action_multiselect", "value": "多选" },
+    { "name": "multiselect_selected", "value": "已选择" },
+    { "name": "forward_select_conversation", "value": "选择会话" },
+    { "name": "forward_recent_chats", "value": "最近聊天" },
+    { "name": "forward_unnamed_conversation", "value": "未命名会话" },
+    { "name": "forward_send", "value": "发送" },
+    { "name": "forward_success", "value": "转发成功" },
+    { "name": "forward_failed", "value": "转发失败" },
+    { "name": "forward_selected_count", "value": "个会话已选择" },
+    { "name": "messagelist_messages_deleted", "value": "消息已删除" },
+    { "name": "forward_separately", "value": "逐条转发" },
+    { "name": "forward_merged", "value": "合并转发" },
+    { "name": "forward_limit_tip", "value": "选择的消息超过30条，请使用合并转发" },
+    { "name": "forward_failed_message_tip", "value": "发送失败的消息不支持转发" },
+    { "name": "forward_violation_message_tip", "value": "安全打击消息不支持转发" },
+    { "name": "merged_message_title", "value": "聊天记录" },
+    { "name": "merged_message_hint", "value": "聊天记录" },
+    { "name": "messagelist_reaction_tap_to_delete", "value": "点击删除" },
+    { "name": "messagelist_reaction_added", "value": "表情已添加" },
+    { "name": "messagelist_reaction_removed", "value": "表情已移除" },
+    { "name": "action_convert_to_text", "value": "转文字" },
+    { "name": "messagelist_convert_to_text_failed", "value": "转换失败" },
+    { "name": "messagelist_violation_warning", "value": "涉及敏感内容" }
   ]
 }

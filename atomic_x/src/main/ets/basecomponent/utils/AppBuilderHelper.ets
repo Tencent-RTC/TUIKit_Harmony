@@ -2,6 +2,9 @@ import fs from '@ohos.file.fs';
 import common from '@ohos.app.ability.common';
 import { ThemeMode } from '../theme/ThemeState';
 import { ContextProvider, getAppContext } from './ContextProvider';
+import dataPreferences from '@ohos.data.preferences';
+import { i18n } from '@kit.LocalizationKit';
+import { Configuration } from '@kit.ArkUI';
 
 export enum MessageAlignment {
   LEFT = 'left',
@@ -12,7 +15,9 @@ export enum MessageAlignment {
 export enum MessageAction {
   COPY = 'copy',
   RECALL = 'recall',
-  DELETE = 'delete'
+  DELETE = 'delete',
+  FORWARD = 'forward',
+  MULTISELECT = 'multiselect'
 }
 
 export enum ConversationAction {
@@ -42,10 +47,100 @@ export class AppBuilderConfig {
     [ConversationAction.DELETE, ConversationAction.MUTE, ConversationAction.PIN, ConversationAction.MARK_UNREAD,
       ConversationAction.CLEAR_HISTORY];
   public hideSendButton: boolean = false;
-  public hideSearch: boolean = true;
+  public hideSearch: boolean = false;
+  public enableReadReceipt: boolean = false;
   public avatarShape: GlobalAvatarShape = GlobalAvatarShape.CIRCULAR;
+  public translateTargetLanguage: string = '';
+  /**
+   * Use classic UI style for the entire app
+   * When true: classic floating popup for message actions, classic input bar, etc.
+   * When false: modern full-screen dialog style (default)
+   */
+  public useClassicUI: boolean = false;
 
   private constructor() {
+  }
+
+  public setEnableReadReceipt(enable: boolean): void {
+    this.enableReadReceipt = enable;
+    try {
+      const context = getAppContext();
+      if (context) {
+        const pref = dataPreferences.getPreferencesSync(context, { name: 'AppBuilderConfig' });
+        pref.putSync('EnableReadReceipt', enable);
+        pref.flushSync();
+      }
+    } catch (e) {
+      console.error('Failed to save enableReadReceipt to preferences', e);
+    }
+  }
+
+  public setUseClassicUI(enable: boolean): void {
+    this.useClassicUI = enable;
+    try {
+      const context = getAppContext();
+      if (context) {
+        const pref = dataPreferences.getPreferencesSync(context, { name: 'AppBuilderConfig' });
+        pref.putSync('UseClassicUI', enable);
+        pref.flushSync();
+        console.log(`[AppBuilderConfig] Saved useClassicUI: ${enable}`);
+      }
+    } catch (e) {
+      console.error('Failed to save useClassicUI to preferences', e);
+    }
+  }
+
+  public setTranslateTargetLanguage(language: string): void {
+    this.translateTargetLanguage = language;
+    try {
+      const context = getAppContext();
+      if (context) {
+        const pref = dataPreferences.getPreferencesSync(context, { name: 'AppBuilderConfig' });
+        pref.putSync('TranslateTargetLanguage', language);
+        pref.flushSync();
+        console.log(`[AppBuilderConfig] Saved translateTargetLanguage: ${language}`);
+      }
+    } catch (e) {
+      console.error('Failed to save translateTargetLanguage to preferences', e);
+    }
+  }
+
+  public getTranslateTargetLanguage(): string {
+    if (this.translateTargetLanguage) {
+      return this.translateTargetLanguage;
+    }
+    
+    // Return default language if not set
+    return this.getDefaultTranslateLanguage();
+  }
+
+  private getDefaultTranslateLanguage(): string {
+    try {
+      // Get device current language using the same method as SettingsPage
+      let currentLanguage: string = Configuration.getLocale().language;
+      
+      // Check if app has preferred language set
+      const preferredLanguage = i18n.System.getAppPreferredLanguage();
+      if (preferredLanguage && preferredLanguage.length > 0) {
+        currentLanguage = preferredLanguage;
+      }
+      
+      const supportedLanguages = ['zh', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'it', 'pt', 'ru', 'tr', 'vi', 'id', 'th', 'ms', 'hi'];
+      
+      // Extract language code (e.g., "zh-CN" -> "zh")
+      const langCode: string = currentLanguage.split('-')[0] || 'en';
+      
+      if (supportedLanguages.includes(langCode)) {
+        console.log(`[AppBuilderConfig] Default translate language from device: ${langCode}`);
+        return langCode;
+      }
+    } catch (e) {
+      console.error('[AppBuilderConfig] Failed to get default translate language', e);
+    }
+    
+    // Default to English if device language not supported
+    console.log('[AppBuilderConfig] Using fallback translate language: en');
+    return 'en';
   }
 
   public static resetConfigLoadedFlag(): void {
@@ -72,6 +167,30 @@ export class AppBuilderConfig {
       this.loadConfigFromContext(context as common.UIAbilityContext);
     } else {
     }
+
+    try {
+      if (context) {
+        const pref = dataPreferences.getPreferencesSync(context, { name: 'AppBuilderConfig' });
+        if (pref.hasSync('EnableReadReceipt')) {
+          this.enableReadReceipt = pref.getSync('EnableReadReceipt', false) as boolean;
+        }
+        if (pref.hasSync('UseClassicUI')) {
+          this.useClassicUI = pref.getSync('UseClassicUI', false) as boolean;
+          console.log(`[AppBuilderConfig] Loaded useClassicUI: ${this.useClassicUI}`);
+        }
+        if (pref.hasSync('TranslateTargetLanguage')) {
+          this.translateTargetLanguage = pref.getSync('TranslateTargetLanguage', '') as string;
+          console.log(`[AppBuilderConfig] Loaded translateTargetLanguage: ${this.translateTargetLanguage}`);
+        } else {
+          // Set default language if not saved before
+          this.translateTargetLanguage = this.getDefaultTranslateLanguage();
+          console.log(`[AppBuilderConfig] Using default translateTargetLanguage: ${this.translateTargetLanguage}`);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load from preferences', e);
+    }
+
     AppBuilderConfig.configLoaded = true;
   }
 
@@ -193,9 +312,9 @@ export class AppBuilderHelper {
         }
       }
 
-      // if (messageList['enableReadReceipt'] && typeof messageList['enableReadReceipt'] === 'boolean') {
-      //   config.enableReadReceipt = messageList['enableReadReceipt'] as boolean;
-      // }
+      if (typeof messageList['enableReadReceipt'] === 'boolean') {
+        config.enableReadReceipt = messageList['enableReadReceipt'] as boolean;
+      }
 
       if (messageList['messageActionList'] && Array.isArray(messageList['messageActionList'])) {
         const actionList = messageList['messageActionList'] as string[];
@@ -303,6 +422,10 @@ export class AppBuilderHelper {
         return MessageAction.RECALL;
       case 'delete':
         return MessageAction.DELETE;
+      case 'forward':
+        return MessageAction.FORWARD;
+      case 'multiselect':
+        return MessageAction.MULTISELECT;
       default:
         return null;
     }

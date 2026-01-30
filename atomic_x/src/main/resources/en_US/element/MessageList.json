@@ -29,6 +29,14 @@
       "value": "Translate"
     },
     {
+      "name": "messagelist_translate_failed",
+      "value": "Translation failed"
+    },
+    {
+      "name": "action_hide",
+      "value": "Hide"
+    },
+    {
       "name": "action_recall",
       "value": "Recall"
     },
@@ -37,8 +45,32 @@
       "value": "Delete"
     },
     {
+      "name": "action_detail",
+      "value": "Detail"
+    },
+    {
       "name": "action_back",
       "value": "Back"
+    },
+    {
+      "name": "read_receipt_detail_title",
+      "value": "Read Receipt"
+    },
+    {
+      "name": "read_receipt_read_by",
+      "value": "Read by"
+    },
+    {
+      "name": "read_receipt_delivered_to",
+      "value": "Delivered to"
+    },
+    {
+      "name": "read_receipt_load_failed",
+      "value": "Failed to load"
+    },
+    {
+      "name": "messagelist_loading_more",
+      "value": "Loading more"
     },
     {
       "name": "messagelist_loading",
@@ -121,6 +153,10 @@
       "value": "Copied"
     },
     {
+      "name": "messagelist_translation_tips",
+      "value": "Powered by Tencent Cloud IM"
+    },
+    {
       "name": "messagelist_recall_failed_no_callback",
       "value": "Recall failed: no callback"
     },
@@ -147,6 +183,90 @@
     {
       "name": "messagelist_resend_failed",
       "value": "Failed to resend message"
+    },
+    {
+      "name": "action_multiselect",
+      "value": "Multi Select"
+    },
+    {
+      "name": "multiselect_selected",
+      "value": "selected"
+    },
+    {
+      "name": "forward_select_conversation",
+      "value": "Select Conversation"
+    },
+    {
+      "name": "forward_recent_chats",
+      "value": "Recent Chats"
+    },
+    {
+      "name": "forward_unnamed_conversation",
+      "value": "Unnamed Conversation"
+    },
+    {
+      "name": "forward_send",
+      "value": "Send"
+    },
+    {
+      "name": "forward_success",
+      "value": "Forwarded successfully"
+    },
+    {
+      "name": "forward_failed",
+      "value": "Forward failed"
+    },
+    {
+      "name": "forward_selected_count",
+      "value": "conversations selected"
+    },
+    {
+      "name": "messagelist_messages_deleted",
+      "value": "Messages deleted"
+    },
+    {
+      "name": "forward_separately",
+      "value": "Forward Separately"
+    },
+    {
+      "name": "forward_merged",
+      "value": "Forward as Merged"
+    },
+    {
+      "name": "forward_limit_tip",
+      "value": "Selected more than 30 messages, please use merged forward"
+    },
+    {
+      "name": "merged_message_title",
+      "value": "Chat History"
+    },
+    {
+      "name": "merged_message_hint",
+      "value": "Chat History"
+    },
+    {
+      "name": "messagelist_reaction_tap_to_delete",
+      "value": "Tap to delete"
+    },
+    {
+      "name": "messagelist_reaction_added",
+      "value": "Reaction added"
+    },
+    {
+      "name": "messagelist_reaction_removed",
+      "value": "Reaction removed"
+    },
+    {
+      "name": "action_convert_to_text",
+      "value": "Convert to Text"
+    },
+    {
+      "name": "messagelist_convert_to_text_failed",
+      "value": "Failed to convert"
+    },
+    {
+      "name": "messagelist_violation_warning",
+      "value": "Contains sensitive content"
     }
   ]
 }

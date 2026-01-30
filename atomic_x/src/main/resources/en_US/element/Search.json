@@ -11,12 +11,15 @@
     { "name": "search_no_matched_messages", "value": "No matched messages" },
     { "name": "search_search_placeholder", "value": "Search" },
     { "name": "search_search_contacts_placeholder", "value": "Search contacts" },
+    { "name": "search_search_groups_placeholder", "value": "Search groups" },
     { "name": "search_search_messages_placeholder", "value": "Search messages" },
     { "name": "search_search_in_conversation_placeholder", "value": "Search in conversation" },
     { "name": "search_suggest_text", "value": "Search contacts, groups, or messages" },
     { "name": "search_contacts_title", "value": "Contacts" },
     { "name": "search_groups_title", "value": "Groups" },
-    { "name": "search_messages_title", "value": "Messages" }
+    { "name": "search_messages_title", "value": "Messages" },
+    { "name": "search_view_more", "value": "View more" },
+    { "name": "search_related_messages_count", "value": "%s related messages" }
   ]
 }
 

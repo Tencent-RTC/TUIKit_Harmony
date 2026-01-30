@@ -1,4 +1,4 @@
-import { TextUtils, ThemeState } from '../Index';
+import { TextUtils, ThemeState, LanguageState } from '../Index';
 import { PinyinUtils } from '../utils/PinyinUtils';
 
 export interface AZOrderedListItem<T> {
@@ -26,6 +26,7 @@ export struct AZOrderedList {
   private static readonly HEADER_HEIGHT: number = 32;
 
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
+  @StorageLink('LanguageState') languageState: LanguageState = LanguageState.getInstance();
 
   @Builder
   HeaderBuilder() {
@@ -172,6 +173,7 @@ export struct AZOrderedList {
         .fontSize(14)
         .fontWeight(600)
         .fontColor(this.themeState.colors.textColorPrimary)
+        .direction(this.languageState.getLayoutDirection() === LayoutDirection.RTL ? Direction.Rtl : Direction.Ltr)
     }
     .width('100%')
     .height(AZOrderedList.HEADER_HEIGHT)
@@ -213,6 +215,7 @@ export struct AZOrderedList {
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .layoutWeight(1)
+        .direction(this.languageState.getLayoutDirection() === LayoutDirection.RTL ? Direction.Rtl : Direction.Ltr)
     }
     .width('100%')
     .height(AZOrderedList.ITEM_HEIGHT)
@@ -252,8 +255,14 @@ export struct AZOrderedList {
     }
     .width(AZOrderedList.INDEX_BAR_WIDTH)
     .justifyContent(FlexAlign.Center)
-    .position({ x: '100%', y: '50%' })
-    .translate({ x: -32, y: '-50%' })
+    .position({ 
+      x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? '0%' : '100%', 
+      y: '50%' 
+    })
+    .translate({ 
+      x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? 32 : -32, 
+      y: '-50%' 
+    })
   }
 
   @Builder

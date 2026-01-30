@@ -7,23 +7,41 @@ import {
   MessageFetchOption,
   MessageFetchDirection,
   ErrorInfo,
-  MessageListChangeReason,
+  MessageEvent,
   MessageActionStore,
   MessageStatus,
   MessageDataSource,
   MessageListState,
   ConversationListStore,
   ConversationListState,
-  ConversationInfo
+  ConversationInfo,
+  ConversationMarkType,
+  MessageInputStore,
+  MessageForwardType,
+  MessageForwardOption,
+  MergedForwardInfo,
+  MessageBody
 } from '@tencentcloud/atomicxcore';
-import { AppBuilderConfig, ThemeState, TextUtils } from '../../basecomponent/Index';
+import { AppBuilderConfig, ThemeState, TextUtils, ActionItem, Toast, EventBus } from '../../basecomponent/Index';
 import { MessageItem } from '../ui/MessageItem';
 import { MessageActionDialog } from '../ui/MessageActionPanel';
-import promptAction from '@ohos.promptAction';
+import { MultiSelectBottomBar } from '../ui/MultiSelectBottomBar';
+import { ForwardTargetSelector } from '../ui/ForwardTargetSelector';
+import { ForwardTypeDialog } from '../ui/ForwardTypeDialog';
+import { MessageReadReceiptDetailPage } from '../ui/MessageReadReceiptDetailPage';
+import { MessageCheckBox } from '../ui/MessageCheckBox';
+import { ReactionEmojiPickerSheet } from '../ui/ReactionEmojiPickerSheet';
+import { EmojiItem } from '../../emojipicker/data/EmojiData';
 import { TextMessageView } from '../cells/TextMessageView';
 import { MessageAlignment } from '../../basecomponent/utils/AppBuilderHelper';
 import { util } from '@kit.ArkTS';
 import { MessageListStyleProtocol, ChatMessageListConfig } from '../config/MessageListConfig';
+import { MessageUtils } from '../utils/MessageUtils';
+import { AsrDisplayManager } from '../utils/AsrDisplayManager';
+import { TranslationDisplayManager } from '../utils/TranslationDisplayManager';
+import { TranslationTextParser } from '../utils/TranslationTextParser';
+import { ImmersiveMode, LevelMode } from '@kit.ArkUI';
+import pasteboard from '@ohos.pasteboard';
 
 // Custom action interface for MessageList
 export interface MessageCustomAction {
@@ -32,38 +50,76 @@ export interface MessageCustomAction {
   action: (message: MessageInfo) => void;
 }
 
+// Multi-select mode actions interface
+export interface MultiSelectActions {
+  cancel: () => void;
+  deleteMessages: () => void;
+  forward: () => void;
+}
+
 @Component
 export struct MessageList {
   private static readonly TIME_INTERVAL_THRESHOLD: number = 5 * 60;
+  private static readonly MAX_SEPARATE_FORWARD_COUNT: number = 30;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   @State messageListStore?: MessageListStore = undefined;
   @State conversationListStore?: ConversationListStore = undefined;
-  @Watch('onMessageListChangeSourceChanged')
   @State messageListState?: MessageListState = undefined;
   @State messageDataSource?: MessageDataSource = undefined;
   @State isLoading: boolean = true;
   @State isLoadingMore: boolean = false;
   @State lastFirstIndex: number = -1;
   @State userScrolling: boolean = false;
+  @Watch('onSelectedMessageChanged')
   @State selectedMessage?: MessageInfo = undefined;
+  // Multi-select mode states
+  @State isMultiSelectMode: boolean = false;
+  @State selectedMessageIDs: Set<string> = new Set();
+  // Forward type selection state
+  @State private forwardType: MessageForwardType = MessageForwardType.separate;
   dialogController: CustomDialogController | null = null;
+  forwardDialogController: CustomDialogController | null = null;
+  forwardTypeDialogController: CustomDialogController | null = null;
+  readReceiptDialogController: CustomDialogController | null = null;
+  emojiPickerController: CustomDialogController | null = null;
   conversationID: string = '';
   @Prop locateMessage?: MessageInfo = undefined;
   @State highlightedMessageID: string = '';
   scroller: Scroller = new Scroller();
   onMessageLongPress?: (message: MessageInfo) => void;
   onUserClick?: (userID: string) => void;
+  onUserLongPress?: (userID: string, nickname: string) => void;
+  onMultiSelectModeChange?: (isMultiSelectMode: boolean, selectedCount: number, actions?: MultiSelectActions) => void;
   customActions?: MessageCustomAction[] = [];
   @Prop config?: MessageListStyleProtocol = undefined;
   private scrollPositionBeforeLoad: number = -1;
   private messageCountBeforeLoad: number = 0;
   private currentLoadDirection: number = MessageFetchDirection.Older;
   private isLoadingAroundTargetMessage: boolean = false;
-  private messageActionState: MessageActionStore = MessageActionStore.create();
   private lastScrollToBottomTime: number = 0;
   @State private effectiveConfig: MessageListStyleProtocol = new ChatMessageListConfig();
 
+  // ASR Display Manager for voice-to-text feature
+  @State private asrDisplayManager: AsrDisplayManager = new AsrDisplayManager();
+  
+  // Translation Display Manager for text translation feature
+  @State private translationDisplayManager: TranslationDisplayManager = new TranslationDisplayManager();
+
+  private pendingReceiptMessageIDs: Set<string> = new Set();
+  private sentReceiptMessageIDs: Set<string> = new Set();
+  private receiptTimer?: number = undefined;
+
   aboutToDisappear(): void {
+    if (this.receiptTimer !== undefined) {
+      clearTimeout(this.receiptTimer);
+      this.receiptTimer = undefined;
+    }
+
+    // Auxiliary text (ASR / Translation) state is session-only.
+    // Clear here to ensure it does not leak across leaving/re-entering the message list.
+    this.asrDisplayManager.clear();
+    this.translationDisplayManager.clear();
+
     if (this.conversationID) {
       this.clearMessageUnreadCount();
     }
@@ -91,6 +147,11 @@ export struct MessageList {
     this.messageListState = this.messageListStore.state;
     this.messageDataSource = this.messageListState.messageDataSource;
 
+    // Subscribe to message events (with WeakRef to this component)
+    this.messageListStore.messageEventEmitter.subscribe(this, (event: MessageEvent) => {
+      this.handleMessageEvent(event);
+    });
+
     this.conversationListStore = ConversationListStore.create();
 
     if (this.locateMessage) {
@@ -114,11 +175,34 @@ export struct MessageList {
         messageListStore: this.messageListStore,
         customActions: this.customActions, // Pass customActions to MessageActionDialog
         config: this.effectiveConfig, // Pass style configuration
+        asrDisplayManager: this.asrDisplayManager, // Pass ASR display manager
+        translationDisplayManager: this.translationDisplayManager, // Pass Translation display manager
         onMessageDeleted: (msgId: string) => {
           this.handleMessageDeleted(msgId);
         },
         onMessageRecalled: (msgId: string) => {
           this.recallMessage(msgId);
+        },
+        onForward: (msg: MessageInfo) => {
+          this.handleForwardSingleMessage(msg);
+        },
+        onMultiSelect: (msg: MessageInfo) => {
+          this.enterMultiSelectMode(msg);
+        },
+        onMessageDetail: (msg: MessageInfo) => {
+          this.showReadReceiptDetail(msg);
+        },
+        onEmojiReaction: (emoji: EmojiItem) => {
+          this.handleEmojiReaction(emoji, this.selectedMessage!);
+        },
+        onShowFullEmojiPicker: () => {
+          this.showFullEmojiPicker();
+        },
+        onConvertToText: (msg: MessageInfo) => {
+          this.handleConvertVoiceToText(msg);
+        },
+        onTranslateText: (msg: MessageInfo) => {
+          this.handleTranslateText(msg);
         }
       }),
       alignment: DialogAlignment.Bottom,
@@ -128,8 +212,26 @@ export struct MessageList {
     this.dialogController.open();
   }
 
+  /**
+   * Watch callback for selectedMessage changes
+   * Auto-close dialog when message status becomes recalled or violation
+   */
+  private onSelectedMessageChanged(): void {
+    if (this.selectedMessage && 
+        (this.selectedMessage.status === MessageStatus.recalled || this.selectedMessage.status === MessageStatus.violation)) {
+      if (this.dialogController) {
+        this.dialogController.close();
+        this.dialogController = null;
+      }
+      this.selectedMessage = undefined;
+    }
+  }
+
   clearMessageUnreadCount() {
     if (this.conversationID) {
+      // Clear unread mark
+      this.conversationListStore?.markConversation([this.conversationID], ConversationMarkType.UNREAD, false);
+      // Clear unread count
       this.conversationListStore?.clearConversationUnreadCount(this.conversationID);
     }
   }
@@ -137,10 +239,7 @@ export struct MessageList {
   handleMessageDeleted(msgId: string) {
     if (!this.messageListStore || !this.messageListState) {
 
-      promptAction.showToast({
-        message: $r('app.string.messagelist_delete_failed_invalid_state'),
-        duration: 2000
-      });
+      Toast.info($r('app.string.messagelist_delete_failed_invalid_state'), this.getUIContext());
       return;
     }
 
@@ -152,45 +251,27 @@ export struct MessageList {
         const message = this.messageListState.messageDataSource.getData(index);
         if (message) {
 
-          this.messageActionState.deleteMessage(message)
+          MessageActionStore.create(message).deleteMessage()
             .then(() => {
-
-              promptAction.showToast({
-                message: $r('app.string.messagelist_message_deleted'),
-                duration: 2000
-              });
-
+              Toast.info($r('app.string.messagelist_message_deleted'), this.getUIContext());
             })
             .catch((error: ErrorInfo) => {
-
-              promptAction.showToast({
-                message: $r('app.string.messagelist_delete_message_failed'),
-                duration: 2000
-              });
+              Toast.info($r('app.string.messagelist_delete_message_failed'), this.getUIContext());
             });
         }
       } else {
 
-        promptAction.showToast({
-          message: $r('app.string.messagelist_delete_failed_not_found'),
-          duration: 2000
-        });
+        Toast.info($r('app.string.messagelist_delete_failed_not_found'), this.getUIContext());
       }
     } catch (error) {
 
-      promptAction.showToast({
-        message: '删除消息失败',
-        duration: 2000
-      });
+      Toast.info($r('app.string.messagelist_delete_message_failed'), this.getUIContext());
     }
   }
 
   recallMessage(msgId: string) {
     if (!this.messageListState) {
-      promptAction.showToast({
-        message: $r('app.string.messagelist_recall_failed_invalid_state'),
-        duration: 2000
-      });
+      Toast.info($r('app.string.messagelist_recall_failed_invalid_state'), this.getUIContext());
       return;
     }
     try {
@@ -199,37 +280,22 @@ export struct MessageList {
         const message = this.messageListState.messageDataSource.getData(index);
         if (message) {
           if (!message.isSelf) {
-            promptAction.showToast({
-              message: $r('app.string.messagelist_recall_only_own'),
-              duration: 2000
-            });
+            Toast.info($r('app.string.messagelist_recall_only_own'), this.getUIContext());
             return;
           }
-          this.messageActionState.recallMessage(message)
+          MessageActionStore.create(message).recallMessage()
             .then(() => {
-              promptAction.showToast({
-                message: $r('app.string.message_tips_normal_recall'),
-                duration: 2000
-              });
+              Toast.info($r('app.string.message_tips_normal_recall'), this.getUIContext());
             })
             .catch((error: ErrorInfo) => {
-              promptAction.showToast({
-                message: $r('app.string.messagelist_recall_failed'),
-                duration: 2000
-              });
+              Toast.info($r('app.string.messagelist_recall_failed'), this.getUIContext());
             });
         }
       } else {
-        promptAction.showToast({
-          message: $r('app.string.messagelist_recall_failed_not_found'),
-          duration: 2000
-        });
+        Toast.info($r('app.string.messagelist_recall_failed_not_found'), this.getUIContext());
       }
     } catch (error) {
-      promptAction.showToast({
-        message: $r('app.string.messagelist_recall_failed'),
-        duration: 2000
-      });
+      Toast.info($r('app.string.messagelist_recall_failed'), this.getUIContext());
     }
   }
 
@@ -268,23 +334,124 @@ export struct MessageList {
         .justifyContent(FlexAlign.Center)
         .margin({ bottom: 8, top: 8 })
       }
-      MessageItem({
-        message: message,
-        initialShowAvatar: this.shouldShowAvatar(message, index),
-        isHighlighted: this.highlightedMessageID === message.msgID,
-        config: this.effectiveConfig,
-        onLongPress: (message: MessageInfo) => {
-          this.showMessageActionDialog(message);
-          if (this.onMessageLongPress) {
-            this.onMessageLongPress(message);
+      
+      Row() {
+        // Checkbox for multi-select mode (only show for selectable messages)
+        if (this.isMultiSelectMode && this.canSelectMessage(message)) {
+          MessageCheckBox({
+            isSelected: this.selectedMessageIDs.has(message.ID),
+            isEnabled: true,
+            onTap: () => {
+              this.toggleMessageSelection(message);
+            }
+          })
+            .margin({ right: 12 })
+        }
+        
+        MessageItem({
+          message: message,
+          initialShowAvatar: this.shouldShowAvatar(message, index),
+          isHighlighted: this.highlightedMessageID === message.msgID,
+          config: this.effectiveConfig,
+          isMultiSelectMode: this.isMultiSelectMode,
+          onLongPress: (message: MessageInfo) => {
+            if (!this.isMultiSelectMode) {
+              this.showMessageActionDialog(message);
+              if (this.onMessageLongPress) {
+                this.onMessageLongPress(message);
+              }
+            }
+          },
+          onUserClick: (userID: string) => {
+            if (this.onUserClick) {
+              this.onUserClick(userID);
+            }
+          },
+          onUserLongPress: (userID: string, nickname: string) => {
+            // Post event via EventBus (Android style)
+            console.log(`[MessageList] 📤 Posting onUserLongPress event: userID=${userID}, nickname=${nickname}`);
+            
+            const eventData: Record<string, Object> = {};
+            eventData['source'] = 'MessageList';
+            eventData['event'] = 'onUserLongPress';
+            eventData['userID'] = userID;
+            eventData['nickname'] = nickname;
+            
+            EventBus.getInstance().post('onUserLongPress', eventData);
+            
+            // Also call the callback if provided (backward compatibility)
+            if (this.onUserLongPress) {
+              this.onUserLongPress(userID, nickname);
+            }
+          },
+          messageListStore: this.messageListStore,
+          asrDisplayManager: this.asrDisplayManager,
+          translationDisplayManager: this.translationDisplayManager,
+          customActions: this.customActions,
+          onAsrBubbleLongPress: (message: MessageInfo) => {
+            // Forward ASR text
+            const asrText = message.messageBody?.asrText ?? '';
+            if (asrText.length > 0) {
+              this.forwardAsrText(asrText);
+            }
+          },
+          onTranslationBubbleLongPress: (message: MessageInfo) => {
+            // Forward translated text
+            const translatedTextMapRaw = message.messageBody?.translatedText;
+            const translatedTextMap: Record<string, string> = {};
+            if (translatedTextMapRaw) {
+              translatedTextMapRaw.forEach((value: string, key: string) => {
+                translatedTextMap[key] = value;
+              });
+            }
+            const originalText = message.messageBody?.text ?? '';
+            const translatedText = translatedTextMap[originalText] ?? '';
+            if (translatedText.length > 0) {
+              this.forwardTranslatedText(translatedText);
+            }
+          },
+          // Classic popup style callbacks
+          onCopy: (msg: MessageInfo) => {
+            this.handlePopupCopy(msg);
+          },
+          onRecall: (msg: MessageInfo) => {
+            this.recallMessage(msg.ID);
+          },
+          onDelete: (msg: MessageInfo) => {
+            this.handleMessageDeleted(msg.ID);
+          },
+          onForward: (msg: MessageInfo) => {
+            this.handleForwardSingleMessage(msg);
+          },
+          onMultiSelect: (msg: MessageInfo) => {
+            this.enterMultiSelectMode(msg);
+          },
+          onDetail: (msg: MessageInfo) => {
+            this.showReadReceiptDetail(msg);
+          },
+          onConvertToText: (msg: MessageInfo) => {
+            this.handleConvertVoiceToText(msg);
+          },
+          onTranslate: (msg: MessageInfo) => {
+            this.handleTranslateText(msg);
+          },
+          onEmojiReaction: (emoji: EmojiItem, msg: MessageInfo) => {
+            this.handleEmojiReaction(emoji, msg);
+          },
+          onExpandEmojiPicker: (msg: MessageInfo) => {
+            this.selectedMessage = msg;
+            this.showFullEmojiPicker();
           }
-        },
-        onUserClick: (userID: string) => {
-          if (this.onUserClick) {
-            this.onUserClick(userID);
-          }
-        },
-        messageListStore: this.messageListStore
+        })
+          .layoutWeight(1)
+      }
+      .width('100%')
+      .alignItems(VerticalAlign.Center)
+      .onClick(() => {
+        // Handle click for multi-select mode at the Row level
+        if (this.isMultiSelectMode && this.canSelectMessage(message)) {
+          this.toggleMessageSelection(message);
+        }
       })
     }
     .padding({
@@ -294,10 +461,23 @@ export struct MessageList {
   }
 
   /**
+   * Generate stable key for LazyForEach
+   * Computes a safe state hash that excludes non-serializable SDK objects
+   */
+  private getMessageKey(message: MessageInfo, index: number): string {
+    return `${message.ID}_${MessageUtils.getMessageStateHash(message)}_${index}`;
+  }
+
+  /**
    * Determine if avatar should be shown for a message
    * Based on style configuration and message position
    */
   private shouldShowAvatar(message: MessageInfo, index: number): boolean {
+    // In classic UI mode, always show avatars for both sender and receiver
+    if (AppBuilderConfig.getInstance().useClassicUI) {
+      return true;
+    }
+    
     if (message.isSelf) {
       // For self messages, check right avatar configuration
       return this.effectiveConfig.isShowRightAvatar ?? false;
@@ -333,9 +513,44 @@ export struct MessageList {
       // Loading
       this.LoadingStateBuilder()
     } else {
-
-      this.NormalListBuilder()
+      Column() {
+        this.NormalListBuilder()
+      }
+      .width('100%')
+      .height('100%')
     }
+  }
+
+  /**
+   * Get the MultiSelectBottomBar builder for parent component to display
+   * This allows the bottom bar to replace the InputBar in the parent layout
+   */
+  @Builder
+  MultiSelectBottomBarBuilder() {
+    if (this.isMultiSelectMode) {
+      MultiSelectBottomBar({
+        selectedCount: this.selectedMessageIDs.size,
+        onCancel: () => {
+          this.exitMultiSelectMode();
+        },
+        onDelete: () => {
+          this.deleteSelectedMessages();
+        },
+        onForward: () => {
+          // Validate messages before forwarding
+          if (this.validateMessagesForForward()) {
+            this.showForwardTargetSelector();
+          }
+        }
+      })
+    }
+  }
+
+  /**
+   * Check if currently in multi-select mode
+   */
+  getIsMultiSelectMode(): boolean {
+    return this.isMultiSelectMode;
   }
 
   @Builder
@@ -369,7 +584,10 @@ export struct MessageList {
             ListItem() {
               this.MessageItemBuilder(message, index)
             }
-          }, (message: MessageInfo, index: number) => `${message.getKey()}_'${message.msgID}'_${index}`)
+            .onAppear(() => {
+              this.handleMessageAppear(message);
+            })
+          }, (message: MessageInfo, index: number) => this.getMessageKey(message, index))
         }
         .padding({ left: this.effectiveConfig.horizontalPadding, right: this.effectiveConfig.horizontalPadding })
         .width('100%')
@@ -456,6 +674,14 @@ export struct MessageList {
             console.info('[MessageList] User scroll stopped');
           }, 200);
         })
+        .onClick(() => {
+          // Post event to dismiss keyboard when clicking on message list blank area
+          console.log('[MessageList] 📤 Posting onBlankAreaClick event');
+          const eventData: Record<string, Object> = {};
+          eventData['source'] = 'MessageList';
+          eventData['event'] = 'onBlankAreaClick';
+          EventBus.getInstance().post('onBlankAreaClick', eventData);
+        })
 
 
         if (this.isLoadingMore && this.currentLoadDirection === MessageFetchDirection.Newer) {
@@ -475,6 +701,8 @@ export struct MessageList {
           .padding({ top: 8, bottom: 8 })
         }
       }
+      .width('100%')
+      .layoutWeight(1)
     }
   }
 
@@ -529,11 +757,6 @@ export struct MessageList {
     }
   }
 
-  private onMessageListChangeSourceChanged() {
-    let changeSource = this.messageListState?.messageListChangeSource ?? MessageListChangeReason.unknown;
-    this.handleMessageListChangeSource(changeSource);
-  }
-
   private getPreviousMessage(currentIndex: number): MessageInfo | undefined {
     if (!this.messageListState?.messageDataSource || currentIndex <= 0) {
       return undefined;
@@ -552,6 +775,11 @@ export struct MessageList {
   }
 
   private checkPreviousMessageIsAggregation(currentIndex: number): boolean {
+    // In classic UI mode, disable message aggregation (always show full spacing and avatars)
+    if (AppBuilderConfig.getInstance().useClassicUI) {
+      return false;
+    }
+    
     const message = this.messageListState?.messageDataSource.getData(currentIndex);
     const prevMessage = this.getPreviousMessage(currentIndex);
 
@@ -565,7 +793,7 @@ export struct MessageList {
     }
 
 
-    if (prevMessage.status === MessageStatus.revoked) {
+    if (prevMessage.status === MessageStatus.recalled) {
       return false;
     }
 
@@ -582,6 +810,11 @@ export struct MessageList {
   }
 
   private checkNextMessageIsAggregation(currentIndex: number): boolean {
+    // In classic UI mode, disable message aggregation (always show full spacing and avatars)
+    if (AppBuilderConfig.getInstance().useClassicUI) {
+      return false;
+    }
+    
     const message = this.messageListState?.messageDataSource.getData(currentIndex);
     const nextMessage = this.getNextMessage(currentIndex);
 
@@ -595,7 +828,7 @@ export struct MessageList {
     }
 
 
-    if (nextMessage.status === MessageStatus.revoked) {
+    if (nextMessage.status === MessageStatus.recalled) {
       return false;
     }
 
@@ -832,29 +1065,45 @@ export struct MessageList {
       });
   }
 
-  private handleMessageListChangeSource(changeSource: MessageListChangeReason) {
-
-
-    switch (changeSource) {
-      case MessageListChangeReason.fetchMessages:
+  private handleMessageEvent(event: MessageEvent) {
+    switch (event.type) {
+      case 'fetchMessages':
+        // Fetch reactions for initially loaded messages
+        this.fetchMessageReactions(event.messageList || []);
         break;
-      case MessageListChangeReason.sendMessage:
+      case 'sendMessage':
         this.scrollToBottom();
         break;
-      case MessageListChangeReason.recvMessage:
+      case 'recvMessage':
+        // Fetch reactions for new received message
+        if (event.message) {
+          this.fetchMessageReactions([event.message]);
+        }
         this.scrollToBottom();
         break;
-      case MessageListChangeReason.fetchMoreMessages:
+      case 'fetchMoreMessages':
+        // Fetch reactions for newly loaded messages
+        this.fetchMessageReactions(event.messageList || []);
         this.restoreScrollPosition();
         break;
-      case MessageListChangeReason.deleteMessage:
+      case 'deleteMessages':
         break;
-      case MessageListChangeReason.revokeMessage:
-        break;
-      case MessageListChangeReason.unknown:
       default:
         break;
     }
+  }
+
+  private fetchMessageReactions(messages: MessageInfo[]) {
+    if (!this.effectiveConfig.isSupportReaction || !this.messageListStore) {
+      return;
+    }
+    
+    if (messages.length === 0) {
+      return;
+    }
+
+    // Fetch reactions with max 3 users per reaction
+    this.messageListStore.fetchMessageReactions(messages, 3);
   }
 
   private restoreScrollPosition() {
@@ -903,5 +1152,870 @@ export struct MessageList {
 
     this.scrollPositionBeforeLoad = -1;
     this.messageCountBeforeLoad = 0;
+  }
+
+  private handleMessageAppear(message: MessageInfo) {
+    if (!this.messageListStore || !this.messageListState) {
+      return;
+    }
+
+    if (!this.effectiveConfig.enableReadReceipt) {
+      return;
+    }
+
+    if (!message || message.isSelf) {
+      return;
+    }
+
+    if (!message.needReadReceipt) {
+      return;
+    }
+
+    if (message.status !== MessageStatus.sendSuccess) {
+      return;
+    }
+
+    if (message.messageType === MessageType.System) {
+      return;
+    }
+
+    const messageID = message.msgID || message.ID;
+    if (!messageID) {
+      return;
+    }
+
+    if (this.sentReceiptMessageIDs.has(messageID) || this.pendingReceiptMessageIDs.has(messageID)) {
+      return;
+    }
+
+    this.pendingReceiptMessageIDs.add(messageID);
+    this.debounceReadReceipt();
+  }
+
+  private debounceReadReceipt() {
+    if (this.receiptTimer !== undefined) {
+      clearTimeout(this.receiptTimer);
+    }
+
+    this.receiptTimer = setTimeout(() => {
+      this.sendBatchReadReceipts();
+    }, 1000);
+  }
+
+  private sendBatchReadReceipts() {
+    if (!this.messageListStore || !this.messageListState) {
+      return;
+    }
+
+    this.receiptTimer = undefined;
+
+    const pendingIDs = Array.from(this.pendingReceiptMessageIDs);
+    if (pendingIDs.length === 0) {
+      return;
+    }
+
+    const messages: MessageInfo[] = [];
+    const messageIDsToSend: string[] = [];
+
+    pendingIDs.forEach((id: string) => {
+      const index = this.messageListState!.messageDataSource.getIndex(id);
+      if (index !== -1) {
+        const msg = this.messageListState!.messageDataSource.getData(index);
+        if (msg && msg.rawMessage) {
+          messages.push(msg);
+          messageIDsToSend.push(id);
+        }
+      }
+    });
+
+    if (messages.length === 0) {
+      return;
+    }
+
+    this.messageListStore.sendMessageReadReceipts(messages)
+      .then(() => {
+        messageIDsToSend.forEach((id: string) => {
+          this.sentReceiptMessageIDs.add(id);
+          this.pendingReceiptMessageIDs.delete(id);
+        });
+      })
+      .catch((error: ErrorInfo) => {
+        console.error('[MessageList] sendMessageReadReceipts failed:', error.code, error.message);
+      });
+  }
+
+  // ============ Multi-select Mode Methods ============
+
+  /**
+   * Enter multi-select mode with an initial selected message
+   */
+  private enterMultiSelectMode(initialMessage?: MessageInfo) {
+    this.isMultiSelectMode = true;
+    this.selectedMessageIDs = new Set();
+    if (initialMessage && this.canSelectMessage(initialMessage)) {
+      this.selectedMessageIDs.add(initialMessage.ID);
+    }
+    console.info('[MessageList] Entered multi-select mode');
+    this.notifyMultiSelectModeChange();
+  }
+
+  /**
+   * Exit multi-select mode and clear selections
+   */
+  private exitMultiSelectMode() {
+    this.isMultiSelectMode = false;
+    this.selectedMessageIDs = new Set();
+    console.info('[MessageList] Exited multi-select mode');
+    this.notifyMultiSelectModeChange();
+  }
+
+  /**
+   * Notify parent about multi-select mode change
+   */
+  private notifyMultiSelectModeChange() {
+    if (this.onMultiSelectModeChange) {
+      const actions: MultiSelectActions | undefined = this.isMultiSelectMode ? {
+        cancel: () => {
+          this.exitMultiSelectMode();
+        },
+        deleteMessages: () => {
+          this.deleteSelectedMessages();
+        },
+        forward: () => {
+          // Validate messages before forwarding
+          if (this.validateMessagesForForward()) {
+            this.showForwardTypeSelector();
+          }
+        }
+      } : undefined;
+      this.onMultiSelectModeChange(this.isMultiSelectMode, this.selectedMessageIDs.size, actions);
+    }
+  }
+
+  /**
+   * Show read receipt detail dialog
+   */
+  private showReadReceiptDetail(message: MessageInfo) {
+    if (!message || !this.messageListStore) {
+      return;
+    }
+
+    this.readReceiptDialogController = new CustomDialogController({
+      builder: MessageReadReceiptDetailPage({
+        message: message,
+        messageListStore: this.messageListStore
+      }),
+      autoCancel: false,
+      customStyle: true,
+      levelMode: LevelMode.EMBEDDED,
+      immersiveMode: ImmersiveMode.EXTEND,
+    });
+    this.readReceiptDialogController.open();
+  }
+
+  /**
+   * Handle emoji reaction on a message
+   */
+  private handleEmojiReaction(emoji: EmojiItem, message: MessageInfo) {
+    const messageActionStore = MessageActionStore.create(message);
+    const reactionID = emoji.name;
+    const existingReaction = message.reactionList?.find(r => r.reactionID === reactionID);
+    
+    if (existingReaction && (existingReaction.reactedByMyself ?? false)) {
+      // Remove reaction if already reacted
+      messageActionStore.removeMessageReaction(reactionID)
+        .then(() => {
+          Toast.info($r('app.string.messagelist_reaction_removed'), this.getUIContext());
+        })
+        .catch((error: ErrorInfo) => {
+          console.error('[MessageList] Failed to remove reaction:', error);
+        });
+    } else {
+      // Add reaction
+      messageActionStore.addMessageReaction(reactionID)
+        .then(() => {
+          Toast.info($r('app.string.messagelist_reaction_added'), this.getUIContext());
+        })
+        .catch((error: ErrorInfo) => {
+          console.error('[MessageList] Failed to add reaction:', error);
+        });
+    }
+  }
+
+  /**
+   * Show full emoji picker sheet
+   */
+  private showFullEmojiPicker() {
+    if (!this.selectedMessage) {
+      return;
+    }
+
+    this.emojiPickerController = new CustomDialogController({
+      builder: ReactionEmojiPickerSheet({
+        onEmojiSelect: (emoji: EmojiItem) => {
+          this.handleEmojiReaction(emoji, this.selectedMessage!);
+        }
+      }),
+      alignment: DialogAlignment.Bottom,
+      customStyle: true
+    });
+
+    this.emojiPickerController.open();
+  }
+
+  /**
+   * Check if a message can be selected in multi-select mode
+   * Note: Failed and violation messages can be selected (for deletion)
+   * but will be filtered out when forwarding
+   */
+  private canSelectMessage(message: MessageInfo): boolean {
+    // Cannot select recalled messages
+    if (message.status === MessageStatus.recalled) {
+      return false;
+    }
+    // Cannot select system messages
+    if (message.messageType === MessageType.System) {
+      return false;
+    }
+    // Cannot select custom/tips messages
+    if (message.messageType === MessageType.Custom) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Validate selected messages for forwarding
+   * @returns true if all messages can be forwarded, false otherwise
+   */
+  private validateMessagesForForward(): boolean {
+    const selectedMessages = this.getSelectedMessages();
+    
+    // Check for failed messages
+    const hasFailedMessages = selectedMessages.some(msg => msg.status === MessageStatus.sendFail);
+    if (hasFailedMessages) {
+      Toast.error($r('app.string.forward_failed_message_tip'), this.getUIContext());
+      return false;
+    }
+    
+    // Check for violation messages
+    const hasViolationMessages = selectedMessages.some(msg => msg.status === MessageStatus.violation);
+    if (hasViolationMessages) {
+      Toast.error($r('app.string.forward_violation_message_tip'), this.getUIContext());
+      return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Toggle selection state of a message
+   */
+  private toggleMessageSelection(message: MessageInfo) {
+    if (!this.canSelectMessage(message)) {
+      return;
+    }
+    
+    if (this.selectedMessageIDs.has(message.ID)) {
+      this.selectedMessageIDs.delete(message.ID);
+    } else {
+      this.selectedMessageIDs.add(message.ID);
+    }
+    // Trigger UI update
+    this.selectedMessageIDs = new Set(this.selectedMessageIDs);
+    // Notify parent about selection change
+    this.notifyMultiSelectModeChange();
+  }
+
+  /**
+   * Get selected messages sorted by timestamp
+   */
+  private getSelectedMessages(): MessageInfo[] {
+    if (!this.messageListState?.messageDataSource) {
+      return [];
+    }
+    
+    const selectedMessages: MessageInfo[] = [];
+    const totalCount = this.messageListState.messageDataSource.totalCount();
+    
+    for (let i = 0; i < totalCount; i++) {
+      const message = this.messageListState.messageDataSource.getData(i) as MessageInfo;
+      if (message && this.selectedMessageIDs.has(message.ID)) {
+        selectedMessages.push(message);
+      }
+    }
+    
+    // Sort by timestamp
+    return selectedMessages.sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0));
+  }
+
+  /**
+   * Delete selected messages
+   */
+  deleteSelectedMessages() {
+    const selectedMessages = this.getSelectedMessages();
+    if (selectedMessages.length === 0) {
+      return;
+    }
+    
+    // Use batch delete API
+    this.messageListStore?.deleteMessages(selectedMessages)
+      .then(() => {
+        Toast.info($r('app.string.messagelist_messages_deleted'), this.getUIContext());
+        this.exitMultiSelectMode();
+      })
+      .catch((error: ErrorInfo) => {
+        console.error('[MessageList] Failed to delete messages:', error);
+        Toast.info($r('app.string.messagelist_delete_message_failed'), this.getUIContext());
+      });
+  }
+
+  /**
+   * Cancel multi-select mode (public method for parent component)
+   */
+  cancelMultiSelect() {
+    this.exitMultiSelectMode();
+  }
+
+  // ============ Forward Methods ============
+
+  /**
+   * Handle forwarding a single message (from action menu)
+   */
+  private handleForwardSingleMessage(message: MessageInfo) {
+    // For single message forward, directly show forward target selector without entering multi-select mode
+    // Set default forward type to separate
+    this.forwardType = MessageForwardType.separate;
+    
+    // Store the message to forward
+    this.selectedMessageIDs = new Set([message.ID]);
+    
+    // Show forward target selector directly
+    this.showForwardTargetSelector();
+  }
+
+  /**
+   * Show the forward type selector (ActionSheet)
+   * Allows user to choose between separate forward and merged forward
+   */
+  showForwardTypeSelector() {
+    const selectedCount = this.selectedMessageIDs.size;
+    const exceedsLimit = selectedCount > MessageList.MAX_SEPARATE_FORWARD_COUNT;
+    
+    this.forwardTypeDialogController = new CustomDialogController({
+      builder: ForwardTypeDialog({
+        showSeparateOption: !exceedsLimit,
+        limitTip: $r('app.string.forward_limit_tip'),
+        onForwardTypeSelected: (type: MessageForwardType) => {
+          this.forwardType = type;
+          this.showForwardTargetSelector();
+        },
+        onCancel: () => {
+          console.info('[MessageList] Forward type selection cancelled');
+        }
+      }),
+      alignment: DialogAlignment.Bottom,
+      customStyle: true
+    });
+    
+    this.forwardTypeDialogController.open();
+  }
+
+  /**
+   * Show the forward target selector dialog (public method for parent component)
+   */
+  showForwardTargetSelector() {
+    this.forwardDialogController = new CustomDialogController({
+      builder: ForwardTargetSelector({
+        currentConversationID: this.conversationID,
+        onConfirm: (conversationIDs: string[]) => {
+          this.forwardMessagesToConversations(conversationIDs);
+        },
+        onCancel: () => {
+          // If not in multi-select mode, clear selected message IDs
+          if (!this.isMultiSelectMode) {
+            this.selectedMessageIDs.clear();
+          }
+        }
+      }),
+      alignment: DialogAlignment.Bottom,
+      customStyle: true
+    });
+    
+    this.forwardDialogController.open();
+  }
+
+  /**
+   * Forward selected messages to multiple target conversations
+   * Loops through each conversation and calls forwardMessages API
+   */
+  private forwardMessagesToConversations(targetConversationIDs: string[]) {
+    const selectedMessages = this.getSelectedMessages();
+    if (selectedMessages.length === 0 || targetConversationIDs.length === 0) {
+      // Clear selection if not in multi-select mode
+      if (!this.isMultiSelectMode) {
+        this.selectedMessageIDs.clear();
+      } else {
+        this.exitMultiSelectMode();
+      }
+      return;
+    }
+    
+    console.info(`[MessageList] Forwarding ${selectedMessages.length} messages to ${targetConversationIDs.length} conversations, type: ${this.forwardType}`);
+    
+    // Build forward option
+    const forwardOption = new MessageForwardOption();
+    forwardOption.forwardType = this.forwardType;
+    
+    if (this.forwardType === MessageForwardType.merged) {
+      // Generate merged forward info
+      forwardOption.mergedForwardInfo = this.generateMergedForwardInfo(selectedMessages);
+    }
+    
+    // Exit multi-select mode only if we're actually in it
+    if (this.isMultiSelectMode) {
+      this.exitMultiSelectMode();
+    } else {
+      // Clear temporary selection for single message forward
+      this.selectedMessageIDs.clear();
+    }
+    
+    // Forward to each conversation sequentially
+    const forwardPromises: Promise<void>[] = [];
+    for (const targetConversationID of targetConversationIDs) {
+      const promise = this.messageListStore?.forwardMessages(selectedMessages, forwardOption, targetConversationID)
+        .then(() => {
+          console.info(`[MessageList] Forward to ${targetConversationID} succeeded`);
+        })
+        .catch((error: ErrorInfo) => {
+          console.error(`[MessageList] Forward to ${targetConversationID} failed:`, error);
+          throw error;
+        });
+      if (promise) {
+        forwardPromises.push(promise);
+      }
+    }
+    
+    // Wait for all forwards to complete (in background)
+    Promise.all(forwardPromises)
+      .then(() => {
+        Toast.success($r('app.string.forward_success'), this.getUIContext());
+      })
+      .catch((error: ErrorInfo) => {
+        console.error('[MessageList] Some forwards failed:', error);
+        Toast.info($r('app.string.forward_failed'), this.getUIContext());
+      });
+  }
+
+  /**
+   * Generate merged forward info from selected messages
+   */
+  private generateMergedForwardInfo(messages: MessageInfo[]): MergedForwardInfo {
+    const mergedInfo = new MergedForwardInfo();
+    
+    // Generate title based on conversation type
+    mergedInfo.title = this.generateMergedTitle(messages);
+    
+    // Generate abstract list (up to 4 messages)
+    const abstractList: string[] = [];
+    const maxAbstractCount = Math.min(messages.length, 4);
+    for (let i = 0; i < maxAbstractCount; i++) {
+      const msg = messages[i];
+      const senderName: string = msg.sender?.nickname || msg.sender?.userID || '';
+      const abstract = MessageUtils.getMessageAbstract(msg);
+      const abstractStr = typeof abstract === 'string' ? abstract : TextUtils.getResourceString(abstract);
+      abstractList.push(`${senderName}: ${abstractStr}`);
+    }
+    mergedInfo.abstractList = abstractList;
+    
+    // Compatible text for older clients
+    mergedInfo.compatibleText = TextUtils.getResourceString($r('app.string.forward_compatible_text'));
+    
+    // Set needReadReceipt to true for merged messages
+    mergedInfo.needReadReceipt = true;
+    
+    return mergedInfo;
+  }
+
+  /**
+   * Generate merged forward message title based on conversation type
+   * Returns formatted string directly (matches Kotlin implementation)
+   */
+  private generateMergedTitle(messages: MessageInfo[]): string {
+    // Check if it's a group chat (conversationID starts with "group_")
+    const isGroupChat = this.conversationID.startsWith('group_');
+    
+    if (isGroupChat) {
+      return TextUtils.getResourceString($r('app.string.forward_group_chat_history'));
+    } else {
+      // C2C chat: collect unique senders in order of appearance
+      const senderNames: string[] = [];
+      const seenSenders: Set<string> = new Set();
+      
+      for (const message of messages) {
+        const sender = message.sender?.userID || '';
+        if (sender && !seenSenders.has(sender)) {
+          seenSenders.add(sender);
+          // Use nickname, fallback to sender ID
+          const name = message.sender?.nickname || sender;
+          senderNames.push(name);
+        }
+        // Only need at most 2 senders for C2C
+        if (senderNames.length >= 2) {
+          break;
+        }
+      }
+      
+      // Build title using localized strings (like Kotlin)
+      const andText = TextUtils.getResourceString($r('app.string.forward_and_text')); // "和" / "and" / "و"
+      const historySuffix = TextUtils.getResourceString($r('app.string.forward_chat_history_c2c')); // "的聊天记录" / "'s Chat History"
+      
+      if (senderNames.length === 2) {
+        return `${senderNames[0]}${andText}${senderNames[1]}${historySuffix}`;
+      } else if (senderNames.length === 1) {
+        return `${senderNames[0]}${historySuffix}`;
+      } else {
+        return TextUtils.getResourceString($r('app.string.forward_group_chat_history'));
+      }
+    }
+  }
+
+  // ============ Voice to Text Methods ============
+
+  /**
+   * Handle convert voice to text action
+   * Called when user clicks "Convert to Text" in message action menu
+   */
+  private handleConvertVoiceToText(message: MessageInfo) {
+    if (!message || message.messageType !== MessageType.Sound) {
+      return;
+    }
+
+    console.log(`[MessageList] 🎤 Starting voice to text conversion for message: ${message.msgID}`);
+
+    // Set converting state
+    this.asrDisplayManager.setConverting(message.msgID, true);
+    this.asrDisplayManager.expand(message.msgID);
+
+    // Call API
+    const messageActionStore = MessageActionStore.create(message);
+    messageActionStore.convertVoiceToText('')
+      .then(() => {
+        console.log(`[MessageList] ✅ Voice to text conversion succeeded`);
+        this.asrDisplayManager.setConverting(message.msgID, false);
+
+        // Check if asrText is empty after conversion
+        const asrText = message.messageBody?.asrText ?? '';
+        if (asrText.length === 0) {
+          console.log(`[MessageList] ⚠️ asrText is empty after conversion`);
+          Toast.info($r('app.string.messagelist_convert_to_text_failed'), this.getUIContext());
+          this.asrDisplayManager.collapse(message.msgID);
+        } else {
+          // Scroll to bottom if this is the last message
+          this.scrollToBottomIfLastMessage(message);
+        }
+      })
+      .catch((error: ErrorInfo) => {
+        console.error(`[MessageList] ❌ Voice to text conversion failed:`, error);
+        this.asrDisplayManager.setConverting(message.msgID, false);
+        this.asrDisplayManager.collapse(message.msgID);
+
+        Toast.info($r('app.string.messagelist_convert_to_text_failed'), this.getUIContext());
+      });
+  }
+
+  /**
+   * Forward ASR text as a text message
+   */
+  private forwardAsrText(asrText: string) {
+    if (!asrText || asrText.length === 0) {
+      return;
+    }
+
+    // Show forward target selector
+    this.forwardDialogController = new CustomDialogController({
+      builder: ForwardTargetSelector({
+        currentConversationID: this.conversationID,
+        onConfirm: (conversationIDs: string[]) => {
+          this.sendAsrTextToConversations(asrText, conversationIDs);
+        },
+        onCancel: () => {
+          console.info('[MessageList] ASR text forward cancelled');
+        }
+      }),
+      alignment: DialogAlignment.Bottom,
+      customStyle: true
+    });
+
+    this.forwardDialogController.open();
+  }
+
+  /**
+   * Send ASR text as text message to selected conversations
+   */
+  private sendAsrTextToConversations(asrText: string, targetConversationIDs: string[]) {
+    if (targetConversationIDs.length === 0) {
+      return;
+    }
+
+    const sendPromises: Promise<void>[] = [];
+
+    for (const targetConversationID of targetConversationIDs) {
+      const messageInputStore = MessageInputStore.create(targetConversationID);
+      
+      const message = new MessageInfo();
+      message.messageType = MessageType.Text;
+      const body = new MessageBody();
+      body.text = asrText;
+      message.messageBody = body;
+
+      const promise: Promise<void> = messageInputStore.sendMessage(message)
+        .then(() => {
+          console.info(`[MessageList] ASR text sent to ${targetConversationID}`);
+        })
+        .catch((error: ErrorInfo) => {
+          console.error(`[MessageList] Failed to send ASR text to ${targetConversationID}:`, error);
+          throw error;
+        });
+      sendPromises.push(promise);
+    }
+
+    Promise.all(sendPromises)
+      .then(() => {
+        Toast.success($r('app.string.forward_success'), this.getUIContext());
+      })
+      .catch((error: ErrorInfo) => {
+        console.error('[MessageList] Some ASR text sends failed:', error);
+        Toast.info($r('app.string.forward_failed'), this.getUIContext());
+      });
+  }
+
+  /**
+   * Scroll to bottom if the given message is the last message
+   */
+  private scrollToBottomIfLastMessage(message: MessageInfo) {
+    if (!this.messageListState?.messageDataSource) {
+      return;
+    }
+
+    const totalCount = this.messageListState.messageDataSource.totalCount();
+    if (totalCount === 0) {
+      return;
+    }
+
+    const lastMessage = this.messageListState.messageDataSource.getData(totalCount - 1) as MessageInfo;
+    if (lastMessage && lastMessage.msgID === message.msgID) {
+      console.log(`[MessageList] 📜 Scrolling to bottom after ASR conversion`);
+      this.scrollToBottom();
+    }
+  }
+
+  /**
+   * Get the ASR display manager instance
+   * Used by MessageItem to pass to SoundMessageView
+   */
+  getAsrDisplayManager(): AsrDisplayManager {
+    return this.asrDisplayManager;
+  }
+
+  // ============ Text Translation Methods ============
+
+  /**
+   * Handle translate text message action
+   * Called when user clicks "Translate" in message action menu
+   */
+  private async handleTranslateText(message: MessageInfo) {
+    if (!message || message.messageType !== MessageType.Text) {
+      return;
+    }
+
+    console.log(`[MessageList] 🌐 Starting text translation for message: ${message.msgID}`);
+
+    // Set translating state
+    this.translationDisplayManager.setTranslating(message.msgID, true);
+    this.translationDisplayManager.expand(message.msgID);
+
+    // Get original text
+    const originalText = message.messageBody?.text ?? '';
+    if (originalText.length === 0) {
+      console.log(`[MessageList]  Original text is empty`);
+      this.translationDisplayManager.setTranslating(message.msgID, false);
+      return;
+    }
+
+    try {
+      // Get @ user names from message
+      const atUserNames = await TranslationTextParser.getAtUserNames(message);
+      console.log(`[MessageList]  @ user names:`, atUserNames);
+
+      // Split text by emoji and @ users
+      const splitResult = TranslationTextParser.splitTextByEmojiAndAtUsers(originalText, atUserNames ?? undefined);
+      
+      if (!splitResult) {
+        console.log(`[MessageList]  Split result is null`);
+        this.translationDisplayManager.setTranslating(message.msgID, false);
+        this.translationDisplayManager.collapse(message.msgID);
+        return;
+      }
+
+      const textArray = splitResult.text;
+      const textIndexArray = splitResult.textIndex;
+      const resultArray = splitResult.result;
+
+      console.log(`[MessageList]  Split result - Text array:`, textArray);
+      console.log(`[MessageList]  Split result - Text indices:`, textIndexArray);
+      console.log(`[MessageList]  Split result - Full array:`, resultArray);
+
+      // If no plain text to translate (only emojis/mentions), don't call translation API
+      if (textArray.length === 0 || textArray.every(text => text.trim().length === 0)) {
+        console.log(`[MessageList]  No plain text to translate (only emojis/mentions)`);
+        this.translationDisplayManager.setTranslating(message.msgID, false);
+        this.translationDisplayManager.collapse(message.msgID);
+        return;
+      }
+
+      const targetLanguage = AppBuilderConfig.getInstance().getTranslateTargetLanguage();
+      console.log(`[MessageList]  Using target language: ${targetLanguage}`);
+      console.log(`[MessageList]  Original text: ${originalText}`);
+      console.log(`[MessageList]  Text fragments to translate:`, textArray);
+      
+      const messageActionStore = MessageActionStore.create(message);
+      await messageActionStore.translateText(textArray, undefined, targetLanguage);
+
+      console.log(`[MessageList]  Text translation succeeded`);
+      this.translationDisplayManager.setTranslating(message.msgID, false);
+
+      // Convert Map to Record
+      const translatedTextMapRaw = message.messageBody?.translatedText;
+      const translatedTextMap: Record<string, string> = {};
+      if (translatedTextMapRaw) {
+        translatedTextMapRaw.forEach((value: string, key: string) => {
+          translatedTextMap[key] = value;
+        });
+      }
+
+      console.log(`[MessageList]  Translation map:`, translatedTextMap);
+
+      // Reconstruct translated text with emoji and @ mentions
+      const translatedFullText = TranslationTextParser.replacedStringWithArray(
+        resultArray,
+        textIndexArray,
+        translatedTextMap
+      );
+
+      if (!translatedFullText || translatedFullText.length === 0) {
+        console.log(`[MessageList]  Reconstructed translated text is empty`);
+        this.translationDisplayManager.collapse(message.msgID);
+        Toast.info($r('app.string.messagelist_translate_failed'), this.getUIContext());
+      } else {
+        console.log(`[MessageList]  Final translated text: ${translatedFullText}`);
+        
+        // Update translation map with the full text (for display)
+        if (message.messageBody && message.messageBody.translatedText) {
+          message.messageBody.translatedText.set(originalText, translatedFullText);
+        }
+        
+        // Scroll to bottom if this is the last message
+        this.scrollToBottomIfLastMessage(message);
+      }
+    } catch (error) {
+      console.error(`[MessageList]  Text translation failed:`, error);
+      this.translationDisplayManager.setTranslating(message.msgID, false);
+      this.translationDisplayManager.collapse(message.msgID);
+      
+      Toast.info($r('app.string.messagelist_translate_failed'), this.getUIContext());
+    }
+  }
+
+  /**
+   * Forward translated text to other conversations
+   * Called from MessageItem's translation menu
+   */
+  forwardTranslatedText(translatedText: string) {
+    if (!translatedText || translatedText.length === 0) {
+      return;
+    }
+
+    console.log(`[MessageList] 📤 Forwarding translated text`);
+
+    // Show forward target selector
+    this.forwardDialogController = new CustomDialogController({
+      builder: ForwardTargetSelector({
+        currentConversationID: this.conversationID,
+        onConfirm: (conversationIDs: string[]) => {
+          this.sendTranslatedTextToConversations(translatedText, conversationIDs);
+        },
+        onCancel: () => {
+          console.info('[MessageList] Translated text forward cancelled');
+        }
+      }),
+      alignment: DialogAlignment.Bottom,
+      customStyle: true
+    });
+
+    this.forwardDialogController.open();
+  }
+
+  /**
+   * Send translated text as text message to selected conversations
+   */
+  private sendTranslatedTextToConversations(translatedText: string, targetConversationIDs: string[]) {
+    if (targetConversationIDs.length === 0) {
+      return;
+    }
+
+    const sendPromises: Promise<void>[] = [];
+
+    for (const targetConversationID of targetConversationIDs) {
+      const messageInputStore = MessageInputStore.create(targetConversationID);
+      
+      const message = new MessageInfo();
+      message.messageType = MessageType.Text;
+      const body = new MessageBody();
+      body.text = translatedText;
+      message.messageBody = body;
+
+      const promise: Promise<void> = messageInputStore.sendMessage(message)
+        .then(() => {
+          console.info(`[MessageList] ✅ Translated text sent to ${targetConversationID}`);
+        })
+        .catch((error: ErrorInfo) => {
+          console.error(`[MessageList] ❌ Failed to send translated text to ${targetConversationID}:`, error);
+          throw error;
+        });
+      sendPromises.push(promise);
+    }
+
+    Promise.all(sendPromises)
+      .then(() => {
+        Toast.success($r('app.string.forward_success'), this.getUIContext());
+      })
+      .catch((error: ErrorInfo) => {
+        console.error('[MessageList] Some translated text sends failed:', error);
+        Toast.info($r('app.string.forward_failed'), this.getUIContext());
+      });
+  }
+
+  // ============ Classic Popup Action Methods ============
+
+  /**
+   * Handle copy action for classic popup style
+   */
+  private handlePopupCopy(message: MessageInfo) {
+    if (!message.messageBody?.text || message.messageBody.text.length === 0) {
+      Toast.info($r('app.string.messagelist_copy_unsupported'), this.getUIContext());
+      return;
+    }
+
+    const messageContent = message.messageBody.text;
+    const pasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, messageContent);
+    const systemPasteboard = pasteboard.getSystemPasteboard();
+    systemPasteboard.setData(pasteData, (err) => {
+      if (err) {
+        Toast.info($r('app.string.messagelist_copy_failed'), this.getUIContext());
+      } else {
+        Toast.info($r('app.string.messagelist_copied'), this.getUIContext());
+      }
+    });
   }
 }

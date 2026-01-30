@@ -307,6 +307,54 @@
     {
       "name": "theme_random_color",
       "value": "لون عشوائي"
+    },
+    {
+      "name": "setting_message_read_receipt",
+      "value": "حالة قراءة الرسالة"
+    },
+    {
+      "name": "setting_message_read_receipt_desc",
+      "value": "بعد إيقاف التشغيل، لن تحتوي الرسائل التي ترسلها وتستقبلها على حالة القراءة."
+    },
+    {
+      "name": "MeMessageReadStatusOpenDesc",
+      "value": "بعد إيقاف التشغيل، لن تظهر رسائلك حالة القراءة. لن تعرف إذا قرأها الآخرون، ولن يعرفوا إذا قرأت رسائلهم."
+    },
+    {
+      "name": "MeMessageReadStatusCloseDesc",
+      "value": "بعد التشغيل، ستظهر الرسائل في المحادثات الجماعية حالة القراءة، حتى تتمكن من معرفة ما إذا قرأها الآخرون. إذا قام أصدقاؤك أيضاً بتمكين حالة قراءة الرسائل، فستظهر المحادثات الفردية أيضاً حالة القراءة."
+    },
+    {
+      "name": "translate_target_language_setting",
+      "value": "لغة الترجمة المستهدفة"
+    },
+    {
+      "name": "setting_classic_message_action",
+      "value": "واجهة المستخدم الكلاسيكية"
+    },
+    {
+      "name": "translate_language_select_title",
+      "value": "اختر لغة الترجمة المستهدفة"
+    },
+    {
+      "name": "kicked_offline_title",
+      "value": "إشعار قطع الاتصال"
+    },
+    {
+      "name": "kicked_offline_message",
+      "value": "تم تسجيل الدخول إلى حسابك من جهاز آخر"
+    },
+    {
+      "name": "login_expired_title",
+      "value": "انتهت صلاحية تسجيل الدخول"
+    },
+    {
+      "name": "login_expired_message",
+      "value": "انتهت صلاحية تسجيل الدخول، يرجى تسجيل الدخول مرة أخرى"
+    },
+    {
+      "name": "relogin_button",
+      "value": "إعادة تسجيل الدخول"
     }
   ]
 }

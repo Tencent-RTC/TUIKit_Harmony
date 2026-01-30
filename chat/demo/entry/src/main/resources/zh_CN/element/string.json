@@ -303,6 +303,55 @@
     {
       "name": "theme_random_color",
       "value": "随机颜色"
+    },
+    {
+      "name": "setting_message_read_receipt",
+      "value": "消息阅读状态"
+    },
+    {
+      "name": "setting_message_read_receipt_desc",
+      "value": "关闭后，您收发的消息均不带已读状态。"
+    },
+    {
+      "name": "MeMessageReadStatusOpenDesc",
+      "value": "关闭后，您收发的消息不会显示已读状态，您无法知道对方是否已读，同样，对方也无法知道您是否已读。"
+    },
+    {
+      "name": "MeMessageReadStatusCloseDesc",
+      "value": "开启后，群聊中您收发的消息会显示已读状态，您可以看到对方是否已读。如果您的好友也开启了消息已读状态，您与他们的单聊也会显示已读状态。"
+    },
+    {
+      "name": "translate_target_language_setting",
+      "value": "翻译目标语言"
+    },
+    {
+      "name": "setting_classic_message_action",
+      "value": "经典版界面"
+    },
+    {
+      "name": "translate_language_select_title",
+      "value": "选择翻译目标语言"
+    },
+    {
+      "name": "kicked_offline_title",
+      "value": "下线通知"
+    },
+    {
+      "name": "kicked_offline_message",
+      "value": "您的账号在其他设备登录，已被强制下线"
+    },
+    {
+      "name": "login_expired_title",
+      "value": "登录过期"
+    },
+    {
+      "name": "login_expired_message",
+      "value": "您的登录信息已过期，请重新登录"
+    },
+    {
+      "name": "relogin_button",
+      "value": "重新登录"
     }
   ]
-} 
+}
+ 

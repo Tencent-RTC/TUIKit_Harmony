@@ -1,6 +1,6 @@
 import { MMKV } from '@tencent/mmkv';
 import { ErrorInfo, LoginStore, UserProfile, Gender, LoginState } from '@tencentcloud/atomicxcore';
-import { ImageSizeUtil, ThemeState, Log, Toast, TextUtils, ToastType, Avatar, AvatarSize , AvatarContentType,AvatarShape } from '@tencentcloud/atomicx';
+import { ImageSizeUtil, ThemeState, Log, Toast, TextUtils, ToastType, Avatar, AvatarSize , AvatarContentType,AvatarShape, AppBuilderConfig, Switch, LanguageState } from '@tencentcloud/atomicx';
 
 import Prompt from '@system.prompt';
 import router from '@ohos.router';
@@ -23,6 +23,18 @@ class LanguageModel {
     this.languageID = languageID;
     this.languageName = languageName;
     this.nameInCurrentLanguage = nameInCurrentLanguage;
+    this.selected = selected;
+  }
+}
+
+class TranslateLanguageModel {
+  languageCode: string = "";
+  languageName: string = "";
+  selected: boolean = false;
+
+  constructor(languageCode: string, languageName: string, selected: boolean = false) {
+    this.languageCode = languageCode;
+    this.languageName = languageName;
     this.selected = selected;
   }
 }
@@ -233,14 +245,20 @@ struct SettingItemView {
   @State themeSelectVisible: boolean = false;
   @State friendRequestVisible: boolean = false;
   @State languageSelectVisible: boolean = false;
+  @State translateLanguageSelectVisible: boolean = false;
   @State currentAllowTypeText: string | Resource = '';
   @State currentThemeText: string | Resource= '';
   @State currentLanguageText: string | Resource = '';
+  @State currentTranslateLanguageText: string = '';
   @Prop @Watch('onLoginStateChange') loginState: LoginState;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
+  @State enableReadReceipt: boolean = AppBuilderConfig.getInstance().enableReadReceipt;
+  @State useClassicUI: boolean = AppBuilderConfig.getInstance().useClassicUI;
   
   // Language models array
   @State languageModels: LanguageModel[] = [];
+  // Translate language models array
+  @State translateLanguageModels: TranslateLanguageModel[] = [];
   dialogController: CustomDialogController = new CustomDialogController({
     builder: ThemeSelectDialog({
       onClose: () => {
@@ -315,8 +333,29 @@ struct SettingItemView {
     maskColor: 'rgba(0, 0, 0, 0.6)'
   });
 
+  translateLanguageDialogController: CustomDialogController = new CustomDialogController({
+    builder: TranslateLanguageSelectDialog({
+      translateLanguageModels: this.translateLanguageModels,
+      onClose: () => {
+        this.translateLanguageSelectVisible = false;
+      },
+      onSelectLanguage: (languageCode: string) => {
+        this.updateTranslateLanguage(languageCode);
+        this.translateLanguageSelectVisible = false;
+      }
+    }),
+    cancel: () => {
+      this.translateLanguageSelectVisible = false;
+    },
+    autoCancel: true,
+    alignment: DialogAlignment.Bottom,
+    customStyle: true,
+    maskColor: 'rgba(0, 0, 0, 0.6)'
+  });
+
   aboutToAppear() {
     this.initializeLanguageModels();
+    this.initializeTranslateLanguageModels();
     this.updateStatusTexts();
   }
 
@@ -330,10 +369,40 @@ struct SettingItemView {
     this.updateLanguageSelection();
   }
 
+  private initializeTranslateLanguageModels() {
+    this.translateLanguageModels = [
+      new TranslateLanguageModel("zh", "简体中文"),
+      new TranslateLanguageModel("zh-TW", "繁體中文"),
+      new TranslateLanguageModel("en", "English"),
+      new TranslateLanguageModel("ja", "日本語"),
+      new TranslateLanguageModel("ko", "한국어"),
+      new TranslateLanguageModel("fr", "Français"),
+      new TranslateLanguageModel("es", "Español"),
+      new TranslateLanguageModel("it", "Italiano"),
+      new TranslateLanguageModel("de", "Deutsch"),
+      new TranslateLanguageModel("tr", "Türkçe"),
+      new TranslateLanguageModel("ru", "Русский"),
+      new TranslateLanguageModel("pt", "Português"),
+      new TranslateLanguageModel("vi", "Tiếng Việt"),
+      new TranslateLanguageModel("id", "Bahasa Indonesia"),
+      new TranslateLanguageModel("th", "ภาษาไทย"),
+      new TranslateLanguageModel("ms", "Bahasa Melayu"),
+      new TranslateLanguageModel("hi", "हिन्दी")
+    ];
+    this.updateTranslateLanguageSelection();
+  }
+
   private updateLanguageSelection() {
     const currentLang = this.getCurrentLanguage();
     this.languageModels.forEach(model => {
       model.selected = currentLang.startsWith(model.languageID.split('-')[0]);
+    });
+  }
+
+  private updateTranslateLanguageSelection() {
+    const currentLang = this.getCurrentTranslateLanguage();
+    this.translateLanguageModels.forEach(model => {
+      model.selected = (model.languageCode === currentLang);
     });
   }
 
@@ -354,6 +423,8 @@ struct SettingItemView {
     this.currentThemeText = this.getThemeText(this.themeState.currentMode);
     // Update language text
     this.currentLanguageText = this.getLanguageText(this.getCurrentLanguage());
+    // Update translate language text
+    this.currentTranslateLanguageText = this.getTranslateLanguageText(this.getCurrentTranslateLanguage());
   }
 
   build() {
@@ -377,6 +448,35 @@ struct SettingItemView {
 
       Divider().height(0.4).color(this.themeState.colors.strokeColorPrimary).width('100%')
 
+      SettingSwitchItem({
+        text: $r("app.string.setting_message_read_receipt"),
+        isOn: this.enableReadReceipt,
+        onToggle: (isOn: boolean) => {
+          this.enableReadReceipt = isOn;
+          AppBuilderConfig.getInstance().setEnableReadReceipt(isOn);
+        }
+      })
+      Text(this.enableReadReceipt ? 
+        $r("app.string.MeMessageReadStatusOpenDesc") : 
+        $r("app.string.MeMessageReadStatusCloseDesc"))
+        .width('100%')
+        .fontSize(14)
+        .fontColor(this.themeState.colors.textColorSecondary)
+        .textAlign(TextAlign.Start)
+        .padding({ left: 16, right: 16, top: 4, bottom: 8 })
+
+      Divider().height(0.4).color(this.themeState.colors.strokeColorPrimary).width('100%')
+
+      SettingSwitchItem({
+        text: $r("app.string.setting_classic_message_action"),
+        isOn: this.useClassicUI,
+        onToggle: (isOn: boolean) => {
+          this.useClassicUI = isOn;
+          AppBuilderConfig.getInstance().setUseClassicUI(isOn);
+        }
+      })
+      Divider().height(0.4).color(this.themeState.colors.strokeColorPrimary).width('100%')
+
       SettingItem({ 
         text: $r("app.string.demo_switch_language_button_name"),
         status: this.currentLanguageText
@@ -384,6 +484,17 @@ struct SettingItemView {
         .onClick(() => {
           this.languageDialogController.open();
           this.languageSelectVisible = true;
+        })
+
+      Divider().height(0.4).color(this.themeState.colors.strokeColorPrimary).width('100%')
+
+      SettingItem({ 
+        text: $r("app.string.translate_target_language_setting"),
+        status: this.currentTranslateLanguageText
+      })
+        .onClick(() => {
+          this.translateLanguageDialogController.open();
+          this.translateLanguageSelectVisible = true;
         })
 
       Divider().height(0.4).color(this.themeState.colors.strokeColorPrimary).width('100%')
@@ -578,6 +689,9 @@ struct SettingItemView {
       console.info("Configuration.getLocale().language ", Configuration.getLocale().language);
       console.info(`App preferred language set to: ${language}`);
 
+      // Notify LanguageState to update layout direction
+      LanguageState.getInstance().updateLanguage(language);
+
       // Update language selection and text immediately for UI display
       this.updateLanguageSelection();
       this.currentLanguageText = this.getDisplayLanguageText(language);
@@ -589,7 +703,60 @@ struct SettingItemView {
     }
   }
 
+  private getCurrentTranslateLanguage(): string {
+    return AppBuilderConfig.getInstance().getTranslateTargetLanguage();
+  }
 
+  private getTranslateLanguageText(languageCode: string): string {
+    const model = this.translateLanguageModels.find(m => m.languageCode === languageCode);
+    return model ? model.languageName : '';
+  }
+
+  private updateTranslateLanguage(languageCode: string) {
+    AppBuilderConfig.getInstance().setTranslateTargetLanguage(languageCode);
+    this.updateTranslateLanguageSelection();
+    this.currentTranslateLanguageText = this.getTranslateLanguageText(languageCode);
+    console.log(`[SettingsPage] Translate target language updated to: ${languageCode}`);
+  }
+
+
+}
+
+@Component
+struct SettingSwitchItem {
+  text: string | Resource = "";
+  @Prop isOn: boolean = false;
+  onToggle?: (isOn: boolean) => void;
+  @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
+
+  build() {
+    Column() {
+      Row() {
+        Text(this.text)
+          .fontSize(17)
+          .fontColor(this.themeState.colors.textColorPrimary)
+          .layoutWeight(1)
+          .margin({ left: 16 })
+          .fontFamily('PingFang HK')
+
+        Row() {
+          Switch({
+            checked: this.isOn,
+            onCheckedChange: (isOn: boolean) => {
+              this.onToggle?.(isOn);
+            }
+          })
+        }
+        .margin({ right: 16 })
+      }
+      .width('100%')
+      .height(56)
+      .padding({
+        top: 8,
+        bottom: 8
+      })
+    }
+  }
 }
 
 @Component
@@ -837,6 +1004,90 @@ struct LanguageSelectDialog {
 }
 
 @CustomDialog
+struct TranslateLanguageSelectDialog {
+  private static readonly BUTTON_HEIGHT: number = 56;
+  private static readonly BOTTOM_RADIUS: number = 14;
+  controller?: CustomDialogController;
+  @Prop translateLanguageModels: TranslateLanguageModel[] = [];
+  onClose?: () => void;
+  onSelectLanguage?: (languageCode: string) => void;
+  @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
+
+  build() {
+    Column() {
+      // Title
+      Text($r('app.string.translate_language_select_title'))
+        .fontSize(18)
+        .fontColor(this.themeState.colors.textColorPrimary)
+        .fontWeight(FontWeight.Medium)
+        .margin({ top: 16, bottom: 16 })
+        .width('100%')
+        .textAlign(TextAlign.Center)
+
+      Scroll() {
+        Column() {
+          // Dynamic translate language options
+          ForEach(this.translateLanguageModels, (model: TranslateLanguageModel, index: number) => {
+            Column() {
+              Row() {
+                Text(model.languageName)
+                  .fontSize(17)
+                  .fontColor(this.themeState.colors.textColorPrimary)
+                  .fontFamily('PingFang HK')
+                  .fontWeight(400)
+                  .layoutWeight(1)
+
+                if (model.selected) {
+                  Image($r('app.media.ic_public_check'))
+                    .width(24)
+                    .height(24)
+                    .fillColor(this.themeState.colors.buttonColorPrimaryDefault)
+                }
+              }
+              .width('100%')
+              .height(TranslateLanguageSelectDialog.BUTTON_HEIGHT)
+              .padding({ start: LengthMetrics.vp(16), end: LengthMetrics.vp(16) })
+              .onClick(() => {
+                this.onSelectLanguage?.(model.languageCode);
+                this.controller?.close();
+              })
+
+              // Add divider except for the last item
+              if (index < this.translateLanguageModels.length - 1) {
+                Divider().height(0.4).color(this.themeState.colors.strokeColorPrimary).width('100%')
+              }
+            }
+          }, (model: TranslateLanguageModel) => model.languageCode)
+        }
+        .width('100%')
+      }
+      .width('100%')
+      .height('400vp')
+      .backgroundColor(this.themeState.colors.bgColorBubbleReciprocal)
+      .borderRadius(12)
+
+      // Cancel Button
+      Button($r('app.string.cancel'))
+        .width('100%')
+        .height(TranslateLanguageSelectDialog.BUTTON_HEIGHT)
+        .fontSize(17)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(this.themeState.colors.buttonColorPrimaryDefault)
+        .backgroundColor(this.themeState.colors.bgColorOperate)
+        .borderRadius(TranslateLanguageSelectDialog.BOTTOM_RADIUS)
+        .margin({ top: 12, bottom: 38 })
+        .onClick(() => {
+          this.onClose?.();
+          this.controller?.close();
+        })
+    }
+    .width('100%')
+    .padding(16)
+    .backgroundColor(this.themeState.colors.bgColorOperate)
+  }
+}
+
+@CustomDialog
 struct ThemeSelectDialog {
   private static readonly BUTTON_HEIGHT: number = 56;
   private static readonly BOTTOM_RADIUS: number = 14;
@@ -999,7 +1250,8 @@ struct ProfileDetailDialog {
   @State loginStore: LoginStore = LoginStore.shared();
   @State @Watch('onLoginStateChange') loginState?: LoginState = this.loginStore.state;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
-  
+  @StorageLink('LanguageState') languageState: LanguageState = LanguageState.getInstance();
+
   private nicknameDialogController?: CustomDialogController;
   private signatureDialogController?: CustomDialogController;
   private genderDialogController?: CustomDialogController;
@@ -1040,7 +1292,7 @@ struct ProfileDetailDialog {
     const loginUserInfo = this.loginState?.loginUserInfo;
     
     // Force update each display text separately to ensure reactivity
-    const newSignature = loginUserInfo?.selfSignature || getContext().resourceManager.getStringSync($r('app.string.no_self_signature'));
+    const newSignature = loginUserInfo?.selfSignature || '';
     const newGender = this.getGenderTextFromValue(loginUserInfo?.gender || Gender.UNKNOWN);
     const newBirthday = this.getBirthdayTextFromValue(loginUserInfo?.birthday || 0);
     
@@ -1097,6 +1349,10 @@ struct ProfileDetailDialog {
     Row() {
       Button() {
         Image($rawfile("basecomponent/common_back_icon.svg"))
+          .scale({
+            x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
+            y: 1
+          })
           .width(16)
           .height(16)
           .fillColor(this.themeState.colors.textColorPrimary)
@@ -1188,7 +1444,7 @@ struct ProfileDetailDialog {
             .fontColor(this.themeState.colors.textColorPrimary)
             .layoutWeight(1)
 
-          Text(this.displaySignature)
+          Text(this.displaySignature ||$r('app.string.no_self_signature'))
             .fontSize(16)
             .fontColor(this.themeState.colors.textColorSecondary)
             .maxLines(1)
@@ -1244,7 +1500,7 @@ struct ProfileDetailDialog {
             .fontColor(this.themeState.colors.textColorPrimary)
             .layoutWeight(1)
 
-          Text(this.displayBirthday)
+          Text(this.displayBirthday||$r('app.string.unsetted'))
             .fontSize(16)
             .fontColor(this.themeState.colors.textColorSecondary)
             .maxLines(1)
@@ -1329,7 +1585,7 @@ struct ProfileDetailDialog {
 
   private getBirthdayTextFromValue(birthday: number): string {
     if (birthday === 0) {
-      return getContext().resourceManager.getStringSync($r('app.string.unsetted'));
+      return '';
     }
     const date = new Date(birthday * 1000);
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;

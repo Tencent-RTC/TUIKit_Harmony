@@ -1,10 +1,15 @@
-import { MessageInfo, MessageListStore } from '@tencentcloud/atomicxcore';
+import { MessageInfo, MessageListStore, LoginStore, ErrorInfo, MessageType, MessageStatus } from '@tencentcloud/atomicxcore';
 import { GetMessageView, MessageItem } from './MessageItem';
-import { AppBuilderConfig, ThemeState, MessageAction } from '../../basecomponent/Index';
+import { AppBuilderConfig, ThemeState, MessageAction, Toast } from '../../basecomponent/Index';
 import { MessageCustomAction } from '../components/MessageList';
 import { MessageListStyleProtocol, ChatMessageListConfig } from '../config/MessageListConfig';
-import promptAction from '@ohos.promptAction';
 import clipboard from '@ohos.pasteboard';
+import { ReactionEmojiPicker } from './ReactionEmojiPicker';
+import { ReactionEmojiPickerSheet } from './ReactionEmojiPickerSheet';
+import { EmojiItem } from '../../emojipicker/data/EmojiData';
+import { AsrDisplayManager } from '../utils/AsrDisplayManager';
+import { TranslationDisplayManager } from '../utils/TranslationDisplayManager';
+import { MessageRenderContext } from '../context/MessageRenderContext';
 
 interface ActionButtonConfig {
   text: string | Resource;
@@ -22,6 +27,15 @@ export struct MessageActionDialog {
   controller: CustomDialogController;
   onMessageDeleted?: (msgId: string) => void;
   onMessageRecalled?: (msgId: string) => void;
+  onForward?: (message: MessageInfo) => void;
+  onMultiSelect?: (message: MessageInfo) => void;
+  onMessageDetail?: (message: MessageInfo) => void;
+  onEmojiReaction?: (emoji: EmojiItem) => void;  // Handle emoji reaction
+  onShowFullEmojiPicker?: () => void;  // Handle full emoji picker display
+  onConvertToText?: (message: MessageInfo) => void;  // Handle convert voice to text
+  onTranslateText?: (message: MessageInfo) => void;  // Handle translate text message
+  asrDisplayManager?: AsrDisplayManager;  // ASR display state manager
+  translationDisplayManager?: TranslationDisplayManager;  // Translation display state manager
   customActions?: MessageCustomAction[] = []; // Custom actions from MessageList
   config?: MessageListStyleProtocol = undefined; // Style configuration
   @State showPrimaryMenu: boolean = true;
@@ -35,6 +49,26 @@ export struct MessageActionDialog {
       this.effectiveConfig = this.config;
     }
     this.initializeActions();
+  }
+
+  /**
+   * Create MessageRenderContext for the message in action panel
+   */
+  private createRenderContext(message: MessageInfo): MessageRenderContext {
+    return {
+      message: message,
+      messageListStore: this.messageListStore,
+      config: this.effectiveConfig,
+      isInMergedDetailView: false,
+      asrDisplayManager: this.asrDisplayManager,
+      onAsrBubbleLongPress: undefined,
+      onRequestCloseParentDialog: () => {
+        // Close the MessageActionDialog when child component requests it
+        if (this.controller) {
+          this.controller.close();
+        }
+      }
+    };
   }
 
   @Builder
@@ -55,39 +89,103 @@ export struct MessageActionDialog {
   @Builder
   MessageBubble(message: MessageInfo) {
     if (message.isSelf) {
-      Column() {
-        GetMessageView(message, this.messageListStore);
+      // Text message: allow scrolling for long content
+      if (message.messageType === MessageType.Text) {
+        Column() {
+          Scroll() {
+            GetMessageView(this.createRenderContext(message));
+          }
+          .scrollable(ScrollDirection.Vertical)
+          .scrollBar(BarState.Auto)
+        }
+        .constraintSize({ maxHeight: 300 })
+        .borderRadius({
+          topLeft: 16,
+          topRight: 16,
+          bottomLeft: 16,
+          bottomRight: 0
+        })
+        .backgroundColor(this.themeState.colors.bgColorBubbleOwn)
+        .borderWidth(1)
+        .borderColor(this.themeState.colors.bgColorBubbleOwn)
+        .justifyContent(FlexAlign.End)
+        .padding(8)
+      } else {
+        // Non-text message: keep natural size (avoid extra padding/height constraints)
+        Column() {
+          GetMessageView(this.createRenderContext(message));
+        }
+        .borderRadius({
+          topLeft: 16,
+          topRight: 16,
+          bottomLeft: 16,
+          bottomRight: 0
+        })
+        .backgroundColor(this.themeState.colors.bgColorBubbleOwn)
+        .borderWidth(1)
+        .borderColor(this.themeState.colors.bgColorBubbleOwn)
       }
-      .borderRadius({
-        topLeft: 16,
-        topRight: 16,
-        bottomLeft: 16,
-        bottomRight: 0
-      })
-      .backgroundColor(this.themeState.colors.bgColorBubbleOwn)
-      .borderWidth(1)
-      .borderColor(this.themeState.colors.bgColorBubbleOwn)
-      .justifyContent(FlexAlign.End)
     } else {
-      Column() {
-        GetMessageView(message, this.messageListStore);
+      // Text message: allow scrolling for long content
+      if (message.messageType === MessageType.Text) {
+        Column() {
+          Scroll() {
+            GetMessageView(this.createRenderContext(message));
+          }
+          .scrollable(ScrollDirection.Vertical)
+          .scrollBar(BarState.Auto)
+        }
+        .constraintSize({ maxHeight: 300 })
+        .backgroundColor(this.themeState.colors.bgColorBubbleReciprocal)
+        .borderRadius({
+          topLeft: 16,
+          topRight: 16,
+          bottomLeft: 0,
+          bottomRight: 16
+        })
+        .flexShrink(1)
+        .alignItems(HorizontalAlign.Start)
+        .justifyContent(FlexAlign.Start)
+        .padding(8)
+      } else {
+        // Non-text message: keep natural size (avoid extra padding/height constraints)
+        Column() {
+          GetMessageView(this.createRenderContext(message));
+        }
+        .backgroundColor(this.themeState.colors.bgColorBubbleReciprocal)
+        .borderRadius({
+          topLeft: 16,
+          topRight: 16,
+          bottomLeft: 0,
+          bottomRight: 16
+        })
+        .flexShrink(1)
+        .alignItems(HorizontalAlign.Start)
       }
-      .backgroundColor(this.themeState.colors.bgColorBubbleReciprocal)
-      .borderRadius({
-        topLeft: 16,
-        topRight: 16,
-        bottomLeft: 0,
-        bottomRight: 16
-      })
-      .flexShrink(1)
-      .alignItems(HorizontalAlign.Start)
-      .justifyContent(FlexAlign.Start)
     }
   }
 
   build() {
     Column() {
 
+      // Reaction emoji picker first (only show if reaction is supported and not violation)
+      if (this.effectiveConfig.isSupportReaction && this.message.status !== MessageStatus.violation) {
+        Row() {
+          ReactionEmojiPicker({
+            onEmojiClick: (emoji: EmojiItem) => {
+              this.handleEmojiReactionCallback(emoji);
+            },
+            onExpandClick: () => {
+              this.handleShowFullEmojiPickerCallback();
+            }
+          })
+        }
+        .width('100%')
+        .justifyContent(this.message.isSelf ? FlexAlign.End : FlexAlign.Start)
+        .margin({ bottom: 8, left: this.message.isSelf ? 0 : 36, right: this.message.isSelf ? 0 : 0 })
+      }
+
+      // Message bubble second
       if (this.message.isSelf) {
 
         Row() {
@@ -96,9 +194,11 @@ export struct MessageActionDialog {
           }
           .width('80%')
           .justifyContent(FlexAlign.End)
+          .alignItems(VerticalAlign.Top)
         }
         .width('100%')
         .justifyContent(FlexAlign.End)
+        .alignItems(VerticalAlign.Top)
         .margin({ bottom: 8 })
       } else {
 
@@ -108,13 +208,16 @@ export struct MessageActionDialog {
           }
           .width('80%')
           .justifyContent(FlexAlign.Start)
+          .alignItems(VerticalAlign.Top)
         }
         .padding({ left: 36 })
         .width('100%')
         .justifyContent(FlexAlign.Start)
+        .alignItems(VerticalAlign.Top)
         .margin({ bottom: 8 })
       }
 
+      // Action menu last
       if (this.message.isSelf) {
 
         Row() {
@@ -164,20 +267,32 @@ export struct MessageActionDialog {
         return {
           text: $r('app.string.action_copy'),
           action: 'copy',
-          icon: $rawfile('messagelist/icon_extion_copy.png')
+          icon: $rawfile('messagelist/icon_extion_copy.svg')
         };
       case MessageAction.RECALL:
         return {
           text: $r('app.string.action_recall'),
           action: 'recall',
-          icon: $rawfile('messagelist/icon_extion_delete.png')
+          icon: $rawfile('messagelist/icon_extion_recall.svg')
         };
       case MessageAction.DELETE:
         return {
           text: $r('app.string.action_delete'),
           action: 'delete',
-          icon: $rawfile('messagelist/icon_extion_delete.png'),
+          icon: $rawfile('messagelist/icon_extion_delete.svg'),
           color: this.themeState.colors.textColorError
+        };
+      case MessageAction.FORWARD:
+        return {
+          text: $r('app.string.action_forward'),
+          action: 'forward',
+          icon: $rawfile('messagelist/icon_extion_forward.svg')
+        };
+      case MessageAction.MULTISELECT:
+        return {
+          text: $r('app.string.action_multiselect'),
+          action: 'multiselect',
+          icon: $rawfile('messagelist/icon_extion_multi.svg')
         };
       default:
         return null;
@@ -187,21 +302,43 @@ export struct MessageActionDialog {
   /**
    * Initialize action buttons based on style configuration and customActions
    * Priority: style configuration > AppBuilderConfig > defaults
-   * Includes both system actions (COPY, RECALL, DELETE) and custom actions
+   * Includes both system actions (COPY, RECALL, DELETE, FORWARD, MULTISELECT) and custom actions
    */
   private initializeActions() {
     const configuredActions: ActionButtonConfig[] = [];
 
+
+
     // Check which actions are supported based on style configuration
     // Priority: style > AppBuilderConfig
-    if (this.effectiveConfig.isSupportCopy) {
+    // Violation messages cannot be copied
+    // Merged, File, Video, Image messages cannot be copied
+    if (this.effectiveConfig.isSupportCopy  &&
+        this.shouldShowCopy()) {
       const actionConfig = this.getActionConfig(MessageAction.COPY);
       if (actionConfig) {
         configuredActions.push(actionConfig);
       }
     }
 
-    if (this.effectiveConfig.isSupportRecall) {
+    // Failed and violation messages cannot be forwarded
+    if (this.effectiveConfig.isSupportForward && 
+        this.message.status !== MessageStatus.violation &&
+        this.message.status !== MessageStatus.sendFail) {
+      const actionConfig = this.getActionConfig(MessageAction.FORWARD);
+      if (actionConfig) {
+        configuredActions.push(actionConfig);
+      }
+    }
+
+    if (this.effectiveConfig.isSupportMultiSelect) {
+      const actionConfig = this.getActionConfig(MessageAction.MULTISELECT);
+      if (actionConfig) {
+        configuredActions.push(actionConfig);
+      }
+    }
+
+    if (this.shouldShowRecall()) {
       const actionConfig = this.getActionConfig(MessageAction.RECALL);
       if (actionConfig) {
         configuredActions.push(actionConfig);
@@ -213,6 +350,32 @@ export struct MessageActionDialog {
       if (actionConfig) {
         configuredActions.push(actionConfig);
       }
+    }
+    
+   if (this.shouldShowReadReceiptDetail()) {
+      configuredActions.push({
+        text: $r('app.string.action_detail'),
+        action: 'detail',
+        icon: $rawfile('messagelist/icon_extion_info.svg')
+      });
+    }
+
+    // Add convert to text action for sound messages
+    if (this.shouldShowConvertToText()) {
+      configuredActions.push({
+        text: $r('app.string.action_convert_to_text'),
+        action: 'convertToText',
+        icon: $rawfile('messagelist/icon_extion_convert_to_text.svg')
+      });
+    }
+
+    // Add translate action for text messages
+    if (this.shouldShowTranslate()) {
+      configuredActions.push({
+        text: $r('app.string.action_translate'),
+        action: 'translate',
+        icon: $rawfile('messagelist/icon_extion_translate.svg')
+      });
     }
 
     // Add custom actions from MessageList
@@ -260,6 +423,125 @@ export struct MessageActionDialog {
     }
   }
 
+  /**
+   * Check if "Copy" action should be shown
+   * Only for text messages (not merged, file, video, image messages)
+   */
+  private shouldShowCopy(): boolean {
+    // Only text messages can be copied
+    if (this.message.messageType !== MessageType.Text) {
+      return false;
+    }
+    
+    // Must have text content to copy
+    const hasTextContent = !!(this.message.messageBody?.text && this.message.messageBody.text.length > 0);
+    return hasTextContent;
+  }
+
+  private shouldShowRecall(): boolean {
+    if (!this.effectiveConfig.isSupportRecall) {
+      return false;
+    }
+
+    if (!this.message.isSelf) {
+      return false;
+    }
+
+    // Violation messages cannot be recalled
+    if (this.message.status === MessageStatus.violation) {
+      return false;
+    }
+
+    if (this.message.status !== MessageStatus.sendSuccess) {
+      return false;
+    }
+
+    // Recall is only allowed within 2 minutes (120 seconds)
+    const currentTime = Math.floor(Date.now() / 1000);
+    const messageTime = this.message.timestamp || 0;
+    const timeLimit = 120; // 2 minutes
+
+    return (currentTime - messageTime) < timeLimit;
+  }
+
+  private shouldShowReadReceiptDetail(): boolean {
+    return this.effectiveConfig.enableReadReceipt === true &&
+      this.message.isSelf === true &&
+      !!this.message.groupID &&
+      this.message.groupID.length > 0 &&
+      !!this.message.needReadReceipt;
+  }
+
+  /**
+   * Check if "Convert to Text" action should be shown
+   * Only for sound messages that are sent successfully and not already showing ASR text
+   */
+  private shouldShowConvertToText(): boolean {
+    // Check if feature is enabled
+    if (!this.effectiveConfig.isSupportConvertToText) {
+      return false;
+    }
+    
+    // Only for sound messages
+    if (this.message.messageType !== MessageType.Sound) {
+      return false;
+    }
+    
+    // Violation messages cannot be converted to text
+    if (this.message.status === MessageStatus.violation) {
+      return false;
+    }
+    
+    // Only for successfully sent messages
+    if (this.message.status !== MessageStatus.sendSuccess) {
+      return false;
+    }
+    
+    // Check if ASR text is already showing
+    const hasAsrText = (this.message.messageBody?.asrText ?? '').length > 0;
+    const isExpanded = this.asrDisplayManager?.isExpanded(this.message.msgID) ?? false;
+    
+    // Show if no ASR text or ASR bubble is hidden
+    return !hasAsrText || !isExpanded;
+  }
+
+  /**
+   * Check if "Translate" action should be shown
+   * Only for text messages that are sent successfully and not already showing translation
+   */
+  private shouldShowTranslate(): boolean {
+    // Check if feature is enabled
+    if (!this.effectiveConfig.isSupportTranslate) {
+      return false;
+    }
+    
+    // Only for text messages
+    if (this.message.messageType !== MessageType.Text) {
+      return false;
+    }
+    
+    // Violation messages cannot be translated
+    if (this.message.status === MessageStatus.violation) {
+      return false;
+    }
+    
+    // Only for successfully sent messages
+    if (this.message.status !== MessageStatus.sendSuccess) {
+      return false;
+    }
+    
+    // Check if translation text is already showing - Convert Map to Record
+    const translatedTextMapRaw = this.message.messageBody?.translatedText;
+    let hasTranslatedText: boolean = false;
+    if (translatedTextMapRaw) {
+      hasTranslatedText = translatedTextMapRaw.size > 0;
+    }
+    const isExpanded = this.translationDisplayManager?.isExpanded(this.message.msgID) ?? false;
+    
+    // Show if no translated text or translation bubble is hidden
+    return !hasTranslatedText || !isExpanded;
+  }
+
   @Builder
   private IconButton(config: ActionButtonConfig) {
 
@@ -284,6 +566,7 @@ export struct MessageActionDialog {
         Image(config.icon)
           .width(17)
           .height(17)
+          .fillColor(this.themeState.colors.textColorLink)
       }
       .width('100%')
       .justifyContent(FlexAlign.SpaceBetween)
@@ -309,13 +592,55 @@ export struct MessageActionDialog {
       this.recallMessage()
     } else if (action === 'delete') {
       this.deleteMessage()
+    } else if (action === 'forward') {
+      this.forwardMessage()
+    } else if (action === 'multiselect') {
+      this.enterMultiSelectMode()
+    } else if (action === 'detail') {
+      this.openReadReceiptDetail();
+    } else if (action === 'convertToText') {
+      this.handleConvertToText();
+    } else if (action === 'translate') {
+      this.handleTranslateText();
     } else if (action.startsWith('custom_')) {
       // Handle custom actions
       this.handleCustomAction(action)
     }
 
     if (action !== 'more' && action !== 'back') {
-      this.controller.close()
+      if (this.controller) {
+        this.controller.close()
+      }
+    }
+  }
+
+  private openReadReceiptDetail() {
+    if (this.onMessageDetail) {
+      this.onMessageDetail(this.message);
+    }
+  }
+
+  private forwardMessage() {
+    if (this.onForward) {
+      this.onForward(this.message);
+    }
+  }
+
+  private enterMultiSelectMode() {
+    if (this.onMultiSelect) {
+      this.onMultiSelect(this.message);
+    }
+  }
+
+  private handleConvertToText() {
+    if (this.onConvertToText) {
+      this.onConvertToText(this.message);
+    }
+  }
+
+  private handleTranslateText() {
+    if (this.onTranslateText) {
+      this.onTranslateText(this.message);
     }
   }
 
@@ -348,11 +673,7 @@ export struct MessageActionDialog {
     if (this.message.messageBody?.text) {
       messageContent = this.message.messageBody.text;
     } else {
-      messageContent = '无法复制该类型的消息';
-      promptAction.showToast({
-        message: $r('app.string.messagelist_copy_unsupported'),
-        duration: 2000
-      });
+      Toast.info($r('app.string.messagelist_copy_unsupported'), this.getUIContext());
       return;
     }
 
@@ -360,16 +681,9 @@ export struct MessageActionDialog {
     let systemPasteboard = clipboard.getSystemPasteboard();
     systemPasteboard.setData(pasteData, (err) => {
       if (err) {
-
-        promptAction.showToast({
-          message: $r('app.string.messagelist_copy_failed'),
-          duration: 2000
-        });
+        Toast.info($r('app.string.messagelist_copy_failed'), this.getUIContext());
       } else {
-        promptAction.showToast({
-          message: $r('app.string.messagelist_copied'),
-          duration: 2000
-        });
+        Toast.info($r('app.string.messagelist_copied'), this.getUIContext());
       }
     });
   }
@@ -377,10 +691,7 @@ export struct MessageActionDialog {
   private recallMessage() {
 
     if (!this.message.isSelf) {
-      promptAction.showToast({
-        message: $r('app.string.messagelist_recall_only_own'),
-        duration: 2000
-      });
+      Toast.info($r('app.string.messagelist_recall_only_own'), this.getUIContext());
       return;
     }
 
@@ -388,10 +699,7 @@ export struct MessageActionDialog {
     if (this.onMessageRecalled) {
       this.onMessageRecalled(this.message.ID);
     } else {
-      promptAction.showToast({
-        message: $r('app.string.messagelist_recall_failed_no_callback'),
-        duration: 2000
-      });
+      Toast.info($r('app.string.messagelist_recall_failed_no_callback'), this.getUIContext());
     }
   }
 
@@ -400,10 +708,31 @@ export struct MessageActionDialog {
 
       this.onMessageDeleted(this.message.ID);
     } else {
-      promptAction.showToast({
-        message: $r('app.string.messagelist_delete_failed_no_callback'),
-        duration: 2000
-      });
+      Toast.info($r('app.string.messagelist_delete_failed_no_callback'), this.getUIContext());
+    }
+  }
+
+  private handleEmojiReactionCallback(emoji: EmojiItem) {
+    // Close dialog first
+    if (this.controller) {
+      this.controller.close();
+    }
+    
+    // Delegate to external handler
+    if (this.onEmojiReaction) {
+      this.onEmojiReaction(emoji);
+    }
+  }
+
+  private handleShowFullEmojiPickerCallback() {
+    // Close dialog first
+    if (this.controller) {
+      this.controller.close();
+    }
+    
+    // Delegate to external handler
+    if (this.onShowFullEmojiPicker) {
+      this.onShowFullEmojiPicker();
     }
   }
 }

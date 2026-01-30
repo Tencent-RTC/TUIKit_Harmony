@@ -289,6 +289,7 @@ export struct GroupDetailPage {
         .width('100%')
         .height('100%')
         .backgroundColor('rgba(0, 0, 0, 0.6)')
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
       }
     }
   }

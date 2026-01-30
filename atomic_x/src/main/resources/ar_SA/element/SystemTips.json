@@ -29,6 +29,10 @@
       "value": "[رمز تعبيري متحرك]"
     },
     {
+      "name": "message_type_merged",
+      "value": "[سجل الدردشة]"
+    },
+    {
       "name": "message_tips_unsupport_custom",
       "value": "[رسالة مخصصة غير مدعومة]"
     },
@@ -295,6 +299,26 @@
     {
       "name": "conversation_mark_unread_failed",
       "value": "فشل في وضع علامة عدم قراءة المحادثة"
+    },
+    {
+      "name": "forward_group_chat_history",
+      "value": "سجل دردشة المجموعة"
+    },
+    {
+      "name": "forward_and_text",
+      "value": "و"
+    },
+    {
+      "name": "forward_chat_history_c2c",
+      "value": "سجل محادثة"
+    },
+    {
+      "name": "forward_compatible_text",
+      "value": "يرجى الترقية إلى أحدث إصدار لعرض سجل الدردشة"
+    },
+    {
+      "name": "message_type_message",
+      "value": "[رسالة]"
     }
   ]
 }

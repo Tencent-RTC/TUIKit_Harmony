@@ -6,7 +6,8 @@ import {
   SwitchType,
   TextUtils,
   ThemeState,
-  Toast
+  Toast,
+  LanguageState
 } from '../../basecomponent/Index';
 import { GroupMember, GroupMemberRole, GroupSettingState, GroupSettingStore, GroupType, LoginStore } from '@tencentcloud/atomicxcore';
 import { UserPicker, UserPickerData } from '../../userpicker/Index';
@@ -54,6 +55,7 @@ export struct GroupManagementView {
   private static readonly HORIZONTAL_PADDING: number = 16;
   private static readonly BORDER_RADIUS: number = 12;
   @Provide themeState: ThemeState = ThemeState.getInstance();
+  @StorageLink('LanguageState') languageState: LanguageState = LanguageState.getInstance();
   @State groupStore?: GroupSettingStore = undefined;
   @State groupState?: GroupSettingState = this.groupStore?.state;
   @State isLoading: boolean = true;
@@ -96,16 +98,21 @@ export struct GroupManagementView {
     .width('100%')
     .height('100%')
     .backgroundColor(this.themeState.colors.bgColorInput)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 
   @Builder
   NavigationBarBuilder() {
     Row() {
       // Back button
-      Image($rawfile('search/back_icon.svg'))
-        .width(24)
-        .height(24)
+      Image($rawfile('basecomponent/common_back_icon.svg'))
+        .width(16)
+        .height(16)
         .fillColor(this.themeState.colors.textColorLink)
+        .scale({
+          x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
+          y: 1
+        })
         .onClick(() => {
           this.closeDialog();
         })
@@ -638,7 +645,7 @@ export struct GroupManagementView {
 
     try {
       await this.groupStore.fetchGroupInfo();
-      await this.groupStore.fetchGroupMemberList();
+      await this.groupStore.fetchGroupMemberList(GroupMemberRole.ALL);
       console.log('[GroupManagementPage] Group info loaded successfully');
     } catch (error) {
       console.error('[GroupManagementPage] Failed to load group info:', error);

@@ -1,8 +1,9 @@
-import { AppBuilderConfig, ThemeState } from '@tencentcloud/atomicx';
+import { AppBuilderConfig, ThemeState, SearchBar, FriendSearchInfo, GroupSearchInfo, MessageSearchResultItem } from '@tencentcloud/atomicx';
 import { ConversationList } from '@tencentcloud/atomicx';
 import {
   ConversationInfo,
-  ContactInfo
+  ContactInfo,
+  MessageInfo
 } from '@tencentcloud/atomicxcore';
 import { StartConversationDialog, DialogType } from '@tencentcloud/atomicx';
 import { GroupInfo } from '@tencentcloud/atomicx';
@@ -10,40 +11,12 @@ import { GroupInfo } from '@tencentcloud/atomicx';
 @Component
 export struct ConversationsPage {
   private static readonly LARGE_TITLE_HEIGHT: number = 52;
-  private static readonly SEARCH_HEIGHT: number = 36;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
-  @State searchText: string = '';
   @State showAddMenu: boolean = false;
   private startConversationDialogController: CustomDialogController | null = null;
   private createGroupDialogController: CustomDialogController | null = null;
   onConversationClick?: (item: ConversationInfo) => void;
-  @Builder
-  SearchBuilder() {
-    Row() {
-      Row() {
-        Image($r('app.media.search_icon'))
-          .width(16)
-          .height(16)
-          .fillColor(this.themeState.colors.textColorLink)
-          .margin({ right: 6 })
-
-        Text($r('app.string.search_placeholder'))
-          .fontSize(16)
-          .fontColor(this.themeState.colors.textColorTertiary)
-      }
-      .width('100%')
-      .height(ConversationsPage.SEARCH_HEIGHT)
-      .borderRadius(10)
-      .backgroundColor(this.themeState.colors.bgColorInput)
-      .padding({ left: 8, right: 22 })
-      .onClick(() => {
-
-      })
-    }
-    .width('100%')
-    .padding({ left: 16, right: 16 })
-    .margin({ top: 8, bottom: 8 })
-  }
+  onConversationClickWithMessage?: (item: ConversationInfo, locateMessage?: MessageInfo) => void;
 
   @Builder
   LargeTitleBuilder() {
@@ -154,7 +127,45 @@ export struct ConversationsPage {
       Column() {
         this.LargeTitleBuilder()
         if (!AppBuilderConfig.getInstance().hideSearch) {
-          this.SearchBuilder()
+          SearchBar({
+            onContactSelect: (contact: FriendSearchInfo) => {
+              if (contact.userID) {
+                this.showChatDialog(
+                  `c2c_${contact.userID}`,
+                  contact.friendRemark || contact.userInfo.nickname || contact.userID,
+                  contact.userInfo.avatarURL || ''
+                );
+              }
+            },
+            onGroupSelect: (group: GroupSearchInfo) => {
+              if (group.groupID) {
+                this.showChatDialog(
+                  `group_${group.groupID}`,
+                  group.groupName || group.groupID,
+                  group.groupAvatarURL
+                );
+              }
+            },
+            onMessageSelect: (result: MessageSearchResultItem) => {
+              if (result.conversationID && result.messageList.length > 0) {
+                this.showChatDialog(
+                  result.conversationID,
+                  result.conversationShowName || 'Chat',
+                  result.conversationAvatarURL,
+                  result.messageList[0]
+                );
+              }
+            },
+            onConversationSelect: (result: MessageSearchResultItem) => {
+              if (result.conversationID) {
+                this.showChatDialog(
+                  result.conversationID,
+                  result.conversationShowName || 'Chat',
+                  result.conversationAvatarURL
+                );
+              }
+            }
+          })
         }
         ConversationList({
           onConversationClick: (item: ConversationInfo) => {
@@ -277,6 +288,19 @@ export struct ConversationsPage {
 
 
     this.createGroupDialogController.open();
+  }
+
+  private showChatDialog(conversationID: string, title: string, avatarURL?: string, message?: MessageInfo): void {
+    const conversationInfo = new ConversationInfo();
+    conversationInfo.ID = conversationID;
+    conversationInfo.title = title;
+    conversationInfo.avatarURL = avatarURL ?? '';
+    
+    if (message && this.onConversationClickWithMessage) {
+      this.onConversationClickWithMessage(conversationInfo, message);
+    } else if (this.onConversationClick) {
+      this.onConversationClick(conversationInfo);
+    }
   }
 
 }

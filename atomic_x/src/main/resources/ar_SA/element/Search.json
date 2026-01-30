@@ -11,11 +11,14 @@
     { "name": "search_no_matched_messages", "value": "لا توجد رسائل مطابقة" },
     { "name": "search_search_placeholder", "value": "البحث" },
     { "name": "search_search_contacts_placeholder", "value": "البحث في جهات الاتصال" },
+    { "name": "search_search_groups_placeholder", "value": "البحث في المجموعات" },
     { "name": "search_search_messages_placeholder", "value": "البحث في الرسائل" },
     { "name": "search_search_in_conversation_placeholder", "value": "البحث في المحادثة" },
     { "name": "search_suggest_text", "value": "البحث في جهات الاتصال أو المجموعات أو الرسائل" },
     { "name": "search_contacts_title", "value": "جهات الاتصال" },
     { "name": "search_groups_title", "value": "المجموعات" },
-    { "name": "search_messages_title", "value": "الرسائل" }
+    { "name": "search_messages_title", "value": "الرسائل" },
+    { "name": "search_view_more", "value": "عرض المزيد" },
+    { "name": "search_related_messages_count", "value": "%s رسائل ذات صلة" }
   ]
 }

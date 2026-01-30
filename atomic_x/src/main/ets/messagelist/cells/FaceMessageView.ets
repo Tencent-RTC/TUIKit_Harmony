@@ -2,6 +2,7 @@ import { MessageInfo } from '@tencentcloud/atomicxcore';
 import { ImageSizeUtil } from '../../basecomponent/Index';
 import { MessageBody } from '@tencentcloud/atomicxcore';
 import { MessageListStore } from '@tencentcloud/atomicxcore';
+import { MessageRenderContext } from '../context/MessageRenderContext';
 
 let DEFAULT_IMAGE_MAX_SIZE = 180;
 
@@ -27,8 +28,8 @@ export struct FaceMessageViewContent {
 }
 
 @Builder
-export function FaceMessageView(messageData: MessageInfo, MessageListStore?: MessageListStore) {
-  if (messageData && messageData.messageBody) {
-    FaceMessageViewContent({ messageBody: messageData.messageBody })
+export function FaceMessageView(context: MessageRenderContext) {
+  if (context.message && context.message.messageBody) {
+    FaceMessageViewContent({ messageBody: context.message.messageBody })
   }
 }

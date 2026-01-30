@@ -37,9 +37,6 @@ export struct GroupListView {
     Column() {
       // Navigation bar
       this.buildNavigationBar()
-      if (!AppBuilderConfig.getInstance().hideSearch) {
-        this.buildSearchBar()
-      }
       Stack() {
         if (this.isLoading) {
           this.buildLoadingState()

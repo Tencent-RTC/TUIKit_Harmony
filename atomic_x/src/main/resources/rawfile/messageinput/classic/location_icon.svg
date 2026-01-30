@@ -1,0 +1,5 @@
+<svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Classic style location icon for action panel -->
+  <path d="M28 6C19.1634 6 12 13.1634 12 22C12 33.5 28 50 28 50C28 50 44 33.5 44 22C44 13.1634 36.8366 6 28 6Z" fill="#5B5B5B"/>
+  <circle cx="28" cy="22" r="6" fill="white"/>
+</svg>

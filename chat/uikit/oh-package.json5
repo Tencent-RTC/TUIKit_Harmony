@@ -7,6 +7,6 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@tencentcloud/atomicx": "file:../../atomic_x/",
-    "@tencentcloud/atomicxcore": "^3.5.0"
+    "@tencentcloud/atomicxcore": "^3.6.0"
   }
 }

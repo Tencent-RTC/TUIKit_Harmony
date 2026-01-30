@@ -1,6 +1,6 @@
 import { MessageInfo } from '@tencentcloud/atomicxcore';
-import { Avatar, AvatarContentType, AvatarSize, ThemeState } from '@tencentcloud/atomicx';
-import { MessageList } from '@tencentcloud/atomicx';
+import { Avatar, AvatarContentType, AvatarSize, LanguageState, ThemeState } from '@tencentcloud/atomicx';
+import { MessageList, MultiSelectBottomBar, MultiSelectActions } from '@tencentcloud/atomicx';
 import { MessageInput } from '@tencentcloud/atomicx';
 
 @CustomDialog
@@ -48,11 +48,16 @@ export struct ChatDialog {
 @Component
 export struct ChatPage {
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
+  @StorageLink('LanguageState') languageState: LanguageState = LanguageState.getInstance();
   @State conversationID: string = '';
   @State title: string = '';
   @State status: string = '';
   @State avatarUrl: string = '';
   @State locateMessage?: MessageInfo = undefined;
+  // Multi-select mode state
+  @State isMultiSelectMode: boolean = false;
+  @State selectedCount: number = 0;
+  private multiSelectActions?: MultiSelectActions = undefined;
   
   // External callbacks
   onBack?: () => void;
@@ -72,19 +77,48 @@ export struct ChatPage {
         this.LargeTitleBuilder();
         MessageList({
           conversationID: this.conversationID,
+          locateMessage: this.locateMessage,
           onUserClick: (userID: string) => {
             console.log(`[ChatPage] User avatar clicked: ${userID}`);
             if (this.onUserClick) {
               this.onUserClick(userID);
             }
+          },
+          onMultiSelectModeChange: (isMultiSelectMode: boolean, selectedCount: number, actions?: MultiSelectActions) => {
+            console.log(`[ChatPage] Multi-select mode changed: ${isMultiSelectMode}, count: ${selectedCount}`);
+            this.isMultiSelectMode = isMultiSelectMode;
+            this.selectedCount = selectedCount;
+            this.multiSelectActions = actions;
           }
         })
           .width('100%')
           .layoutWeight(1)
 
-        MessageInput({
-          conversationID: this.conversationID,
-        })
+        // Show InputBar or MultiSelectBottomBar based on mode
+        if (this.isMultiSelectMode) {
+          MultiSelectBottomBar({
+            selectedCount: this.selectedCount,
+            onCancel: () => {
+              if (this.multiSelectActions) {
+                this.multiSelectActions.cancel();
+              }
+            },
+            onDelete: () => {
+              if (this.multiSelectActions) {
+                this.multiSelectActions.deleteMessages();
+              }
+            },
+            onForward: () => {
+              if (this.multiSelectActions) {
+                this.multiSelectActions.forward();
+              }
+            }
+          })
+        } else {
+          MessageInput({
+            conversationID: this.conversationID
+          })
+        }
       }
       .width('100%')
       .height('100%')
@@ -101,10 +135,14 @@ export struct ChatPage {
       Row() {
         Row({ space: 8 }) {
           // Back button
-          Image($r('app.media.back_icon'))
-            .width(24)
-            .height(24)
-            .fillColor(this.themeState.colors.textColorSecondary)
+          Image($rawfile("basecomponent/common_back_icon.svg"))
+            .scale({
+              x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
+              y: 1
+            })
+            .width(10)
+            .height(10)
+            .fillColor(this.themeState.colors.buttonColorPrimaryDefault)
             .onClick(() => {
               if (this.onBack) {
                 this.onBack();

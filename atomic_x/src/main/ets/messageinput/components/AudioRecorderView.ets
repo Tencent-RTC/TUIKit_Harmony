@@ -11,10 +11,17 @@ export struct AudioRecorderView {
   onCancel?: () => void;
   onSend?: () => void;
   onTimeLimitReached?: () => void;
+  onDragUpdate?: (shouldCancel: boolean) => void;
+
+  // Touch handling state
+  @State private initialTouchY: number = 0;
+  @State private dragOffset: number = 0;
+  private readonly cancelThreshold: number = -50;
 
   // Animation state for waveform
   @State private animationValues: number[] = Array(30).fill(0);
   private animationTimer?: number;
+  private recordingCheckTimer?: number;
   private readonly maxRecordingDuration: number = 60; // 60 seconds
 
   aboutToAppear() {
@@ -24,6 +31,7 @@ export struct AudioRecorderView {
 
   aboutToDisappear() {
     this.stopWaveformAnimation();
+    this.stopRecordingTimeCheck();
   }
 
   build() {
@@ -83,9 +91,46 @@ export struct AudioRecorderView {
     }
     .width('100%')
     .height(100)
-    .backgroundColor(Color.White)
+    .backgroundColor(this.themeState.colors.bgColorOperate)
     .justifyContent(FlexAlign.Center)
     .alignItems(HorizontalAlign.Center)
+    .onTouch((event: TouchEvent) => {
+      if (event.type === TouchType.Down) {
+        console.log('[AudioRecorderView] Touch down');
+        this.initialTouchY = event.touches[0].y;
+      } else if (event.type === TouchType.Move) {
+        console.log('[AudioRecorderView] Touch move');
+        this.dragOffset = event.touches[0].y - this.initialTouchY;
+        const shouldCancel = this.dragOffset < this.cancelThreshold;
+        if (this.onDragUpdate) {
+          this.onDragUpdate(shouldCancel);
+        }
+      } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
+        console.log('[AudioRecorderView] Touch up/cancel');
+        if (this.shouldCancelRecording) {
+          console.log('[AudioRecorderView] Calling onCancel');
+          if (this.onCancel) {
+            this.onCancel();
+          }
+        } else {
+          console.log('[AudioRecorderView] Calling onSend');
+          if (this.onSend) {
+            this.onSend();
+          }
+        }
+      }
+    })
+    .gesture(
+      PanGesture({ fingers: 1, direction: PanDirection.Vertical, distance: 1 })
+        .onActionUpdate((event: GestureEvent) => {
+          console.log('[AudioRecorderView] Pan gesture update');
+          this.dragOffset = event.offsetY;
+          const shouldCancel = this.dragOffset < this.cancelThreshold;
+          if (this.onDragUpdate) {
+            this.onDragUpdate(shouldCancel);
+          }
+        })
+    )
   }
 
   // Format duration from seconds to MM:SS
@@ -125,14 +170,22 @@ export struct AudioRecorderView {
 
   // Start recording time check
   private startRecordingTimeCheck(): void {
-    const checkTimer = setInterval(() => {
+    this.stopRecordingTimeCheck();
+    this.recordingCheckTimer = setInterval(() => {
       if (this.recordingDuration >= this.maxRecordingDuration) {
         if (this.onTimeLimitReached) {
           this.onTimeLimitReached();
         }
-        clearInterval(checkTimer);
+        this.stopRecordingTimeCheck();
       }
     }, 500);
+  }
+
+  private stopRecordingTimeCheck(): void {
+    if (this.recordingCheckTimer) {
+      clearInterval(this.recordingCheckTimer);
+      this.recordingCheckTimer = undefined;
+    }
   }
 
 }

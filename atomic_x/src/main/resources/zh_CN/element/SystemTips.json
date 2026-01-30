@@ -29,6 +29,10 @@
       "value": "[动画表情]"
     },
     {
+      "name": "message_type_merged",
+      "value": "[聊天记录]"
+    },
+    {
       "name": "message_tips_unsupport_custom",
       "value": "[暂不支持的自定义消息]"
     },
@@ -251,6 +255,26 @@
     {
       "name": "conversation_mark_unread_failed",
       "value": "标记会话为未读失败"
+    },
+    {
+      "name": "forward_group_chat_history",
+      "value": "群聊的聊天记录"
+    },
+    {
+      "name": "forward_and_text",
+      "value": "和"
+    },
+    {
+      "name": "forward_chat_history_c2c",
+      "value": "的聊天记录"
+    },
+    {
+      "name": "forward_compatible_text",
+      "value": "请升级到最新版本查看聊天记录"
+    },
+    {
+      "name": "message_type_message",
+      "value": "[消息]"
     }
   ]
 }

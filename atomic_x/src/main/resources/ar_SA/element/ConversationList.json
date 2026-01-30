@@ -99,6 +99,10 @@
     {
       "name": "conversation_list_message_count_unit",
       "value": " رسائل"
+    },
+    {
+      "name": "conversation_draft_label",
+      "value": "[مسودة]"
     }
   ]
 }

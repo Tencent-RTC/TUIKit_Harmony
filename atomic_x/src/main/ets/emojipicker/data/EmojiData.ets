@@ -99,6 +99,10 @@ export class EmojiDataManager {
     return EmojiDataManager.emojis.find(emoji => emoji.id === id);
   }
 
+  static getEmojiByName(name: string): EmojiItem | undefined {
+    return EmojiDataManager.emojis.find(emoji => emoji.name === name);
+  }
+
   static getCategories(): EmojiCategory[] {
     return EmojiDataManager.categories;
   }

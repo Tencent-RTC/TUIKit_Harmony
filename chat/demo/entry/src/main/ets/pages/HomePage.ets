@@ -1,9 +1,10 @@
 import { SettingsPage } from './SettingsPage'
 import { ContactsPage, ChatDialog } from 'chatuikit'
-import { ImageSizeUtil, ThemeState, BadgeControl, BadgeType, UserInteractionHelper, GroupSettingDialog, FriendApplicationListView, GroupApplicationListView, GroupListView, BlackListView } from '@tencentcloud/atomicx';
+import { ImageSizeUtil,ThemeState, BadgeControl, BadgeType, UserInteractionHelper, GroupSettingDialog } from '@tencentcloud/atomicx';
 import { ConversationsPage } from 'chatuikit'
-import { LoginStore, ContactListStore, ContactListState, ConversationListStore, ConversationListState, ConversationInfo, MessageInfo, ContactInfo } from '@tencentcloud/atomicxcore'
+import { LoginStore, ContactListStore, ContactListState, ConversationListStore, ConversationListState, ConversationInfo, MessageInfo, ContactInfo, LoginEvent } from '@tencentcloud/atomicxcore'
 import { ImmersiveMode, LevelMode } from '@kit.ArkUI'
+import { promptAction, router } from '@kit.ArkUI'
 
 @Observed
 class TabItem {
@@ -44,12 +45,8 @@ struct HomePage {
   @State private conversationListState: ConversationListState = this.conversationListStore.state;
   private chatDialogController?: CustomDialogController;
   private groupSettingDialogController?: CustomDialogController;
-  private newContactsDialogController?: CustomDialogController;
-  private newGroupsDialogController?: CustomDialogController;
-  private myGroupDialogController?: CustomDialogController;
-  private blackListDialogController?: CustomDialogController;
-  @State private dialogAnimationOffset: number = 0;
   private userInteractionHelper: UserInteractionHelper = new UserInteractionHelper();
+  private loginEventUnsubscribe?: () => void;
 
   aboutToAppear() {
     this.tabItems = [
@@ -77,10 +74,84 @@ struct HomePage {
     ];
 
     this.initContactBadge();
+    this.subscribeLoginEvent();
   }
 
   aboutToDisappear() {
+    this.loginEventUnsubscribe?.();
+  }
 
+  /**
+   * Subscribe to LoginStore events for kicked offline and user sig expired
+   */
+  private subscribeLoginEvent() {
+    this.loginEventUnsubscribe = LoginStore.shared().loginEventEmitter.subscribe(this, (event: LoginEvent) => {
+      switch (event) {
+        case LoginEvent.KICKED_OFFLINE:
+          this.handleKickedOffline();
+          break;
+        case LoginEvent.LOGIN_EXPIRED:
+          this.handleUserSigExpired();
+          break;
+      }
+    });
+    console.info('[HomePage] ✅ LoginEvent subscribed');
+  }
+
+  private handleKickedOffline() {
+    console.warn('[HomePage] 🚫 Kicked offline - User logged in from another device');
+    
+    // Close all dialogs
+    if (this.groupSettingDialogController) {
+      this.groupSettingDialogController.close();
+      this.groupSettingDialogController = undefined;
+    }
+    if (this.chatDialogController) {
+      this.chatDialogController.close();
+      this.chatDialogController = undefined;
+    }
+
+    // Show alert dialog
+    AlertDialog.show({
+      title: $r('app.string.kicked_offline_title'),
+      message: $r('app.string.kicked_offline_message'),
+      autoCancel: false,
+      alignment: DialogAlignment.Center,
+      confirm: {
+        value: $r('app.string.relogin_button'),
+        action: () => {
+          router.back();
+        }
+      }
+    });
+  }
+
+  private handleUserSigExpired() {
+    console.warn('[HomePage] ⏰ UserSig expired - Need to re-login');
+    
+    // Close all dialogs
+    if (this.groupSettingDialogController) {
+      this.groupSettingDialogController.close();
+      this.groupSettingDialogController = undefined;
+    }
+    if (this.chatDialogController) {
+      this.chatDialogController.close();
+      this.chatDialogController = undefined;
+    }
+
+    // Show alert dialog
+    AlertDialog.show({
+      title: $r('app.string.login_expired_title'),
+      message: $r('app.string.login_expired_message'),
+      autoCancel: false,
+      alignment: DialogAlignment.Center,
+      confirm: {
+        value: $r('app.string.relogin_button'),
+        action: () => {
+          router.back();
+        }
+      }
+    });
   }
 
   onApplicationUnreadCountChanged() {
@@ -178,6 +249,9 @@ struct HomePage {
           ConversationsPage({
             onConversationClick: (item: ConversationInfo) => {
               this.handleConversationClick(item);
+            },
+            onConversationClickWithMessage: (item: ConversationInfo, locateMessage?: MessageInfo) => {
+              this.showChatDialog(item.ID, item.title || 'Chat', item.avatarURL, locateMessage);
             }
           })
         }.tabBar(this.TabBuilder(HomePage.TAB_MESSAGE))
@@ -190,22 +264,6 @@ struct HomePage {
             },
             onGroupClick: (group: ContactInfo) => {
               this.handleGroupClick(group);
-            },
-            onNewFriendsClick: () => {
-              console.info('[HomePage] New friends clicked');
-              this.showNewContactsDialog();
-            },
-            onGroupApplicationsClick: () => {
-              console.info('[HomePage] Group applications clicked');
-              this.showNewGroupsDialog();
-            },
-            onGroupListClick: () => {
-              console.info('[HomePage] Group list clicked');
-              this.showMyGroupDialog();
-            },
-            onBlackListClick: () => {
-              console.info('[HomePage] Blacklist clicked');
-              this.showBlackListDialog();
             }
           })
         }.tabBar(this.TabBuilder(HomePage.TAB_CONTACT))
@@ -463,215 +521,5 @@ struct HomePage {
     } catch (error) {
       console.error('[HomePage] showGroupSettingDialog error:', error);
     }
-  }
-
-  @Builder
-  NewContactsDialogBuilder() {
-    Column() {
-      FriendApplicationListView({
-        contactListStore: this.contactListStore,
-        onBack: () => {
-          this.newContactsDialogController?.close();
-          this.newContactsDialogController = undefined;
-        }
-      })
-    }
-    .width('100%')
-    .height('100%')
-    .translate({ x: `${this.dialogAnimationOffset}%` })
-    .onAppear(() => {
-      animateTo({
-        duration: 300,
-        curve: Curve.EaseInOut
-      }, () => {
-        this.dialogAnimationOffset = 0;
-      });
-    })
-  }
-
-  @Builder
-  NewGroupsDialogBuilder() {
-    Column() {
-      GroupApplicationListView({
-        contactListStore: this.contactListStore,
-        onBack: () => {
-          this.newGroupsDialogController?.close();
-          this.newGroupsDialogController = undefined;
-        }
-      })
-    }
-    .width('100%')
-    .height('100%')
-    .translate({ x: `${this.dialogAnimationOffset}%` })
-    .onAppear(() => {
-      animateTo({
-        duration: 300,
-        curve: Curve.EaseInOut
-      }, () => {
-        this.dialogAnimationOffset = 0;
-      });
-    })
-  }
-
-  @Builder
-  MyGroupDialogBuilder() {
-    Column() {
-      GroupListView({
-        contactListStore: this.contactListStore,
-        onBack: () => {
-          this.myGroupDialogController?.close();
-          this.myGroupDialogController = undefined;
-        },
-        onShowProfile: (group: ContactInfo) => {
-          console.log('[HomePage] Selected group:', group.title);
-          this.myGroupDialogController?.close();
-          this.myGroupDialogController = undefined;
-          // Navigate to group chat
-          this.handleGroupClick(group);
-        }
-      })
-    }
-    .width('100%')
-    .height('100%')
-    .translate({ x: `${this.dialogAnimationOffset}%` })
-    .onAppear(() => {
-      animateTo({
-        duration: 300,
-        curve: Curve.EaseInOut
-      }, () => {
-        this.dialogAnimationOffset = 0;
-      });
-    })
-  }
-
-  @Builder
-  BlackListDialogBuilder() {
-    Column() {
-      BlackListView({
-        contactListStore: this.contactListStore,
-        onBack: () => {
-          this.blackListDialogController?.close();
-          this.blackListDialogController = undefined;
-        },
-        onShowProfile: (item: ContactInfo) => {
-          this.blackListDialogController?.close();
-          this.blackListDialogController = undefined;
-          // Navigate to contact chat
-          this.handleContactClick(item);
-        }
-      })
-    }
-    .width('100%')
-    .height('100%')
-    .translate({ x: `${this.dialogAnimationOffset}%` })
-    .onAppear(() => {
-      animateTo({
-        duration: 300,
-        curve: Curve.EaseInOut
-      }, () => {
-        this.dialogAnimationOffset = 0;
-      });
-    })
-  }
-
-  // Generic method to show contact management dialogs
-  private showContactManagementDialog(
-    type: 'newContacts' | 'newGroups' | 'myGroups' | 'blackList'
-  ): void {
-    try {
-      // Get the corresponding controller and builder
-      let controller: CustomDialogController | undefined;
-      let builder: () => void;
-      let controllerSetter: (ctrl: CustomDialogController | undefined) => void;
-      let errorName: string;
-
-      switch (type) {
-        case 'newContacts':
-          controller = this.newContactsDialogController;
-          builder = this.NewContactsDialogBuilder.bind(this);
-          controllerSetter = (ctrl) => { this.newContactsDialogController = ctrl; };
-          errorName = 'showNewContactsDialog';
-          break;
-        case 'newGroups':
-          controller = this.newGroupsDialogController;
-          builder = this.NewGroupsDialogBuilder.bind(this);
-          controllerSetter = (ctrl) => { this.newGroupsDialogController = ctrl; };
-          errorName = 'showNewGroupsDialog';
-          break;
-        case 'myGroups':
-          controller = this.myGroupDialogController;
-          builder = this.MyGroupDialogBuilder.bind(this);
-          controllerSetter = (ctrl) => { this.myGroupDialogController = ctrl; };
-          errorName = 'showMyGroupDialog';
-          break;
-        case 'blackList':
-          controller = this.blackListDialogController;
-          builder = this.BlackListDialogBuilder.bind(this);
-          controllerSetter = (ctrl) => { this.blackListDialogController = ctrl; };
-          errorName = 'showBlackListDialog';
-          break;
-      }
-
-      // Close existing dialog if open
-      if (controller) {
-        controller.close();
-        controllerSetter(undefined);
-      }
-
-      // Set animation offset
-      this.dialogAnimationOffset = 100;
-
-      // Create new dialog controller
-      const newController = new CustomDialogController({
-        builder: builder,
-        autoCancel: false,
-        alignment: DialogAlignment.Center,
-        customStyle: true,
-        keyboardAvoidMode: KeyboardAvoidMode.NONE,
-        maskColor: 'rgba(0, 0, 0, 0)',
-        cancel: () => {
-          controllerSetter(undefined);
-        },
-        levelMode: LevelMode.EMBEDDED,
-        immersiveMode: ImmersiveMode.EXTEND,
-        openAnimation: {
-          duration: 300,
-          curve: Curve.EaseInOut,
-          playMode: PlayMode.Normal,
-          onFinish: () => {
-            // Animation finished
-          }
-        },
-        closeAnimation: {
-          duration: 250,
-          curve: Curve.EaseInOut,
-          playMode: PlayMode.Normal,
-          onFinish: () => {
-            // Animation finished
-          }
-        }
-      });
-
-      controllerSetter(newController);
-      newController.open();
-    } catch (error) {
-      console.error(`[HomePage] showContactManagementDialog(${type}) error:`, error);
-    }
-  }
-
-  private showNewContactsDialog(): void {
-    this.showContactManagementDialog('newContacts');
-  }
-
-  private showNewGroupsDialog(): void {
-    this.showContactManagementDialog('newGroups');
-  }
-
-  private showMyGroupDialog(): void {
-    this.showContactManagementDialog('myGroups');
-  }
-
-  private showBlackListDialog(): void {
-    this.showContactManagementDialog('blackList');
   }
 }

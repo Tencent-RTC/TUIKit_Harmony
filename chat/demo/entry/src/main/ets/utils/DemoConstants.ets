@@ -6,4 +6,5 @@ export default class DemoConstants{
   static readonly LOGIN_USER_SIG = "LoginUserSig";
   static readonly LOGIN_TOKEN = "LoginToken";
   static readonly AUTO_LOGIN = "AutoLogin";
+  static readonly ENABLE_READ_RECEIPT = "EnableReadReceipt";
 }

@@ -9,6 +9,10 @@
       "value": "إرسال"
     },
     {
+      "name": "send_button_text",
+      "value": "إرسال"
+    },
+    {
       "name": "permission_read_media",
       "value": "قراءة ملفات الوسائط"
     },
@@ -99,6 +103,22 @@
     {
       "name": "voice_release_to_send_slide_to_cancel",
       "value": "اتركه للإرسال، اسحب لأعلى للإلغاء"
+    },
+    {
+      "name": "voice_press_to_speak",
+      "value": "اضغط مع الاستمرار للتحدث"
+    },
+    {
+      "name": "voice_release_to_send",
+      "value": "اتركه للإرسال"
+    },
+    {
+      "name": "mention_all",
+      "value": "الجميع"
+    },
+    {
+      "name": "mention_select_member",
+      "value": "اختر الأعضاء للإشارة إليهم"
     }
   ]
 }

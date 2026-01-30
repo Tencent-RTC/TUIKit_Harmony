@@ -1,0 +1,6 @@
+<svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Classic style camera icon for action panel -->
+  <path d="M20 16H36L40 22H46C48.2091 22 50 23.7909 50 26V42C50 44.2091 48.2091 46 46 46H10C7.79086 46 6 44.2091 6 42V26C6 23.7909 7.79086 22 10 22H16L20 16Z" fill="#5B5B5B"/>
+  <circle cx="28" cy="34" r="8" fill="white"/>
+  <circle cx="28" cy="34" r="5" fill="#5B5B5B"/>
+</svg>

@@ -325,7 +325,7 @@ export struct FriendApplicationListView {
                 Avatar({
                   content: {
                     type: AvatarContentType.Image,
-                    url: application.avatarUrl,
+                    url: application.avatarURL,
                     name: application.title || application.applicationID || '',
                   },
                   shape: AvatarShape.Round,
@@ -429,6 +429,7 @@ export struct FriendApplicationListView {
     .width('100%')
     .height('100%')
     .backgroundColor(this.themeState.colors.bgColorOperate)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 
   // no helper needed; directly observe first-level unread count on state

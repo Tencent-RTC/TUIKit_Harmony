@@ -30,7 +30,8 @@ export struct UserPicker {
   onReachEnd?: () => void = undefined;
   
   // UI customization (Harmony-specific)
-  showNavigationBar: boolean = false;
+  showNavigationBar?: boolean = false;
+  showSelectedTags?: boolean = false;
   title: string | Resource = '';
   confirmButtonText: string | Resource = 'Next';
   onCancel?: () => void = undefined;
@@ -80,7 +81,7 @@ export struct UserPicker {
           .color(this.themeState.colors.strokeColorSecondary)
       }
 
-      if (this.selectedKeysOrder.length > 0 && (this.maxCount === undefined || this.maxCount > 1)) {
+      if (this.showSelectedTags && this.selectedKeysOrder.length > 0 && (this.maxCount === undefined || this.maxCount > 1)) {
         this.SelectedTagsBuilder()
         Divider()
           .height(0.5)
@@ -279,6 +280,10 @@ export struct UserPicker {
     
     console.log('[UserPicker] After toggle - selectedKeys:', Array.from(this.selectedKeys), 'selectedKeysOrder:', this.selectedKeysOrder);
     this.updateStateSelectedItems();
+
+    if (!this.showNavigationBar && this.onSelectedChanged) {
+      this.onSelectedChanged(this.getSelectedItems());
+    }
   }
   
   private getSelectedItems(): UserPickerData<ESObject>[] {

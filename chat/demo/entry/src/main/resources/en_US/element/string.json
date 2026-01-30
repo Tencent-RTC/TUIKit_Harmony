@@ -303,6 +303,27 @@
     {
       "name": "theme_random_color",
       "value": "Random Color"
+    },
+    {
+      "name": "setting_message_read_receipt",
+      "value": "Message Read Status"
+    },
+    {
+      "name": "setting_message_read_receipt_desc",
+      "value": "After turning it off, messages you send and receive will not have read status."
+    },
+    {
+      "name": "MeMessageReadStatusOpenDesc",
+      "value": "After turning it off, your messages will not show read status. You won't know if others have read them, and they won't know if you've read theirs."
+    },
+    {
+      "name": "MeMessageReadStatusCloseDesc",
+      "value": "After turning it on, messages in group chats will show read status, so you can see if others have read them. If your friends also enable message read status, one-on-one chats will also show read status."
+    },
+    {
+      "name": "setting_classic_message_action",
+      "value": "Classic UI Style"
     }
   ]
-} 
+}
+ 

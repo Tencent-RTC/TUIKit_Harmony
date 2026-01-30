@@ -18,7 +18,7 @@
     },
     {
       "name": "chatsetting_people_count",
-      "value": "people"
+      "value": "%s people"
     },
     {
       "name": "chatsetting_user_picker_selected_tag",

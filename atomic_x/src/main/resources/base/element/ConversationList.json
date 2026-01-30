@@ -95,6 +95,18 @@
     {
       "name": "conversation_list_message_count_unit",
       "value": " messages"
+    },
+    {
+      "name": "conversation_draft_label",
+      "value": "[Draft]"
+    },
+    {
+      "name": "conversation_at_me_tag",
+      "value": "[Someone @me]"
+    },
+    {
+      "name": "conversation_at_all_tag",
+      "value": "[@All]"
     }
   ]
 }

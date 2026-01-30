@@ -11,7 +11,9 @@ import {
   BadgeType,
   AvatarContentType,
   AppBuilderConfig,
-  ConversationAction
+  ConversationAction,
+  ContextProvider,
+  LanguageState
 } from '../../basecomponent/Index';
 import {
   ConversationListStore,
@@ -20,10 +22,13 @@ import {
   ConversationType,
   ErrorInfo,
   ConversationDataSource,
-  ConversationReceiveOption,
+  ReceiveMessageOpt,
   LoginStore,
   ConversationListState,
   GroupType,
+  ConversationMarkType,
+  GroupAtType,
+  GroupAtInfo,
 } from '@tencentcloud/atomicxcore';
 import { ConversationMoreDialog, ConversationDialogAction as DialogAction } from './ConversationMoreDialog';
 import { router } from '@kit.ArkUI';
@@ -48,6 +53,7 @@ export struct ConversationList {
   private static readonly DIVIDER_HEIGHT: number = 0.1;
   private static readonly ITEM_HEIGHT: number = 76;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
+  @StorageLink('LanguageState') languageState: LanguageState = LanguageState.getInstance();
   @State isLoading: boolean = false;
   customActions?: ConversationCustomAction[] = [];
   config?: ConversationActionConfigProtocol = undefined;
@@ -100,14 +106,14 @@ export struct ConversationList {
         })
       }
       // Show "Mark as Read/Unread" button if MARK_UNREAD is in config
-      if (this.hasMarkUnreadAction() && ((item.unreadCount ?? 0) > 0)) {
+      if (this.hasMarkUnreadAction() ) {
         Button() {
           Column() {
             Image($rawfile('conversationlist/ic_public_check.svg'))
               .width(24)
               .height(24)
               .fillColor(Color.White)
-            Text((item.unreadCount ?? 0) > 0 ? $r('app.string.mark_as_read') : $r('app.string.mark_as_unread'))
+            Text(this.hasUnreadStatus(item) ? $r('app.string.mark_as_read') : $r('app.string.mark_as_unread'))
               .fontSize(12)
               .fontColor(Color.White)
               .margin({ top: 4 })
@@ -121,18 +127,25 @@ export struct ConversationList {
         .height(ConversationList.ITEM_HEIGHT)
         .onClick(() => {
           // Toggle read/unread status
-          if ((item.unreadCount ?? 0) > 0) {
-            // Mark as read
-            this.conversationListStore.markConversationUnread(item.ID, false)
+          if (this.hasUnreadStatus(item)) {
+            // Mark as read: first clear unread count, then remove unread mark
+            this.conversationListStore.clearConversationUnreadCount(item.ID)
               .then(() => {
-                console.log('Marked as read successfully');
+                console.log('Cleared unread count successfully');
+                this.conversationListStore.markConversation([item.ID], ConversationMarkType.UNREAD, false)
+                  .then(() => {
+                    console.log('Marked as read successfully');
+                  })
+                  .catch((error: ErrorInfo) => {
+                    console.error('Failed to mark as read:', error.message);
+                  });
               })
               .catch((error: ErrorInfo) => {
-                console.error('Failed to mark as read:', error.message);
+                console.error('Failed to clear unread count:', error.message);
               });
           } else {
-            // Mark as unread
-            this.conversationListStore.markConversationUnread(item.ID, true)
+            // Mark as unread: only add unread mark, don't modify unreadCount
+            this.conversationListStore.markConversation([item.ID], ConversationMarkType.UNREAD, true)
               .then(() => {
                 console.log('Marked as unread successfully');
               })
@@ -228,7 +241,7 @@ export struct ConversationList {
                   },
                   avatarSize: AvatarSize.M,
                   badge: {
-                    type: (item.receiveOption != ConversationReceiveOption.RECEIVE && ((item.unreadCount ?? 0) > 0) ?
+                    type: (item.receiveOption != ReceiveMessageOpt.RECEIVE && this.hasUnreadStatus(item) ?
                     AvatarBadge.Dot :
                     AvatarBadge.None),
                     position: AvatarBadgePosition.Up
@@ -248,18 +261,19 @@ export struct ConversationList {
                     .maxLines(1)
                     .textOverflow({ overflow: TextOverflow.Ellipsis })
                     .layoutWeight(1)
+                    .direction(this.languageState.getLayoutDirection() === LayoutDirection.RTL ? Direction.Rtl : Direction.Ltr)
 
 
-                  if (item.receiveOption === ConversationReceiveOption.RECEIVE && (item.unreadCount ?? 0) > 0) {
+                  if (item.receiveOption === ReceiveMessageOpt.RECEIVE && this.hasUnreadStatus(item)) {
                     BadgeControl({
-                      text: (item.unreadCount ?? 0) > 99 ? '99+' : (item.unreadCount ?? 0).toString(),
+                      text: this.getUnreadBadgeText(item),
                       type: BadgeType.Text
                     })
                       .margin({ left: 4 })
                   }
 
 
-                  if (item.receiveOption != ConversationReceiveOption.RECEIVE && item.groupType != GroupType.MEETING) {
+                  if (item.receiveOption != ReceiveMessageOpt.RECEIVE && item.groupType != GroupType.MEETING) {
                     Image($rawfile('conversationlist/muted_icon.svg'))
                       .width(16)
                       .height(16)
@@ -290,7 +304,7 @@ export struct ConversationList {
 
                   Text(this.formatTimeFromTs(item.timestamp || 0))
                     .fontSize(12)
-                    .fontColor('#7A7A7A')
+                    .fontColor(this.themeState.colors.textColorSecondary)
                     .margin({ left: 8 })
                 }
                 .width('100%')
@@ -362,16 +376,36 @@ export struct ConversationList {
     .width('100%')
     .height('100%')
     .backgroundColor(this.themeState.colors.bgColorOperate)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 
-  private formatTimeFromTs(ts: number): string {
-    if (!ts || ts <= 0) {
-      return ''
+  private formatTimeFromTs(timestamp: number): string {
+    const MIN_VALID_TIMESTAMP = 946684800; // 2000-01-01 00:00:00 UTC
+    const now = new Date();
+    const MAX_VALID_TIMESTAMP = Math.floor(now.getTime() / 1000) + 365 * 24 * 60 * 60;
+
+    if (!timestamp || timestamp < MIN_VALID_TIMESTAMP || timestamp > MAX_VALID_TIMESTAMP) {
+      return '';
     }
-    const date = new Date(ts * 1000)
-    const h = date.getHours().toString().padStart(2, '0')
-    const m = date.getMinutes().toString().padStart(2, '0')
-    return `${h}:${m}`
+
+    const date = new Date(timestamp * 1000);
+
+    const isSameDay = date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate();
+
+    if (isSameDay) {
+      return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    }
+
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+
+    if (date.getFullYear() === now.getFullYear()) {
+      return `${month}/${day}`;
+    }
+
+    return `${date.getFullYear()}/${month}/${day}`;
   }
 
   // Helper methods to determine button visibility using style
@@ -402,6 +436,11 @@ export struct ConversationList {
       .then(() => {
         const count = this.conversationListState.conversationDataSource.totalCount();
 
+        // Fetch total unread count
+        this.conversationListStore.getConversationTotalUnreadCount()
+          .catch((error: ErrorInfo) => {
+            console.error('Failed to get total unread count:', error.message);
+          });
 
         if (count === 0) {
 
@@ -526,10 +565,17 @@ export struct ConversationList {
   }
 
   private getDisplaySubTitle(item: ConversationInfo): string | Resource {
+    // Check if conversation has draft - draft takes priority
+    if (item.draft && item.draft.length > 0) {
+      return item.draft;
+    }
+    
     const abstract = MessageUtils.getMessageAbstract(item.lastMessage);
     
-    if (item.receiveOption !== ConversationReceiveOption.RECEIVE && (item.unreadCount ?? 0) > 0) {
-      // For muted conversations with unread messages, only add count prefix for string type
+    // For muted conversations, only show [X条] when unreadCount >= 2
+    // This avoids confusion when user marks as unread (unreadCount = 0)
+    if (item.receiveOption !== ReceiveMessageOpt.RECEIVE && (item.unreadCount ?? 0) >= 2) {
+      // For muted conversations with 2+ unread messages, add count prefix for string type
       if (typeof abstract === 'string') {
         const messageCount = `[${item.unreadCount}${getContext().resourceManager.getStringSync($r('app.string.conversation_list_message_count_unit').id)}] `;
         return messageCount + abstract;
@@ -543,49 +589,196 @@ export struct ConversationList {
     }
   }
 
+  /**
+   * Check if conversation has draft
+   */
+  private hasDraft(item: ConversationInfo): boolean {
+    return item.draft !== undefined && item.draft !== null && item.draft.length > 0;
+  }
+
+  /**
+   * Check if conversation has unread status (real unread count > 0 OR marked as unread)
+   */
+  private hasUnreadStatus(item: ConversationInfo): boolean {
+    return (item.unreadCount ?? 0) > 0 || item.markList.includes(ConversationMarkType.UNREAD);
+  }
+
+  /**
+   * Get unread badge text for display
+   * - If unreadCount > 0: show real count
+   * - If unreadCount = 0 but marked as unread: show "1" (fake number)
+   */
+  private getUnreadBadgeText(item: ConversationInfo): string {
+    const unreadCount = item.unreadCount ?? 0;
+    if (unreadCount > 0) {
+      return unreadCount > 99 ? '99+' : unreadCount.toString();
+    }
+    // Marked as unread but no real unread count, show fake "1"
+    return '1';
+  }
+
+  /**
+   * Build @ tag text based on groupAtInfoList
+   * - Only show for group conversations with unreadCount > 0
+   * - If both @all and @me exist, show both: "[@所有人] [有人@我]"
+   */
+  private buildAtTagText(item: ConversationInfo): string {
+    // Only show @ tag for group chats with unread messages
+    if ((item.unreadCount ?? 0) <= 0 || !item.ID || !item.ID.startsWith('group_')) {
+      return '';
+    }
+
+    const atInfoList = item.groupAtInfoList;
+    if (!atInfoList || atInfoList.length === 0) {
+      return '';
+    }
+
+    let hasAtAll = false;
+    let hasAtMe = false;
+
+    for (const atInfo of atInfoList) {
+      switch (atInfo.atType) {
+        case GroupAtType.AT_ALL:
+          hasAtAll = true;
+          break;
+        case GroupAtType.AT_ME:
+          hasAtMe = true;
+          break;
+        case GroupAtType.AT_ALL_AT_ME:
+          hasAtAll = true;
+          hasAtMe = true;
+          break;
+      }
+    }
+
+    let result = '';
+    if (hasAtAll) {
+      result += getContext().resourceManager.getStringSync($r('app.string.conversation_at_all_tag').id);
+    }
+    if (hasAtAll && hasAtMe) {
+      result += ' ';
+    }
+    if (hasAtMe) {
+      result += getContext().resourceManager.getStringSync($r('app.string.conversation_at_me_tag').id);
+    }
+
+    return result;
+  }
+
   @Builder
   buildMixedContent(content: string | Resource, item: ConversationInfo) {
     if (typeof content === 'string') {
-      // Handle string content with emoji parsing
-      Text() {
-        ForEach(EmojiDataManager.parseEmojiText(content), (segment: EmojiTextSegment, index: number) => {
-          if (segment.type === 'text') {
-            Span(segment.content)
-          } else if (segment.type === 'emoji' && segment.imageFile) {
-            ImageSpan(EmojiDataManager.getEmojiImageResource(segment.imageFile))
-              .width(16)
-              .height(16)
-              .objectFit(ImageFit.Contain)
-              .verticalAlign(ImageSpanAlignment.CENTER)
+      // Check if this is draft content
+      if (this.hasDraft(item)) {
+        // Build draft preview with red [Draft] label
+        Text() {
+          // Add unread count prefix for muted conversations (only when unreadCount >= 2)
+          if (item.receiveOption !== ReceiveMessageOpt.RECEIVE && (item.unreadCount ?? 0) >= 2) {
+            Span(`[${item.unreadCount}${getContext().resourceManager.getStringSync($r('app.string.conversation_list_message_count_unit').id)}]`)
+              .fontColor(this.themeState.colors.textColorSecondary)
           }
-        }, (segment: EmojiTextSegment, index: number) => `${segment.type}_${index}_${segment.content}`)
+          // Add @ tag(s) if present
+          if (this.buildAtTagText(item).length > 0) {
+            Span(this.buildAtTagText(item))
+              .fontColor(this.themeState.colors.textColorError)
+            Span(' ')
+          }
+          // Red [Draft] label
+          Span(getContext().resourceManager.getStringSync($r('app.string.conversation_draft_label').id))
+            .fontColor(this.themeState.colors.textColorError)
+          // Space after draft label
+          Span(' ')
+          // Draft content with emoji parsing
+          ForEach(EmojiDataManager.parseEmojiText(content), (segment: EmojiTextSegment, index: number) => {
+            if (segment.type === 'text') {
+              Span(segment.content)
+                .fontColor(this.themeState.colors.textColorSecondary)
+            } else if (segment.type === 'emoji' && segment.imageFile) {
+              ImageSpan(EmojiDataManager.getEmojiImageResource(segment.imageFile))
+                .width(16)
+                .height(16)
+                .objectFit(ImageFit.Contain)
+                .verticalAlign(ImageSpanAlignment.CENTER)
+            }
+          }, (segment: EmojiTextSegment, index: number) => `draft_${segment.type}_${index}_${segment.content}`)
+        }
+        .fontSize(12)
+        .maxLines(1)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
+        .layoutWeight(1)
+        .direction(this.languageState.getLayoutDirection() === LayoutDirection.RTL ? Direction.Rtl : Direction.Ltr)
+      } else {
+        // Handle regular string content with emoji parsing
+        Text() {
+          // Add @ tag(s) if present (before message content)
+          if (this.buildAtTagText(item).length > 0) {
+            Span(this.buildAtTagText(item))
+              .fontColor(this.themeState.colors.textColorError)
+            Span(' ')
+          }
+          ForEach(EmojiDataManager.parseEmojiText(content), (segment: EmojiTextSegment, index: number) => {
+            if (segment.type === 'text') {
+              Span(segment.content)
+            } else if (segment.type === 'emoji' && segment.imageFile) {
+              ImageSpan(EmojiDataManager.getEmojiImageResource(segment.imageFile))
+                .width(16)
+                .height(16)
+                .objectFit(ImageFit.Contain)
+                .verticalAlign(ImageSpanAlignment.CENTER)
+            }
+          }, (segment: EmojiTextSegment, index: number) => `${segment.type}_${index}_${segment.content}`)
+        }
+        .fontSize(12)
+        .fontColor(this.themeState.colors.textColorSecondary)
+        .maxLines(1)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
+        .layoutWeight(1)
+        .direction(this.languageState.getLayoutDirection() === LayoutDirection.RTL ? Direction.Rtl : Direction.Ltr)
       }
-      .fontSize(12)
-      .fontColor('#7A7A7A')
-      .maxLines(1)
-      .textOverflow({ overflow: TextOverflow.Ellipsis })
-      .layoutWeight(1)
     } else {
-      // Handle Resource content with optional count prefix for muted conversations
-      if (item.receiveOption !== ConversationReceiveOption.RECEIVE && (item.unreadCount ?? 0) > 0) {
+      // Handle Resource content with optional count prefix for muted conversations (only when unreadCount >= 2)
+      if (item.receiveOption !== ReceiveMessageOpt.RECEIVE && (item.unreadCount ?? 0) >= 2) {
         // Show count prefix for muted conversations with Resource content
         Text() {
+          // Add @ tag(s) if present
+          if (this.buildAtTagText(item).length > 0) {
+            Span(this.buildAtTagText(item))
+              .fontColor(this.themeState.colors.textColorError)
+            Span(' ')
+          }
           Span(`[${item.unreadCount}${getContext().resourceManager.getStringSync($r('app.string.conversation_list_message_count_unit').id)}] `)
           Span(content)
         }
         .fontSize(12)
-        .fontColor('#7A7A7A')
+        .fontColor(this.themeState.colors.textColorSecondary)
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .layoutWeight(1)
+        .direction(this.languageState.getLayoutDirection() === LayoutDirection.RTL ? Direction.Rtl : Direction.Ltr)
       } else {
         // Handle Resource content directly without count
-        Text(content)
+        if (this.buildAtTagText(item).length > 0) {
+          Text() {
+            Span(this.buildAtTagText(item))
+              .fontColor(this.themeState.colors.textColorError)
+            Span(' ')
+            Span(content)
+          }
           .fontSize(12)
-          .fontColor('#7A7A7A')
+          .fontColor(this.themeState.colors.textColorSecondary)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
           .layoutWeight(1)
+          .direction(this.languageState.getLayoutDirection() === LayoutDirection.RTL ? Direction.Rtl : Direction.Ltr)
+        } else {
+          Text(content)
+            .fontSize(12)
+            .fontColor(this.themeState.colors.textColorSecondary)
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .layoutWeight(1)
+            .direction(this.languageState.getLayoutDirection() === LayoutDirection.RTL ? Direction.Rtl : Direction.Ltr)
+        }
       }
     }
   }

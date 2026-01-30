@@ -80,19 +80,19 @@ export struct EmojiPicker {
       })
 
       
-      Button() {
-        Text(EmojiDataManager.getEmojiTypeDisplayName('large'))
-          .fontSize(12)
-          .fontColor(this.selectedEmojiType === 'large' ?
-          this.themeState.colors.textColorPrimary :
-          this.themeState.colors.textColorSecondary)
-      }
-      .backgroundColor(this.selectedEmojiType === 'large' ?
-      this.themeState.colors.bgColorInput : Color.Transparent)
-      .borderRadius(4)
-      .onClick(() => {
-        this.selectedEmojiType = 'large';
-      })
+      // Button() {
+      //   Text(EmojiDataManager.getEmojiTypeDisplayName('large'))
+      //     .fontSize(12)
+      //     .fontColor(this.selectedEmojiType === 'large' ?
+      //     this.themeState.colors.textColorPrimary :
+      //     this.themeState.colors.textColorSecondary)
+      // }
+      // .backgroundColor(this.selectedEmojiType === 'large' ?
+      // this.themeState.colors.bgColorInput : Color.Transparent)
+      // .borderRadius(4)
+      // .onClick(() => {
+      //   this.selectedEmojiType = 'large';
+      // })
 
     }
     .width('100%')

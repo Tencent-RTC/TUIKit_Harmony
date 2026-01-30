@@ -2,12 +2,18 @@ import { MessageInfo, MessageBody, MessageListStore, MessageMediaFileType } from
 import { ImageSizeUtil, ThemeState } from '../../basecomponent/Index';
 import { ImageSourceType, ImageElement, ImageViewerDialog } from '../../imageviewer/Index';
 import common from '@ohos.app.ability.common';
+import { AppBuilderConfig } from '../../basecomponent/utils/AppBuilderHelper';
+import { MessageListStyleProtocol } from '../config/MessageListConfig';
+import { MessageUtils } from '../utils/MessageUtils';
+import { MessageRenderContext } from '../context/MessageRenderContext';
 
 @Component
 export struct ImageMessageViewContent {
   @ObjectLink messageBody: MessageBody;
   @ObjectLink message: MessageInfo;
   @ObjectLink messageListStore: MessageListStore;
+  @Prop config?: MessageListStyleProtocol = undefined;
+  @Prop isInMergedDetailView: boolean = false;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   private context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
   private imageViewerDialogController?: CustomDialogController;
@@ -19,7 +25,7 @@ export struct ImageMessageViewContent {
   }
 
   build() {
-    Column() {
+    Stack({ alignContent: Alignment.BottomEnd }) {
       if (this.messageBody?.originalImagePath) {
         Image(this.messageBody.originalImagePath)
           .interpolation(ImageInterpolation.Low)
@@ -43,7 +49,17 @@ export struct ImageMessageViewContent {
           .backgroundColor('#F2F2F2')
           .borderRadius(5)
       }
+
+      if (MessageUtils.shouldShowReadReceipt(this.message,
+        this.config?.enableReadReceipt ?? AppBuilderConfig.getInstance().enableReadReceipt,
+        this.isInMergedDetailView)) {
+        Image(MessageUtils.getReadReceiptIconResource(this.message))
+          .width(14)
+          .height(14)
+          .margin({ right: 8, bottom: 6 })
+      }
     }
+    .size({ width: `${this.getImageSize().width}vp`, height: `${this.getImageSize().height}vp` })
   }
 
   public requestImageDownload() {
@@ -97,12 +113,14 @@ export struct ImageMessageViewContent {
 }
 
 @Builder
-export function ImageMessageView(messageData: MessageInfo, MessageListStore: MessageListStore) {
-  if (messageData && messageData.messageBody) {
+export function ImageMessageView(context: MessageRenderContext) {
+  if (context.message && context.message.messageBody) {
     ImageMessageViewContent({
-      message: messageData,
-      messageBody: messageData.messageBody,
-      messageListStore: MessageListStore
+      message: context.message,
+      messageBody: context.message.messageBody,
+      messageListStore: context.messageListStore,
+      config: context.config,
+      isInMergedDetailView: context.isInMergedDetailView ?? false
     })
   }
 }

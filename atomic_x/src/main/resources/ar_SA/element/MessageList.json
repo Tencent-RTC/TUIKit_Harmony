@@ -29,6 +29,14 @@
       "value": "ترجمة"
     },
     {
+      "name": "messagelist_translate_failed",
+      "value": "فشلت الترجمة"
+    },
+    {
+      "name": "action_hide",
+      "value": "إخفاء"
+    },
+    {
       "name": "action_recall",
       "value": "استدعاء"
     },
@@ -121,6 +129,10 @@
       "value": "تم النسخ"
     },
     {
+      "name": "messagelist_translation_tips",
+      "value": "مدعوم من Tencent Cloud IM"
+    },
+    {
       "name": "messagelist_recall_failed_no_callback",
       "value": "فشل الاستدعاء: لا يوجد استدعاء"
     },
@@ -147,6 +159,98 @@
     {
       "name": "messagelist_resend_failed",
       "value": "فشل في إعادة إرسال الرسالة"
+    },
+    {
+      "name": "action_multiselect",
+      "value": "تحديد متعدد"
+    },
+    {
+      "name": "multiselect_selected",
+      "value": "محدد"
+    },
+    {
+      "name": "forward_select_conversation",
+      "value": "اختر محادثة"
+    },
+    {
+      "name": "forward_recent_chats",
+      "value": "المحادثات الأخيرة"
+    },
+    {
+      "name": "forward_unnamed_conversation",
+      "value": "محادثة بدون اسم"
+    },
+    {
+      "name": "forward_send",
+      "value": "إرسال"
+    },
+    {
+      "name": "forward_success",
+      "value": "تم إعادة التوجيه بنجاح"
+    },
+    {
+      "name": "forward_failed",
+      "value": "فشل إعادة التوجيه"
+    },
+    {
+      "name": "forward_selected_count",
+      "value": "محادثات محددة"
+    },
+    {
+      "name": "messagelist_messages_deleted",
+      "value": "تم حذف الرسائل"
+    },
+    {
+      "name": "forward_separately",
+      "value": "إعادة توجيه بشكل منفصل"
+    },
+    {
+      "name": "forward_merged",
+      "value": "إعادة توجيه مدمج"
+    },
+    {
+      "name": "forward_limit_tip",
+      "value": "تم تحديد أكثر من 30 رسالة، يرجى استخدام إعادة التوجيه المدمج"
+    },
+    {
+      "name": "forward_failed_message_tip",
+      "value": "لا يمكن إعادة توجيه الرسائل الفاشلة"
+    },
+    {
+      "name": "forward_violation_message_tip",
+      "value": "لا يمكن إعادة توجيه الرسائل المخالفة"
+    },
+    {
+      "name": "merged_message_title",
+      "value": "سجل الدردشة"
+    },
+    {
+      "name": "merged_message_hint",
+      "value": "سجل الدردشة"
+    },
+    {
+      "name": "messagelist_reaction_tap_to_delete",
+      "value": "اضغط للحذف"
+    },
+    {
+      "name": "messagelist_reaction_added",
+      "value": "تمت إضافة التفاعل"
+    },
+    {
+      "name": "messagelist_reaction_removed",
+      "value": "تمت إزالة التفاعل"
+    },
+    {
+      "name": "action_convert_to_text",
+      "value": "تحويل إلى نص"
+    },
+    {
+      "name": "messagelist_convert_to_text_failed",
+      "value": "فشل التحويل"
+    },
+    {
+      "name": "messagelist_violation_warning",
+      "value": "يحتوي على محتوى حساس"
     }
   ]
 }

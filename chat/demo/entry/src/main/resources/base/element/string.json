@@ -295,6 +295,54 @@
     {
       "name": "theme_random_color",
       "value": "Random Color"
+    },
+    {
+      "name": "setting_message_read_receipt",
+      "value": "Message Read Status"
+    },
+    {
+      "name": "setting_message_read_receipt_desc",
+      "value": "After turning it off, messages you send and receive will not have read status."
+    },
+    {
+      "name": "MeMessageReadStatusOpenDesc",
+      "value": "After turning it off, your messages will not show read status. You won't know if others have read them, and they won't know if you've read theirs."
+    },
+    {
+      "name": "MeMessageReadStatusCloseDesc",
+      "value": "After turning it on, messages in group chats will show read status, so you can see if others have read them. If your friends also enable message read status, one-on-one chats will also show read status."
+    },
+    {
+      "name": "translate_target_language_setting",
+      "value": "Translate Target Language"
+    },
+    {
+      "name": "setting_classic_message_action",
+      "value": "Classic UI Style"
+    },
+    {
+      "name": "translate_language_select_title",
+      "value": "Select Translate Target Language"
+    },
+    {
+      "name": "kicked_offline_title",
+      "value": "Offline Notice"
+    },
+    {
+      "name": "kicked_offline_message",
+      "value": "Your account has been logged in on another device"
+    },
+    {
+      "name": "login_expired_title",
+      "value": "Login Expired"
+    },
+    {
+      "name": "login_expired_message",
+      "value": "Your login has expired, please log in again"
+    },
+    {
+      "name": "relogin_button",
+      "value": "Re-login"
     }
   ]
 }

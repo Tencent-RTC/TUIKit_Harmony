@@ -6,7 +6,8 @@ import {
   Switch,
   SwitchType,
   ThemeState,
-  Toast
+  Toast,
+  LanguageState
 } from '../../basecomponent/Index';
 import {
   ContactInfo,
@@ -202,6 +203,7 @@ export struct GroupChatSetting {
   private static readonly ACTION_BUTTON_SIZE: number = 56;
   private static readonly BORDER_RADIUS: number = 12;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
+  @StorageLink('LanguageState') languageState: LanguageState = LanguageState.getInstance();
   @State groupStore?: GroupSettingStore = undefined;
   @State groupState?: GroupSettingState = this.groupStore?.state;
   @State conversationStore?: ConversationListStore = ConversationListStore.create();
@@ -291,6 +293,7 @@ export struct GroupChatSetting {
     .width('100%')
     .height('100%')
     .backgroundColor(this.themeState.colors.bgColorOperate)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 
   @Builder
@@ -367,10 +370,14 @@ export struct GroupChatSetting {
   NavigationBarBuilder() {
     Row() {
       // Back button
-      Image($rawfile('search/back_icon.svg'))
-        .width(24)
-        .height(24)
+      Image($rawfile('basecomponent/common_back_icon.svg'))
+        .width(16)
+        .height(16)
         .fillColor(this.themeState.colors.textColorLink)
+        .scale({
+          x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
+          y: 1
+        })
         .onClick(() => {
           if (this.dialogController) {
             this.dialogController.close();
@@ -411,7 +418,7 @@ export struct GroupChatSetting {
         Avatar({
           content: {
             type: AvatarContentType.Image,
-            url: this.groupState?.avatarUrl,
+            url: this.groupState?.avatarURL,
             name: this.getGroupInitials() || '',
           },
           avatarSize: AvatarSize.XXL,
@@ -969,7 +976,7 @@ export struct GroupChatSetting {
 
         Blank()
 
-        Text(`${this.groupState?.memberCount ?? 0} 人`)
+        Text($r('app.string.chatsetting_people_count',`${this.groupState?.memberCount ?? 0} `))
           .fontSize(17)
           .fontWeight(400)
           .fontFamily('SF Pro Text')
@@ -1057,7 +1064,7 @@ export struct GroupChatSetting {
         content: {
           type: AvatarContentType.Image,
           url: member.avatarURL,
-          name: member.nickname || '',
+          name: (member.nameCard || member.nickname || member.userID).toString() || '',
         },
         avatarSize: AvatarSize.M,
       })
@@ -1297,7 +1304,7 @@ export struct GroupChatSetting {
 
   private async loadGroupMembers(): Promise<void> {
     try {
-      await this.groupStore?.fetchGroupMemberList();
+      await this.groupStore?.fetchGroupMemberList(GroupMemberRole.ALL);
       this.loadingProgress.groupMembers = true;
       console.info('[GroupSettingPage] Group members loaded');
     } catch (error) {
@@ -2038,7 +2045,7 @@ export struct GroupChatSetting {
 
     if (this.onSendMessageClick) {
       const contactTitle = this.groupState?.groupName  || '';
-      const contactAvatarUrl = this.groupState?.avatarUrl || '';
+      const contactAvatarUrl = this.groupState?.avatarURL || '';
       this.onSendMessageClick(this.conversationID, contactTitle, contactAvatarUrl);
     }
 

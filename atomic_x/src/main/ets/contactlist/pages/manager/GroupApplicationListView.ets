@@ -81,7 +81,7 @@ struct GroupRequestInfoDialog {
         Avatar({
           content: {
             type: AvatarContentType.Image,
-            url: this.application.fromUserAvatarUrl,
+            url: this.application.fromUserAvatarURL,
             name: TextUtils.getAvatarLetter(this.application.fromUserNickname || this.application.fromUser || ''),
           },
           avatarSize: AvatarSize.L
@@ -372,7 +372,7 @@ export struct GroupApplicationListView {
                   Avatar({
                     content: {
                       type: AvatarContentType.Image,
-                      url: application.fromUserAvatarUrl,
+                      url: application.fromUserAvatarURL,
                       name: application.fromUserNickname || application.fromUser || '',
                     },
                     avatarSize: AvatarSize.M,
@@ -494,6 +494,7 @@ export struct GroupApplicationListView {
     .width('100%')
     .height('100%')
     .backgroundColor(this.themeState.colors.bgColorOperate)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 
   @Builder

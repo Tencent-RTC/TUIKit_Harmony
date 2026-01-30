@@ -1,7 +1,7 @@
 import { ThemeState, Toast ,IMErrorCode } from '../../basecomponent/Index';
 import { EventBus } from '../../basecomponent/utils/EventBus';
 import emitter from '@ohos.events.emitter';
-import { MessageBody, MessageInfo, MessageInputStore, MessageType, ErrorInfo, ConversationListStore, ConversationType } from '@tencentcloud/atomicxcore';
+import { MessageBody, MessageInfo, MessageInputStore, MessageType, ErrorInfo, ConversationListStore, ConversationType, OfflinePushInfo, LoginStore } from '@tencentcloud/atomicxcore';
 import { MessageInputMoreDialog, MenuItem } from './MessageInputMoreDialog';
 import { EmojiDataManager, EmojiItem, EmojiPicker } from '../../emojipicker/Index';
 import { AudioRecorder } from '../../audiorecorder/Index';
@@ -668,6 +668,9 @@ export struct MessageInput {
         console.log(`[MessageInput] Message has ${atUserList.length} mentions`);
       }
 
+      // Create offline push info
+      message.offlinePushInfo = this.createOfflinePushInfo(message);
+
       console.log(`[MessageInput] Sending message: "${messageText.trim()}", mentions: ${atUserList.length}`);
       
       this.inputState.sendMessage(message)
@@ -840,6 +843,9 @@ export struct MessageInput {
       message.timestamp = new Date().getTime();
       message.ID = '';
       message.needReadReceipt = this.effectiveConfig.enableReadReceipt;
+
+      // Create offline push info
+      message.offlinePushInfo = this.createOfflinePushInfo(message);
 
       // Send message
       if (this.inputState) {
@@ -1096,6 +1102,9 @@ export struct MessageInput {
       message.ID = '';
       message.needReadReceipt = this.effectiveConfig.enableReadReceipt;
 
+      // Create offline push info
+      message.offlinePushInfo = this.createOfflinePushInfo(message);
+
       // Send message
       this.inputState.sendMessage(message)
         .then(() => {
@@ -1182,6 +1191,9 @@ export struct MessageInput {
       message.timestamp = new Date().getTime();
       message.ID = '';
       message.needReadReceipt = this.effectiveConfig.enableReadReceipt;
+
+      // Create offline push info
+      message.offlinePushInfo = this.createOfflinePushInfo(message);
 
       // Send message
       this.inputState.sendMessage(message)
@@ -1481,5 +1493,150 @@ export struct MessageInput {
         mention.startIndex -= deleteLength;
       }
     });
+  }
+
+  // MARK: - Offline Push Info Creation
+
+  /**
+   * Create offline push info for message
+   * Reference: Android Compose & iOS SwiftUI implementation
+   */
+  private createOfflinePushInfo(message: MessageInfo): OfflinePushInfo {
+    const loginUserInfo = LoginStore.shared().state?.loginUserInfo;
+    const selfUserId = loginUserInfo?.userID ?? '';
+    const selfName = loginUserInfo?.nickname ?? selfUserId;
+
+    const isGroup = this.conversationID.startsWith('group_');
+    const groupId = isGroup ? this.conversationID.substring(6) : '';
+
+    // Get conversation title from store
+    let chatName: string | undefined = undefined;
+    const conversations = this.conversationStore.state.conversationDataSource;
+    const conversationCount = conversations.totalCount();
+    for (let i = 0; i < conversationCount; i++) {
+      const conversation = conversations.getData(i);
+      if (conversation && conversation.ID === this.conversationID && conversation.title) {
+        chatName = conversation.title;
+        break;
+      }
+    }
+
+    const title = isGroup ? (chatName || groupId) : selfName;
+    const description = this.getMessageTypeAbstract(message);
+
+    // Create ext JSON
+    const ext = this.createOfflinePushExtJson(
+      isGroup,
+      description,
+      isGroup ? groupId : selfUserId,
+      title,
+      loginUserInfo?.avatarURL
+    );
+
+    const extensionInfo = new Map<string, Object>();
+    extensionInfo.set('ext', ext);
+    extensionInfo.set('AndroidOPPOChannelID', 'tuikit');
+    extensionInfo.set('AndroidHuaWeiCategory', 'IM');
+    extensionInfo.set('AndroidVIVOCategory', 'IM');
+    extensionInfo.set('AndroidHonorImportance', 'NORMAL');
+    extensionInfo.set('AndroidMeizuNotifyType', 1);
+    extensionInfo.set('iOSInterruptionLevel', 'time-sensitive');
+    extensionInfo.set('enableIOSBackgroundNotification', false);
+
+    const pushInfo: OfflinePushInfo = {
+      title: title,
+      description: this.trimPushDescription(description),
+      extensionInfo: extensionInfo
+    };
+
+    return pushInfo;
+  }
+
+  /**
+   * Get message type abstract for offline push
+   */
+  private getMessageTypeAbstract(message: MessageInfo): string {
+    switch (message.messageType) {
+      case MessageType.Text:
+        return message.messageBody?.text ?? '';
+      case MessageType.Image:
+        return getContext().resourceManager.getStringSync($r('app.string.message_type_image').id);
+      case MessageType.Video:
+        return getContext().resourceManager.getStringSync($r('app.string.message_type_video').id);
+      case MessageType.File:
+        return getContext().resourceManager.getStringSync($r('app.string.message_type_file').id);
+      case MessageType.Sound:
+        return getContext().resourceManager.getStringSync($r('app.string.message_type_voice').id);
+      case MessageType.Face:
+        return getContext().resourceManager.getStringSync($r('app.string.message_type_animate_emoji').id);
+      default:
+        return '';
+    }
+  }
+
+  /**
+   * Trim push description to max length
+   */
+  private trimPushDescription(text: string, maxLength: number = 50): string {
+    if (typeof text !== 'string') {
+      return '';
+    }
+    const normalized = text.trim().replace(/\n/g, ' ').replace(/\r/g, ' ');
+    if (normalized.length <= maxLength) {
+      return normalized;
+    }
+    return normalized.substring(0, maxLength);
+  }
+
+  /**
+   * Create offline push ext JSON
+   */
+  private createOfflinePushExtJson(
+    isGroup: boolean,
+    description: string,
+    senderId: string,
+    senderNickName: string,
+    faceUrl?: string
+  ): string {
+    interface BusinessInfo {
+      content: string;
+      sender: string;
+      nickname: string;
+      chatType: number;
+      faceUrl?: string;
+    }
+
+    const businessInfo: BusinessInfo = {
+      content: description,
+      sender: senderId,
+      nickname: senderNickName,
+      chatType: isGroup ? 2 : 1
+    };
+
+    if (faceUrl) {
+      businessInfo.faceUrl = faceUrl;
+    }
+
+    interface ConfigInfo {
+      fcmPushType: number;
+      fcmNotificationType: number;
+    }
+
+    const configInfo: ConfigInfo = {
+      fcmPushType: 0,
+      fcmNotificationType: 0
+    };
+
+    interface ExtJson {
+      entity: BusinessInfo;
+      timPushFeatures: ConfigInfo;
+    }
+
+    const extJson: ExtJson = {
+      entity: businessInfo,
+      timPushFeatures: configInfo
+    };
+
+    return JSON.stringify(extJson);
   }
 }

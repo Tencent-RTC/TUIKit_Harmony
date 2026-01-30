@@ -20,7 +20,8 @@ import {
   MessageForwardType,
   MessageForwardOption,
   MergedForwardInfo,
-  MessageBody
+  MessageBody,
+  OfflinePushInfo
 } from '@tencentcloud/atomicxcore';
 import { AppBuilderConfig, ThemeState, TextUtils, ActionItem, Toast, EventBus } from '../../basecomponent/Index';
 import { MessageItem } from '../ui/MessageItem';
@@ -1769,6 +1770,9 @@ export struct MessageList {
       body.text = asrText;
       message.messageBody = body;
 
+      // Create offline push info for forwarding
+      message.offlinePushInfo = this.createOfflinePushInfoForConversation(targetConversationID, message);
+
       const promise: Promise<void> = messageInputStore.sendMessage(message)
         .then(() => {
           console.info(`[MessageList] ASR text sent to ${targetConversationID}`);
@@ -1975,6 +1979,9 @@ export struct MessageList {
       body.text = translatedText;
       message.messageBody = body;
 
+      // Create offline push info for forwarding
+      message.offlinePushInfo = this.createOfflinePushInfoForConversation(targetConversationID, message);
+
       const promise: Promise<void> = messageInputStore.sendMessage(message)
         .then(() => {
           console.info(`[MessageList] ✅ Translated text sent to ${targetConversationID}`);
@@ -1994,6 +2001,153 @@ export struct MessageList {
         console.error('[MessageList] Some translated text sends failed:', error);
         Toast.info($r('app.string.forward_failed'), this.getUIContext());
       });
+  }
+
+  // MARK: - Offline Push Info Creation
+
+  /**
+   * Create offline push info for forwarding messages
+   * Reference: Android Compose & iOS SwiftUI implementation
+   */
+  private createOfflinePushInfoForConversation(conversationID: string, message: MessageInfo): OfflinePushInfo {
+    const loginUserInfo = LoginStore.shared().state?.loginUserInfo;
+    const selfUserId = loginUserInfo?.userID ?? '';
+    const selfName = loginUserInfo?.nickname ?? selfUserId;
+
+    const isGroup = conversationID.startsWith('group_');
+    const groupId = isGroup ? conversationID.substring(6) : '';
+
+    // Get conversation title from conversationListStore
+    let chatName: string | undefined = undefined;
+    const conversationDataSource = this.conversationListStore?.state.conversationDataSource;
+    if (conversationDataSource) {
+      const conversationCount = conversationDataSource.totalCount();
+      for (let i = 0; i < conversationCount; i++) {
+        const conversation = conversationDataSource.getData(i);
+        if (conversation && conversation.ID === conversationID && conversation.title) {
+          chatName = conversation.title;
+          break;
+        }
+      }
+    }
+
+    const title = isGroup ? (chatName || groupId) : selfName;
+    const description = this.getMessageTypeAbstract(message);
+
+    // Create ext JSON
+    const ext = this.createOfflinePushExtJson(
+      isGroup,
+      description,
+      isGroup ? groupId : selfUserId,
+      title,
+      loginUserInfo?.avatarURL
+    );
+
+    const extensionInfo = new Map<string, Object>();
+    extensionInfo.set('ext', ext);
+    extensionInfo.set('AndroidOPPOChannelID', 'tuikit');
+    extensionInfo.set('AndroidHuaWeiCategory', 'IM');
+    extensionInfo.set('AndroidVIVOCategory', 'IM');
+    extensionInfo.set('AndroidHonorImportance', 'NORMAL');
+    extensionInfo.set('AndroidMeizuNotifyType', 1);
+    extensionInfo.set('iOSInterruptionLevel', 'time-sensitive');
+    extensionInfo.set('enableIOSBackgroundNotification', false);
+
+    const pushInfo: OfflinePushInfo = {
+      title: title,
+      description: this.trimPushDescription(description),
+      extensionInfo: extensionInfo
+    };
+
+    return pushInfo;
+  }
+
+  /**
+   * Get message type abstract for offline push
+   */
+  private getMessageTypeAbstract(message: MessageInfo): string {
+    switch (message.messageType) {
+      case MessageType.Text:
+        return message.messageBody?.text ?? '';
+      case MessageType.Image:
+        return getContext().resourceManager.getStringSync($r('app.string.message_type_image').id);
+      case MessageType.Video:
+        return getContext().resourceManager.getStringSync($r('app.string.message_type_video').id);
+      case MessageType.File:
+        return getContext().resourceManager.getStringSync($r('app.string.message_type_file').id);
+      case MessageType.Sound:
+        return getContext().resourceManager.getStringSync($r('app.string.message_type_voice').id);
+      case MessageType.Face:
+        return getContext().resourceManager.getStringSync($r('app.string.message_type_animate_emoji').id);
+      default:
+        return '';
+    }
+  }
+
+  /**
+   * Trim push description to max length
+   */
+  private trimPushDescription(text: string, maxLength: number = 50): string {
+    if (typeof text !== 'string') {
+      return '';
+    }
+    const normalized = text.trim().replace(/\n/g, ' ').replace(/\r/g, ' ');
+    if (normalized.length <= maxLength) {
+      return normalized;
+    }
+    return normalized.substring(0, maxLength);
+  }
+
+  /**
+   * Create offline push ext JSON
+   */
+  private createOfflinePushExtJson(
+    isGroup: boolean,
+    description: string,
+    senderId: string,
+    senderNickName: string,
+    faceUrl?: string
+  ): string {
+    interface BusinessInfo {
+      content: string;
+      sender: string;
+      nickname: string;
+      chatType: number;
+      faceUrl?: string;
+    }
+
+    const businessInfo: BusinessInfo = {
+      content: description,
+      sender: senderId,
+      nickname: senderNickName,
+      chatType: isGroup ? 2 : 1
+    };
+
+    if (faceUrl) {
+      businessInfo.faceUrl = faceUrl;
+    }
+
+    interface ConfigInfo {
+      fcmPushType: number;
+      fcmNotificationType: number;
+    }
+
+    const configInfo: ConfigInfo = {
+      fcmPushType: 0,
+      fcmNotificationType: 0
+    };
+
+    interface ExtJson {
+      entity: BusinessInfo;
+      timPushFeatures: ConfigInfo;
+    }
+
+    const extJson: ExtJson = {
+      entity: businessInfo,
+      timPushFeatures: configInfo
+    };
+
+    return JSON.stringify(extJson);
   }
 
   // ============ Classic Popup Action Methods ============

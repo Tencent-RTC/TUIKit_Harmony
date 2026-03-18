@@ -756,8 +756,7 @@ export struct MessageInput {
       return;
     }
     const user_file_uri = mediaPath;
-    // Use temporary cache directory instead of ChatUtil.getMediaHomePath
-    const tempDir = getContext().getApplicationContext().cacheDir + "/media/";
+    const tempDir = this.context.cacheDir + "/media/";
     const fileName = user_file_uri.split("/").pop() || `temp_${Date.now()}`;
     const app_file_path = tempDir + fileName;
 
@@ -1137,8 +1136,7 @@ export struct MessageInput {
     }
 
     const user_file_uri = filePath;
-    // Use temporary cache directory instead of ChatUtil.getMediaHomePath
-    const tempDir = getContext().getApplicationContext().cacheDir + "/media/";
+    const tempDir = this.context.cacheDir + "/media/";
     const fileName = user_file_uri.split("/").pop() || `temp_file_${Date.now()}`;
     const app_file_path = tempDir + fileName;
 

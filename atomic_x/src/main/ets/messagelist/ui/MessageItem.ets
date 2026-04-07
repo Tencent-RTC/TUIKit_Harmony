@@ -86,13 +86,18 @@ export function GetMessageView(context: MessageRenderContext) {
 function isGroupCreated(customMessage: CustomMessageInfo) {
   const data = customMessage?.data;
   if (data) {
-    const textDecoder = new util.TextDecoder('utf-8');
-    const dataStr = textDecoder.decode(new Uint8Array(data));
-    const customInfo = JSON.parse(dataStr) as Record<string, string | number | boolean | object>;
-    if (customInfo["businessID"] === 'group_create') {
-      return true;
+    try {
+      const textDecoder = new util.TextDecoder('utf-8');
+      const dataStr = textDecoder.decode(new Uint8Array(data));
+      const customInfo = JSON.parse(dataStr) as Record<string, string | number | boolean | object>;
+      if (customInfo["businessID"] === 'group_create') {
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('[MessageItem] isGroupCreated error:', error);
+      return false;
     }
-    return false;
   }
   return false;
 }

@@ -84,7 +84,7 @@ export struct MessageList {
   readReceiptDialogController: CustomDialogController | null = null;
   emojiPickerController: CustomDialogController | null = null;
   conversationID: string = '';
-  @Prop locateMessage?: MessageInfo = undefined;
+  locateMessage?: MessageInfo = undefined;
   @State highlightedMessageID: string = '';
   scroller: Scroller = new Scroller();
   onMessageLongPress?: (message: MessageInfo) => void;

@@ -1,0 +1,15 @@
+{
+  "name": "entry",
+  "version": "1.0.0",
+  "description": "Please describe the basic information.",
+  "main": "",
+  "author": "",
+  "license": "",
+  "dependencies": {
+    "@tencentcloud/atomicxcore": "^4.1.0",
+    "@tencentcloud/tuiroomkit": "file:../../room",
+    "@ohos/crypto-js": "2.0.2",
+    "pako": "2.1.0"
+  }
+}
+

@@ -170,10 +170,18 @@ export struct Avatar {
           .borderRadius(this.computedBorderRadius())
       }
 
-      Text(TextUtils.getAvatarLetter(name || this.content?.name))
-        .fontSize(this.avatarFontSize())
-        .fontWeight(500)
-        .fontColor(this.themeState.colors.textColorPrimary)
+      if (this.hasValidName(name || this.content?.name)) {
+        Text(TextUtils.getAvatarLetter(name || this.content?.name))
+          .fontSize(this.avatarFontSize())
+          .fontWeight(500)
+          .fontColor(this.themeState.colors.textColorPrimary)
+      } else {
+        Image($rawfile('basecomponent/avatar_person.svg'))
+          .width(this.avatarSize * 0.6)
+          .height(this.avatarSize * 0.6)
+          .objectFit(ImageFit.Contain)
+          .fillColor(this.themeState.colors.textColorPrimary)
+      }
     }
   }
 
@@ -194,19 +202,21 @@ export struct Avatar {
           .borderRadius(this.computedBorderRadius())
       }
 
-      // Default contact icon - can be replaced with actual icon resource
-      Text("👤")
-        .fontSize(this.avatarSize * 0.6)
-        .fontColor(this.themeState.colors.textColorPrimary)
+      Image($rawfile('basecomponent/avatar_person.svg'))
+        .width(this.avatarSize * 0.6)
+        .height(this.avatarSize * 0.6)
+        .objectFit(ImageFit.Contain)
+        .fillColor(this.themeState.colors.textColorPrimary)
     }
   }
 
   @Builder
   LocalAvatarBuilder(isGroup?: boolean) {
-    // Local default avatar - can be replaced with actual image resource
-    Text(isGroup ? "👥" : "👤")
-      .fontSize(this.avatarSize * 0.6)
-      .fontColor(this.themeState.colors.textColorPrimary)
+    Image($rawfile(isGroup ? 'basecomponent/avatar_group.svg' : 'basecomponent/avatar_person.svg'))
+      .width(this.avatarSize * 0.6)
+      .height(this.avatarSize * 0.6)
+      .objectFit(ImageFit.Contain)
+      .fillColor(this.themeState.colors.textColorPrimary)
   }
 
   @Builder
@@ -256,6 +266,10 @@ export struct Avatar {
 
   private avatarFontSize(): number {
     return Math.max(10, this.avatarSize * 0.4);
+  }
+
+  private hasValidName(name?: string): boolean {
+    return !!name && name.trim().length > 0;
   }
 
   private badgePositionX(): number {

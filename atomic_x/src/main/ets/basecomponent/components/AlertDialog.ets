@@ -7,6 +7,7 @@ interface SingleButtonAlertDialogParams {
   confirmText?: string | Resource
   onDismiss?: () => void
   onConfirm?: () => void
+  dialogId?: string
 }
 interface DoubleButtonAlertDialogParams {
   title?: string | Resource
@@ -16,6 +17,7 @@ interface DoubleButtonAlertDialogParams {
   onDismiss?: () => void
   onCancel?: () => void
   onConfirm?: () => void
+  dialogId?: string
 }
 @Component
 struct SingleButtonAlertDialog {
@@ -23,6 +25,7 @@ struct SingleButtonAlertDialog {
   @Prop confirmText: string | Resource = 'Done'
   onDismiss?: () => void
   onConfirm?: () => void
+  @Prop dialogId?: string
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance()
 
   build() {
@@ -84,7 +87,7 @@ struct SingleButtonAlertDialog {
             if (this.onDismiss) {
               this.onDismiss()
             }
-            AlertDialog.closeDialog()
+            AlertDialog.closeDialog(this.dialogId)
           })
       }
       .width('100%')
@@ -108,6 +111,7 @@ struct DoubleButtonAlertDialog {
   onDismiss?: () => void
   onCancel?: () => void
   onConfirm?: () => void
+  @Prop dialogId?: string
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance()
 
   build() {
@@ -184,7 +188,7 @@ struct DoubleButtonAlertDialog {
               if (this.onDismiss) {
                 this.onDismiss()
               }
-              AlertDialog.closeDialog()
+              AlertDialog.closeDialog(this.dialogId)
             })
 
           
@@ -215,7 +219,7 @@ struct DoubleButtonAlertDialog {
               if (this.onDismiss) {
                 this.onDismiss()
               }
-              AlertDialog.closeDialog()
+              AlertDialog.closeDialog(this.dialogId)
             })
         }
         .width('100%')
@@ -240,13 +244,15 @@ struct SingleButtonAlertDialogComponent {
   @Prop confirmText: string | Resource = 'Done'
   onDismiss?: () => void
   onConfirm?: () => void
+  @Prop dialogId?: string
 
   build() {
     SingleButtonAlertDialog({
       message: this.message,
       confirmText: this.confirmText,
       onDismiss: this.onDismiss,
-      onConfirm: this.onConfirm
+      onConfirm: this.onConfirm,
+      dialogId: this.dialogId
     })
   }
 }
@@ -260,6 +266,7 @@ struct DoubleButtonAlertDialogComponent {
   onDismiss?: () => void
   onCancel?: () => void
   onConfirm?: () => void
+  @Prop dialogId?: string
 
   build() {
     DoubleButtonAlertDialog({
@@ -269,7 +276,8 @@ struct DoubleButtonAlertDialogComponent {
       confirmText: this.confirmText,
       onDismiss: this.onDismiss,
       onCancel: this.onCancel,
-      onConfirm: this.onConfirm
+      onConfirm: this.onConfirm,
+      dialogId: this.dialogId
     })
   }
 }
@@ -279,7 +287,8 @@ function SingleButtonAlertDialogBuilder(params: SingleButtonAlertDialogParams) {
     message: params.message,
     confirmText: params.confirmText ?? 'Done',
     onDismiss: params.onDismiss,
-    onConfirm: params.onConfirm
+    onConfirm: params.onConfirm,
+    dialogId: params.dialogId
   })
 }
 
@@ -292,13 +301,16 @@ function DoubleButtonAlertDialogBuilder(params: DoubleButtonAlertDialogParams) {
     confirmText: params.confirmText ?? 'Done',
     onDismiss: params.onDismiss,
     onCancel: params.onCancel,
-    onConfirm: params.onConfirm
+    onConfirm: params.onConfirm,
+    dialogId: params.dialogId
   })
 }
 export class AlertDialog {
-  private static currentContentNode: ComponentContent<SingleButtonAlertDialogParams | DoubleButtonAlertDialogParams> | null =
-    null
+  private static dialogMap: Map<string, ComponentContent<SingleButtonAlertDialogParams | DoubleButtonAlertDialogParams>> =
+    new Map()
+  private static dialogIdList: string[] = []
   private static ctx: UIContext
+  private static idCounter: number = 0
 
   
   static show(
@@ -307,7 +319,7 @@ export class AlertDialog {
     onDismiss?: () => void,
     onConfirm?: () => void,
     context?: UIContext
-  ): void
+  ): string
   
   static show(
     title?: string | Resource,
@@ -318,7 +330,7 @@ export class AlertDialog {
     onCancel?: () => void,
     onConfirm?: () => void,
     context?: UIContext
-  ): void
+  ): string
   static show(
     param1?: string | Resource,
     param2?: string | Resource,
@@ -328,7 +340,7 @@ export class AlertDialog {
     param6?: (() => void) | UIContext,
     param7?: (() => void),
     param8?: UIContext
-  ) {
+  ): string {
     
     if (arguments.length <= 5) {
       
@@ -338,7 +350,7 @@ export class AlertDialog {
       const onConfirm = typeof param4 === 'function' ? param4 : (typeof param3 === 'function' ? param3 : undefined)
       const context = (param5 && typeof param5 !== 'function') ? param5 as UIContext : undefined
 
-      AlertDialog.showSingleButton(message, confirmText, onDismiss, onConfirm, context)
+      return AlertDialog.showSingleButton(message, confirmText, onDismiss, onConfirm, context)
     } else {
       
       const title = param1
@@ -350,8 +362,13 @@ export class AlertDialog {
       const onConfirm = typeof param7 === 'function' ? param7 : undefined
       const context = param8 as UIContext
 
-      AlertDialog.showDoubleButton(title, message, cancelText, confirmText, onDismiss, onCancel, onConfirm, context)
+      return AlertDialog.showDoubleButton(title, message, cancelText, confirmText, onDismiss, onCancel, onConfirm, context)
     }
+  }
+
+  
+  private static generateId(): string {
+    return `alert_${++AlertDialog.idCounter}`
   }
 
   
@@ -361,28 +378,33 @@ export class AlertDialog {
     onDismiss?: () => void,
     onConfirm?: () => void,
     context?: UIContext
-  ) {
+  ): string {
     if (context) {
       AlertDialog.ctx = context
     }
-
-    
-    if (AlertDialog.currentContentNode) {
-      AlertDialog.closeDialog()
+    if (!AlertDialog.ctx) {
+      console.error('AlertDialog: UIContext not initialized, please pass context parameter.')
+      return ''
     }
+
+    const id = AlertDialog.generateId()
 
     const params: SingleButtonAlertDialogParams = {
       message: message,
       confirmText: confirmText ?? 'Done',
       onDismiss: onDismiss,
-      onConfirm: onConfirm ?? onDismiss
+      onConfirm: onConfirm ?? onDismiss,
+      dialogId: id
     }
 
-    AlertDialog.currentContentNode = new ComponentContent(
+    const contentNode = new ComponentContent(
       AlertDialog.ctx,
       wrapBuilder(SingleButtonAlertDialogBuilder),
       params
     )
+
+    AlertDialog.dialogMap.set(id, contentNode)
+    AlertDialog.dialogIdList.push(id)
 
     const options: promptAction.BaseDialogOptions = {
       alignment: DialogAlignment.Center,
@@ -391,7 +413,7 @@ export class AlertDialog {
     }
 
     AlertDialog.ctx.getPromptAction()
-      .openCustomDialog(AlertDialog.currentContentNode, options)
+      .openCustomDialog(contentNode, options)
       .then(() => {
         console.info('SingleButtonAlertDialog openCustomDialog complete.')
       })
@@ -399,7 +421,11 @@ export class AlertDialog {
         let message = (error as BusinessError).message
         let code = (error as BusinessError).code
         console.error(`SingleButtonAlertDialog openCustomDialog error code is ${code}, message is ${message}`)
+        AlertDialog.dialogMap.delete(id)
+        AlertDialog.removeFromList(id)
       })
+
+    return id
   }
 
   
@@ -412,15 +438,16 @@ export class AlertDialog {
     onCancel?: () => void,
     onConfirm?: () => void,
     context?: UIContext
-  ) {
+  ): string {
     if (context) {
       AlertDialog.ctx = context
     }
-
-    
-    if (AlertDialog.currentContentNode) {
-      AlertDialog.closeDialog()
+    if (!AlertDialog.ctx) {
+      console.error('AlertDialog: UIContext not initialized, please pass context parameter.')
+      return ''
     }
+
+    const id = AlertDialog.generateId()
 
     const params: DoubleButtonAlertDialogParams = {
       title: title,
@@ -429,14 +456,18 @@ export class AlertDialog {
       confirmText: confirmText ?? 'Done',
       onDismiss: onDismiss,
       onCancel: onCancel,
-      onConfirm: onConfirm
+      onConfirm: onConfirm,
+      dialogId: id
     }
 
-    AlertDialog.currentContentNode = new ComponentContent(
+    const contentNode = new ComponentContent(
       AlertDialog.ctx,
       wrapBuilder(DoubleButtonAlertDialogBuilder),
       params
     )
+
+    AlertDialog.dialogMap.set(id, contentNode)
+    AlertDialog.dialogIdList.push(id)
 
     const options: promptAction.BaseDialogOptions = {
       alignment: DialogAlignment.Center,
@@ -445,7 +476,7 @@ export class AlertDialog {
     }
 
     AlertDialog.ctx.getPromptAction()
-      .openCustomDialog(AlertDialog.currentContentNode, options)
+      .openCustomDialog(contentNode, options)
       .then(() => {
         console.info('DoubleButtonAlertDialog openCustomDialog complete.')
       })
@@ -453,17 +484,41 @@ export class AlertDialog {
         let message = (error as BusinessError).message
         let code = (error as BusinessError).code
         console.error(`DoubleButtonAlertDialog openCustomDialog error code is ${code}, message is ${message}`)
+        AlertDialog.dialogMap.delete(id)
+        AlertDialog.removeFromList(id)
       })
+
+    return id
   }
 
   
-  static closeDialog() {
-    if (AlertDialog.currentContentNode && AlertDialog.ctx) {
+  static closeDialog(dialogId?: string): void {
+    const id = dialogId ?? AlertDialog.dialogIdList[AlertDialog.dialogIdList.length - 1]
+    if (id) {
+      AlertDialog.removeDialog(id)
+    }
+  }
+
+  static closeAllDialogs(): void {
+    const ids = [...AlertDialog.dialogIdList]
+    for (const id of ids) {
+      AlertDialog.removeDialog(id)
+    }
+  }
+
+  
+  private static removeDialog(id: string): void {
+    const contentNode = AlertDialog.dialogMap.get(id)
+    if (!contentNode) {
+      return
+    }
+    AlertDialog.dialogMap.delete(id)
+    AlertDialog.removeFromList(id)
+    if (AlertDialog.ctx) {
       AlertDialog.ctx.getPromptAction()
-        .closeCustomDialog(AlertDialog.currentContentNode)
+        .closeCustomDialog(contentNode)
         .then(() => {
           console.info('AlertDialog closeCustomDialog complete.')
-          AlertDialog.currentContentNode = null
         })
         .catch((error: BusinessError) => {
           let message = (error as BusinessError).message
@@ -472,5 +527,12 @@ export class AlertDialog {
         })
     }
   }
+
+  private static removeFromList(id: string): void {
+    const index = AlertDialog.dialogIdList.indexOf(id)
+    if (index >= 0) {
+      AlertDialog.dialogIdList.splice(index, 1)
+    }
+  }
 }
-export default AlertDialog 
+export default AlertDialog

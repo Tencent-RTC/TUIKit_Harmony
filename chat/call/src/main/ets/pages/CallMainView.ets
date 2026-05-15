@@ -1,4 +1,4 @@
-import { TUICallMediaType, TUICallRole, TUICallScene, TUICallStatus } from 'rtcroomengine'
+import { TUICallMediaType, TUICallRole, TUICallScene, TUICallStatus } from '@tencentcloud/rtcroomengine'
 import { CallManager } from '../manager/CallManager'
 import { FunctionView } from './component/FunctionView'
 import { CallHintView } from './component/CallHintView'

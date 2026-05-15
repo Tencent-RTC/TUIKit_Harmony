@@ -1,4 +1,4 @@
-import { TUICallMediaType, TUICallScene } from 'rtcroomengine'
+import { TUICallMediaType, TUICallScene } from '@tencentcloud/rtcroomengine'
 
 @ObservedV2
 export class CallState {

@@ -9,7 +9,7 @@ import TUICallEngine, {
   TUICallRole,
   TUICallScene,
   TUICallStatus
-} from 'rtcroomengine'
+} from '@tencentcloud/rtcroomengine'
 import TUILogin from '../../common/TUILogin'
 import { UserManager } from '../UserManager'
 import { emitter } from '@kit.BasicServicesKit'

@@ -9,7 +9,7 @@ import TUICallEngine, {
   TUICallScene,
   TUICallStatus,
   TUIError
-} from 'rtcroomengine';
+} from '@tencentcloud/rtcroomengine';
 import { CallManager } from './manager/CallManager';
 import { TUICallKit } from './TUICallKit';
 import Permission from './common/Permission';

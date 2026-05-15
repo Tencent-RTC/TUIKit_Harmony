@@ -16,7 +16,7 @@ import TUICallEngine, {
   TUICamera,
   TUIError,
   TUIErrorCode
-} from 'rtcroomengine'
+} from '@tencentcloud/rtcroomengine'
 import { CallEventObserver } from './observer/CallEventObserver'
 import { UserManager } from './UserManager'
 
@@ -26,7 +26,7 @@ import { Preference } from '../common/Preference'
 import { CallBellFeature } from './feature/CallBellFeature'
 import { CallVibratorFeature } from './feature/CallVibratorFeature'
 import { ViewState } from '../state/ViewState'
-import { LiteAVBase } from 'liteavsdk'
+import { LiteAVBase } from '@tencentcloud/liteavsdk_professional'
 
 const TAG: string = "CallManager"
 const BLUR_LEVEL_HIGH = 3

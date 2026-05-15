@@ -1,4 +1,4 @@
-import { TUICallMediaType } from 'rtcroomengine'
+import { TUICallMediaType } from '@tencentcloud/rtcroomengine'
 import { abilityAccessCtrl, common, Permissions } from '@kit.AbilityKit'
 import { BusinessError } from '@kit.BasicServicesKit'
 import Logger from './Logger'

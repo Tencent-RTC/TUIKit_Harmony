@@ -1,4 +1,4 @@
-import { TUICallRole } from 'rtcroomengine';
+import { TUICallRole } from '@tencentcloud/rtcroomengine';
 import { CallManager } from '../../../manager/CallManager';
 import { User } from '../../../state/UserState';
 

@@ -1,4 +1,4 @@
-import { TUICallRole, TUICallStatus } from 'rtcroomengine';
+import { TUICallRole, TUICallStatus } from '@tencentcloud/rtcroomengine';
 import { emitter } from '@kit.BasicServicesKit';
 import { CallEvent } from '../common/Constants';
 

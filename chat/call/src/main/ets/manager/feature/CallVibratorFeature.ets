@@ -1,6 +1,6 @@
 import { vibrator } from '@kit.SensorServiceKit';
 import { BusinessError, emitter } from '@kit.BasicServicesKit';
-import { TUICallRole, TUICallStatus } from 'rtcroomengine';
+import { TUICallRole, TUICallStatus } from '@tencentcloud/rtcroomengine';
 import { CallManager } from '../CallManager';
 import Logger from '../../common/Logger';
 import { CallEvent } from '../../common/Constants';

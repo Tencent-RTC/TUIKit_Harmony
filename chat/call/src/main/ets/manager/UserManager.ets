@@ -1,6 +1,6 @@
 import { ArrayList } from '@kit.ArkTS';
 import { V2TIMFriendInfoResult, V2TIMManager } from '@tencentcloud/imsdk';
-import { TUIError, TUIErrorCode } from 'rtcroomengine';
+import { TUIError, TUIErrorCode } from '@tencentcloud/rtcroomengine';
 import Logger from '../common/Logger';
 import { User } from '../state/UserState';
 import json from '@ohos.util.json';

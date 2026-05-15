@@ -1,6 +1,6 @@
 import { User } from '../../state/UserState'
 import { MultiCallLoadingView } from './multi/MultiCallLoadingView'
-import { TUICallScene, TUICallStatus } from 'rtcroomengine'
+import { TUICallScene, TUICallStatus } from '@tencentcloud/rtcroomengine'
 import { CallManager } from '../../manager/CallManager'
 import Logger from '../../common/Logger'
 

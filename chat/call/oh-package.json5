@@ -6,9 +6,9 @@
   "author": "",
   "license": "",
   "dependencies": {
-    "liteavsdk": "file:./libs/LiteAVSDK_Professional_12.8.0.7748.har",
+    "@tencentcloud/liteavsdk_professional": "^13.2.1135",
     "@tencentcloud/imsdk": "^8.6.7020",
-    "rtcroomengine": "file:./libs/rtcroomengine.har"
+    "@tencentcloud/rtcroomengine": "^4.1.0"
   }
 }
 

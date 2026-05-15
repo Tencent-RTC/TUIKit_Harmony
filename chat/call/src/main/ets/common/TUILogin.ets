@@ -8,7 +8,7 @@ import {
 } from '@tencentcloud/imsdk';
 import Logger from './Logger';
 import { BusinessError } from '@kit.BasicServicesKit';
-import { TUIError } from 'rtcroomengine';
+import { TUIError } from '@tencentcloud/rtcroomengine';
 import json from '@ohos.util.json';
 
 const TAG: string = "TUILogin"

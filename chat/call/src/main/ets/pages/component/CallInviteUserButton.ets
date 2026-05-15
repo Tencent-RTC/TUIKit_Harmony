@@ -3,7 +3,7 @@ import { promptAction, router } from '@kit.ArkUI'
 import TUILogin from '../../common/TUILogin'
 import Logger from '../../common/Logger'
 import json from '@ohos.util.json'
-import { TUIError } from 'rtcroomengine'
+import { TUIError } from '@tencentcloud/rtcroomengine'
 import '../inviteuser/SelectMemberView'
 
 const TAG: string = "CallInviteUserButton"

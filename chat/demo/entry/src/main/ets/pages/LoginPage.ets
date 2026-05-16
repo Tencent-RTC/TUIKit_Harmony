@@ -15,6 +15,7 @@ import router from '@ohos.router';
 import { XToastUtils } from '../utils/XToastUtils';
 import { HMFlutterManager, HMFlutterListenerRemover } from '../manager/HMFlutterManager';
 import { LoginUserInfo } from '../bean/LoginUserInfo';
+import { getUserInfo } from '../api/UserApi';
 import { WindowImmersiveHelper } from '../utils/WindowImmersiveHelper';
 
 @Entry
@@ -237,9 +238,24 @@ struct LoginPage {
    *
    * router.replaceUrl：用新页面替换当前路由栈（通常不再返回登录页）。
    */
-  private async handleFlutterLoginSuccess(args: Record<string, Object>): Promise<void> {
+  private handleFlutterLoginSuccess(args: Record<string, Object>): void {
     console.info(`LoginPage flutter_pushLoginSuccess args=${JSON.stringify(args)}`);
     LoginUserInfo.getInstance().updateFromLoginSuccess(args);
+    getUserInfo()
+      .then((userBean) => {
+        console.info('LoginPage getUserInfo: ' + JSON.stringify(userBean));
+        LoginUserInfo.getInstance().updateFromUserBean(userBean);
+      })
+      .catch((err: Object) => {
+        console.error(`LoginPage getUserInfo failed: ${JSON.stringify(err)}`);
+      })
+      .finally(() => {
+        void this.finishLoginAfterProfile();
+      });
+  }
+
+  /** 拉取资料（成功或失败）后：通知 Flutter、收尾监听并进入主页。 */
+  private async finishLoginAfterProfile(): Promise<void> {
     HMFlutterManager.appPushLoginInfo();
 
     if (this.loginSuccessRemover !== null) {

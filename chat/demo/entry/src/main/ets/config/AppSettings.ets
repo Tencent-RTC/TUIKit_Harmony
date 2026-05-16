@@ -1,3 +1,4 @@
+//鸿蒙上的本地小数据库，用 key-value 把登录信息、设置等存到手机，下次打开 App 还能读回来。
 import { MMKV } from '@tencent/mmkv';
 import BuildProfile from 'BuildProfile';
 

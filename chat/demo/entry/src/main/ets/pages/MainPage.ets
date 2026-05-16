@@ -1,122 +1,305 @@
 /**
- * 主页面示例：侧栏 + 主内容（路由名 MainPage 对应本文件）。
+ * 主页面：侧栏 + 主内容（路由 pages/MainPage）。
  *
- * struct 名 SideBarOverlayClickClose 仅为示例命名，与路由 pages/MainPage 无关；
- * 路由在 main_pages.json 里登记的是文件路径。
- *
- * SideBarContainer：鸿蒙侧栏容器；第一个子组件是侧栏内容，第二个是主内容区域。
- * Overlay 模式：侧栏浮在主内容之上。
+ * 侧栏布局对齐 Android `main_activty.xml`；
+ * 已接入 Flutter 跳转：优惠券、订单、行程、收藏、常用旅客（见 {@link DrawerFlutterMenu}）。
+ * 设置 / 消息 / 头像等入口仅展示 UI，点击逻辑后续补齐。
  */
 
 import { WindowImmersiveHelper } from '../utils/WindowImmersiveHelper';
 import { DebugInfoPanel } from '../widget/DebugInfoPanel';
+import { HMFlutterManager } from '../manager/HMFlutterManager';
+import { LoginUserInfo } from '../bean/LoginUserInfo';
+
+/** 侧栏内已对接 Flutter 的菜单项（与 Android MainActivity.onMenuClick 分支一一对应） */
+enum DrawerFlutterMenu {
+  COUPON,
+  ORDER,
+  ITINERARY,
+  FAVORITE,
+  TRAVELER,
+}
 
 @Entry
 @Component
-struct SideBarOverlayClickClose {
-  /** 控制侧栏展开/收起；变化会触发 build 重绘，带动画切换。 */
+struct MainPage {
   @State showSideBar: boolean = false;
-
-  /**
-   * 状态栏占位高度（单位 vp）。
-   * 窗口虽然是沉浸式（内容可画到屏幕边缘），但通过 padding-top 把 SideBarContainer 整体下移，
-   * 避免标题栏钻进状态栏下面。
-   */
   @State statusBarInsetVp: number = 0;
+  @State nickname: string = '';
+  @State avatarUrl: string = '';
 
-  /** 进入页面：异步读取窗口并设置沉浸式 + 顶部留白高度。 */
+  /** 页面被 Flutter 等盖住前侧栏是否展开，用于 onPageShow 恢复 */
+  private sideBarOpenBeforeHide: boolean = false;
+
   aboutToAppear(): void {
     void this.applyWindowAndInset();
+    this.refreshUserInfo();
   }
 
-  /** 离开页面：恢复默认系统栏，避免影响后续打开的页面（如设置页）。 */
+  onPageShow(): void {
+    this.refreshUserInfo();
+    // 从 Flutter 等页面返回：若跳转前侧栏是展开的，则恢复
+    if (this.sideBarOpenBeforeHide) {
+      this.showSideBar = true;
+      this.sideBarOpenBeforeHide = false;
+    }
+  }
+
   aboutToDisappear(): void {
     void WindowImmersiveHelper.restoreDefaultSystemBars(getContext(this));
   }
 
-  /**
-   * 分两步设置窗口：
-   * 1）enableImmersiveStatusBar —— 与 LoginPage 同类沉浸式；
-   * 2）getStatusBarInsetVp —— 读出系统状态栏区域高度，转成 vp 写入状态，
-   *    供外层 Column 做 padding-top。
-   */
+  private refreshUserInfo(): void {
+    const user = LoginUserInfo.getInstance();
+    this.nickname = user.getNickname();
+    this.avatarUrl = user.getAvatarUrl();
+  }
+
   private async applyWindowAndInset(): Promise<void> {
     await WindowImmersiveHelper.enableImmersiveStatusBar(getContext(this));
     const inset = await WindowImmersiveHelper.getStatusBarInsetVp(getContext(this));
     this.statusBarInsetVp = inset;
   }
 
+  /** 收起侧栏（点击蒙层等场景） */
+  private closeSideBar(): void {
+    if (!this.showSideBar) {
+      return;
+    }
+    animateTo({ duration: 250 }, () => {
+      this.showSideBar = false;
+    });
+  }
+
+  private toggleSideBar(): void {
+    animateTo({ duration: 250 }, () => {
+      this.showSideBar = !this.showSideBar;
+    });
+  }
+
+  /**
+   * 打开侧栏内 Flutter 页面。
+   * 路由常量与跳转方式对齐 Android `FlutterManager.openFlutter` + `MainActivity.onMenuClick`。
+   */
+  private openDrawerFlutterMenu(menu: DrawerFlutterMenu): void {
+    // 跳转前记录侧栏展开状态，不在此处收起，返回后由 onPageShow 恢复
+    this.sideBarOpenBeforeHide = this.showSideBar;
+    switch (menu) {
+      case DrawerFlutterMenu.COUPON:
+        HMFlutterManager.openFlutter(HMFlutterManager.FLUTTER_ROUTER_COUPON);
+        break;
+      case DrawerFlutterMenu.ORDER:
+        HMFlutterManager.openFlutter(HMFlutterManager.FLUTTER_ROUTER_ORDER);
+        break;
+      case DrawerFlutterMenu.ITINERARY:
+        HMFlutterManager.openFlutter(HMFlutterManager.FLUTTER_ROUTER_ITINERARY);
+        break;
+      case DrawerFlutterMenu.FAVORITE:
+        HMFlutterManager.openFlutter(HMFlutterManager.FLUTTER_ROUTER_FAVORITE);
+        break;
+      case DrawerFlutterMenu.TRAVELER:
+        HMFlutterManager.openFlutter(HMFlutterManager.FLUTTER_ROUTER_TRAVELER);
+        break;
+    }
+  }
+
   build() {
     Column() {
       SideBarContainer(SideBarContainerType.Overlay) {
-
-        // ---------- 子组件 1：侧栏面板 ----------
-        Column() {
-          Text('侧边栏菜单').fontSize(20).fontWeight(FontWeight.Bold).margin(20)
-          Text('功能 1').fontSize(16).margin(10)
-          Text('功能 2').fontSize(16).margin(10)
-        }
-        .width('100%')
-        .height('100%')
-        .backgroundColor('#FFFFFF')
-        .shadow({ radius: 10, color: '#20000000', offsetX: 5 })
-
-        // ---------- 子组件 2：主区域（顶栏 + 正文 + 可选遮罩） ----------
-        Stack() {
-          Column() {
-            Row() {
-              Image($r('app.media.app_icon'))
-                .width(24)
-                .height(24)
-                .margin(16)
-                .onClick(() => {
-                  // animateTo：在 250ms 内平滑切换 showSideBar，触发侧栏动画
-                  animateTo({ duration: 250 }, () => {
-                    this.showSideBar = !this.showSideBar;
-                  })
-                })
-              Text('首页').fontSize(18).fontWeight(FontWeight.Medium)
-            }
-            .width('100%')
-            .height(56)
-            .backgroundColor('#F8F9FA')
-
-            DebugInfoPanel()
-          }
-          .width('100%')
-          .height('100%')
-
-          // 侧栏打开时盖一层半透明蒙版，点击后收起侧栏（用户体验）
-          if (this.showSideBar) {
-            Column()
-              .width('100%')
-              .height('100%')
-              .backgroundColor('rgba(0,0,0,0.15)')
-              .animation({ duration: 250 })
-              .onClick(() => {
-                animateTo({ duration: 250 }, () => {
-                  this.showSideBar = false;
-                })
-              })
-          }
-        }
-        .width('100%')
-        .height('100%')
-        .alignContent(Alignment.TopStart)
+        this.DrawerPanelBuilder()
+        this.MainContentBuilder()
       }
-      .showSideBar(this.showSideBar) // 双向绑定侧栏显隐
-      .sideBarWidth(260) // 侧栏宽度 vp
-      .showControlButton(false) // 不显示系统默认「拖动条」按钮
+      .showSideBar(this.showSideBar)
+      .sideBarWidth('80%')
+      .showControlButton(false)
       .onChange((value: boolean) => {
-        // 手势或其它操作改变侧栏状态时同步到状态变量
         this.showSideBar = value;
       })
-      .layoutWeight(1) // 在 Column 内占满除 padding 以外的剩余高度
+      .layoutWeight(1)
       .width('100%')
     }
     .width('100%')
     .height('100%')
     .padding({ top: this.statusBarInsetVp })
     .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+  }
+
+  /** 侧栏整体：背景 #F3F3F6 + 顶栏用户信息 + 四宫格菜单（毛玻璃卡片） */
+  @Builder
+  DrawerPanelBuilder() {
+    Column() {
+      this.DrawerHeaderBuilder()
+      this.DrawerMenuGridBuilder()
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor('#F3F3F6')
+  }
+
+  /** 顶栏：头像、昵称/设置文案、优惠券、消息（后两者仅优惠券可点） */
+  @Builder
+  DrawerHeaderBuilder() {
+    Row() {
+      Image(this.avatarUrl.length > 0 ? this.avatarUrl : $r('app.media.app_icon'))
+        .width(44)
+        .height(44)
+        .borderRadius(22)
+        .objectFit(ImageFit.Cover)
+        .backgroundColor('#E8E8EC')
+
+      Column() {
+        Text(this.nickname.length > 0 ? this.nickname : ' ')
+          .fontSize(16)
+          .fontWeight(FontWeight.Bold)
+          .fontColor('#000000')
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+        Row() {
+          Text('设置')
+            .fontSize(12)
+            .fontColor('#8D8E99')
+          Text('›')
+            .fontSize(14)
+            .fontColor('#8D8E99')
+            .margin({ left: 2, top: 1 })
+        }
+        .margin({ top: 4 })
+        .alignItems(VerticalAlign.Center)
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
+      .margin({ left: 10 })
+      .justifyContent(FlexAlign.Center)
+
+      Column() {
+        Image($r('app.media.left_icon_coupon'))
+          .width(21)
+          .height(21)
+        Text('优惠券')
+          .fontSize(12)
+          .fontColor('#555175')
+          .margin({ top: -2 })
+      }
+      .margin({ right: 14 })
+      .alignItems(HorizontalAlign.Center)
+      .onClick(() => {
+        this.openDrawerFlutterMenu(DrawerFlutterMenu.COUPON);
+      })
+
+      Column() {
+        Image($r('app.media.remind'))
+          .width(24)
+          .height(24)
+        Text('消息')
+          .fontSize(12)
+          .fontColor('#555175')
+      }
+      .width(36)
+      .alignItems(HorizontalAlign.Center)
+      .justifyContent(FlexAlign.Center)
+    }
+    .width('100%')
+    .padding(10)
+    .margin({ bottom: 8 })
+    .alignItems(VerticalAlign.Center)
+  }
+
+  /**
+   * 四宫格：订单 | 行程 | 收藏 | 常用旅客
+   * 背景对齐 Android `@drawable/bg_glass`（半透明白 + 白描边 + 圆角）
+   */
+  @Builder
+  DrawerMenuGridBuilder() {
+    Row() {
+      this.DrawerMenuGridItemBuilder('订单', $r('app.media.icon_order'), DrawerFlutterMenu.ORDER)
+      this.DrawerGradientDividerBuilder()
+      this.DrawerMenuGridItemBuilder('行程', $r('app.media.icon_trip'), DrawerFlutterMenu.ITINERARY)
+      this.DrawerGradientDividerBuilder()
+      this.DrawerMenuGridItemBuilder('收藏', $r('app.media.icon_collect'), DrawerFlutterMenu.FAVORITE)
+      this.DrawerGradientDividerBuilder()
+      this.DrawerMenuGridItemBuilder('常用旅客', $r('app.media.left_icon_user'), DrawerFlutterMenu.TRAVELER)
+    }
+    .width('100%')
+    .margin({ left: 15, right: 15, top: 10 })
+    .padding({ top: 6, bottom: 6 })
+    .borderRadius(10)
+    .backgroundColor('#99FFFFFF')
+    .border({ width: 1, color: '#FFFFFF' })
+    .justifyContent(FlexAlign.SpaceAround)
+    .alignItems(VerticalAlign.Center)
+  }
+
+  @Builder
+  DrawerMenuGridItemBuilder(label: string, icon: Resource, menu: DrawerFlutterMenu) {
+    Column() {
+      Image(icon)
+        .width(26)
+        .height(26)
+      Text(label)
+        .fontSize(12)
+        .fontColor('#69667B')
+        .margin({ top: 2 })
+    }
+    .layoutWeight(1)
+    .alignItems(HorizontalAlign.Center)
+    .justifyContent(FlexAlign.Center)
+    .padding({ top: 6, bottom: 6 })
+    .onClick(() => {
+      this.openDrawerFlutterMenu(menu);
+    })
+  }
+
+  /** 竖向渐变分割线，对齐 Android `bg_gradient_border.xml` */
+  @Builder
+  DrawerGradientDividerBuilder() {
+    Column()
+      .width(1)
+      .height(30)
+      .linearGradient({
+        angle: 180,
+        colors: [['#FBFBFC', 0.0], ['#D0CEDF', 0.476], ['#FBFAFD', 1.0]]
+      })
+  }
+
+  @Builder
+  MainContentBuilder() {
+    Stack() {
+      Column() {
+        Row() {
+          Image($r('app.media.app_icon'))
+            .width(24)
+            .height(24)
+            .margin(16)
+            .onClick(() => {
+              this.toggleSideBar();
+            })
+          Text('首页')
+            .fontSize(18)
+            .fontWeight(FontWeight.Medium)
+        }
+        .width('100%')
+        .height(56)
+        .backgroundColor('#F8F9FA')
+
+        DebugInfoPanel()
+      }
+      .width('100%')
+      .height('100%')
+
+      if (this.showSideBar) {
+        Column()
+          .width('100%')
+          .height('100%')
+          .backgroundColor('rgba(0,0,0,0.15)')
+          .animation({ duration: 250 })
+          .onClick(() => {
+            this.closeSideBar();
+          })
+      }
+    }
+    .width('100%')
+    .height('100%')
+    .alignContent(Alignment.TopStart)
   }
 }

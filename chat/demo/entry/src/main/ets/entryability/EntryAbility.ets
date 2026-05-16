@@ -3,14 +3,15 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { MMKV } from '@tencent/mmkv';
 import { ContextProvider } from '@tencentcloud/atomicx'
-import FlutterBoostPlugin, {
+import {
   FlutterBoostDelegate,
   FlutterBoostRouteOptions,
-  FlutterBoostSetupOptions, // 添加这一行
+  FlutterBoostSetupOptions,
   FlutterBoostSetupOptionsBuilder,
   FlutterBoost
 } from 'flutter_boost'
 import { FlutterEngine, FlutterManager } from '@ohos/flutter_ohos';
+import { GeneratedPluginRegistrant } from '@ohos/flutter_module';
 import router from '@ohos.router';
 
 const DOMAIN = 0x0000;
@@ -58,7 +59,8 @@ export default class EntryAbility extends UIAbility implements FlutterBoostDeleg
     const options: FlutterBoostSetupOptions = new FlutterBoostSetupOptionsBuilder().build();
     try {
       await FlutterBoost.getInstance().setup(this, this.context, (engine: FlutterEngine) => {
-        engine.getPlugins()?.add(new FlutterBoostPlugin());
+        // 注册 FlutterBoost + webview_flutter_ohos 等插件（勿只注册 Boost）
+        GeneratedPluginRegistrant.registerWith(engine);
       }, options);
     } catch (err) {
       hilog.error(DOMAIN, 'testTag', 'FlutterBoost.setup failed: %{public}s',

@@ -175,18 +175,36 @@ struct LoginPage {
         Span($r('app.string.login_user_agreement'))
           .fontSize(12)
           .fontColor($r('app.color.hs_color_brand_link'))
+          .onClick(() => {
+            this.openAgreementWeb(
+              'https://static.histar.com/static/histar-wechat-mp/html/agreements/service.html',
+              '用户服务协议'
+            );
+          })
         Span($r('app.string.login_agreement_and'))
           .fontSize(12)
           .fontColor($r('app.color.hs_color_text_secondary'))
         Span($r('app.string.login_privacy_policy'))
           .fontSize(12)
           .fontColor($r('app.color.hs_color_brand_link'))
+          .onClick(() => {
+            this.openAgreementWeb(
+              'https://static.histar.com/static/histar-wechat-mp/html/agreements/privacy.html',
+              '隐私协议'
+            );
+          })
         Span($r('app.string.login_agreement_and'))
           .fontSize(12)
           .fontColor($r('app.color.hs_color_text_secondary'))
         Span($r('app.string.login_operator_terms'))
           .fontSize(12)
           .fontColor($r('app.color.hs_color_brand_link'))
+          .onClick(() => {
+            this.openAgreementWeb(
+              'https://static.histar.com/static/histar-wechat-mp/html/agreements/operator-terms.html',
+              '运营商认证服务条款'
+            );
+          })
       }
       .lineHeight(16)
       .layoutWeight(1)
@@ -195,6 +213,15 @@ struct LoginPage {
     .alignItems(VerticalAlign.Top)
     .width('100%')
     .margin({ top: 20 })
+  }
+
+  /** 打开协议 H5 页（对齐 Android LoginActivity.setupAgreementText → FlutterManager.openFlutter("/web/url")）。 */
+  private openAgreementWeb(url: string, title: string): void {
+    const args: Record<string, Object> = {
+      'url': url,
+      'title': title,
+    };
+    HMFlutterManager.openFlutter('/web/url', args);
   }
 
   /**

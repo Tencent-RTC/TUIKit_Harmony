@@ -20,6 +20,7 @@
     "@ohos/crypto-js": "^2.0.1",
     "tuicallkit": "file:../../call",
     "flutter_boost": "",
+    "webview_flutter_ohos": "",
     "@ohos/flutter_ohos": "",
     "flutter_native_arm64_v8a": "",
     "@ohos/flutter_module": ""

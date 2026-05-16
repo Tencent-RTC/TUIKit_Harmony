@@ -19,6 +19,9 @@
         "name": "debug"
       },
       {
+        "name": "profile"
+      },
+      {
         "name": "release"
       }
     ],

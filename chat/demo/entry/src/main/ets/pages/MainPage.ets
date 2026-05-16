@@ -9,7 +9,7 @@
  */
 
 import { WindowImmersiveHelper } from '../utils/WindowImmersiveHelper';
-import { LoginUserInfo } from '../bean/LoginUserInfo';
+import { DebugInfoPanel } from '../widget/DebugInfoPanel';
 
 @Entry
 @Component
@@ -24,13 +24,9 @@ struct SideBarOverlayClickClose {
    */
   @State statusBarInsetVp: number = 0;
 
-  /** LoginUserInfo 调试文本（进入页 / 点刷新时更新）。 */
-  @State loginUserDebugText: string = '';
-
   /** 进入页面：异步读取窗口并设置沉浸式 + 顶部留白高度。 */
   aboutToAppear(): void {
     void this.applyWindowAndInset();
-    this.refreshLoginUserDebugDump(true);
   }
 
   /** 离开页面：恢复默认系统栏，避免影响后续打开的页面（如设置页）。 */
@@ -48,15 +44,6 @@ struct SideBarOverlayClickClose {
     await WindowImmersiveHelper.enableImmersiveStatusBar(getContext(this));
     const inset = await WindowImmersiveHelper.getStatusBarInsetVp(getContext(this));
     this.statusBarInsetVp = inset;
-  }
-
-  /** 从单例读取 LoginUserInfo 并刷新界面；可选同步打印到控制台（HiLog）。 */
-  private refreshLoginUserDebugDump(logToConsole: boolean): void {
-    const dump = LoginUserInfo.getInstance().debugDumpForTest();
-    this.loginUserDebugText = dump;
-    if (logToConsole) {
-      console.info(`[MainPage LoginUserInfo]\n${dump}`);
-    }
   }
 
   build() {
@@ -94,43 +81,7 @@ struct SideBarOverlayClickClose {
             .height(56)
             .backgroundColor('#F8F9FA')
 
-            Column() {
-              Text('[调试] LoginUserInfo（登录态）')
-                .fontSize(15)
-                .fontWeight(FontWeight.Medium)
-                .fontColor('#131212')
-                .width('100%')
-                .padding({ left: 12, right: 12, top: 8, bottom: 4 })
-
-              Button('刷新显示（重新读单例）')
-                .fontSize(13)
-                .height(36)
-                .margin({ left: 12, right: 12, bottom: 8 })
-                .onClick(() => {
-                  this.refreshLoginUserDebugDump(true);
-                })
-
-              Scroll() {
-                Text(this.loginUserDebugText.length > 0 ? this.loginUserDebugText :
-                  '（暂无数据：请先完成 Flutter 登录或检查 MMKV）')
-                  .fontSize(11)
-                  .fontColor('#333333')
-                  .fontFamily('monospace')
-                  .lineHeight(16)
-                  .width('100%')
-              }
-              .scrollBar(BarState.Auto)
-              .edgeEffect(EdgeEffect.Spring)
-              .layoutWeight(1)
-              .width('100%')
-              .padding({ left: 12, right: 12, bottom: 12 })
-              .backgroundColor('#F5F6F8')
-              .borderRadius(8)
-              .margin({ left: 12, right: 12, bottom: 12 })
-            }
-            .layoutWeight(1)
-            .width('100%')
-            .alignItems(HorizontalAlign.Start)
+            DebugInfoPanel()
           }
           .width('100%')
           .height('100%')

@@ -1,21 +1,12 @@
 import { FlutterBoost } from 'flutter_boost';
 import systemDateTime from '@ohos.systemDateTime';
 import { LoginUserInfo } from '../bean/LoginUserInfo';
+import { AppSettings } from '../config/AppSettings';
 
 const TAG = 'HMFlutterManager';
 
 /** Android `LoginUserInfo` 中没有的字段就放鸿蒙侧自有的常量里 */
 const APP_VERSION = '1.0.5';
-
-/**
- * 鸿蒙侧应用环境配置，对应 Android `AppConfig` 中和 Flutter 通信所需的几项。
- * 这里写死为 test 环境，与 `SettingsPage` 的 `app_pushEnvironment` 实现保持一致。
- */
-class HMAppConfig {
-  static readonly ENV_TYPE: string = 'test';
-  static readonly BASE_URL: string = 'https://test.histar.com/zlxt/app/';
-  static readonly H5_URL: string = 'https://test.histar.com/histar-h5/#';
-}
 
 /** 与 FlutterBoostPlugin.EventListener 结构兼容的回调签名 */
 export type HMFlutterEventCallback = (key: string, args: Record<string, Object>) => void;
@@ -101,11 +92,13 @@ export class HMFlutterManager {
 
   /**
    * 推送运行环境配置 app_pushEnvironment（对齐 Android `appPushEnvironment`）。
+   * 数据来源：{@link AppSettings}（默认值由 `BuildProfile` 注入，运行期可被持久化覆盖）。
    */
   static appPushEnvironment(): void {
+    const settings = AppSettings.getInstance();
     const inner: Record<string, Object> = {
-      'env': HMAppConfig.ENV_TYPE,
-      'baseURL': HMAppConfig.BASE_URL,
+      'env': settings.getEnvType(),
+      'baseURL': settings.getBaseUrl(),
     };
     const data: Record<string, Object> = {
       'code': 0,
@@ -132,9 +125,10 @@ export class HMFlutterManager {
       header['Authorization'] = `Bearer ${token}`;
     }
 
+    const settings = AppSettings.getInstance();
     const inner: Record<string, Object> = {
-      'baseURL': HMAppConfig.BASE_URL,
-      'H5_URL': HMAppConfig.H5_URL,
+      'baseURL': settings.getBaseUrl(),
+      'H5_URL': settings.getH5Url(),
       'header': header,
     };
     const data: Record<string, Object> = {

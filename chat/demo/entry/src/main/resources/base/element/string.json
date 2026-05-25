@@ -375,6 +375,38 @@
     {
       "name": "login_third_party_coming_soon",
       "value": "功能开发中，敬请期待"
+    },
+    {
+      "name": "account_cancel_title",
+      "value": "注销账号"
+    },
+    {
+      "name": "account_cancellation_warning",
+      "value": "注销后您将在海星出游客户端放弃下述权益:"
+    },
+    {
+      "name": "account_cancellation_content",
+      "value": "• 您的身份、账户信息将清空\n\n• 会员权益将清空,专属优惠将失效\n\n• 行程记录和定制方案将清空且无法恢复\n\n• 与旅行顾问的聊天记录将被删除\n\n• 请确保所有订单已完结且无纠纷\n\n• 账户删除后历史订单可能产生的退款权益等将视作自动放弃\n\n• 销户后优惠券、积分等资产注销后将无法找回"
+    },
+    {
+      "name": "account_cancellation_warm_tip",
+      "value": "• 建议您在注销前确认所有订单已完成、无售后问题\n\n• 如有未使用的权益或未出行行程，请提前处理\n\n• 注销后，如需再次使用，可重新注册账户"
+    },
+    {
+      "name": "account_agreement_required",
+      "value": "请先阅读并同意协议"
+    },
+    {
+      "name": "account_logoff_title",
+      "value": "确认注销账号吗？"
+    },
+    {
+      "name": "account_logoff_message",
+      "value": "您正在申请注销账号，此操作无法撤销。请确认是否要继续？"
+    },
+    {
+      "name": "account_cancel_success",
+      "value": "注销成功"
     }
   ]
 }

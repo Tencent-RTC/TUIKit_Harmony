@@ -187,7 +187,14 @@ struct AppSettingsPage {
       this.MenuDividerBuilder()
       SettingsMenuRow({ title: '账号关联' })
       this.MenuDividerBuilder()
-      SettingsMenuRow({ title: '注销账号' })
+      SettingsMenuRow({
+        title: '注销账号',
+        onTap: () => {
+          router.pushUrl({ url: 'pages/settings/AccountCancellationPage' }).catch((err: Error) => {
+            console.error(`open AccountCancellationPage failed: ${JSON.stringify(err)}`);
+          });
+        },
+      })
       if (this.showDevelopMenu) {
         this.MenuDividerBuilder()
         SettingsMenuRow({

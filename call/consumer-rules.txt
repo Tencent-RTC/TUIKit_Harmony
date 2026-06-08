@@ -1,0 +1,2 @@
+# consumer-rules.txt
+# 占位文件，call_v2 当前未开启混淆，无需 -keep 规则。

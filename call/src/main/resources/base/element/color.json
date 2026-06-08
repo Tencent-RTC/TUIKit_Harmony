@@ -1,0 +1,18 @@
+{
+  "color": [
+    { "name": "TUICallKit_white", "value": "#FFFFFFFF" },
+    { "name": "TUICallKit_black", "value": "#FF000000" },
+    { "name": "TUICallKit_text_primary", "value": "#FF333333" },
+    { "name": "TUICallKit_text_grey", "value": "#FF999999" },
+    { "name": "TUICallKit_owe_white", "value": "#CCFFFFFF" },
+    { "name": "TUICallKit_red", "value": "#FFFF584C" },
+    { "name": "TUICallKit_green", "value": "#FF29CC85" },
+    { "name": "TUICallKit_blue", "value": "#FF1C66E5" },
+    { "name": "TUICallKit_call_bg", "value": "#FF222222" },
+    { "name": "TUICallKit_mask_bg", "value": "#33000000" },
+    { "name": "TUICallKit_btn_normal_bg", "value": "#33FFFFFF" },
+    { "name": "TUICallKit_btn_selected_bg", "value": "#FFFFFFFF" },
+    { "name": "TUICallKit_hangup_bg", "value": "#FFFF584C" },
+    { "name": "TUICallKit_answer_bg", "value": "#FF29CC85" }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "@tencentcloud/tuicallkit",
+  "version": "4.2.0",
+  "description": "Harmony TUICallKit SDK. Powered by @tencentcloud/atomicxcore.",
+  "main": "Index.ets",
+  "author": "Tencent Cloud",
+  "license": "MIT",
+  "dependencies": {
+    "@tencentcloud/atomicxcore": "^4.2.0"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "string": [
+    {
+      "name": "callkit_request_camera_permission",
+      "value": "需要摄像头权限以发起视频通话"
+    },
+    {
+      "name": "callkit_request_microphone_permission",
+      "value": "需要麦克风权限以发起音视频通话"
+    },
+
+    { "name": "TUICallKit_inviteToVideoCall", "value": "邀请你视频通话" },
+    { "name": "TUICallKit_inviteToAudioCall", "value": "邀请你语音通话" },
+    { "name": "TUICallKit_waitAccept", "value": "等待对方接受邀请" },
+    { "name": "TUICallKit_accept", "value": "已接通" },
+    { "name": "TUICallKit_Group_inviteToGroupCall", "value": "邀请你加入多人通话" },
+    { "name": "TUICallKit_Group_waitAccept", "value": "等待接听" },
+    { "name": "TUICallKit_determine", "value": "确定" },
+    { "name": "TUICallKit_lineBusy", "value": "对方正在通话中，请稍后再试" },
+    { "name": "TUICallKit_userHangup", "value": "%s 结束通话" },
+    { "name": "TUICallKit_userReject", "value": "%s 拒绝了通话请求" },
+    { "name": "TUICallKit_otherPartyHangup", "value": "对方已挂断，通话结束" },
+    { "name": "TUICallKit_otherPartyReject", "value": "对方拒绝了你的通话请求" },
+    { "name": "TUICallKit_otherPartyNoResponse", "value": "对方未接听，请稍后再试" },
+    { "name": "TUICallKit_otherPartyCanceled", "value": "对方已取消通话" },
+    { "name": "TUICallKit_calNotCallYourself", "value": "无法向自己发起呼叫" },
+    { "name": "TUICallKit_youHaveMissedCalls", "value": "您正在通话中，无法再次发起通话" },
+
+    { "name": "TUICallKit_switchCamera", "value": "翻转" },
+    { "name": "TUICallKit_blurBackground", "value": "模糊背景" },
+    { "name": "TUICallKit_hangup", "value": "挂断" },
+    { "name": "TUICallKit_cancel", "value": "取消" },
+    { "name": "TUICallKit_decline", "value": "拒接" },
+    { "name": "TUICallKit_answer", "value": "接听" },
+    { "name": "TUICallKit_yournetworkpoor", "value": "己方网络不佳" },
+    { "name": "TUICallKit_calleeTip", "value": "参与通话的还有：" },
+    { "name": "TUICallKit_FloatingWindow_waitAccept", "value": "等待接听" },
+
+    { "name": "TUICallKit_User_Exceed_Limit", "value": "当前通话最多支持 9 人同时在线" },
+    { "name": "TUICallKit_have_new_invitation", "value": "您有一个新的通话" },
+
+    { "name": "TUICallKit_FailedToGetCameraPermission_Title", "value": "相机权限未开启" },
+    { "name": "TUICallKit_FailedToGetCameraPermission_Tips", "value": "相机权限未开启，无法开启视频通话，前往「设置 > %s」中打开相机权限" },
+    { "name": "TUICallKit_FailedToGetCameraPermission_Later", "value": "以后再说" },
+    { "name": "TUICallKit_FailedToGetCameraPermission_Enable", "value": "去开启" },
+
+    { "name": "TUICallKit_FailedToGetMicrophonePermission_Title", "value": "麦克风权限未开启" },
+    { "name": "TUICallKit_FailedToGetMicrophonePermission_Tips", "value": "麦克风权限未开启，无法开启音视频通话，前往「设置 > %s」中打开麦克风权限" },
+    { "name": "TUICallKit_FailedToGetMicrophonePermission_Later", "value": "以后再说" },
+    { "name": "TUICallKit_FailedToGetMicrophonePermission_Enable", "value": "去开启" },
+
+    { "name": "TUICallKit_unmuted", "value": "麦克风已开" },
+    { "name": "TUICallKit_muted", "value": "麦克风已关" },
+    { "name": "TUICallKit_speakerPhone", "value": "扬声器已开" },
+    { "name": "TUICallKit_earpiece", "value": "扬声器已关" },
+    { "name": "TUICallKit_cameraOn", "value": "摄像头已开" },
+    { "name": "TUICallKit_cameraOff", "value": "摄像头已关" },
+
+    { "name": "TUICallKit_AVRoutePickerView_speakerPhone", "value": "扬声器" },
+    { "name": "TUICallKit_AVRoutePickerView_earpiece", "value": "听筒" },
+    { "name": "TUICallKit_deviceNotSupportEarpiece", "value": "当前设备不支持从听筒播放" },
+
+    { "name": "TUICallKit_OtherParty_NetworkLowQuality", "value": "当前通话对方网络不佳" },
+    { "name": "TUICallKit_Self_NetworkLowQuality", "value": "当前通话你的网络不佳" },
+
+    { "name": "TUICallKit_SmartCellular_title", "value": "切换到蜂窝网络？" },
+    { "name": "TUICallKit_SmartCellular_wifiPoor", "value": "Wi-Fi 信号差" },
+    { "name": "TUICallKit_SmartCellular_cellularGood", "value": "蜂窝网络较好" },
+    { "name": "TUICallKit_SmartCellular_description", "value": "检测到 Wi-Fi 网络不佳，切换到蜂窝网络可获得更好的通话体验。" },
+    { "name": "TUICallKit_SmartCellular_improve", "value": "改善体验" },
+    { "name": "TUICallKit_SmartCellular_keepWifi", "value": "保持 Wi-Fi" },
+    { "name": "TUICallKit_SmartCellular_SwitchedToCellular", "value": "已切换到蜂窝网络" },
+    { "name": "TUICallKit_SmartCellular_SwitchedToWiFi", "value": "已切换到 Wi-Fi" },
+
+    { "name": "TUICallKit_enterPipModeFailHint", "value": "进入画中画失败，请检查是否开启权限" }
+  ]
+}

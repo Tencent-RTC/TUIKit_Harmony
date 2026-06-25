@@ -13,6 +13,8 @@ import {
 import { FlutterEngine, FlutterManager } from '@ohos/flutter_ohos';
 import { GeneratedPluginRegistrant } from '@ohos/flutter_module';
 import router from '@ohos.router';
+import { TUICallKit } from '@tencentcloud/tuicallkit';
+
 
 const DOMAIN = 0x0000;
 
@@ -54,6 +56,7 @@ export default class EntryAbility extends UIAbility implements FlutterBoostDeleg
 
   async onWindowStageCreate(windowStage: window.WindowStage): Promise<void> {
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
+
     FlutterManager.getInstance().pushWindowStage(this, windowStage);
 
     const options: FlutterBoostSetupOptions = new FlutterBoostSetupOptionsBuilder().build();
@@ -66,6 +69,9 @@ export default class EntryAbility extends UIAbility implements FlutterBoostDeleg
       hilog.error(DOMAIN, 'testTag', 'FlutterBoost.setup failed: %{public}s',
         err instanceof Error ? err.message : JSON.stringify(err));
     }
+    
+    TUICallKit.createInstance(this.context).attach(windowStage);
+
 
     windowStage.loadContent('pages/SplashScreenPage', (err) => {
       if (err.code) {
@@ -78,7 +84,11 @@ export default class EntryAbility extends UIAbility implements FlutterBoostDeleg
 
   onWindowStageDestroy(): void {
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageDestroy');
+
     FlutterManager.getInstance().popWindowStage(this);
+
+    TUICallKit.createInstance(this.context).detach();
+
   }
 
   onForeground(): void {

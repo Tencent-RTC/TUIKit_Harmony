@@ -171,6 +171,7 @@ export struct ChatDialog {
   onUserClick?: (userID: string) => void;
   onChatHeaderClick?: (conversationID: string) => void;
   onCallMessageClick?: (userID: string, isVideoCall: boolean) => void;
+  onCallStart?: (participantIds: string[], mediaType: CallMediaType, chatGroupId: string, timeout: number) => void;
 
   build() {
     ChatPage({
@@ -193,6 +194,11 @@ export struct ChatDialog {
       onChatHeaderClick: (conversationID: string) => {
         if (this.onChatHeaderClick) {
           this.onChatHeaderClick(conversationID);
+        }
+      },
+      onCallStart: (participantIds: string[], mediaType: CallMediaType, chatGroupId: string, timeout: number) => {
+        if (this.onCallStart) {
+          this.onCallStart(participantIds, mediaType, chatGroupId, timeout);
         }
       },
       dialogController: this.controller
@@ -219,6 +225,7 @@ export struct ChatPage {
   onBack?: () => void;
   onUserClick?: (userID: string) => void;
   onChatHeaderClick?: (conversationID: string) => void;
+  onCallStart?: (participantIds: string[], mediaType: CallMediaType, chatGroupId: string, timeout: number) => void;
   dialogController?: CustomDialogController;
 
   aboutToAppear(): void {
@@ -245,21 +252,31 @@ export struct ChatPage {
     return '';
   }
 
+  private dispatchCallStart(participantIds: string[], mediaType: CallMediaType, chatGroupId: string, timeout: number): void {
+    if (participantIds.length === 0) {
+      return;
+    }
+    if (this.onCallStart) {
+      this.onCallStart(participantIds, mediaType, chatGroupId, timeout);
+      return;
+    }
+    // Fallback: keep legacy event-bus path for callers that have not yet
+    // wired the direct callback.
+    const data: Record<string, Object> = {
+      'participantIds': participantIds,
+      'mediaType': mediaType as Object,
+      'chatGroupId': chatGroupId as Object,
+      'timeout': timeout as Object,
+    };
+    TUIEventBus.getInstance().publish('call.startCall', null, new PublishParams(false, data));
+  }
+
   private onVoiceCallClick(): void {
     if (this.isGroupConversation()) {
       const chatGroupId = this.getGroupID();
       this.showGroupMemberPicker(chatGroupId, CallMediaType.audio);
     } else {
-      const participantId = this.getUserID();
-      const participantIds: string[] = [participantId];
-      const data: Record<string, Object> = {
-        'participantIds': participantIds,
-        'mediaType': CallMediaType.audio as Object,
-        'chatGroupId': '' as Object,
-        'timeout': 30 as Object,
-      };
-      const params = new PublishParams(false, data);
-      TUIEventBus.getInstance().publish('call.startCall', null, params);
+      this.dispatchCallStart([this.getUserID()], CallMediaType.audio, '', 30);
     }
   }
 
@@ -268,29 +285,12 @@ export struct ChatPage {
       const chatGroupId = this.getGroupID();
       this.showGroupMemberPicker(chatGroupId, CallMediaType.video);
     } else {
-      const participantId = this.getUserID();
-      const participantIds: string[] = [participantId];
-      const data: Record<string, Object> = {
-        'participantIds': participantIds,
-        'mediaType': CallMediaType.video as Object,
-        'chatGroupId': '' as Object,
-        'timeout': 30 as Object,
-      };
-      const params = new PublishParams(false, data);
-      TUIEventBus.getInstance().publish('call.startCall', null, params);
+      this.dispatchCallStart([this.getUserID()], CallMediaType.video, '', 30);
     }
   }
 
   private onCallMessageClick(userID: string, isVideoCall: boolean): void {
-    const participantIds: string[] = [userID];
-    const data: Record<string, Object> = {
-      'participantIds': participantIds,
-      'mediaType': (isVideoCall ? CallMediaType.video : CallMediaType.audio) as Object,
-      'chatGroupId': '' as Object,
-      'timeout': 30 as Object,
-    };
-    const params = new PublishParams(false, data);
-    TUIEventBus.getInstance().publish('call.startCall', null, params);
+    this.dispatchCallStart([userID], isVideoCall ? CallMediaType.video : CallMediaType.audio, '', 30);
   }
 
   private showGroupMemberPicker(chatGroupId: string, mediaType: CallMediaType): void {
@@ -300,14 +300,7 @@ export struct ChatPage {
         onConfirm: (selectedItems: UserPickerData<GroupMember>[]) => {
           if (selectedItems.length > 0) {
             const participantIds: string[] = selectedItems.map((item: UserPickerData<GroupMember>): string => item.key);
-            const data: Record<string, Object> = {
-              'participantIds': participantIds,
-              'mediaType': mediaType as Object,
-              'chatGroupId': chatGroupId as Object,
-              'timeout': 30 as Object,
-            };
-            const params = new PublishParams(false, data);
-            TUIEventBus.getInstance().publish('call.startCall', null, params);
+            this.dispatchCallStart(participantIds, mediaType, chatGroupId, 30);
           }
         },
       }),

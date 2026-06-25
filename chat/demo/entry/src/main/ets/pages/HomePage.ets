@@ -1,35 +1,16 @@
 import { SettingsPage } from './SettingsPage'
 import { ContactsPage, ChatDialog } from 'chatuikit'
 import { ImageSizeUtil,ThemeState, BadgeControl, BadgeType, UserInteractionHelper, GroupSettingDialog } from '@tencentcloud/atomicx';
+import { CallMediaType as UIKitCallMediaType } from '@tencentcloud/atomicx';
 import { ConversationsPage } from 'chatuikit'
 import { LoginStore, ContactListStore, ContactListState, ConversationListStore, ConversationListState, ConversationInfo, MessageInfo, ContactInfo, LoginEvent } from '@tencentcloud/atomicxcore'
 import { ImmersiveMode, LevelMode } from '@kit.ArkUI'
 import { promptAction, router } from '@kit.ArkUI'
-import TUICallKitImpl from 'tuicallkit';
-import { TUIEventBus, TUIObserver, NotifyParams, CallMediaType, CallParams } from '@tencentcloud/atomicx'
+import { TUICallKit } from '@tencentcloud/tuicallkit';
+import { CallMediaType, CallParams } from '@tencentcloud/atomicxcore'
 
-class CallStartObserver implements TUIObserver {
-  onNotify(event: string, _key: string | null, params: NotifyParams | null): void {
-    if (event === 'call.startCall' && params?.data) {
-      const data = params.data;
-      const participantIds: string[] = (data['participantIds'] as string[]) ?? [];
-      const mediaType: CallMediaType = (data['mediaType'] as CallMediaType) ?? CallMediaType.audio;
-      if (participantIds.length === 0) {
-        return;
-      }
-      const mediaTypeNum: number = mediaType === CallMediaType.video ? 2 : 1;
-      const chatGroupId: string = (data['chatGroupId'] as string) ?? '';
-      const timeout: number = (data['timeout'] as number) ?? 30;
-      let callParams: CallParams | null = null;
-      if (chatGroupId.length > 0) {
-        callParams = {
-          chatGroupId: chatGroupId,
-          timeout: timeout,
-        };
-      }
-      TUICallKitImpl.createInstance(getContext()).calls(participantIds, mediaTypeNum, callParams as Record<string, Object> | null);
-    }
-  }
+function toCoreMediaType(uiType: UIKitCallMediaType): CallMediaType {
+  return uiType === UIKitCallMediaType.video ? CallMediaType.video : CallMediaType.audio;
 }
 
 @Observed
@@ -73,7 +54,6 @@ struct HomePage {
   private groupSettingDialogController?: CustomDialogController;
   private userInteractionHelper: UserInteractionHelper = new UserInteractionHelper();
   private loginEventUnsubscribe?: () => void;
-  private callEventObserver?: TUIObserver;
 
   aboutToAppear() {
     this.tabItems = [
@@ -107,15 +87,27 @@ struct HomePage {
 
   aboutToDisappear() {
     this.loginEventUnsubscribe?.();
-    if (this.callEventObserver) {
-      TUIEventBus.getInstance().unsubscribe('call.startCall', null, this.callEventObserver);
-    }
   }
 
   private initCallKit(): void {
-    TUICallKitImpl.createInstance(getContext())
-    this.callEventObserver = new CallStartObserver();
-    TUIEventBus.getInstance().subscribe('call.startCall', null, this.callEventObserver);
+    TUICallKit.createInstance(getContext());
+  }
+
+  private handleCallStart(participantIds: string[], uiMediaType: UIKitCallMediaType,
+                          chatGroupId: string, timeout: number): void {
+    if (!participantIds || participantIds.length === 0) {
+      console.warn('[HomePage] handleCallStart: empty participants, abort');
+      return;
+    }
+    const mediaType: CallMediaType = toCoreMediaType(uiMediaType);
+    let callParams: CallParams | undefined;
+    if (chatGroupId.length > 0) {
+      callParams = new CallParams(undefined, timeout, undefined, chatGroupId);
+    } else if (timeout && timeout !== 30) {
+      callParams = new CallParams(undefined, timeout);
+    }
+    console.info(`[HomePage] start call -> users=${JSON.stringify(participantIds)} type=${mediaType} group=${chatGroupId}`);
+    TUICallKit.createInstance(getContext()).calls(participantIds, mediaType, callParams);
   }
 
 
@@ -407,6 +399,10 @@ struct HomePage {
           onChatHeaderClick: (clickedConversationID: string) => {
             console.log('[HomePage] Chat header clicked:', clickedConversationID);
             this.handleChatHeaderClick(clickedConversationID);
+          },
+          onCallStart: (participantIds: string[], mediaType: UIKitCallMediaType,
+                        chatGroupId: string, timeout: number) => {
+            this.handleCallStart(participantIds, mediaType, chatGroupId, timeout);
           },
 
         }),

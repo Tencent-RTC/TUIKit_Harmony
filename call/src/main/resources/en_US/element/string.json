@@ -1,0 +1,77 @@
+{
+  "string": [
+    {
+      "name": "callkit_request_camera_permission",
+      "value": "Camera permission is required to enable video calls."
+    },
+    {
+      "name": "callkit_request_microphone_permission",
+      "value": "Microphone permission is required to enable audio calls."
+    },
+
+    { "name": "TUICallKit_inviteToVideoCall", "value": "invites you to a video call" },
+    { "name": "TUICallKit_inviteToAudioCall", "value": "invites you to an audio call" },
+    { "name": "TUICallKit_waitAccept", "value": "Waiting for the other party to accept" },
+    { "name": "TUICallKit_accept", "value": "Connected" },
+    { "name": "TUICallKit_Group_inviteToGroupCall", "value": "invites you to a group call" },
+    { "name": "TUICallKit_Group_waitAccept", "value": "Waiting for answer" },
+    { "name": "TUICallKit_determine", "value": "OK" },
+    { "name": "TUICallKit_lineBusy", "value": "The other party is busy. Please try again later." },
+    { "name": "TUICallKit_userHangup", "value": "%s ended the call" },
+    { "name": "TUICallKit_userReject", "value": "%s declined the call" },
+    { "name": "TUICallKit_otherPartyHangup", "value": "The other party hung up" },
+    { "name": "TUICallKit_otherPartyReject", "value": "The other party declined the call" },
+    { "name": "TUICallKit_otherPartyNoResponse", "value": "No response. Please try again later." },
+    { "name": "TUICallKit_otherPartyCanceled", "value": "The other party canceled the call" },
+    { "name": "TUICallKit_calNotCallYourself", "value": "You can't call yourself" },
+    { "name": "TUICallKit_youHaveMissedCalls", "value": "You are already in a call. Cannot start another." },
+
+    { "name": "TUICallKit_switchCamera", "value": "Flip" },
+    { "name": "TUICallKit_blurBackground", "value": "Blur Background" },
+    { "name": "TUICallKit_hangup", "value": "Hangup" },
+    { "name": "TUICallKit_cancel", "value": "Cancel" },
+    { "name": "TUICallKit_decline", "value": "Decline" },
+    { "name": "TUICallKit_answer", "value": "Answer" },
+    { "name": "TUICallKit_yournetworkpoor", "value": "Your network is poor" },
+    { "name": "TUICallKit_calleeTip", "value": "Other participants:" },
+    { "name": "TUICallKit_FloatingWindow_waitAccept", "value": "Waiting for answer" },
+
+    { "name": "TUICallKit_User_Exceed_Limit", "value": "Up to 9 people are supported in a single call" },
+    { "name": "TUICallKit_have_new_invitation", "value": "You have a new call" },
+
+    { "name": "TUICallKit_FailedToGetCameraPermission_Title", "value": "No access to camera" },
+    { "name": "TUICallKit_FailedToGetCameraPermission_Tips", "value": "Camera permission not enabled, unable to start video call. Go to Settings > %s to enable camera permission" },
+    { "name": "TUICallKit_FailedToGetCameraPermission_Later", "value": "Later" },
+    { "name": "TUICallKit_FailedToGetCameraPermission_Enable", "value": "Authorize Now" },
+
+    { "name": "TUICallKit_FailedToGetMicrophonePermission_Title", "value": "No access to microphone" },
+    { "name": "TUICallKit_FailedToGetMicrophonePermission_Tips", "value": "Microphone permission not enabled, unable to start audio/video call. Go to Settings > %s to enable microphone permission" },
+    { "name": "TUICallKit_FailedToGetMicrophonePermission_Later", "value": "Later" },
+    { "name": "TUICallKit_FailedToGetMicrophonePermission_Enable", "value": "Authorize Now" },
+
+    { "name": "TUICallKit_unmuted", "value": "Microphone on" },
+    { "name": "TUICallKit_muted", "value": "Microphone off" },
+    { "name": "TUICallKit_speakerPhone", "value": "Speaker on" },
+    { "name": "TUICallKit_earpiece", "value": "Speaker off" },
+    { "name": "TUICallKit_cameraOn", "value": "Camera on" },
+    { "name": "TUICallKit_cameraOff", "value": "Camera off" },
+
+    { "name": "TUICallKit_AVRoutePickerView_speakerPhone", "value": "Speaker" },
+    { "name": "TUICallKit_AVRoutePickerView_earpiece", "value": "Earpiece" },
+    { "name": "TUICallKit_deviceNotSupportEarpiece", "value": "This device does not support earpiece playback" },
+
+    { "name": "TUICallKit_OtherParty_NetworkLowQuality", "value": "The other party's network is poor" },
+    { "name": "TUICallKit_Self_NetworkLowQuality", "value": "Your network is poor" },
+
+    { "name": "TUICallKit_SmartCellular_title", "value": "Switch to cellular?" },
+    { "name": "TUICallKit_SmartCellular_wifiPoor", "value": "Wi-Fi poor" },
+    { "name": "TUICallKit_SmartCellular_cellularGood", "value": "Cellular good" },
+    { "name": "TUICallKit_SmartCellular_description", "value": "We detected that your Wi-Fi connection is poor. Switch to cellular for a better experience." },
+    { "name": "TUICallKit_SmartCellular_improve", "value": "Improve experience" },
+    { "name": "TUICallKit_SmartCellular_keepWifi", "value": "Keep using Wi-Fi" },
+    { "name": "TUICallKit_SmartCellular_SwitchedToCellular", "value": "Switched to cellular" },
+    { "name": "TUICallKit_SmartCellular_SwitchedToWiFi", "value": "Switched to Wi-Fi" },
+
+    { "name": "TUICallKit_enterPipModeFailHint", "value": "Failed to enter Picture-in-Picture mode, please check if the permission is enabled." }
+  ]
+}

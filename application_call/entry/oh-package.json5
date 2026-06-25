@@ -1,0 +1,16 @@
+{
+  "name": "entry",
+  "version": "1.0.0",
+  "description": "Please describe the basic information.",
+  "main": "",
+  "author": "",
+  "license": "",
+  "dependencies": {
+    "@tencentcloud/atomicxcore": "^4.2.0",
+    "@tencentcloud/tuicallkit": "file:../../call",
+    "@tencentcloud/liteavsdk_professional": "^13.2.0",
+    "@ohos/crypto-js": "2.0.2",
+    "pako": "2.1.0"
+  }
+}
+

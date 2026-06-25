@@ -6,7 +6,7 @@ import { MMKV } from '@tencent/mmkv';
 import { ImageSizeUtil, ThemeState, Log, Toast } from '@tencentcloud/atomicx';
 import DemoConstants from '../utils/DemoConstants';
 import { common } from '@kit.AbilityKit';
-import TUICallKit from 'tuicallkit';
+import { TUICallKit } from '@tencentcloud/tuicallkit';
 
 @Entry
 @Component
@@ -101,12 +101,8 @@ struct DevLoginPage {
         const userID = LoginStore.shared().state.loginUserInfo?.userID || '';
         Toast.success($r('app.string.login_success_message', userID), this.getUIContext());
 
-        TUICallKit.createInstance(getContext()).login(SDKAPPID, this.userID!, userSig).then(() => {
-          return router.replaceUrl({ url: "pages/HomePage" });
-        }).catch((reason: Object) => {
-          Log.i("DevLoginPage", "TUICallKit login failed, " + reason);
-          return router.replaceUrl({ url: "pages/HomePage" });
-        });
+        TUICallKit.createInstance(getContext());
+        router.replaceUrl({ url: "pages/HomePage" });
 
       }).catch((reason: Object) => {
         this.inLogin = false;

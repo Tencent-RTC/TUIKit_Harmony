@@ -69,6 +69,17 @@ struct DevLoginPage {
           this.login();
         })
 
+      Button("跳转登录页", { stateEffect: true, type: ButtonType.Normal })
+        .margin({top:20})
+        .onClick(() => {
+          router.pushUrl({ url: "pages/LoginPage" });
+        })
+      Button("跳转主页", { stateEffect: true, type: ButtonType.Normal })
+        .margin({top:20})
+        .onClick(() => {
+          router.pushUrl({ url: "pages/main/MainPage" });
+        })
+
     }
     .padding(16)
     .width('100%')

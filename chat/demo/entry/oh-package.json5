@@ -18,7 +18,14 @@
     "dayjs": "^1.11.7",
     "pako": "^2.1.0",
     "@ohos/crypto-js": "^2.0.1",
-    "@tencentcloud/tuicallkit": "file:../../../call"
+    "@tencentcloud/tuicallkit": "file:../../../call",
+
+    "flutter_boost": "",
+    "webview_flutter_ohos": "",
+    "image_picker_ohos": "",
+    "@ohos/flutter_ohos": "",
+    "flutter_native_arm64_v8a": "",
+    "@ohos/flutter_module": ""
   }
 }
 

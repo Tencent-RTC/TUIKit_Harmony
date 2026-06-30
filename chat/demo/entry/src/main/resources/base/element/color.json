@@ -7,6 +7,38 @@
     {
       "name": "start_window_background2",
       "value": "#141516"
+    },
+    {
+      "name": "hs_color_black",
+      "value": "#131212"
+    },
+    {
+      "name": "hs_color_brand",
+      "value": "#FBF08B"
+    },
+    {
+      "name": "hs_color_brand_link",
+      "value": "#ECD500"
+    },
+    {
+      "name": "hs_color_text_secondary",
+      "value": "#5E5E66"
+    },
+    {
+      "name": "hs_color_border_gray",
+      "value": "#DCDCDC"
+    },
+    {
+      "name": "hs_color_bg_gray",
+      "value": "#F2F3F5"
+    },
+    {
+      "name": "hs_color_purple_accent",
+      "value": "#7866F6"
+    },
+    {
+      "name": "hs_color_white",
+      "value": "#FFFFFF"
     }
   ]
 }

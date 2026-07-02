@@ -19,7 +19,25 @@
         "name": "debug"
       },
       {
+        "name": "profile"
+      },
+      {
         "name": "release"
+      }
+    ],
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "/Users/shims/.ohos/config/default_demo_R2owGaqvlP_uwPh4dzHWHHUGoaVCDSjc0ldCbVlGoKg=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001B5FBBE5E7D341C3E78DB1BC31EBA0E236514986DD1E5B39FD6F19A80297B19F788648AC7D53749F",
+          "profile": "/Users/shims/.ohos/config/default_demo_R2owGaqvlP_uwPh4dzHWHHUGoaVCDSjc0ldCbVlGoKg=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "/Users/shims/.ohos/config/default_demo_R2owGaqvlP_uwPh4dzHWHHUGoaVCDSjc0ldCbVlGoKg=.p12",
+          "storePassword": "0000001BE89C9E7E6844394EFD2E2D993130E37468D1E4863524DFAA5F46F9921369A456E6ADD2CAF69EE3"
+        }
       }
     ]
   },

@@ -1,7 +1,7 @@
 import { MMKV } from '@tencent/mmkv';
 import { ErrorInfo, LoginStore, UserProfile, Gender, LoginState } from '@tencentcloud/atomicxcore';
 import { ImageSizeUtil, ThemeState, Log, Toast, TextUtils, ToastType, Avatar, AvatarSize , AvatarContentType,AvatarShape, AppBuilderConfig, Switch, LanguageState } from '@tencentcloud/atomicx';
-
+import { FlutterBoost } from 'flutter_boost';
 import Prompt from '@system.prompt';
 import router from '@ohos.router';
 import DemoConstants from '../utils/DemoConstants';
@@ -501,7 +501,58 @@ struct SettingItemView {
 
       SettingItem({ text: $r("app.string.demo_about_button_name") })
         .onClick(() => {
-          Toast.info($r("app.string.demo_title"), this.getUIContext());
+          // Toast.info($r("app.string.demo_title"), this.getUIContext());
+          // 鸿蒙原生侧 (ArkTS) 发送事件
+          let data: Record<string, Object> = {
+            "env": "test",
+            "baseURL": "https://test.histar.com/zlxt/app/"
+          };
+
+          let params: Record<string, Object> = {
+            "code": 0,
+            "data": data
+          };
+
+          // 发送事件给 Flutter
+          FlutterBoost.getInstance().sendEventToFlutter("app_pushEnvironment", params);
+
+          // 构建 header 对象
+          const mapheader: Record<string, Object> = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Source": "android",
+            "Version": "1.0.5",
+            "Timezone": "Asia/Shanghai",
+            "clientDst": "0"
+          };
+
+          // 构建主数据对象
+          const map: Record<string, Object> = {
+            "baseURL": "https://test.histar.com/zlxt/app/",
+            "H5_URL": "https://test.histar.com/histar-h5/#",
+            "header": mapheader
+          };
+
+          // 构建最终数据包
+          const data2: Record<string, Object> = {
+            "code": 0,
+            "data": map
+          };
+
+          // 发送到 Flutter
+          FlutterBoost.getInstance().sendEventToFlutter("app_pushNetworkConfig", data2);
+
+          const plugin = FlutterBoost.getInstance().getPlugin();
+          if (!plugin) return;
+           plugin.addEventListener('flutter_pushLoginSuccess', {
+            onEvent: (key: string, args: Record<string, Object>) => {
+              Toast.info(`${JSON.stringify(args)}`, this.getUIContext());
+            }
+          });
+
+          FlutterBoost.getInstance().open('/login/smsLogin', {} as Record<string, Object>, true);
+
+
         })
 
       Divider().height(0.4).color(this.themeState.colors.strokeColorPrimary).width('100%')

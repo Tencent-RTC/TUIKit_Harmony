@@ -1,0 +1,3 @@
+[submodule "chat/demo/flutter_module"]
+	path = chat/demo/flutter_module
+	url = https://codeup.aliyun.com/zlxt/zlxt-front/Histar-Flutter.git

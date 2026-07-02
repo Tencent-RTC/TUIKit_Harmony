@@ -4,6 +4,20 @@
   "dependencies": {
   },
   "devDependencies": {
-    "@ohos/hamock": "1.0.0"
+    "@ohos/hamock": "1.0.0",
+    "@ohos/flutter_ohos": "",
+    "flutter_native_arm64_v8a": "",
+    "@ohos/flutter_module": "",
+    "flutter_boost": "",
+    "webview_flutter_ohos": "",
+    "image_picker_ohos": ""
+  },
+  "overrides": {
+    "@ohos/flutter_ohos": "file:./flutter_module/build/ohos/har/release/flutter_embedding_release.har",
+    "flutter_native_arm64_v8a": "file:./flutter_module/build/ohos/har/release/arm64_v8a_release.har",
+    "@ohos/flutter_module": "file:./flutter_module/build/ohos/har/release/flutter_module.har",
+    "flutter_boost": "file:./flutter_module/build/ohos/har/release/flutter_boost.har",
+    "webview_flutter_ohos": "file:./flutter_module/build/ohos/har/release/webview_flutter_ohos.har",
+    "image_picker_ohos": "file:./flutter_module/build/ohos/har/release/image_picker_ohos.har"
   }
 }

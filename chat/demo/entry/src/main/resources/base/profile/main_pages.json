@@ -2,7 +2,16 @@
   "src": [
     "pages/SplashScreenPage",
     "pages/HomePage",
+    "pages/main/MainPage",
+    "pages/message/MessageCenterPage",
+    "pages/message/MessageDetailPage",
+    "pages/settings/AppSettingsPage",
+    "pages/settings/AccountCancellationPage",
+    "pages/settings/AboutPage",
+    "pages/settings/VersionInfoPage",
+    "pages/LoginPage",
     "pages/DevLoginPage",
-    "pages/SettingsPage"
+    "pages/SettingsPage",
+    "pages/FlutterBoostHostPage"
   ]
 }

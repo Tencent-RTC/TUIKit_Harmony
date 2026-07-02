@@ -1,9 +1,47 @@
 {
   "apiType": "stageMode",
   "buildOption": {
+    // 默认配置（与 Android 默认 debug 行为一致：使用 test 环境）
+    "arkOptions": {
+      "buildProfileFields": {
+        "ENV_TYPE": "test",
+        "BASE_URL": "https://test.histar.com/zlxt/app/",
+        "H5_URL": "https://test.histar.com/histar-h5/#",
+        "IM_SDK_APPID": 1600111396,
+        "PUSH_APPKEY": "oWJmXCifmNL5oaRZJrQhlvcZpF9WuQccsRrC7HGUkONFUrpcSkOnrEWMvLPZc2aR"
+      }
+    }
   },
   "buildOptionSet": [
     {
+      // debug 模式：开发环境，默认与 Android `debug` 当前注释中启用的 test 环境一致；
+      // 如需切到 dev 真机/真服务，将下面 5 个字段值替换为 dev 配置即可。
+      "name": "debug",
+      "arkOptions": {
+        "buildProfileFields": {
+          "ENV_TYPE": "test",
+          "BASE_URL": "https://test.histar.com/zlxt/app/",
+          "H5_URL": "https://test.histar.com/histar-h5/#",
+          "IM_SDK_APPID": 1600111396,
+          "PUSH_APPKEY": "oWJmXCifmNL5oaRZJrQhlvcZpF9WuQccsRrC7HGUkONFUrpcSkOnrEWMvLPZc2aR"
+        }
+      }
+    },
+    {
+      // profile 模式：测试环境，对应 Android `profile`
+      "name": "profile",
+      "arkOptions": {
+        "buildProfileFields": {
+          "ENV_TYPE": "test",
+          "BASE_URL": "https://test.histar.com/zlxt/app/",
+          "H5_URL": "https://test.histar.com/histar-h5/#",
+          "IM_SDK_APPID": 1600111396,
+          "PUSH_APPKEY": "oWJmXCifmNL5oaRZJrQhlvcZpF9WuQccsRrC7HGUkONFUrpcSkOnrEWMvLPZc2aR"
+        }
+      }
+    },
+    {
+      // release 模式：生产环境，对应 Android `release`
       "name": "release",
       "arkOptions": {
         "obfuscation": {
@@ -13,9 +51,16 @@
               "./obfuscation-rules.txt"
             ]
           }
+        },
+        "buildProfileFields": {
+          "ENV_TYPE": "release",
+          "BASE_URL": "https://trip.histar.com/zlxt/app/",
+          "H5_URL": "https://trip.histar.com/histar-h5/#",
+          "IM_SDK_APPID": 1600105433,
+          "PUSH_APPKEY": "Z8CVHPKtVWQjk9RwktAlezAGZ8Igmh5BsZXLtRTBu5j0BeIRiE8mt7A0uYXfzkcY"
         }
       }
-    },
+    }
   ],
   "targets": [
     {

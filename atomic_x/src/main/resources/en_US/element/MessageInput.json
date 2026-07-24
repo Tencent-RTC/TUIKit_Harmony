@@ -62,7 +62,7 @@
     },
     {
       "name": "menu_custom",
-      "value": "Custom"
+      "value": "Custom Message"
     },
     {
       "name": "cancel",
@@ -99,6 +99,30 @@
     {
       "name": "voice_release_to_send_slide_to_cancel",
       "value": "Release to send, slide up to cancel"
+    },
+    {
+      "name": "voice_release_to_end",
+      "value": "Release to End"
+    },
+    {
+      "name": "voice_release_to_cancel_short",
+      "value": "Release to Cancel"
+    },
+    {
+      "name": "voice_release_to_transcribe",
+      "value": "Release to Text"
+    },
+    {
+      "name": "voice_transcription_action",
+      "value": "To Text"
+    },
+    {
+      "name": "voice_transcription_send_original_voice",
+      "value": "Original"
+    },
+    {
+      "name": "voice_transcription_empty",
+      "value": "No text recognized"
     },
     {
       "name": "menu_voice_call",

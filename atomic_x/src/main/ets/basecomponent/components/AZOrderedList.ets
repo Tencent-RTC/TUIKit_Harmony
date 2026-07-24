@@ -150,8 +150,9 @@ export struct AZOrderedList {
         }
       }
       .width('100%')
+      .constraintSize({ minHeight: '100%' })
       .justifyContent(FlexAlign.Start)
-      .alignItems(HorizontalAlign.Center)
+      .alignItems(HorizontalAlign.Start)
     }
     .width('100%')
     .layoutWeight(1)

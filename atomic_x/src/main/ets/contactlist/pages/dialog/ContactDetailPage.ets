@@ -1,7 +1,8 @@
 import { Avatar, AvatarContentType, AvatarSize,
   IMErrorCode,
   ThemeState, Toast, ToastType } from '../../../basecomponent/Index';
-import { ErrorInfo, ContactInfo, ContactListStore } from '@tencentcloud/atomicxcore';
+import { ContactInfo, ContactStore } from '@tencentcloud/atomicxcore';
+import { CompletionHandlerAdapter } from '../../../basecomponent/utils/CompletionHandlers';
 import router from '@ohos.router';
 
 @Entry({ routeName: 'ContactDetailPage' })
@@ -31,27 +32,27 @@ export struct ContactDetailPage {
   @State overlayOpacity: number = 0;
   @State popupTranslateY: number = 1000;
   @State private internalUserInfo: ContactInfo | null = null;
-  private contactListStore: ContactListStore = ContactListStore.create();
+  private contactStore: ContactStore = ContactStore.shared;
 
   aboutToAppear() {
     console.info('[ContactDetailPage] Page about to appear');
     if (this.userInfo) {
       this.internalUserInfo = this.userInfo;
-      this.remarkName = this.userInfo.title || '';
+      this.remarkName = this.userInfo.nickname || '';
 
     } else {
 
       const params = router.getParams() as Record<string, Object>;
       if (params && params['userInfo']) {
         this.internalUserInfo = params['userInfo'] as ContactInfo;
-        this.remarkName = this.internalUserInfo?.title || '';
+        this.remarkName = this.internalUserInfo?.nickname || '';
 
       }
     }
 
 
     if (!this.remarkName && this.internalUserInfo) {
-      this.remarkName = this.internalUserInfo.title || '';
+      this.remarkName = this.internalUserInfo.nickname || '';
     }
 
 
@@ -95,14 +96,14 @@ export struct ContactDetailPage {
           content: {
             type: AvatarContentType.Image,
             url: this.internalUserInfo.avatarURL,
-            name: this.internalUserInfo.title || this.internalUserInfo.contactID || '',
+            name: this.internalUserInfo.nickname || this.internalUserInfo.userID || '',
           },
           avatarSize: AvatarSize.L,
         })
 
         Column() {
 
-          Text(this.internalUserInfo.title || this.internalUserInfo.contactID || '')
+          Text(this.internalUserInfo.nickname || this.internalUserInfo.userID || '')
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.themeState.colors.textColorPrimary)
@@ -110,7 +111,7 @@ export struct ContactDetailPage {
             .alignSelf(ItemAlign.Start)
 
 
-          Text(`ID：${this.internalUserInfo.contactID}`)
+          Text(`ID：${this.internalUserInfo.userID}`)
             .fontSize(12)
             .fontColor(this.themeState.colors.textColorSecondary)
             .fontFamily('PingFang SC')
@@ -410,23 +411,19 @@ export struct ContactDetailPage {
 
     this.isAddingFriend = true;
 
-    this.contactListStore.addFriend(
-      this.internalUserInfo.contactID || '',
-      this.remarkName || this.internalUserInfo.title || '',
+    this.contactStore.addFriend(
+      this.internalUserInfo.userID || '',
+      this.remarkName || this.internalUserInfo.nickname || '',
       this.verificationMessage ?? ' ',
-    )
-      .then(() => {
-
+      new CompletionHandlerAdapter(() => {
         this.isAddingFriend = false;
-
         Toast.show($r('app.string.friend_request_sent'), ToastType.Success, this.getUIContext(), 3000);
         this.handleClose();
-      })
-      .catch((error: ErrorInfo) => {
-
+      }, (code: number, desc: string) => {
         this.isAddingFriend = false;
-        const localizedMessage = IMErrorCode.getErrorMessage(error.code ??-1,""+error.code +error.message);
+        const localizedMessage = IMErrorCode.getErrorMessage(code, '' + code + desc);
         Toast.error(localizedMessage, this.getUIContext());
-      });
+      })
+    );
   }
-} 
+}

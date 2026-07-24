@@ -6,6 +6,6 @@
   "author": "Tencent Cloud",
   "license": "MIT",
   "dependencies": {
-    "@tencentcloud/atomicxcore": "^4.2.0"
+    "@tencentcloud/atomicxcore": "^5.0.0"
   }
 }

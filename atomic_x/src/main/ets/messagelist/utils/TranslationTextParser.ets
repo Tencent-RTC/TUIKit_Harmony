@@ -1,4 +1,4 @@
-import { MessageInfo, C2CSettingStore } from '@tencentcloud/atomicxcore';
+import { MessageInfo } from '@tencentcloud/atomicxcore';
 import { EmojiDataManager } from '../../emojipicker/data/EmojiData';
 import { MentionInfo } from '../../messageinput/components/MentionInfo';
 
@@ -114,7 +114,7 @@ export class TranslationTextParser {
       return null;
     }
 
-    const mutableArray = [...array];
+    const mutableArray = Array.from(array);
 
     for (const value of indexArray) {
       if (value < 0 || value >= mutableArray.length) {
@@ -163,7 +163,7 @@ export class TranslationTextParser {
 
     // Get user info
     // For now, fallback to userID
-    const names: string[] = [...regularUserIDs];
+    const names: string[] = Array.from(regularUserIDs);
 
     // Restore @All at original positions
     const allText = getContext().resourceManager.getStringSync($r('app.string.mention_all').id);

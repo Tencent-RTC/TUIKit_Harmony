@@ -1,5 +1,5 @@
-import { MessageInfo, LoginStore } from '@tencentcloud/atomicxcore';
-import { util } from '@kit.ArkTS';
+import { MessageInfo, CustomMessagePayload } from '@tencentcloud/atomicxcore';
+import { LoginStore } from '@tencentcloud/atomicxcore';
 
 export enum CallProtocolType {
   unknown,
@@ -92,14 +92,13 @@ export class CallingMessageDataProvider {
     this._isExcludedFromLastMessage = messageInfo.rawMessage?.isExcludedFromLastMessage ?? false;
     this._isExcludedFromUnreadCount = messageInfo.rawMessage?.isExcludedFromUnreadCount ?? false;
 
-    const customMessage = messageInfo.messageBody?.customMessage;
-    if (!customMessage?.data) {
+    const customPayload = messageInfo.messagePayload as CustomMessagePayload | undefined;
+    const dataStr = customPayload?.customData;
+    if (!dataStr) {
       return;
     }
 
     try {
-      const textDecoder = new util.TextDecoder('utf-8');
-      const dataStr = textDecoder.decode(new Uint8Array(customMessage.data));
       if (!dataStr) {
         return;
       }
@@ -279,7 +278,7 @@ export class CallingMessageDataProvider {
 
   private setExcludeFromHistory(): void {
     this._excludeFromHistory = this._protocolType !== CallProtocolType.unknown &&
-    this._isExcludedFromLastMessage && this._isExcludedFromUnreadCount;
+      this._isExcludedFromLastMessage && this._isExcludedFromUnreadCount;
   }
 
   private setContent(): void {
@@ -379,7 +378,7 @@ export class CallingMessageDataProvider {
     } else if (rawMessage.nickName && rawMessage.nickName.length > 0) {
       return rawMessage.nickName;
     } else {
-      return this.messageInfo.sender?.userID ?? '';
+      return this.messageInfo.from?.userID ?? '';
     }
   }
 }

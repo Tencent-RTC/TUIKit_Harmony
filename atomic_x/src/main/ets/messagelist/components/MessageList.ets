@@ -1,31 +1,13 @@
-import {
-  LoginStore,
-  MessageListStore,
-  MessageInfo,
-  MessageType,
-  MessageListType,
-  MessageFetchOption,
-  MessageFetchDirection,
-  ErrorInfo,
-  MessageEvent,
-  MessageActionStore,
-  MessageStatus,
-  MessageDataSource,
-  MessageListState,
-  ConversationListStore,
-  ConversationListState,
-  ConversationInfo,
-  ConversationMarkType,
-  MessageInputStore,
-  MessageForwardType,
-  MessageForwardOption,
-  MergedForwardInfo,
-  MessageBody,
-  OfflinePushInfo
-} from '@tencentcloud/atomicxcore';
+import { LoginStore } from '@tencentcloud/atomicxcore';
+import { MessageListStore, MessageInfo, MessageType, MessageLoadDirection, MessageLoadOption, MessageEvent, OnReceiveNewMessage, OnMessageReactionUpdated, OnMessageRevoked, OnMessageDeleted, MessageStatus, MessageListState, MessageForwardType, ForwardMessageOption, MergedForwardInfo, TextMessagePayload, AudioMessagePayload, CustomMessagePayload, OfflinePushInfo } from '@tencentcloud/atomicxcore';
+import { MessageActionStore } from '@tencentcloud/atomicxcore';
+import { ConversationListStore, ConversationListState, ConversationInfo, ConversationMarkType, ConversationType } from '@tencentcloud/atomicxcore';
+import { MessageInputStore, TextSendMessagePayload, SendMessageOption } from '@tencentcloud/atomicxcore';
 import { AppBuilderConfig, ThemeState, TextUtils, ActionItem, Toast, EventBus } from '../../basecomponent/Index';
 import { MessageItem } from '../ui/MessageItem';
 import { MessageActionDialog } from '../ui/MessageActionPanel';
+import { MessageQuoteEvent } from '../ui/MessageQuoteEvent';
+import emitter from '@ohos.events.emitter';
 import { MultiSelectBottomBar } from '../ui/MultiSelectBottomBar';
 import { ForwardTargetSelector } from '../ui/ForwardTargetSelector';
 import { ForwardTypeDialog } from '../ui/ForwardTypeDialog';
@@ -41,8 +23,66 @@ import { MessageUtils } from '../utils/MessageUtils';
 import { AsrDisplayManager } from '../utils/AsrDisplayManager';
 import { TranslationDisplayManager } from '../utils/TranslationDisplayManager';
 import { TranslationTextParser } from '../utils/TranslationTextParser';
+import { CompletionHandlerAdapter, GetConversationInfoCompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
+import { MentionInfo } from '../../messageinput/components/MentionInfo';
+import {
+  MessageListFloatingEntry,
+  MessageListFloatingEntryPolicy,
+  MessageListFloatingEntryStateController,
+  MessageListFloatingEntryType,
+  MessageListMentionKind,
+  MessageListMentionTarget,
+  MessageListMentionTargetVisibility
+} from '../ui/MessageListFloatingEntryPolicy';
 import { ImmersiveMode, LevelMode } from '@kit.ArkUI';
 import pasteboard from '@ohos.pasteboard';
+
+class MessageInfoDataSource implements IDataSource {
+  private messages: MessageInfo[] = [];
+  private listeners: DataChangeListener[] = [];
+
+  totalCount(): number {
+    return this.messages.length;
+  }
+
+  getData(index: number): MessageInfo {
+    return this.messages[index];
+  }
+
+  registerDataChangeListener(listener: DataChangeListener): void {
+    if (this.listeners.indexOf(listener) < 0) {
+      this.listeners.push(listener);
+    }
+  }
+
+  unregisterDataChangeListener(listener: DataChangeListener): void {
+    const idx = this.listeners.indexOf(listener);
+    if (idx >= 0) {
+      this.listeners.splice(idx, 1);
+    }
+  }
+
+  setMessages(messages: MessageInfo[]): void {
+    this.messages = Array.from(messages);
+    this.listeners.forEach((listener: DataChangeListener) => listener.onDataReloaded());
+  }
+
+  forceRefresh(index: number): void {
+    if (index < 0 || index >= this.messages.length) {
+      return;
+    }
+    this.listeners.forEach((listener: DataChangeListener) => listener.onDataChange(index));
+  }
+
+  getIndex(msgID: string): number {
+    for (let i = 0; i < this.messages.length; i++) {
+      if (this.messages[i].msgID === msgID) {
+        return i;
+      }
+    }
+    return -1;
+  }
+}
 
 // Custom action interface for MessageList
 export interface MessageCustomAction {
@@ -62,14 +102,16 @@ export interface MultiSelectActions {
 export struct MessageList {
   private static readonly TIME_INTERVAL_THRESHOLD: number = 5 * 60;
   private static readonly MAX_SEPARATE_FORWARD_COUNT: number = 30;
+  private static readonly GROUP_CONVERSATION_PREFIX: string = 'group_';
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   @State messageListStore?: MessageListStore = undefined;
   @State conversationListStore?: ConversationListStore = undefined;
   @State messageListState?: MessageListState = undefined;
-  @State messageDataSource?: MessageDataSource = undefined;
+  @State messageDataSource: MessageInfoDataSource = new MessageInfoDataSource();
   @State isLoading: boolean = true;
   @State isLoadingMore: boolean = false;
   @State lastFirstIndex: number = -1;
+  @State lastLastIndex: number = -1;
   @State userScrolling: boolean = false;
   @Watch('onSelectedMessageChanged')
   @State selectedMessage?: MessageInfo = undefined;
@@ -77,7 +119,7 @@ export struct MessageList {
   @State isMultiSelectMode: boolean = false;
   @State selectedMessageIDs: Set<string> = new Set();
   // Forward type selection state
-  @State private forwardType: MessageForwardType = MessageForwardType.separate;
+  @State private forwardType: MessageForwardType = MessageForwardType.SEPARATE;
   dialogController: CustomDialogController | null = null;
   forwardDialogController: CustomDialogController | null = null;
   forwardTypeDialogController: CustomDialogController | null = null;
@@ -95,14 +137,16 @@ export struct MessageList {
   @Prop config?: MessageListStyleProtocol = undefined;
   private scrollPositionBeforeLoad: number = -1;
   private messageCountBeforeLoad: number = 0;
-  private currentLoadDirection: number = MessageFetchDirection.Older;
+  private currentLoadDirection: MessageLoadDirection = MessageLoadDirection.OLDER;
   private isLoadingAroundTargetMessage: boolean = false;
   private lastScrollToBottomTime: number = 0;
+  private floatingEntryStateController: MessageListFloatingEntryStateController = new MessageListFloatingEntryStateController();
   @State private effectiveConfig: MessageListStyleProtocol = new ChatMessageListConfig();
+  @State private floatingEntry?: MessageListFloatingEntry = undefined;
 
   // ASR Display Manager for voice-to-text feature
   @State private asrDisplayManager: AsrDisplayManager = new AsrDisplayManager();
-
+  
   // Translation Display Manager for text translation feature
   @State private translationDisplayManager: TranslationDisplayManager = new TranslationDisplayManager();
 
@@ -124,15 +168,20 @@ export struct MessageList {
     if (this.conversationID) {
       this.clearMessageUnreadCount();
     }
+
+    this.floatingEntryStateController.reset();
+    this.floatingEntry = undefined;
+
+    EventBus.getInstance().off(MessageQuoteEvent.LOCATE_QUOTED_MESSAGE);
   }
 
   aboutToAppear() {
     if (this.config) {
       this.effectiveConfig = this.config;
     }
-    console.info(`[MessageList] aboutToAppear with conversationID: ${this.conversationID}, locateMessage: ${this.locateMessage?.ID ||
+    console.info(`[MessageList] aboutToAppear with conversationID: ${this.conversationID}, locateMessage: ${this.locateMessage?.msgID ||
       'none'}`);
-
+    
     if (this.conversationID) {
       this.loadMessages();
       this.clearMessageUnreadCount();
@@ -140,26 +189,46 @@ export struct MessageList {
       console.error('[MessageList] No valid conversationID provided');
       this.isLoading = false;
     }
+
+    EventBus.getInstance().on(MessageQuoteEvent.LOCATE_QUOTED_MESSAGE, (eventData: emitter.EventData) => {
+      this.handleLocateQuotedMessage(eventData);
+    });
   }
 
   loadMessages() {
     this.isLoading = true;
-    this.messageListStore = MessageListStore.create(this.conversationID, MessageListType.history);
+    this.floatingEntryStateController.reset();
+    this.floatingEntry = undefined;
+    this.messageListStore = MessageListStore.create(this.conversationID);
     this.messageListState = this.messageListStore.state;
-    this.messageDataSource = this.messageListState.messageDataSource;
+    this.refreshDataSource();
 
-    // Subscribe to message events (with WeakRef to this component)
-    this.messageListStore.messageEventEmitter.subscribe(this, (event: MessageEvent) => {
+    this.messageListStore.messageEventFlow.subscribe(this, (event: MessageEvent) => {
       this.handleMessageEvent(event);
     });
 
     this.conversationListStore = ConversationListStore.create();
+    this.requestInitialMentionEntry();
 
     if (this.locateMessage) {
       this.loadMessagesAroundTargetMessage();
     } else {
       this.loadHistoryMessages();
     }
+  }
+
+  private refreshDataSource(): void {
+    if (!this.messageListState) {
+      return;
+    }
+    const filtered = this.messageListState.messageList.filter(
+      (m: MessageInfo) => !MessageUtils.isMentionMirrorMessage(m)
+    );
+    const msgsWithReactions = this.messageListState.messageList.filter((m: MessageInfo) => m.reactionList.length > 0)
+    if (msgsWithReactions.length > 0) {
+      console.log(`[UI-refreshDataSource] messages with reactions: ${msgsWithReactions.length}, first msgID=${msgsWithReactions[0].msgID}, reactionCount=${msgsWithReactions[0].reactionList.length}`)
+    }
+    this.messageDataSource.setMessages(filtered);
   }
 
   showMessageActionDialog(message: MessageInfo) {
@@ -204,6 +273,9 @@ export struct MessageList {
         },
         onTranslateText: (msg: MessageInfo) => {
           this.handleTranslateText(msg);
+        },
+        onQuote: (msg: MessageInfo) => {
+          this.handleQuoteMessage(msg);
         }
       }),
       alignment: DialogAlignment.Bottom,
@@ -218,8 +290,8 @@ export struct MessageList {
    * Auto-close dialog when message status becomes recalled or violation
    */
   private onSelectedMessageChanged(): void {
-    if (this.selectedMessage &&
-      (this.selectedMessage.status === MessageStatus.recalled || this.selectedMessage.status === MessageStatus.violation)) {
+    if (this.selectedMessage && 
+        (this.selectedMessage.status === MessageStatus.REVOKED || this.selectedMessage.status === MessageStatus.VIOLATION)) {
       if (this.dialogController) {
         this.dialogController.close();
         this.dialogController = null;
@@ -231,7 +303,7 @@ export struct MessageList {
   clearMessageUnreadCount() {
     if (this.conversationID) {
       // Clear unread mark
-      this.conversationListStore?.markConversation([this.conversationID], ConversationMarkType.UNREAD, false);
+      this.conversationListStore?.markConversation([this.conversationID], ConversationMarkType.unread, false);
       // Clear unread count
       this.conversationListStore?.clearConversationUnreadCount(this.conversationID);
     }
@@ -239,33 +311,22 @@ export struct MessageList {
 
   handleMessageDeleted(msgId: string) {
     if (!this.messageListStore || !this.messageListState) {
-
       Toast.info($r('app.string.messagelist_delete_failed_invalid_state'), this.getUIContext());
       return;
     }
 
     try {
-
-      const index = this.messageListState.messageDataSource.getIndex(msgId);
-
-      if (index !== -1) {
-        const message = this.messageListState.messageDataSource.getData(index);
-        if (message) {
-
-          MessageActionStore.create(message).deleteMessage()
-            .then(() => {
-              Toast.info($r('app.string.messagelist_message_deleted'), this.getUIContext());
-            })
-            .catch((error: ErrorInfo) => {
-              Toast.info($r('app.string.messagelist_delete_message_failed'), this.getUIContext());
-            });
-        }
+      const message = this.messageListState.messageList.find((m: MessageInfo) => m.msgID === msgId);
+      if (message) {
+        MessageActionStore.create(message).delete(new CompletionHandlerAdapter(() => {
+          Toast.info($r('app.string.messagelist_message_deleted'), this.getUIContext());
+        }, () => {
+          Toast.info($r('app.string.messagelist_delete_message_failed'), this.getUIContext());
+        }));
       } else {
-
         Toast.info($r('app.string.messagelist_delete_failed_not_found'), this.getUIContext());
       }
     } catch (error) {
-
       Toast.info($r('app.string.messagelist_delete_message_failed'), this.getUIContext());
     }
   }
@@ -276,22 +337,18 @@ export struct MessageList {
       return;
     }
     try {
-      const index = this.messageListState.messageDataSource.getIndex(msgId);
-      if (index !== -1) {
-        const message = this.messageListState.messageDataSource.getData(index);
-        if (message) {
-          if (!message.isSelf) {
-            Toast.info($r('app.string.messagelist_recall_only_own'), this.getUIContext());
-            return;
-          }
-          MessageActionStore.create(message).recallMessage()
-            .then(() => {
-              Toast.info($r('app.string.message_tips_normal_recall'), this.getUIContext());
-            })
-            .catch((error: ErrorInfo) => {
-              Toast.info($r('app.string.messagelist_recall_failed'), this.getUIContext());
-            });
+      const message = this.messageListState.messageList.find((m: MessageInfo) => m.msgID === msgId);
+      if (message) {
+        if (!message.isSentBySelf) {
+          Toast.info($r('app.string.messagelist_recall_only_own'), this.getUIContext());
+          return;
         }
+        MessageActionStore.create(message).revoke(new CompletionHandlerAdapter(() => {
+          this.refreshDataSource();
+          Toast.info($r('app.string.message_tips_normal_recall'), this.getUIContext());
+        }, () => {
+          Toast.info($r('app.string.messagelist_recall_failed'), this.getUIContext());
+        }));
       } else {
         Toast.info($r('app.string.messagelist_recall_failed_not_found'), this.getUIContext());
       }
@@ -301,18 +358,16 @@ export struct MessageList {
   }
 
   loadMoreHistoryMessages() {
-    this.loadMoreMessages(MessageFetchDirection.Older);
+    this.loadMoreMessages(MessageLoadDirection.OLDER);
   }
 
   loadMoreNewerMessages() {
-    this.loadMoreMessages(MessageFetchDirection.Newer);
+    this.loadMoreMessages(MessageLoadDirection.NEWER);
   }
 
   @Builder
   MessageItemBuilder(message: MessageInfo, index: number) {
-    if (message.messageType !== MessageType.System || MessageUtils.isKnownSystemMessage(message)) {
-      this.NormalMessageItemBuilder(message, index);
-    }
+    this.NormalMessageItemBuilder(message, index);
   }
 
   @Builder
@@ -337,12 +392,12 @@ export struct MessageList {
         .justifyContent(FlexAlign.Center)
         .margin({ bottom: 8, top: 8 })
       }
-
+      
       Row() {
         // Checkbox for multi-select mode (only show for selectable messages)
         if (this.isMultiSelectMode && this.canSelectMessage(message)) {
           MessageCheckBox({
-            isSelected: this.selectedMessageIDs.has(message.ID),
+            isSelected: this.selectedMessageIDs.has(message.msgID),
             isEnabled: true,
             onTap: () => {
               this.toggleMessageSelection(message);
@@ -350,7 +405,7 @@ export struct MessageList {
           })
             .margin({ right: 12 })
         }
-
+        
         MessageItem({
           message: message,
           initialShowAvatar: this.shouldShowAvatar(message, index),
@@ -373,15 +428,15 @@ export struct MessageList {
           onUserLongPress: (userID: string, nickname: string) => {
             // Post event via EventBus (Android style)
             console.log(`[MessageList] 📤 Posting onUserLongPress event: userID=${userID}, nickname=${nickname}`);
-
+            
             const eventData: Record<string, Object> = {};
             eventData['source'] = 'MessageList';
             eventData['event'] = 'onUserLongPress';
             eventData['userID'] = userID;
             eventData['nickname'] = nickname;
-
+            
             EventBus.getInstance().post('onUserLongPress', eventData);
-
+            
             // Also call the callback if provided (backward compatibility)
             if (this.onUserLongPress) {
               this.onUserLongPress(userID, nickname);
@@ -392,23 +447,14 @@ export struct MessageList {
           translationDisplayManager: this.translationDisplayManager,
           customActions: this.customActions,
           onAsrBubbleLongPress: (message: MessageInfo) => {
-            // Forward ASR text
-            const asrText = message.messageBody?.asrText ?? '';
+            const audioPayload = message.messagePayload as AudioMessagePayload | undefined;
+            const asrText = audioPayload?.asrText ?? '';
             if (asrText.length > 0) {
               this.forwardAsrText(asrText);
             }
           },
           onTranslationBubbleLongPress: (message: MessageInfo) => {
-            // Forward translated text
-            const translatedTextMapRaw = message.messageBody?.translatedText;
-            const translatedTextMap: Record<string, string> = {};
-            if (translatedTextMapRaw) {
-              translatedTextMapRaw.forEach((value: string, key: string) => {
-                translatedTextMap[key] = value;
-              });
-            }
-            const originalText = message.messageBody?.text ?? '';
-            const translatedText = translatedTextMap[originalText] ?? '';
+            const translatedText = this.getTranslatedText(message);
             if (translatedText.length > 0) {
               this.forwardTranslatedText(translatedText);
             }
@@ -418,10 +464,10 @@ export struct MessageList {
             this.handlePopupCopy(msg);
           },
           onRecall: (msg: MessageInfo) => {
-            this.recallMessage(msg.ID);
+            this.recallMessage(msg.msgID);
           },
           onDelete: (msg: MessageInfo) => {
-            this.handleMessageDeleted(msg.ID);
+            this.handleMessageDeleted(msg.msgID);
           },
           onForward: (msg: MessageInfo) => {
             this.handleForwardSingleMessage(msg);
@@ -437,6 +483,9 @@ export struct MessageList {
           },
           onTranslate: (msg: MessageInfo) => {
             this.handleTranslateText(msg);
+          },
+          onQuote: (msg: MessageInfo) => {
+            this.handleQuoteMessage(msg);
           },
           onEmojiReaction: (emoji: EmojiItem, msg: MessageInfo) => {
             this.handleEmojiReaction(emoji, msg);
@@ -468,26 +517,18 @@ export struct MessageList {
    * Computes a safe state hash that excludes non-serializable SDK objects
    */
   private getMessageKey(message: MessageInfo, index: number): string {
-    return `${message.ID}_${MessageUtils.getMessageStateHash(message)}_${index}`;
+    return `${message.msgID}_${MessageUtils.getMessageStateHash(message)}_${index}`;
   }
 
-  /**
-   * Determine if avatar should be shown for a message
-   * Based on style configuration and message position
-   */
   private shouldShowAvatar(message: MessageInfo, index: number): boolean {
-    // In classic UI mode, always show avatars for both sender and receiver
     if (AppBuilderConfig.getInstance().useClassicUI) {
       return true;
     }
-
-    if (message.isSelf) {
-      // For self messages, check right avatar configuration
+    
+    if (message.isSentBySelf) {
       return this.effectiveConfig.isShowRightAvatar ?? false;
     } else {
-      // For other messages, check left avatar configuration
       const showLeftAvatar = this.effectiveConfig.isShowLeftAvatar ?? true;
-      // Only show if configured and not aggregated with next message
       return showLeftAvatar && !this.checkNextMessageIsAggregation(index);
     }
   }
@@ -559,9 +600,10 @@ export struct MessageList {
   @Builder
   NormalListBuilder() {
     if (this.messageListStore && this.messageListState) {
-      Column() {
+      Stack({ alignContent: Alignment.BottomEnd }) {
+        Column() {
 
-        if (this.isLoadingMore && this.currentLoadDirection === MessageFetchDirection.Older) {
+        if (this.isLoadingMore && this.currentLoadDirection === MessageLoadDirection.OLDER) {
           Row() {
             LoadingProgress()
               .width(20)
@@ -581,9 +623,9 @@ export struct MessageList {
         List({
           space: 0,
           scroller: this.scroller,
-          initialIndex: (this.messageListState?.messageDataSource.totalCount() ?? 1) - 1
+          initialIndex: (this.messageDataSource.totalCount() ?? 1) - 1
         }) {
-          LazyForEach(this.messageListState.messageDataSource, (message: MessageInfo, index: number) => {
+          LazyForEach(this.messageDataSource, (message: MessageInfo, index: number) => {
             ListItem() {
               this.MessageItemBuilder(message, index)
             }
@@ -600,15 +642,15 @@ export struct MessageList {
           console.info('[MessageList] Reached start of list');
 
 
-          if (this.messageListState?.hasMoreOlderMessage &&
+          if (this.messageListState?.hasOlderMessages &&
             !this.isLoadingMore &&
-            this.messageListState?.messageDataSource.totalCount() > 0 &&
+            this.messageDataSource.totalCount() > 0 &&
             !this.isLoadingAroundTargetMessage) {
 
 
-            this.messageCountBeforeLoad = this.messageListState.messageDataSource.totalCount();
+            this.messageCountBeforeLoad = this.messageDataSource.totalCount();
             this.scrollPositionBeforeLoad = this.scroller.currentOffset().yOffset;
-            this.currentLoadDirection = MessageFetchDirection.Older;
+            this.currentLoadDirection = MessageLoadDirection.OLDER;
 
             console.info('[MessageList] Loading more history messages from onReachStart', {
               messageCountBefore: this.messageCountBeforeLoad,
@@ -618,31 +660,29 @@ export struct MessageList {
             this.loadMoreHistoryMessages();
           } else {
             console.info('[MessageList] Cannot load more messages:', {
-              hasMoreOlderMessage: this.messageListState?.hasMoreOlderMessage,
+              hasOlderMessages: this.messageListState?.hasOlderMessages,
               isLoadingMore: this.isLoadingMore,
-              messageCount: this.messageListState?.messageDataSource.totalCount()
+              messageCount: this.messageDataSource.totalCount()
             });
           }
         })
         .onReachEnd(() => {
           console.info('[MessageList] Reached end of list');
 
-          // Skip loading if just scrolled to bottom (within 500ms)
-          // This prevents auto-loading when sending/receiving messages
           const timeSinceLastScroll = Date.now() - this.lastScrollToBottomTime;
           if (timeSinceLastScroll < 500) {
             console.info('[MessageList] Skip loading on onReachEnd - just scrolled to bottom');
             return;
           }
 
-          if (this.messageListState?.hasMoreNewerMessage &&
+          if (this.messageListState?.hasNewerMessages &&
             !this.isLoadingMore &&
-            this.messageListState?.messageDataSource.totalCount() > 0 &&
+            this.messageDataSource.totalCount() > 0 &&
             !this.isLoadingAroundTargetMessage) {
 
-            this.messageCountBeforeLoad = this.messageListState.messageDataSource.totalCount();
+            this.messageCountBeforeLoad = this.messageDataSource.totalCount();
             this.scrollPositionBeforeLoad = this.scroller.currentOffset().yOffset;
-            this.currentLoadDirection = MessageFetchDirection.Newer;
+            this.currentLoadDirection = MessageLoadDirection.NEWER;
 
             console.info('[MessageList] Loading more newer messages from onReachEnd', {
               messageCountBefore: this.messageCountBeforeLoad,
@@ -652,18 +692,20 @@ export struct MessageList {
             this.loadMoreNewerMessages();
           } else {
             console.info('[MessageList] Cannot load more newer messages from onReachEnd:', {
-              hasMoreNewerMessage: this.messageListState?.hasMoreNewerMessage,
+              hasNewerMessages: this.messageListState?.hasNewerMessages,
               isLoadingMore: this.isLoadingMore,
-              messageCount: this.messageListState?.messageDataSource.totalCount()
+              messageCount: this.messageDataSource.totalCount()
             });
           }
         })
-        .onScrollIndex((firstIndex: number) => {
+        .onScrollIndex((firstIndex: number, lastIndex: number, _centerIndex: number) => {
 
-          console.info(`[MessageList] Scroll index changed: ${firstIndex}, last: ${this.lastFirstIndex}, userScrolling: ${this.userScrolling}`);
+          console.info(`[MessageList] Scroll index changed: first=${firstIndex}, last=${lastIndex}, prevFirst=${this.lastFirstIndex}, userScrolling: ${this.userScrolling}`);
 
 
           this.lastFirstIndex = firstIndex;
+          this.lastLastIndex = lastIndex;
+          this.updateFloatingEntryForScroll();
         })
         .onScrollStart(() => {
 
@@ -678,7 +720,6 @@ export struct MessageList {
           }, 200);
         })
         .onClick(() => {
-          // Post event to dismiss keyboard when clicking on message list blank area
           console.log('[MessageList] 📤 Posting onBlankAreaClick event');
           const eventData: Record<string, Object> = {};
           eventData['source'] = 'MessageList';
@@ -687,7 +728,7 @@ export struct MessageList {
         })
 
 
-        if (this.isLoadingMore && this.currentLoadDirection === MessageFetchDirection.Newer) {
+        if (this.isLoadingMore && this.currentLoadDirection === MessageLoadDirection.NEWER) {
           Row() {
             LoadingProgress()
               .width(20)
@@ -706,7 +747,38 @@ export struct MessageList {
       }
       .width('100%')
       .layoutWeight(1)
+
+      if (this.floatingEntry) {
+        this.FloatingEntryBuilder(this.floatingEntry)
+      }
     }
+    .width('100%')
+    .layoutWeight(1)
+    }
+  }
+
+  @Builder
+  private FloatingEntryBuilder(entry: MessageListFloatingEntry) {
+    Row({ space: 6 }) {
+      Text(entry.type === MessageListFloatingEntryType.MENTION ? '↑' : '↓')
+        .fontSize(14)
+        .fontColor(this.themeState.colors.textColorPrimary)
+        .fontWeight(FontWeight.Bold)
+
+      Text(this.getFloatingEntryText(entry))
+        .fontSize(14)
+        .fontColor(this.themeState.colors.textColorPrimary)
+        .maxLines(1)
+    }
+    .height(35)
+    .padding({ left: 10, right: 10 })
+    .backgroundColor(this.themeState.colors.bgColorBubbleReciprocal)
+    .borderRadius(7)
+    .shadow({ radius: 8, color: '#33000000', offsetX: 0, offsetY: 2 })
+    .margin({ right: 16, bottom: 16 })
+    .onClick(() => {
+      this.handleFloatingEntryClick(entry);
+    })
   }
 
   scrollToBottom() {
@@ -714,6 +786,55 @@ export struct MessageList {
     setTimeout(() => {
       this.scroller?.scrollEdge(Edge.End);
     }, 100);
+  }
+
+  private handleQuoteMessage(message: MessageInfo) {
+    EventBus.getInstance().post(MessageQuoteEvent.QUOTE_MESSAGE, {
+      'conversationID': this.conversationID,
+      'message': message
+    });
+  }
+
+  private handleLocateQuotedMessage(eventData: emitter.EventData) {
+    if (!this.messageListState) {
+      return;
+    }
+    const data = eventData.data as Record<string, Object> | undefined;
+    if (!data) {
+      return;
+    }
+    const msgID = data['msgID'] as string | undefined;
+    const sequence = data['sequence'] as number | undefined;
+    const timestamp = data['timestamp'] as number | undefined;
+    if (!msgID && (!sequence || sequence <= 0)) {
+      return;
+    }
+    const messages = this.messageListState.messageList;
+    let target: string | undefined = undefined;
+    if (msgID && msgID.length > 0) {
+      const found = messages.find((m: MessageInfo): boolean => m.msgID === msgID);
+      if (found) {
+        target = found.msgID;
+      }
+    }
+    if (!target && sequence && sequence > 0) {
+      const found = messages.find((m: MessageInfo): boolean => m.sequence === sequence);
+      if (found && found.msgID && found.msgID.length > 0) {
+        target = found.msgID;
+      }
+    }
+    if (target) {
+      this.locateToMessage(target);
+      return;
+    }
+    if (sequence && sequence > 0) {
+      const cursor = new MessageInfo();
+      cursor.msgID = msgID ?? '';
+      cursor.sequence = sequence;
+      cursor.timestamp = timestamp ?? 0;
+      this.locateMessage = cursor;
+      this.loadMessagesAroundTargetMessage();
+    }
   }
 
   locateToMessage(messageID: string) {
@@ -728,7 +849,7 @@ export struct MessageList {
     }
 
 
-    const messageIndex = this.messageListState.messageDataSource.getIndex(messageID);
+    const messageIndex = this.messageDataSource.getIndex(messageID);
 
     if (messageIndex !== -1) {
 
@@ -761,29 +882,27 @@ export struct MessageList {
   }
 
   private getPreviousMessage(currentIndex: number): MessageInfo | undefined {
-    if (!this.messageListState?.messageDataSource || currentIndex <= 0) {
+    if (currentIndex <= 0) {
       return undefined;
     }
 
-    return this.messageDataSource?.getData(currentIndex - 1) as MessageInfo;
+    return this.messageDataSource.getData(currentIndex - 1);
   }
 
   private getNextMessage(currentIndex: number): MessageInfo | undefined {
-    if (!this.messageDataSource ||
-      currentIndex >= this.messageDataSource?.totalCount() - 1) {
+    if (currentIndex >= this.messageDataSource.totalCount() - 1) {
       return undefined;
     }
 
-    return this.messageDataSource?.getData(currentIndex + 1) as MessageInfo;
+    return this.messageDataSource.getData(currentIndex + 1);
   }
 
   private checkPreviousMessageIsAggregation(currentIndex: number): boolean {
-    // In classic UI mode, disable message aggregation (always show full spacing and avatars)
     if (AppBuilderConfig.getInstance().useClassicUI) {
       return false;
     }
-
-    const message = this.messageListState?.messageDataSource.getData(currentIndex);
+    
+    const message = this.messageDataSource.getData(currentIndex);
     const prevMessage = this.getPreviousMessage(currentIndex);
 
     if (!message || !prevMessage) {
@@ -791,12 +910,12 @@ export struct MessageList {
     }
 
 
-    if (message.isSelf !== prevMessage.isSelf) {
+    if (message.isSentBySelf !== prevMessage.isSentBySelf) {
       return false;
     }
 
 
-    if (prevMessage.status === MessageStatus.recalled) {
+    if (prevMessage.status === MessageStatus.REVOKED) {
       return false;
     }
 
@@ -813,12 +932,11 @@ export struct MessageList {
   }
 
   private checkNextMessageIsAggregation(currentIndex: number): boolean {
-    // In classic UI mode, disable message aggregation (always show full spacing and avatars)
     if (AppBuilderConfig.getInstance().useClassicUI) {
       return false;
     }
-
-    const message = this.messageListState?.messageDataSource.getData(currentIndex);
+    
+    const message = this.messageDataSource.getData(currentIndex);
     const nextMessage = this.getNextMessage(currentIndex);
 
     if (!message || !nextMessage) {
@@ -826,12 +944,12 @@ export struct MessageList {
     }
 
 
-    if (message.isSelf !== nextMessage.isSelf) {
+    if (message.isSentBySelf !== nextMessage.isSentBySelf) {
       return false;
     }
 
 
-    if (nextMessage.status === MessageStatus.recalled) {
+    if (nextMessage.status === MessageStatus.REVOKED) {
       return false;
     }
 
@@ -848,7 +966,7 @@ export struct MessageList {
   }
 
   private getMessageTimeString(currentIndex: number): string |null| Resource {
-    const message = this.messageListState?.messageDataSource.getData(currentIndex);
+    const message = this.messageDataSource.getData(currentIndex);
 
     if (!message || !message.timestamp) {
       return null;
@@ -857,13 +975,13 @@ export struct MessageList {
 
     if (!message.timestamp || message.timestamp === 0 || message.timestamp < 0 ||
     isNaN(message.timestamp)) {
-      console.warn(`[MessageList] Invalid message dateTime: ${message.timestamp}, messageID: ${message.ID}`);
+      console.warn(`[MessageList] Invalid message dateTime: ${message.timestamp}, messageID: ${message.msgID}`);
       return null;
     }
 
 
     if (currentIndex === 0) {
-      console.info(`[MessageList] First message, showing time for message ${message.ID}`);
+      console.info(`[MessageList] First message, showing time for message ${message.msgID}`);
       return this.getTimeString(message.timestamp);
     }
 
@@ -965,72 +1083,58 @@ export struct MessageList {
   }
 
   private loadHistoryMessages() {
+    const option = new MessageLoadOption();
+    option.direction = MessageLoadDirection.OLDER;
+    option.pageCount = 20;
 
-    const option: MessageFetchOption = {
-      direction: MessageFetchDirection.Older,
-      pageCount: 20
-    };
-
-    this.messageListStore!.fetchMessageList(option)
-      .then(() => {
-        this.isLoading = false;
-
-        if (this.locateMessage?.ID) {
-          this.locateToMessage(this.locateMessage.ID);
-        }
-      })
-      .catch((error: ErrorInfo) => {
-        this.isLoading = false;
-
-      });
+    this.messageListStore!.loadMessages(option, new CompletionHandlerAdapter(() => {
+      this.isLoading = false;
+      this.refreshDataSource();
+      if (this.locateMessage?.msgID) {
+        this.locateToMessage(this.locateMessage.msgID);
+      }
+    }, () => {
+      this.isLoading = false;
+    }));
   }
 
   private loadMessagesAroundTargetMessage() {
     if (!this.locateMessage) {
-
       this.loadHistoryMessages();
       return;
     }
 
-
     this.isLoadingAroundTargetMessage = true;
     console.info(`[MessageList] Set isLoadingAroundTargetMessage = true`);
 
+    const option = new MessageLoadOption();
+    option.cursor = this.locateMessage;
+    option.direction = MessageLoadDirection.BOTH;
+    option.pageCount = 20;
 
-    const option: MessageFetchOption = {
-      message: this.locateMessage,
-      pageCount: 20
-    };
-
-    this.messageListStore!.fetchMessageList(option)
-      .then(() => {
-
-        if (this.locateMessage?.ID) {
-          const targetMessageID = this.locateMessage.ID;
-          setTimeout(() => {
-            this.locateToMessage(targetMessageID);
-            this.isLoading = false;
-          }, 100);
-        } else {
+    this.messageListStore!.loadMessages(option, new CompletionHandlerAdapter(() => {
+      this.refreshDataSource();
+      if (this.locateMessage?.msgID) {
+        const targetMessageID = this.locateMessage.msgID;
+        setTimeout(() => {
+          this.locateToMessage(targetMessageID);
           this.isLoading = false;
-
-          this.isLoadingAroundTargetMessage = false;
-          console.info(`[MessageList] Reset isLoadingAroundTargetMessage = false (no locateMessage)`);
-        }
-      })
-      .catch((error: ErrorInfo) => {
+        }, 100);
+      } else {
         this.isLoading = false;
-
         this.isLoadingAroundTargetMessage = false;
-        console.info(`[MessageList] Reset isLoadingAroundTargetMessage = false (error case)`);
-
-
-        this.loadHistoryMessages();
-      });
+        console.info(`[MessageList] Reset isLoadingAroundTargetMessage = false (no locateMessage)`);
+      }
+    }, () => {
+      this.isLoading = false;
+      this.isLoadingAroundTargetMessage = false;
+      console.info(`[MessageList] Reset isLoadingAroundTargetMessage = false (error case)`);
+      this.loadHistoryMessages();
+    }));
   }
 
-  private loadMoreMessages(direction: number) {
-    const isOlder = direction === MessageFetchDirection.Older;
+  private loadMoreMessages(direction: MessageLoadDirection) {
+    const isOlder = direction === MessageLoadDirection.OLDER;
     const directionName = isOlder ? 'history' : 'newer';
 
     console.info(`[MessageList] loadMore${isOlder ? 'History' : 'Newer'}Messages called - checking conditions`);
@@ -1040,10 +1144,9 @@ export struct MessageList {
       return;
     }
 
-
     const hasMoreMessages = isOlder ?
-    this.messageListState.hasMoreOlderMessage :
-    this.messageListState.hasMoreNewerMessage;
+      this.messageListState.hasOlderMessages :
+      this.messageListState.hasNewerMessages;
 
     if (!hasMoreMessages) {
       console.info(`[MessageList] No more ${directionName} messages available`);
@@ -1052,61 +1155,255 @@ export struct MessageList {
 
     console.info(`[MessageList] Loading more ${directionName} messages...`);
     this.isLoadingMore = true;
-
     this.currentLoadDirection = direction;
 
-    this.messageListStore.fetchMoreMessageList(direction)
-      .then(() => {
-        console.info(`[MessageList] Successfully loaded more ${directionName} messages, count:`,
-          this.messageListState?.messageDataSource.totalCount());
-        this.isLoadingMore = false;
-      })
-      .catch((error: ErrorInfo) => {
+    const completion = new CompletionHandlerAdapter(() => {
+      this.refreshDataSource();
+      console.info(`[MessageList] Successfully loaded more ${directionName} messages, count:`,
+        this.messageDataSource.totalCount());
+      this.isLoadingMore = false;
+      this.restoreScrollPosition();
+    }, () => {
+      this.isLoadingMore = false;
+    });
 
-        this.isLoadingMore = false;
-
-      });
+    if (isOlder) {
+      this.messageListStore.loadOlderMessages(completion);
+    } else {
+      this.messageListStore.loadNewerMessages(completion);
+    }
   }
 
   private handleMessageEvent(event: MessageEvent) {
-    switch (event.type) {
-      case 'fetchMessages':
-        // Fetch reactions for initially loaded messages
-        this.fetchMessageReactions(event.messageList || []);
-        break;
-      case 'sendMessage':
+    if (event instanceof OnReceiveNewMessage) {
+      const wasLatestVisible = this.isLatestMessageVisible();
+      this.refreshDataSource();
+      const latestMessage = this.getLatestMessage();
+      const isSentBySelf = event.message?.isSentBySelf === true;
+      if (isSentBySelf || wasLatestVisible) {
         this.scrollToBottom();
-        break;
-      case 'recvMessage':
-        // Fetch reactions for new received message
-        if (event.message) {
-          this.fetchMessageReactions([event.message]);
+      } else if (latestMessage) {
+        this.floatingEntryStateController.onNewMessage(latestMessage.msgID, false);
+        this.tryUpdateMentionTargetByNewMessage(event.message);
+        this.refreshFloatingEntry();
+      }
+    } else if (event instanceof OnMessageReactionUpdated) {
+      console.log(`[UI-ReactionEvent] received, messageList.length=${this.messageListState?.messageList?.length ?? 0}`)
+      this.refreshDataSource();
+      if (event.message) {
+        const targetID = event.message.msgID
+        for (let i = 0; i < this.messageDataSource.totalCount(); i++) {
+          const data = this.messageDataSource.getData(i) as MessageInfo
+          if (data.msgID === targetID) {
+            this.messageDataSource.forceRefresh(i)
+            break
+          }
         }
-        this.scrollToBottom();
-        break;
-      case 'fetchMoreMessages':
-        // Fetch reactions for newly loaded messages
-        this.fetchMessageReactions(event.messageList || []);
-        this.restoreScrollPosition();
-        break;
-      case 'deleteMessages':
-        break;
-      default:
-        break;
+      }
+      this.refreshFloatingEntry();
+    } else if (event instanceof OnMessageRevoked) {
+      this.refreshDataSource();
+      this.refreshFloatingEntry();
+    } else if (event instanceof OnMessageDeleted) {
+      this.refreshDataSource();
+      this.refreshFloatingEntry();
     }
   }
 
-  private fetchMessageReactions(messages: MessageInfo[]) {
-    if (!this.effectiveConfig.isSupportReaction || !this.messageListStore) {
+  private tryUpdateMentionTargetByNewMessage(message?: MessageInfo): void {
+    if (!message) {
       return;
     }
-
-    if (messages.length === 0) {
+    if (!this.conversationID || !this.conversationID.startsWith(MessageList.GROUP_CONVERSATION_PREFIX)) {
       return;
     }
+    const atUserList: string[] = message.atUserList ?? [];
+    if (atUserList.length === 0) {
+      return;
+    }
+    const loginUserID = LoginStore.shared().state.loginUserInfo?.userID ?? '';
+    const hasAtAll = atUserList.indexOf(MentionInfo.AT_ALL_USER_ID) >= 0;
+    const hasAtMe = loginUserID.length > 0 && atUserList.indexOf(loginUserID) >= 0;
+    if (!hasAtAll && !hasAtMe) {
+      return;
+    }
+    const existingTarget = this.floatingEntryStateController.currentMentionTarget();
+    const msgSeq = message.sequence ?? 0;
+    if (existingTarget && existingTarget.sequence > 0 && msgSeq >= existingTarget.sequence) {
+      return;
+    }
+    const kind = hasAtMe ? MessageListMentionKind.AT_ME : MessageListMentionKind.AT_ALL;
+    const target = new MessageListMentionTarget(msgSeq, kind);
+    this.floatingEntryStateController.onInitialMentionTarget(target, MessageListMentionTargetVisibility.HIDDEN);
+  }
 
-    // Fetch reactions with max 3 users per reaction
-    this.messageListStore.fetchMessageReactions(messages, 3);
+  private requestInitialMentionEntry(): void {
+    if (!this.conversationListStore || !this.conversationID) {
+      return;
+    }
+    if (!this.conversationID.startsWith(MessageList.GROUP_CONVERSATION_PREFIX)) {
+      return;
+    }
+    const requestedConversationID = this.conversationID;
+    this.conversationListStore.getConversationInfo(this.conversationID, new GetConversationInfoCompletionHandlerAdapter(
+      (conversationInfo: ConversationInfo) => {
+        if (this.conversationID !== requestedConversationID) {
+          return;
+        }
+        const mentionTarget = MessageListFloatingEntryPolicy.findOldestMentionTarget(conversationInfo.groupAtInfoList);
+        const visibility = mentionTarget ?
+          this.mentionTargetVisibility(mentionTarget) :
+          MessageListMentionTargetVisibility.UNKNOWN;
+        this.floatingEntryStateController.onInitialMentionTarget(mentionTarget, visibility);
+        this.refreshFloatingEntry();
+      },
+      (_code: number, _desc: string) => {
+        this.refreshFloatingEntry();
+      }
+    ));
+  }
+
+  private updateFloatingEntryForScroll(): void {
+    this.floatingEntryStateController.onMentionTargetVisibilityChanged(this.currentMentionTargetVisibility());
+    this.floatingEntryStateController.onScroll(
+      this.distanceFromLatestItems(),
+      this.visibleItemCount(),
+      this.isLatestMessageVisible()
+    );
+    this.refreshFloatingEntry();
+  }
+
+  private refreshFloatingEntry(): void {
+    this.floatingEntry = this.floatingEntryStateController.currentEntry();
+  }
+
+  private handleFloatingEntryClick(entry: MessageListFloatingEntry): void {
+    this.floatingEntryStateController.consume(entry);
+    this.refreshFloatingEntry();
+    if (entry.type === MessageListFloatingEntryType.NEW_MESSAGES && entry.firstMessageId.length > 0) {
+      this.locateToMessage(entry.firstMessageId);
+      return;
+    }
+    if (entry.type === MessageListFloatingEntryType.MENTION && entry.target) {
+      this.locateToSequence(entry.target.sequence);
+      return;
+    }
+    this.scrollToBottom();
+  }
+
+  private getFloatingEntryText(entry: MessageListFloatingEntry): Resource | string {
+    if (entry.type === MessageListFloatingEntryType.NEW_MESSAGES) {
+      return `${entry.count}${this.getString($r('app.string.messagelist_floating_new_messages'))}`;
+    }
+    if (entry.type === MessageListFloatingEntryType.MENTION) {
+      if (entry.target?.kind === MessageListMentionKind.AT_ALL) {
+        return $r('app.string.messagelist_floating_at_all');
+      }
+      return $r('app.string.messagelist_floating_someone_mentioned_me');
+    }
+    return $r('app.string.messagelist_floating_back_to_latest');
+  }
+
+  private currentMentionTargetVisibility(): MessageListMentionTargetVisibility {
+    return this.mentionTargetVisibility(this.floatingEntryStateController.currentMentionTarget());
+  }
+
+  private mentionTargetVisibility(target?: MessageListMentionTarget): MessageListMentionTargetVisibility {
+    if (!target || !this.messageListState) {
+      return MessageListMentionTargetVisibility.UNKNOWN;
+    }
+    const messageCount = this.messageDataSource.totalCount();
+    if (messageCount <= 0) {
+      return MessageListMentionTargetVisibility.UNKNOWN;
+    }
+    const index = this.findMessageIndexBySequence(target.sequence);
+    if (index < 0) {
+      return MessageListMentionTargetVisibility.HIDDEN;
+    }
+    if (this.lastFirstIndex < 0 || this.lastLastIndex < 0) {
+      return MessageListMentionTargetVisibility.UNKNOWN;
+    }
+    return this.isIndexVisible(index) ? MessageListMentionTargetVisibility.VISIBLE : MessageListMentionTargetVisibility.HIDDEN;
+  }
+
+  private locateToSequence(sequence: number): void {
+    const index = this.findMessageIndexBySequence(sequence);
+    if (index >= 0) {
+      const message = this.messageDataSource.getData(index);
+      if (message) {
+        this.locateToMessage(message.msgID);
+      }
+      return;
+    }
+    const cursor = new MessageInfo();
+    cursor.sequence = sequence;
+    this.locateMessage = cursor;
+    this.loadMessagesAroundTargetMessage();
+  }
+
+  private findMessageIndexBySequence(sequence: number): number {
+    for (let i = 0; i < this.messageDataSource.totalCount(); i++) {
+      const message = this.messageDataSource.getData(i);
+      if (message && message.sequence === sequence) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  private getLatestMessage(): MessageInfo | undefined {
+    const count = this.messageDataSource.totalCount();
+    if (count <= 0) {
+      return undefined;
+    }
+    return this.messageDataSource.getData(count - 1);
+  }
+
+  private isLatestMessageVisible(): boolean {
+    const count = this.messageDataSource.totalCount();
+    if (count <= 0) {
+      return true;
+    }
+    if (this.lastLastIndex < 0) {
+      return true;
+    }
+    return this.lastLastIndex >= count - 1;
+  }
+
+  private isIndexVisible(index: number): boolean {
+    if (index < 0) {
+      return false;
+    }
+    if (this.lastFirstIndex < 0 || this.lastLastIndex < 0) {
+      return false;
+    }
+    return index >= this.lastFirstIndex && index <= this.lastLastIndex;
+  }
+
+  private visibleItemCount(): number {
+    if (this.lastFirstIndex < 0 || this.lastLastIndex < 0) {
+      return 0;
+    }
+    return Math.max(0, this.lastLastIndex - this.lastFirstIndex + 1);
+  }
+
+  private distanceFromLatestItems(): number {
+    const count = this.messageDataSource.totalCount();
+    if (count <= 0) {
+      return 0;
+    }
+    if (this.lastLastIndex < 0) {
+      return 0;
+    }
+    return Math.max(0, count - 1 - this.lastLastIndex);
+  }
+
+  private getString(resource: Resource): string {
+    try {
+      return getContext(this).resourceManager.getStringSync(resource);
+    } catch (_e) {
+      return '';
+    }
   }
 
   private restoreScrollPosition() {
@@ -1123,7 +1420,7 @@ export struct MessageList {
       return;
     }
 
-    const currentMessageCount = this.messageListState?.messageDataSource.totalCount() ?? 0;
+    const currentMessageCount = this.messageDataSource.totalCount();
     const newMessagesCount = currentMessageCount - this.messageCountBeforeLoad;
 
     console.info('[MessageList] Restoring scroll position:', {
@@ -1131,11 +1428,11 @@ export struct MessageList {
       currentMessageCount: currentMessageCount,
       newMessagesCount: newMessagesCount,
       scrollPositionBefore: this.scrollPositionBeforeLoad,
-      loadDirection: this.currentLoadDirection === MessageFetchDirection.Older ? 'older' : 'newer'
+      loadDirection: this.currentLoadDirection === MessageLoadDirection.OLDER ? 'older' : 'newer'
     });
 
     if (newMessagesCount > 0) {
-      if (this.currentLoadDirection === MessageFetchDirection.Older) {
+      if (this.currentLoadDirection === MessageLoadDirection.OLDER) {
 
         console.info('[MessageList] Restoring position after loading older messages');
         this.scroller.scrollToIndex(newMessagesCount, false, ScrollAlign.START);
@@ -1145,7 +1442,7 @@ export struct MessageList {
         console.info('[MessageList] Restoring position after loading newer messages');
 
         const targetIndex = this.messageCountBeforeLoad - 1;
-        if (targetIndex >= 0 && targetIndex < (this.messageListState?.messageDataSource.totalCount() ?? 0)) {
+        if (targetIndex >= 0 && targetIndex < this.messageDataSource.totalCount()) {
           this.scroller.scrollToIndex(targetIndex, false, ScrollAlign.END);
           console.info(`[MessageList] Scrolled to index ${targetIndex} to maintain viewing position`);
         }
@@ -1166,7 +1463,7 @@ export struct MessageList {
       return;
     }
 
-    if (!message || message.isSelf) {
+    if (!message || message.isSentBySelf) {
       return;
     }
 
@@ -1174,15 +1471,15 @@ export struct MessageList {
       return;
     }
 
-    if (message.status !== MessageStatus.sendSuccess) {
+    if (message.status !== MessageStatus.SEND_SUCCESS) {
       return;
     }
 
-    if (message.messageType === MessageType.System) {
+    if (message.messageType === MessageType.TIPS) {
       return;
     }
 
-    const messageID = message.msgID || message.ID;
+    const messageID = message.msgID;
     if (!messageID) {
       return;
     }
@@ -1221,13 +1518,10 @@ export struct MessageList {
     const messageIDsToSend: string[] = [];
 
     pendingIDs.forEach((id: string) => {
-      const index = this.messageListState!.messageDataSource.getIndex(id);
-      if (index !== -1) {
-        const msg = this.messageListState!.messageDataSource.getData(index);
-        if (msg && msg.rawMessage) {
-          messages.push(msg);
-          messageIDsToSend.push(id);
-        }
+      const msg = this.messageListState!.messageList.find((m: MessageInfo) => m.msgID === id);
+      if (msg && msg.rawMessage) {
+        messages.push(msg);
+        messageIDsToSend.push(id);
       }
     });
 
@@ -1235,16 +1529,15 @@ export struct MessageList {
       return;
     }
 
-    this.messageListStore.sendMessageReadReceipts(messages)
-      .then(() => {
-        messageIDsToSend.forEach((id: string) => {
-          this.sentReceiptMessageIDs.add(id);
-          this.pendingReceiptMessageIDs.delete(id);
-        });
-      })
-      .catch((error: ErrorInfo) => {
-        console.error('[MessageList] sendMessageReadReceipts failed:', error.code, error.message);
+    const completion = new CompletionHandlerAdapter(() => {
+      messageIDsToSend.forEach((id: string) => {
+        this.sentReceiptMessageIDs.add(id);
+        this.pendingReceiptMessageIDs.delete(id);
       });
+    }, (code: number, desc: string) => {
+      console.error('[MessageList] sendMessageReadReceipts failed:', code, desc);
+    });
+    this.messageListStore.sendMessageReadReceipts(messages, completion);
   }
 
   // ============ Multi-select Mode Methods ============
@@ -1324,24 +1617,31 @@ export struct MessageList {
     const reactionID = emoji.name;
     const existingReaction = message.reactionList?.find(r => r.reactionID === reactionID);
 
+    const refreshAfterReaction = () => {
+      this.refreshDataSource();
+      setTimeout(() => {
+        this.refreshDataSource();
+      }, 500);
+    };
+
     if (existingReaction && (existingReaction.reactedByMyself ?? false)) {
       // Remove reaction if already reacted
-      messageActionStore.removeMessageReaction(reactionID)
-        .then(() => {
-          Toast.info($r('app.string.messagelist_reaction_removed'), this.getUIContext());
-        })
-        .catch((error: ErrorInfo) => {
-          console.error('[MessageList] Failed to remove reaction:', error);
-        });
+      const removeCompletion = new CompletionHandlerAdapter(() => {
+        Toast.info($r('app.string.messagelist_reaction_removed'), this.getUIContext());
+        refreshAfterReaction();
+      }, (code: number, desc: string) => {
+        console.error('[MessageList] Failed to remove reaction:', code, desc);
+      });
+      messageActionStore.removeReaction(reactionID, removeCompletion);
     } else {
       // Add reaction
-      messageActionStore.addMessageReaction(reactionID)
-        .then(() => {
-          Toast.info($r('app.string.messagelist_reaction_added'), this.getUIContext());
-        })
-        .catch((error: ErrorInfo) => {
-          console.error('[MessageList] Failed to add reaction:', error);
-        });
+      const addCompletion = new CompletionHandlerAdapter(() => {
+        Toast.info($r('app.string.messagelist_reaction_added'), this.getUIContext());
+        refreshAfterReaction();
+      }, (code: number, desc: string) => {
+        console.error('[MessageList] Failed to add reaction:', code, desc);
+      });
+      messageActionStore.addReaction(reactionID, addCompletion);
     }
   }
 
@@ -1366,111 +1666,80 @@ export struct MessageList {
     this.emojiPickerController.open();
   }
 
-  /**
-   * Check if a message can be selected in multi-select mode
-   * Note: Failed and violation messages can be selected (for deletion)
-   * but will be filtered out when forwarding
-   */
   private canSelectMessage(message: MessageInfo): boolean {
-    // Cannot select recalled messages
-    if (message.status === MessageStatus.recalled) {
+    if (message.status === MessageStatus.REVOKED) {
       return false;
     }
-    // Cannot select system messages
-    if (message.messageType === MessageType.System) {
+    if (message.messageType === MessageType.TIPS) {
       return false;
     }
-    // Cannot select custom/tips messages
-    if (message.messageType === MessageType.Custom) {
+    if (message.messageType === MessageType.CUSTOM) {
       return false;
     }
     return true;
   }
 
-  /**
-   * Validate selected messages for forwarding
-   * @returns true if all messages can be forwarded, false otherwise
-   */
   private validateMessagesForForward(): boolean {
     const selectedMessages = this.getSelectedMessages();
-
-    // Check for failed messages
-    const hasFailedMessages = selectedMessages.some(msg => msg.status === MessageStatus.sendFail);
+    
+    const hasFailedMessages = selectedMessages.some(msg => msg.status === MessageStatus.SEND_FAIL);
     if (hasFailedMessages) {
       Toast.error($r('app.string.forward_failed_message_tip'), this.getUIContext());
       return false;
     }
-
-    // Check for violation messages
-    const hasViolationMessages = selectedMessages.some(msg => msg.status === MessageStatus.violation);
+    
+    const hasViolationMessages = selectedMessages.some(msg => msg.status === MessageStatus.VIOLATION);
     if (hasViolationMessages) {
       Toast.error($r('app.string.forward_violation_message_tip'), this.getUIContext());
       return false;
     }
-
+    
     return true;
   }
 
-  /**
-   * Toggle selection state of a message
-   */
   private toggleMessageSelection(message: MessageInfo) {
     if (!this.canSelectMessage(message)) {
       return;
     }
-
-    if (this.selectedMessageIDs.has(message.ID)) {
-      this.selectedMessageIDs.delete(message.ID);
+    
+    if (this.selectedMessageIDs.has(message.msgID)) {
+      this.selectedMessageIDs.delete(message.msgID);
     } else {
-      this.selectedMessageIDs.add(message.ID);
+      this.selectedMessageIDs.add(message.msgID);
     }
-    // Trigger UI update
     this.selectedMessageIDs = new Set(this.selectedMessageIDs);
-    // Notify parent about selection change
     this.notifyMultiSelectModeChange();
   }
 
-  /**
-   * Get selected messages sorted by timestamp
-   */
   private getSelectedMessages(): MessageInfo[] {
-    if (!this.messageListState?.messageDataSource) {
+    if (!this.messageListState) {
       return [];
     }
-
+    
     const selectedMessages: MessageInfo[] = [];
-    const totalCount = this.messageListState.messageDataSource.totalCount();
-
-    for (let i = 0; i < totalCount; i++) {
-      const message = this.messageListState.messageDataSource.getData(i) as MessageInfo;
-      if (message && this.selectedMessageIDs.has(message.ID)) {
+    this.messageListState.messageList.forEach((message: MessageInfo) => {
+      if (this.selectedMessageIDs.has(message.msgID)) {
         selectedMessages.push(message);
       }
-    }
-
-    // Sort by timestamp
+    });
+    
     return selectedMessages.sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0));
   }
 
-  /**
-   * Delete selected messages
-   */
   deleteSelectedMessages() {
     const selectedMessages = this.getSelectedMessages();
     if (selectedMessages.length === 0) {
       return;
     }
-
-    // Use batch delete API
-    this.messageListStore?.deleteMessages(selectedMessages)
-      .then(() => {
-        Toast.info($r('app.string.messagelist_messages_deleted'), this.getUIContext());
-        this.exitMultiSelectMode();
-      })
-      .catch((error: ErrorInfo) => {
-        console.error('[MessageList] Failed to delete messages:', error);
-        Toast.info($r('app.string.messagelist_delete_message_failed'), this.getUIContext());
-      });
+    
+    this.messageListStore?.deleteMessages(selectedMessages, new CompletionHandlerAdapter(() => {
+      this.refreshDataSource();
+      Toast.info($r('app.string.messagelist_messages_deleted'), this.getUIContext());
+      this.exitMultiSelectMode();
+    }, (code: number, desc: string) => {
+      console.error('[MessageList] Failed to delete messages:', code, desc);
+      Toast.info($r('app.string.messagelist_delete_message_failed'), this.getUIContext());
+    }));
   }
 
   /**
@@ -1482,18 +1751,11 @@ export struct MessageList {
 
   // ============ Forward Methods ============
 
-  /**
-   * Handle forwarding a single message (from action menu)
-   */
   private handleForwardSingleMessage(message: MessageInfo) {
-    // For single message forward, directly show forward target selector without entering multi-select mode
-    // Set default forward type to separate
-    this.forwardType = MessageForwardType.separate;
-
-    // Store the message to forward
-    this.selectedMessageIDs = new Set([message.ID]);
-
-    // Show forward target selector directly
+    this.forwardType = MessageForwardType.SEPARATE;
+    
+    this.selectedMessageIDs = new Set([message.msgID]);
+    
     this.showForwardTargetSelector();
   }
 
@@ -1504,7 +1766,7 @@ export struct MessageList {
   showForwardTypeSelector() {
     const selectedCount = this.selectedMessageIDs.size;
     const exceedsLimit = selectedCount > MessageList.MAX_SEPARATE_FORWARD_COUNT;
-
+    
     this.forwardTypeDialogController = new CustomDialogController({
       builder: ForwardTypeDialog({
         showSeparateOption: !exceedsLimit,
@@ -1520,7 +1782,7 @@ export struct MessageList {
       alignment: DialogAlignment.Bottom,
       customStyle: true
     });
-
+    
     this.forwardTypeDialogController.open();
   }
 
@@ -1544,18 +1806,13 @@ export struct MessageList {
       alignment: DialogAlignment.Bottom,
       customStyle: true
     });
-
+    
     this.forwardDialogController.open();
   }
 
-  /**
-   * Forward selected messages to multiple target conversations
-   * Loops through each conversation and calls forwardMessages API
-   */
   private forwardMessagesToConversations(targetConversationIDs: string[]) {
     const selectedMessages = this.getSelectedMessages();
     if (selectedMessages.length === 0 || targetConversationIDs.length === 0) {
-      // Clear selection if not in multi-select mode
       if (!this.isMultiSelectMode) {
         this.selectedMessageIDs.clear();
       } else {
@@ -1563,116 +1820,98 @@ export struct MessageList {
       }
       return;
     }
-
+    
     console.info(`[MessageList] Forwarding ${selectedMessages.length} messages to ${targetConversationIDs.length} conversations, type: ${this.forwardType}`);
-
-    // Build forward option
-    const forwardOption = new MessageForwardOption();
-    forwardOption.forwardType = this.forwardType;
-
-    if (this.forwardType === MessageForwardType.merged) {
-      // Generate merged forward info
-      forwardOption.mergedForwardInfo = this.generateMergedForwardInfo(selectedMessages);
-    }
-
-    // Exit multi-select mode only if we're actually in it
+    
     if (this.isMultiSelectMode) {
       this.exitMultiSelectMode();
     } else {
-      // Clear temporary selection for single message forward
       this.selectedMessageIDs.clear();
     }
+    
+    let successCount = 0;
+    let failureCount = 0;
+    const totalCount = targetConversationIDs.length;
 
-    // Forward to each conversation sequentially
-    const forwardPromises: Promise<void>[] = [];
-    for (const targetConversationID of targetConversationIDs) {
-      const promise = this.messageListStore?.forwardMessages(selectedMessages, forwardOption, targetConversationID)
-        .then(() => {
-          console.info(`[MessageList] Forward to ${targetConversationID} succeeded`);
-        })
-        .catch((error: ErrorInfo) => {
-          console.error(`[MessageList] Forward to ${targetConversationID} failed:`, error);
-          throw error;
-        });
-      if (promise) {
-        forwardPromises.push(promise);
+    const onComplete = () => {
+      if (successCount + failureCount >= totalCount) {
+        if (failureCount === 0) {
+          Toast.success($r('app.string.forward_success'), this.getUIContext());
+        } else {
+          console.error(`[MessageList] ${failureCount}/${totalCount} forwards failed`);
+          Toast.info($r('app.string.forward_failed'), this.getUIContext());
+        }
       }
-    }
+    };
 
-    // Wait for all forwards to complete (in background)
-    Promise.all(forwardPromises)
-      .then(() => {
-        Toast.success($r('app.string.forward_success'), this.getUIContext());
-      })
-      .catch((error: ErrorInfo) => {
-        console.error('[MessageList] Some forwards failed:', error);
-        Toast.info($r('app.string.forward_failed'), this.getUIContext());
-      });
+    for (const targetConversationID of targetConversationIDs) {
+      const forwardOption = new ForwardMessageOption();
+      forwardOption.forwardType = this.forwardType;
+      if (this.forwardType === MessageForwardType.MERGED) {
+        forwardOption.mergedForwardInfo = this.generateMergedForwardInfo(selectedMessages);
+      }
+      const sendMessageOption = new SendMessageOption();
+      sendMessageOption.needReadReceipt = AppBuilderConfig.getInstance().enableReadReceipt ?? false;
+      sendMessageOption.offlinePushInfo = this.createOfflinePushInfoForConversation(targetConversationID);
+      forwardOption.sendMessageOption = sendMessageOption;
+
+      this.messageListStore?.forwardMessages(selectedMessages, forwardOption, targetConversationID, new CompletionHandlerAdapter(() => {
+        successCount++;
+        console.info(`[MessageList] Forward to ${targetConversationID} succeeded`);
+        onComplete();
+      }, (code: number, desc: string) => {
+        failureCount++;
+        console.error(`[MessageList] Forward to ${targetConversationID} failed:`, code, desc);
+        onComplete();
+      }));
+    }
   }
 
-  /**
-   * Generate merged forward info from selected messages
-   */
   private generateMergedForwardInfo(messages: MessageInfo[]): MergedForwardInfo {
     const mergedInfo = new MergedForwardInfo();
-
-    // Generate title based on conversation type
+    
     mergedInfo.title = this.generateMergedTitle(messages);
-
-    // Generate abstract list (up to 4 messages)
+    
     const abstractList: string[] = [];
     const maxAbstractCount = Math.min(messages.length, 4);
     for (let i = 0; i < maxAbstractCount; i++) {
       const msg = messages[i];
-      const senderName: string = msg.sender?.nickname || msg.sender?.userID || '';
+      const senderName: string = msg.from?.nickname || msg.from?.userID || '';
       const abstract = MessageUtils.getMessageAbstract(msg);
       const abstractStr = typeof abstract === 'string' ? abstract : TextUtils.getResourceString(abstract);
       abstractList.push(`${senderName}: ${abstractStr}`);
     }
     mergedInfo.abstractList = abstractList;
-
-    // Compatible text for older clients
+    
     mergedInfo.compatibleText = TextUtils.getResourceString($r('app.string.forward_compatible_text'));
-
-    // Set needReadReceipt to true for merged messages
-    mergedInfo.needReadReceipt = true;
-
+    
     return mergedInfo;
   }
 
-  /**
-   * Generate merged forward message title based on conversation type
-   * Returns formatted string directly (matches Kotlin implementation)
-   */
   private generateMergedTitle(messages: MessageInfo[]): string {
-    // Check if it's a group chat (conversationID starts with "group_")
     const isGroupChat = this.conversationID.startsWith('group_');
-
+    
     if (isGroupChat) {
       return TextUtils.getResourceString($r('app.string.forward_group_chat_history'));
     } else {
-      // C2C chat: collect unique senders in order of appearance
       const senderNames: string[] = [];
       const seenSenders: Set<string> = new Set();
-
+      
       for (const message of messages) {
-        const sender = message.sender?.userID || '';
+        const sender = message.from?.userID || '';
         if (sender && !seenSenders.has(sender)) {
           seenSenders.add(sender);
-          // Use nickname, fallback to sender ID
-          const name = message.sender?.nickname || sender;
+          const name = message.from?.nickname || sender;
           senderNames.push(name);
         }
-        // Only need at most 2 senders for C2C
         if (senderNames.length >= 2) {
           break;
         }
       }
-
-      // Build title using localized strings (like Kotlin)
-      const andText = TextUtils.getResourceString($r('app.string.forward_and_text')); // "和" / "and" / "و"
-      const historySuffix = TextUtils.getResourceString($r('app.string.forward_chat_history_c2c')); // "的聊天记录" / "'s Chat History"
-
+      
+      const andText = TextUtils.getResourceString($r('app.string.forward_and_text'));
+      const historySuffix = TextUtils.getResourceString($r('app.string.forward_chat_history_c2c'));
+      
       if (senderNames.length === 2) {
         return `${senderNames[0]}${andText}${senderNames[1]}${historySuffix}`;
       } else if (senderNames.length === 1) {
@@ -1685,46 +1924,37 @@ export struct MessageList {
 
   // ============ Voice to Text Methods ============
 
-  /**
-   * Handle convert voice to text action
-   * Called when user clicks "Convert to Text" in message action menu
-   */
   private handleConvertVoiceToText(message: MessageInfo) {
-    if (!message || message.messageType !== MessageType.Sound) {
+    if (!message || message.messageType !== MessageType.AUDIO) {
       return;
     }
 
     console.log(`[MessageList] 🎤 Starting voice to text conversion for message: ${message.msgID}`);
 
-    // Set converting state
     this.asrDisplayManager.setConverting(message.msgID, true);
     this.asrDisplayManager.expand(message.msgID);
 
-    // Call API
     const messageActionStore = MessageActionStore.create(message);
-    messageActionStore.convertVoiceToText('')
-      .then(() => {
-        console.log(`[MessageList] ✅ Voice to text conversion succeeded`);
-        this.asrDisplayManager.setConverting(message.msgID, false);
+    messageActionStore.convertVoiceToText('', new CompletionHandlerAdapter(() => {
+      console.log(`[MessageList] ✅ Voice to text conversion succeeded`);
+      this.asrDisplayManager.setConverting(message.msgID, false);
 
-        // Check if asrText is empty after conversion
-        const asrText = message.messageBody?.asrText ?? '';
-        if (asrText.length === 0) {
-          console.log(`[MessageList] ⚠️ asrText is empty after conversion`);
-          Toast.info($r('app.string.messagelist_convert_to_text_failed'), this.getUIContext());
-          this.asrDisplayManager.collapse(message.msgID);
-        } else {
-          // Scroll to bottom if this is the last message
-          this.scrollToBottomIfLastMessage(message);
-        }
-      })
-      .catch((error: ErrorInfo) => {
-        console.error(`[MessageList] ❌ Voice to text conversion failed:`, error);
-        this.asrDisplayManager.setConverting(message.msgID, false);
-        this.asrDisplayManager.collapse(message.msgID);
-
+      const audioPayload = message.messagePayload as AudioMessagePayload | undefined;
+      const asrText = audioPayload?.asrText ?? '';
+      if (asrText.length === 0) {
+        console.log(`[MessageList] ⚠️ asrText is empty after conversion`);
         Toast.info($r('app.string.messagelist_convert_to_text_failed'), this.getUIContext());
-      });
+        this.asrDisplayManager.collapse(message.msgID);
+      } else {
+        this.scrollToBottomIfLastMessage(message);
+      }
+    }, (code: number, desc: string) => {
+      console.error(`[MessageList] ❌ Voice to text conversion failed:`, code, desc);
+      this.asrDisplayManager.setConverting(message.msgID, false);
+      this.asrDisplayManager.collapse(message.msgID);
+
+      Toast.info($r('app.string.messagelist_convert_to_text_failed'), this.getUIContext());
+    }));
   }
 
   /**
@@ -1753,63 +1983,56 @@ export struct MessageList {
     this.forwardDialogController.open();
   }
 
-  /**
-   * Send ASR text as text message to selected conversations
-   */
   private sendAsrTextToConversations(asrText: string, targetConversationIDs: string[]) {
     if (targetConversationIDs.length === 0) {
       return;
     }
 
-    const sendPromises: Promise<void>[] = [];
+    let successCount = 0;
+    let failureCount = 0;
+    const totalCount = targetConversationIDs.length;
+
+    const onComplete = () => {
+      if (successCount + failureCount >= totalCount) {
+        if (failureCount === 0) {
+          Toast.success($r('app.string.forward_success'), this.getUIContext());
+        } else {
+          console.error(`[MessageList] ${failureCount}/${totalCount} ASR text sends failed`);
+          Toast.info($r('app.string.forward_failed'), this.getUIContext());
+        }
+      }
+    };
 
     for (const targetConversationID of targetConversationIDs) {
       const messageInputStore = MessageInputStore.create(targetConversationID);
+      const payload = new TextSendMessagePayload(asrText);
+      const option = new SendMessageOption();
+      option.needReadReceipt = AppBuilderConfig.getInstance().enableReadReceipt ?? false;
+      option.offlinePushInfo = this.createOfflinePushInfoForConversation(targetConversationID);
 
-      const message = new MessageInfo();
-      message.messageType = MessageType.Text;
-      const body = new MessageBody();
-      body.text = asrText;
-      message.messageBody = body;
-
-      // Create offline push info for forwarding
-      message.offlinePushInfo = this.createOfflinePushInfoForConversation(targetConversationID, message);
-
-      const promise: Promise<void> = messageInputStore.sendMessage(message)
-        .then(() => {
-          console.info(`[MessageList] ASR text sent to ${targetConversationID}`);
-        })
-        .catch((error: ErrorInfo) => {
-          console.error(`[MessageList] Failed to send ASR text to ${targetConversationID}:`, error);
-          throw error;
-        });
-      sendPromises.push(promise);
+      messageInputStore.sendMessage(payload, option, new CompletionHandlerAdapter(() => {
+        successCount++;
+        console.info(`[MessageList] ASR text sent to ${targetConversationID}`);
+        onComplete();
+      }, (code: number, desc: string) => {
+        failureCount++;
+        console.error(`[MessageList] Failed to send ASR text to ${targetConversationID}:`, code, desc);
+        onComplete();
+      }));
     }
-
-    Promise.all(sendPromises)
-      .then(() => {
-        Toast.success($r('app.string.forward_success'), this.getUIContext());
-      })
-      .catch((error: ErrorInfo) => {
-        console.error('[MessageList] Some ASR text sends failed:', error);
-        Toast.info($r('app.string.forward_failed'), this.getUIContext());
-      });
   }
 
-  /**
-   * Scroll to bottom if the given message is the last message
-   */
   private scrollToBottomIfLastMessage(message: MessageInfo) {
-    if (!this.messageListState?.messageDataSource) {
+    if (!this.messageListState) {
       return;
     }
 
-    const totalCount = this.messageListState.messageDataSource.totalCount();
-    if (totalCount === 0) {
+    const list = this.messageListState.messageList;
+    if (list.length === 0) {
       return;
     }
 
-    const lastMessage = this.messageListState.messageDataSource.getData(totalCount - 1) as MessageInfo;
+    const lastMessage = list[list.length - 1];
     if (lastMessage && lastMessage.msgID === message.msgID) {
       console.log(`[MessageList] 📜 Scrolling to bottom after ASR conversion`);
       this.scrollToBottom();
@@ -1826,23 +2049,18 @@ export struct MessageList {
 
   // ============ Text Translation Methods ============
 
-  /**
-   * Handle translate text message action
-   * Called when user clicks "Translate" in message action menu
-   */
   private async handleTranslateText(message: MessageInfo) {
-    if (!message || message.messageType !== MessageType.Text) {
+    if (!message || message.messageType !== MessageType.TEXT) {
       return;
     }
 
     console.log(`[MessageList] 🌐 Starting text translation for message: ${message.msgID}`);
 
-    // Set translating state
     this.translationDisplayManager.setTranslating(message.msgID, true);
     this.translationDisplayManager.expand(message.msgID);
 
-    // Get original text
-    const originalText = message.messageBody?.text ?? '';
+    const textPayload = message.messagePayload as TextMessagePayload | undefined;
+    const originalText = textPayload?.text ?? '';
     if (originalText.length === 0) {
       console.log(`[MessageList]  Original text is empty`);
       this.translationDisplayManager.setTranslating(message.msgID, false);
@@ -1850,13 +2068,11 @@ export struct MessageList {
     }
 
     try {
-      // Get @ user names from message
       const atUserNames = await TranslationTextParser.getAtUserNames(message);
       console.log(`[MessageList]  @ user names:`, atUserNames);
 
-      // Split text by emoji and @ users
       const splitResult = TranslationTextParser.splitTextByEmojiAndAtUsers(originalText, atUserNames ?? undefined);
-
+      
       if (!splitResult) {
         console.log(`[MessageList]  Split result is null`);
         this.translationDisplayManager.setTranslating(message.msgID, false);
@@ -1872,7 +2088,6 @@ export struct MessageList {
       console.log(`[MessageList]  Split result - Text indices:`, textIndexArray);
       console.log(`[MessageList]  Split result - Full array:`, resultArray);
 
-      // If no plain text to translate (only emojis/mentions), don't call translation API
       if (textArray.length === 0 || textArray.every(text => text.trim().length === 0)) {
         console.log(`[MessageList]  No plain text to translate (only emojis/mentions)`);
         this.translationDisplayManager.setTranslating(message.msgID, false);
@@ -1885,24 +2100,32 @@ export struct MessageList {
       console.log(`[MessageList]  Original text: ${originalText}`);
       console.log(`[MessageList]  Text fragments to translate:`, textArray);
 
-      const messageActionStore = MessageActionStore.create(message);
-      await messageActionStore.translateText(textArray, undefined, targetLanguage);
+      await new Promise<void>((resolve, reject) => {
+        const messageActionStore = MessageActionStore.create(message);
+        const completion = new CompletionHandlerAdapter(() => {
+          resolve();
+        }, (code: number, desc: string) => {
+          reject(new Error(`translateText failed: ${code} ${desc}`));
+        });
+        messageActionStore.translateText(textArray, undefined, targetLanguage, completion);
+      });
 
       console.log(`[MessageList]  Text translation succeeded`);
       this.translationDisplayManager.setTranslating(message.msgID, false);
 
-      // Convert Map to Record
-      const translatedTextMapRaw = message.messageBody?.translatedText;
+      const latestMessage = this.messageListState?.messageList.find((item: MessageInfo) => item.msgID === message.msgID) ?? message;
+      const latestTextPayload = latestMessage.messagePayload as TextMessagePayload | undefined;
+      const fallbackTextPayload = message.messagePayload as TextMessagePayload | undefined;
       const translatedTextMap: Record<string, string> = {};
-      if (translatedTextMapRaw) {
-        translatedTextMapRaw.forEach((value: string, key: string) => {
-          translatedTextMap[key] = value;
-        });
-      }
+      latestTextPayload?.translatedText?.forEach((value: string, key: string) => {
+        translatedTextMap[key] = value;
+      });
+      fallbackTextPayload?.translatedText?.forEach((value: string, key: string) => {
+        translatedTextMap[key] = value;
+      });
 
       console.log(`[MessageList]  Translation map:`, translatedTextMap);
 
-      // Reconstruct translated text with emoji and @ mentions
       const translatedFullText = TranslationTextParser.replacedStringWithArray(
         resultArray,
         textIndexArray,
@@ -1915,22 +2138,60 @@ export struct MessageList {
         Toast.info($r('app.string.messagelist_translate_failed'), this.getUIContext());
       } else {
         console.log(`[MessageList]  Final translated text: ${translatedFullText}`);
-
-        // Update translation map with the full text (for display)
-        if (message.messageBody && message.messageBody.translatedText) {
-          message.messageBody.translatedText.set(originalText, translatedFullText);
+        
+        if (latestTextPayload) {
+          if (!latestTextPayload.translatedText) {
+            latestTextPayload.translatedText = new Map<string, string>();
+          }
+          latestTextPayload.translatedText.set(originalText, translatedFullText);
         }
-
-        // Scroll to bottom if this is the last message
-        this.scrollToBottomIfLastMessage(message);
+        this.refreshDataSource();
+        const refreshIndex = this.messageDataSource.getIndex(message.msgID);
+        if (refreshIndex >= 0) {
+          this.messageDataSource.forceRefresh(refreshIndex);
+        }
+        this.scrollToBottomIfLastMessage(latestMessage);
       }
     } catch (error) {
       console.error(`[MessageList]  Text translation failed:`, error);
       this.translationDisplayManager.setTranslating(message.msgID, false);
       this.translationDisplayManager.collapse(message.msgID);
-
+      
       Toast.info($r('app.string.messagelist_translate_failed'), this.getUIContext());
     }
+  }
+
+  private getTranslatedText(message: MessageInfo): string {
+    const textPayload = message.messagePayload as TextMessagePayload | undefined;
+    const translatedTextMapRaw = textPayload?.translatedText;
+    const translatedTextMap: Record<string, string> = {};
+    if (translatedTextMapRaw) {
+      translatedTextMapRaw.forEach((value: string, key: string) => {
+        translatedTextMap[key] = value;
+      });
+    }
+    const originalText = textPayload?.text ?? '';
+    if (originalText.length === 0) {
+      return '';
+    }
+    const translated = translatedTextMap[originalText];
+    if (translated && translated.length > 0) {
+      return translated;
+    }
+    const splitResult = TranslationTextParser.splitTextByEmojiAndAtUsers(originalText, undefined);
+    if (!splitResult) {
+      return '';
+    }
+    const hasTranslatedFragment = splitResult.text.some((text: string) => translatedTextMap[text] !== undefined);
+    if (!hasTranslatedFragment) {
+      return '';
+    }
+    const replacedText = TranslationTextParser.replacedStringWithArray(
+      splitResult.result,
+      splitResult.textIndex,
+      translatedTextMap
+    );
+    return replacedText ?? '';
   }
 
   /**
@@ -1962,71 +2223,62 @@ export struct MessageList {
     this.forwardDialogController.open();
   }
 
-  /**
-   * Send translated text as text message to selected conversations
-   */
   private sendTranslatedTextToConversations(translatedText: string, targetConversationIDs: string[]) {
     if (targetConversationIDs.length === 0) {
       return;
     }
 
-    const sendPromises: Promise<void>[] = [];
+    let successCount = 0;
+    let failureCount = 0;
+    const totalCount = targetConversationIDs.length;
+
+    const onComplete = () => {
+      if (successCount + failureCount >= totalCount) {
+        if (failureCount === 0) {
+          Toast.success($r('app.string.forward_success'), this.getUIContext());
+        } else {
+          console.error(`[MessageList] ${failureCount}/${totalCount} translated text sends failed`);
+          Toast.info($r('app.string.forward_failed'), this.getUIContext());
+        }
+      }
+    };
 
     for (const targetConversationID of targetConversationIDs) {
       const messageInputStore = MessageInputStore.create(targetConversationID);
+      const payload = new TextSendMessagePayload(translatedText);
+      const option = new SendMessageOption();
+      option.needReadReceipt = AppBuilderConfig.getInstance().enableReadReceipt ?? false;
+      option.offlinePushInfo = this.createOfflinePushInfoForConversation(targetConversationID);
 
-      const message = new MessageInfo();
-      message.messageType = MessageType.Text;
-      const body = new MessageBody();
-      body.text = translatedText;
-      message.messageBody = body;
-
-      // Create offline push info for forwarding
-      message.offlinePushInfo = this.createOfflinePushInfoForConversation(targetConversationID, message);
-
-      const promise: Promise<void> = messageInputStore.sendMessage(message)
-        .then(() => {
-          console.info(`[MessageList] ✅ Translated text sent to ${targetConversationID}`);
-        })
-        .catch((error: ErrorInfo) => {
-          console.error(`[MessageList] ❌ Failed to send translated text to ${targetConversationID}:`, error);
-          throw error;
-        });
-      sendPromises.push(promise);
+      messageInputStore.sendMessage(payload, option, new CompletionHandlerAdapter(() => {
+        successCount++;
+        console.info(`[MessageList] ✅ Translated text sent to ${targetConversationID}`);
+        onComplete();
+      }, (code: number, desc: string) => {
+        failureCount++;
+        console.error(`[MessageList] ❌ Failed to send translated text to ${targetConversationID}:`, code, desc);
+        onComplete();
+      }));
     }
-
-    Promise.all(sendPromises)
-      .then(() => {
-        Toast.success($r('app.string.forward_success'), this.getUIContext());
-      })
-      .catch((error: ErrorInfo) => {
-        console.error('[MessageList] Some translated text sends failed:', error);
-        Toast.info($r('app.string.forward_failed'), this.getUIContext());
-      });
   }
 
   // MARK: - Offline Push Info Creation
 
-  /**
-   * Create offline push info for forwarding messages
-   * Reference: Android Compose & iOS SwiftUI implementation
-   */
-  private createOfflinePushInfoForConversation(conversationID: string, message: MessageInfo): OfflinePushInfo {
-    const loginUserInfo = LoginStore.shared().state?.loginUserInfo;
+  private createOfflinePushInfoForConversation(conversationID: string): OfflinePushInfo {
+    const loginUserInfo = LoginStore.shared().state.loginUserInfo;
     const selfUserId = loginUserInfo?.userID ?? '';
     const selfName = loginUserInfo?.nickname ?? selfUserId;
 
     const isGroup = conversationID.startsWith('group_');
     const groupId = isGroup ? conversationID.substring(6) : '';
 
-    // Get conversation title from conversationListStore
     let chatName: string | undefined = undefined;
-    const conversationDataSource = this.conversationListStore?.state.conversationDataSource;
+    const conversationDataSource = this.conversationListStore?.state.conversationList;
     if (conversationDataSource) {
       const conversationCount = conversationDataSource.totalCount();
       for (let i = 0; i < conversationCount; i++) {
         const conversation = conversationDataSource.getData(i);
-        if (conversation && conversation.ID === conversationID && conversation.title) {
+        if (conversation && conversation.conversationID === conversationID && conversation.title) {
           chatName = conversation.title;
           break;
         }
@@ -2034,9 +2286,8 @@ export struct MessageList {
     }
 
     const title = isGroup ? (chatName || groupId) : selfName;
-    const description = this.getMessageTypeAbstract(message);
+    const description = '';
 
-    // Create ext JSON
     const ext = this.createOfflinePushExtJson(
       isGroup,
       description,
@@ -2045,41 +2296,34 @@ export struct MessageList {
       loginUserInfo?.avatarURL
     );
 
-    const extensionInfo = new Map<string, Object>();
-    extensionInfo.set('ext', ext);
-    extensionInfo.set('AndroidOPPOChannelID', 'tuikit');
-    extensionInfo.set('AndroidHuaWeiCategory', 'IM');
-    extensionInfo.set('AndroidVIVOCategory', 'IM');
-    extensionInfo.set('AndroidHonorImportance', 'NORMAL');
-    extensionInfo.set('AndroidMeizuNotifyType', 1);
-    extensionInfo.set('iOSInterruptionLevel', 'time-sensitive');
-    extensionInfo.set('enableIOSBackgroundNotification', false);
-
-    const pushInfo: OfflinePushInfo = {
-      title: title,
-      description: this.trimPushDescription(description),
-      extensionInfo: extensionInfo
-    };
+    const pushInfo = new OfflinePushInfo();
+    pushInfo.title = title;
+    pushInfo.description = this.trimPushDescription(description);
+    pushInfo.extensionInfo.set('ext', ext);
+    pushInfo.extensionInfo.set('AndroidOPPOChannelID', 'tuikit');
+    pushInfo.extensionInfo.set('AndroidHuaWeiCategory', 'IM');
+    pushInfo.extensionInfo.set('AndroidVIVOCategory', 'IM');
+    pushInfo.extensionInfo.set('AndroidHonorImportance', 'NORMAL');
+    pushInfo.extensionInfo.set('AndroidMeizuNotifyType', 1);
+    pushInfo.extensionInfo.set('iOSInterruptionLevel', 'time-sensitive');
+    pushInfo.extensionInfo.set('enableIOSBackgroundNotification', false);
 
     return pushInfo;
   }
 
-  /**
-   * Get message type abstract for offline push
-   */
   private getMessageTypeAbstract(message: MessageInfo): string {
     switch (message.messageType) {
-      case MessageType.Text:
-        return message.messageBody?.text ?? '';
-      case MessageType.Image:
+      case MessageType.TEXT:
+        return (message.messagePayload as TextMessagePayload | undefined)?.text ?? '';
+      case MessageType.IMAGE:
         return getContext().resourceManager.getStringSync($r('app.string.message_type_image').id);
-      case MessageType.Video:
+      case MessageType.VIDEO:
         return getContext().resourceManager.getStringSync($r('app.string.message_type_video').id);
-      case MessageType.File:
+      case MessageType.FILE:
         return getContext().resourceManager.getStringSync($r('app.string.message_type_file').id);
-      case MessageType.Sound:
+      case MessageType.AUDIO:
         return getContext().resourceManager.getStringSync($r('app.string.message_type_voice').id);
-      case MessageType.Face:
+      case MessageType.FACE:
         return getContext().resourceManager.getStringSync($r('app.string.message_type_animate_emoji').id);
       default:
         return '';
@@ -2154,16 +2398,14 @@ export struct MessageList {
 
   // ============ Classic Popup Action Methods ============
 
-  /**
-   * Handle copy action for classic popup style
-   */
   private handlePopupCopy(message: MessageInfo) {
-    if (!message.messageBody?.text || message.messageBody.text.length === 0) {
+    const textPayload = message.messagePayload as TextMessagePayload | undefined;
+    const messageContent = textPayload?.text ?? '';
+    if (!messageContent || messageContent.length === 0) {
       Toast.info($r('app.string.messagelist_copy_unsupported'), this.getUIContext());
       return;
     }
 
-    const messageContent = message.messageBody.text;
     const pasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, messageContent);
     const systemPasteboard = pasteboard.getSystemPasteboard();
     systemPasteboard.setData(pasteData, (err) => {

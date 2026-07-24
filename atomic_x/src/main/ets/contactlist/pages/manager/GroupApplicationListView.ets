@@ -1,11 +1,4 @@
-import {
-  ErrorInfo,
-  ContactListState,
-  ContactListStore,
-  GroupApplicationHandledResult,
-  GroupApplicationHandledStatus,
-  GroupApplicationInfo
-} from '@tencentcloud/atomicxcore';
+import { GroupApplicationHandledResult, GroupApplicationHandledStatus, GroupApplicationInfo, GroupState, GroupStore } from '@tencentcloud/atomicxcore';
 import {
   Avatar,
   AvatarContentType,
@@ -14,6 +7,7 @@ import {
   TextUtils,
   ThemeState
 } from '../../../basecomponent/Index';
+import { CompletionHandlerAdapter } from '../../../basecomponent/utils/CompletionHandlers';
 
 import { ImmersiveMode, LevelMode } from '@ohos.promptAction';
 
@@ -22,7 +16,7 @@ struct GroupRequestInfoDialog {
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   controller: CustomDialogController;
   @ObjectLink application: GroupApplicationInfo;
-  @ObjectLink contactListStore: ContactListStore;
+  @ObjectLink groupStore: GroupStore;
   onClose?: () => void;
   onProcessed?: () => void;
   @State private isProcessing: boolean = false;
@@ -221,37 +215,39 @@ struct GroupRequestInfoDialog {
     // this.controller.close();
   }
 
-  private async handleGroupApplication(accept: boolean) {
+  private handleGroupApplication(accept: boolean) {
     if (this.isProcessing) {
       return;
     }
 
-    try {
-      this.isProcessing = true;
+    this.isProcessing = true;
 
+    const completion = new CompletionHandlerAdapter(() => {
+      this.isProcessing = false;
       if (accept) {
-        await this.contactListStore.acceptGroupApplication(this.application);
         this.application.handledStatus = GroupApplicationHandledStatus.BY_MYSELF;
         this.application.handledResult = GroupApplicationHandledResult.AGREED;
       } else {
-        await this.contactListStore.refuseGroupApplication(this.application);
         this.application.handledStatus = GroupApplicationHandledStatus.BY_MYSELF;
         this.application.handledResult = GroupApplicationHandledResult.REFUSED;
       }
-
       if (this.onProcessed) {
         this.onProcessed();
       }
       this.handleClose();
-    } catch (error) {
-      const errorResult = error as ErrorInfo;
-      console.error('Failed to process group application:', error.errorMessage);
-      if (this.onProcessed) {
-        this.onProcessed();
-      }
-      this.handleClose();
-    } finally {
+    }, (code: number, desc: string) => {
       this.isProcessing = false;
+      console.error('Failed to process group application:', code, desc);
+      if (this.onProcessed) {
+        this.onProcessed();
+      }
+      this.handleClose();
+    });
+
+    if (accept) {
+      this.groupStore.acceptApplication(this.application, completion);
+    } else {
+      this.groupStore.refuseApplication(this.application, completion);
     }
   }
 }
@@ -262,19 +258,22 @@ export struct GroupApplicationListView {
   onBack?: () => void;
   // Theme management
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
-  @ObjectLink contactListStore: ContactListStore;
-  @State private contactListState: ContactListState = this.contactListStore.state;
+  @ObjectLink groupStore: GroupStore;
+  @State private applicationList: GroupApplicationInfo[] = [];
   @State private isLoading: boolean = true;
   private groupRequestInfoDialogController: CustomDialogController | null = null;
   @State private dialogAnimationOffset: number = 100;
 
   aboutToAppear() {
     console.info('NewGroupsPage aboutToAppear');
-    this.contactListState = this.contactListStore.state;
+    this.syncApplicationList();
     this.loadGroupApplications();
-    this.contactListStore.clearGroupApplicationUnreadCount().then(() => {
+    this.groupStore.clearApplicationUnreadCount();
+  }
 
-    })
+  private syncApplicationList() {
+    const state = this.groupStore.state as GroupState;
+    this.applicationList = state.applicationList.slice();
   }
 
   aboutToDisappear() {
@@ -344,7 +343,7 @@ export struct GroupApplicationListView {
         .width('100%')
         .height('100%')
         .justifyContent(FlexAlign.Center)
-      } else if (this.contactListState.groupApplicationDataSource.totalCount() === 0) {
+      } else if (this.applicationList.length === 0) {
 
         Column() {
           Text($r('app.string.no_group_applications_title'))
@@ -365,7 +364,7 @@ export struct GroupApplicationListView {
       } else {
 
         List() {
-          LazyForEach(this.contactListState.groupApplicationDataSource,
+          ForEach(this.applicationList,
             (application: GroupApplicationInfo) => {
               ListItem() {
                 Row() {
@@ -478,7 +477,7 @@ export struct GroupApplicationListView {
                 })
                 .alignItems(VerticalAlign.Center)
               }
-            }, (application: GroupApplicationInfo) => application.getKey() || '')
+            }, (application: GroupApplicationInfo) => { return (application.applicationID || '') + (application.handledStatus ?? '') + (application.handledResult ?? '') })
         }
         .width('100%')
         .layoutWeight(1)
@@ -502,7 +501,7 @@ export struct GroupApplicationListView {
     Column() {
       GroupRequestInfoDialog({
         application: application,
-        contactListStore: this.contactListStore,
+        groupStore: this.groupStore,
         onClose: () => {
           console.info('Group request info dialog closed');
 
@@ -514,8 +513,7 @@ export struct GroupApplicationListView {
         },
         onProcessed: () => {
           console.info('Group request processed, reloading list');
-
-          // this.loadGroupApplications();
+          this.syncApplicationList();
         }
       })
     }
@@ -545,30 +543,27 @@ export struct GroupApplicationListView {
     }
   }
 
-  private async loadGroupApplications() {
-    try {
-      this.isLoading = true;
-      await this.contactListStore.fetchGroupApplicationList();
-    } catch (error) {
-      const errorResult = error as ErrorInfo;
-      console.error('Failed to load group applications:', error.errorMessage);
-    } finally {
+  private loadGroupApplications() {
+    this.isLoading = true;
+    this.groupStore.loadApplications(new CompletionHandlerAdapter(() => {
       this.isLoading = false;
-    }
+      this.syncApplicationList();
+    }, (code: number, desc: string) => {
+      console.error('Failed to load group applications:', code, desc);
+      this.isLoading = false;
+    }));
   }
 
-  private async handleGroupApplication(application: GroupApplicationInfo, accept: boolean) {
-    try {
-      if (accept) {
-        await this.contactListStore.acceptGroupApplication(application);
-      } else {
-        await this.contactListStore.refuseGroupApplication(application);
-      }
-
-      // await this.loadGroupApplications();
-    } catch (error) {
-      const errorResult = error as ErrorInfo;
-      console.error('Failed to process group application:', error.errorMessage);
+  private handleGroupApplication(application: GroupApplicationInfo, accept: boolean) {
+    const completion = new CompletionHandlerAdapter(() => {
+      this.syncApplicationList();
+    }, (code: number, desc: string) => {
+      console.error('Failed to process group application:', code, desc);
+    });
+    if (accept) {
+      this.groupStore.acceptApplication(application, completion);
+    } else {
+      this.groupStore.refuseApplication(application, completion);
     }
   }
 

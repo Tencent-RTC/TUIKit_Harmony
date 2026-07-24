@@ -1,6 +1,6 @@
 import {
   CallStore, DeviceStore, CallMediaType, CallParticipantStatus,
-  CallParticipantInfo, CallInfo, DeviceState, DeviceEvent, NetworkQuality,
+  CallParticipantInfo, CallInfo, DeviceState, NetworkQuality,
 } from '@tencentcloud/atomicxcore';
 import { CallCoreView, CallCoreController, CallLayoutTemplate, VolumeLevel } from '@tencentcloud/atomicxcore';
 import { CallConstants } from '../../../common/CallConstants';

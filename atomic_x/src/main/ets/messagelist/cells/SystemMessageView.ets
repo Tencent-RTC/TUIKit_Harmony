@@ -1,19 +1,17 @@
-import { MessageInfo, MessageStatus } from '@tencentcloud/atomicxcore';
+import { MessageInfo, MessageStatus, TipsMessagePayload } from '@tencentcloud/atomicxcore';
 import { ThemeState } from '../../basecomponent/Index';
-import { MessageBody } from '@tencentcloud/atomicxcore';
-import { MessageListStore } from '@tencentcloud/atomicxcore';
 import { MessageUtils } from '../utils/MessageUtils';
 import { MessageRenderContext } from '../context/MessageRenderContext';
 
 @Component
 export struct SystemMessageViewContent {
   @State message?: MessageInfo = undefined;
-  @ObjectLink messageBody: MessageBody;
+  @State messagePayload?: TipsMessagePayload = undefined;
   @StorageLink('themeState') themeState: ThemeState = ThemeState.getInstance();
 
   build() {
     Row() {
-      Text(this.formatSystemInfo(this.message?.messageBody))
+      Text(this.formatSystemInfo())
         .fontSize(14)
         .fontColor(this.themeState.colors.textColorSecondary)
         .padding({
@@ -30,20 +28,24 @@ export struct SystemMessageViewContent {
     .margin({ bottom: 8 })
   }
 
-  private formatSystemInfo(body?: MessageBody): string | Resource {
-    if (!body || !body.systemMessage || body.systemMessage.length === 0) {
-      return $r("app.string.message_tips_unsupport_custom");
+  private formatSystemInfo(): string | Resource {
+    if (this.message?.status === MessageStatus.REVOKED) {
+      return MessageUtils.getRecallDisplayString(this.message);
     }
-    return MessageUtils.getSystemInfoDisplayString(body.systemMessage[0]);
+    const tipsList = this.messagePayload?.groupTips;
+    if (!tipsList || tipsList.length === 0) {
+      return $r('app.string.message_tips_unsupport_custom');
+    }
+    return MessageUtils.getSystemInfoDisplayString(tipsList[0]);
   }
 }
 
 @Builder
 export function SystemMessageView(context: MessageRenderContext) {
-  if (context.message && context.message.messageBody) {
+  if (context.message && (context.message.messagePayload || context.message.status === MessageStatus.REVOKED)) {
     SystemMessageViewContent({
       message: context.message,
-      messageBody: context.message.messageBody
+      messagePayload: context.message.messagePayload as TipsMessagePayload
     })
   }
-} 
+}

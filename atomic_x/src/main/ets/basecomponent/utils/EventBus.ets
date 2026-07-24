@@ -5,11 +5,11 @@
 
 import emitter from '@ohos.events.emitter';
 
+type EventBusCallback = (data: emitter.EventData) => void;
+
 export class EventBus {
   private static instance: EventBus;
-  private static readonly EVENT_ID_BASE = 1000;
-  private static eventIdMap: Map<string, number> = new Map();
-  private static nextEventId = EventBus.EVENT_ID_BASE;
+  private listeners: Map<string, EventBusCallback[]> = new Map();
 
   private constructor() {
   }
@@ -21,58 +21,32 @@ export class EventBus {
     return EventBus.instance;
   }
 
-  /**
-   * Get or create event ID for event name
-   */
-  private static getEventId(eventName: string): number {
-    if (!EventBus.eventIdMap.has(eventName)) {
-      EventBus.eventIdMap.set(eventName, EventBus.nextEventId++);
+  on(eventName: string, callback: EventBusCallback): void {
+    let arr = this.listeners.get(eventName);
+    if (!arr) {
+      arr = [];
+      this.listeners.set(eventName, arr);
     }
-    return EventBus.eventIdMap.get(eventName)!;
+    arr.push(callback);
   }
 
-  /**
-   * Subscribe to events
-   * @param eventName Event name to subscribe
-   * @param callback Event listener callback
-   */
-  on(eventName: string, callback: (data: emitter.EventData) => void): void {
-    const eventId = EventBus.getEventId(eventName);
-    console.log(`[EventBus] 📝 Subscribing to "${eventName}" (ID: ${eventId})`);
-    
-    emitter.on({
-      eventId: eventId,
-      priority: emitter.EventPriority.LOW
-    }, (eventData: emitter.EventData) => {
-      console.log(`[EventBus] 📨 Received event "${eventName}":`, JSON.stringify(eventData.data));
-      callback(eventData);
-    });
-  }
-
-  /**
-   * Unsubscribe from events
-   * @param eventName Event name to unsubscribe
-   */
   off(eventName: string): void {
-    const eventId = EventBus.getEventId(eventName);
-    console.log(`[EventBus] 🗑️ Unsubscribing from "${eventName}" (ID: ${eventId})`);
-    emitter.off(eventId);
+    this.listeners.delete(eventName);
   }
 
-  /**
-   * Post an event
-   * @param eventName Event name
-   * @param data Event data
-   */
   post(eventName: string, data: Record<string, Object>): void {
-    const eventId = EventBus.getEventId(eventName);
-    console.log(`[EventBus] 📤 Posting event "${eventName}" (ID: ${eventId}):`, JSON.stringify(data));
-    
-    emitter.emit({
-      eventId: eventId,
-      priority: emitter.EventPriority.LOW
-    }, {
-      data: data
-    });
+    const arr = this.listeners.get(eventName);
+    if (!arr || arr.length === 0) {
+      return;
+    }
+    const eventData: emitter.EventData = { data: data };
+    const snapshot = arr.slice();
+    for (const cb of snapshot) {
+      try {
+        cb(eventData);
+      } catch (e) {
+        console.error(`[EventBus] listener for "${eventName}" threw:`, e);
+      }
+    }
   }
 }

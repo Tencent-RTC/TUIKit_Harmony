@@ -1,39 +1,51 @@
-import { BasicDataSource, ContactInfo } from '@tencentcloud/atomicxcore';
+import { ContactInfo } from '@tencentcloud/atomicxcore';
 
-export default class ContactArrayDataSource extends BasicDataSource<ContactInfo> {
+export default class ContactArrayDataSource implements IDataSource {
+  private dataSet: ContactInfo[] = [];
+  private listeners: DataChangeListener[] = [];
+
   constructor(data: ContactInfo[] = []) {
-    super();
     if (data.length > 0) {
-      this.setData(data);
+      this.dataSet = data.slice();
     }
   }
 
+  totalCount(): number {
+    return this.dataSet.length;
+  }
 
   getData(index: number): ContactInfo {
-    const contact = super.getData(index);
-    if (contact === null) {
-
-      const emptyContact = new ContactInfo();
-      emptyContact.ID = '';
-      return emptyContact;
+    if (index < 0 || index >= this.dataSet.length) {
+      return new ContactInfo('');
     }
-    return contact;
+    return this.dataSet[index];
   }
-
 
   updateData(newData: ContactInfo[]): void {
-    this.setData(newData);
+    this.dataSet = newData.slice();
+    this.notifyDataReload();
   }
 
-
   getRawData(): ContactInfo[] {
-    const result: ContactInfo[] = [];
-    for (let i = 0; i < this.totalCount(); i++) {
-      const contact = super.getData(i);
-      if (contact !== null) {
-        result.push(contact);
-      }
+    return this.dataSet.slice();
+  }
+
+  registerDataChangeListener(listener: DataChangeListener): void {
+    if (this.listeners.indexOf(listener) < 0) {
+      this.listeners.push(listener);
     }
-    return result;
+  }
+
+  unregisterDataChangeListener(listener: DataChangeListener): void {
+    const pos = this.listeners.indexOf(listener);
+    if (pos >= 0) {
+      this.listeners.splice(pos, 1);
+    }
+  }
+
+  private notifyDataReload(): void {
+    this.listeners.forEach((listener) => {
+      listener.onDataReloaded();
+    });
   }
 }

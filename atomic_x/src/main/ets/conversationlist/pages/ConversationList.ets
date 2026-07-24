@@ -15,21 +15,10 @@ import {
   ContextProvider,
   LanguageState
 } from '../../basecomponent/Index';
-import {
-  ConversationListStore,
-  ConversationInfo,
-  ConversationFetchOption,
-  ConversationType,
-  ErrorInfo,
-  ConversationDataSource,
-  ReceiveMessageOpt,
-  LoginStore,
-  ConversationListState,
-  GroupType,
-  ConversationMarkType,
-  GroupAtType,
-  GroupAtInfo,
-} from '@tencentcloud/atomicxcore';
+import { ConversationListStore, ConversationInfo, ConversationLoadOption, ConversationType, ReceiveMessageOption, ConversationListState, ConversationMarkType, GroupAtType, GroupAtInfo } from '@tencentcloud/atomicxcore';
+import { ErrorInfo } from '@tencentcloud/atomicxcore';
+import { LoginStore } from '@tencentcloud/atomicxcore';
+import { GroupType } from '@tencentcloud/atomicxcore';
 import { ConversationMoreDialog, ConversationDialogAction as DialogAction } from './ConversationMoreDialog';
 import { router } from '@kit.ArkUI';
 import { util } from '@kit.ArkTS';
@@ -37,6 +26,7 @@ import { MessageUtils } from '../../messagelist/utils/MessageUtils';
 import { EmojiDataManager, EmojiTextSegment } from '../../emojipicker/Index';
 import { MessageStatus } from '@tencentcloud/atomicxcore';
 import { ConversationActionConfigProtocol, ChatConversationActionConfig } from '../config/ConversationListConfig';
+import { CompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 
 // Custom action interface for ConversationList
 export interface ConversationCustomAction {
@@ -128,30 +118,21 @@ export struct ConversationList {
         .onClick(() => {
           // Toggle read/unread status
           if (this.hasUnreadStatus(item)) {
-            // Mark as read: first clear unread count, then remove unread mark
-            this.conversationListStore.clearConversationUnreadCount(item.ID)
-              .then(() => {
-                console.log('Cleared unread count successfully');
-                this.conversationListStore.markConversation([item.ID], ConversationMarkType.UNREAD, false)
-                  .then(() => {
-                    console.log('Marked as read successfully');
-                  })
-                  .catch((error: ErrorInfo) => {
-                    console.error('Failed to mark as read:', error.message);
-                  });
-              })
-              .catch((error: ErrorInfo) => {
-                console.error('Failed to clear unread count:', error.message);
-              });
+
+            this.conversationListStore.clearConversationUnreadCount(item.conversationID, new CompletionHandlerAdapter(() => {
+              this.conversationListStore.markConversation([item.conversationID], ConversationMarkType.unread, false,
+                new CompletionHandlerAdapter(undefined, (_code: number, desc: string) => {
+                  console.error('Failed to mark as read:', desc);
+                }));
+            }, (_code: number, desc: string) => {
+              console.error('Failed to clear unread count:', desc);
+            }));
           } else {
-            // Mark as unread: only add unread mark, don't modify unreadCount
-            this.conversationListStore.markConversation([item.ID], ConversationMarkType.UNREAD, true)
-              .then(() => {
-                console.log('Marked as unread successfully');
-              })
-              .catch((error: ErrorInfo) => {
-                console.error('Failed to mark as unread:', error.message);
-              });
+
+            this.conversationListStore.markConversation([item.conversationID], ConversationMarkType.unread, true,
+              new CompletionHandlerAdapter(undefined, (_code: number, desc: string) => {
+                console.error('Failed to mark as unread:', desc);
+              }));
           }
         })
       }
@@ -226,13 +207,13 @@ export struct ConversationList {
   @Builder
   ConversationListBuilder() {
     List({ space: 0 }) {
-      LazyForEach(this.conversationListState.conversationDataSource, (item: ConversationInfo) => {
+      LazyForEach(this.conversationListState.conversationList, (item: ConversationInfo) => {
         ListItem() {
           Column() {
 
             Row() {
 
-              Stack() {
+                Stack() {
                 Avatar({
                   content: {
                     type: AvatarContentType.Image,
@@ -241,7 +222,7 @@ export struct ConversationList {
                   },
                   avatarSize: AvatarSize.M,
                   badge: {
-                    type: (item.receiveOption != ReceiveMessageOpt.RECEIVE && this.hasUnreadStatus(item) ?
+                    type: (item.receiveOption != ReceiveMessageOption.RECEIVE && this.hasUnreadStatus(item) ?
                     AvatarBadge.Dot :
                     AvatarBadge.None),
                     position: AvatarBadgePosition.Up
@@ -264,7 +245,7 @@ export struct ConversationList {
                     .direction(this.languageState.getLayoutDirection() === LayoutDirection.RTL ? Direction.Rtl : Direction.Ltr)
 
 
-                  if (item.receiveOption === ReceiveMessageOpt.RECEIVE && this.hasUnreadStatus(item)) {
+                  if (item.receiveOption === ReceiveMessageOption.RECEIVE && this.hasUnreadStatus(item)) {
                     BadgeControl({
                       text: this.getUnreadBadgeText(item),
                       type: BadgeType.Text
@@ -273,7 +254,7 @@ export struct ConversationList {
                   }
 
 
-                  if (item.receiveOption != ReceiveMessageOpt.RECEIVE && item.groupType != GroupType.MEETING) {
+                  if (item.receiveOption != ReceiveMessageOption.RECEIVE && item.groupType != GroupType.MEETING) {
                     Image($rawfile('conversationlist/muted_icon.svg'))
                       .width(16)
                       .height(16)
@@ -286,14 +267,14 @@ export struct ConversationList {
 
 
                 Row() {
-                  if (item.lastMessage?.status === MessageStatus.sending) {
+                  if (item.lastMessage?.status === MessageStatus.SENDING) {
                     LoadingProgress()
                       .width(12)
                       .height(12)
                       .margin({ right: 4 })
                   }
 
-                  if (item.lastMessage?.isSelf && item.lastMessage?.status === MessageStatus.sendFail) {
+                  if (item.lastMessage?.isSentBySelf && item.lastMessage?.status === MessageStatus.SEND_FAIL) {
                     Image($rawfile('messagelist/icon_message_send_error.svg'))
                       .width(12)
                       .height(12)
@@ -302,7 +283,7 @@ export struct ConversationList {
 
                   this.buildMixedContent(this.getDisplaySubTitle(item), item)
 
-                  Text(this.formatTimeFromTs(item.timestamp || 0))
+                  Text(this.formatTimeFromTs(item.lastMessage?.timestamp ?? 0))
                     .fontSize(12)
                     .fontColor(this.themeState.colors.textColorSecondary)
                     .margin({ left: 8 })
@@ -324,12 +305,12 @@ export struct ConversationList {
               if (this.onConversationClick) {
                 this.onConversationClick(item);
               }
-              console.info(`Navigate to conversation detail with ID: ${item.ID}`);
+              console.info(`Navigate to conversation detail with ID: ${item.conversationID}`);
             })
 
 
-            if (this.conversationListState.conversationDataSource.getIndex(item) <
-              this.conversationListState.conversationDataSource.totalCount() - 1) {
+            if (this.conversationListState.conversationList.getIndex(item) <
+              this.conversationListState.conversationList.totalCount() - 1) {
               Divider()
                 .height(ConversationList.DIVIDER_HEIGHT)
                 .color(this.themeState.colors.textColorPrimary)
@@ -348,7 +329,7 @@ export struct ConversationList {
     .backgroundColor(this.themeState.colors.bgColorOperate)
     .onReachEnd(() => {
 
-      this.loadMoreConversationList();
+      this.loadMoreConversations();
     })
     .width('100%')
     .layoutWeight(1)
@@ -356,7 +337,7 @@ export struct ConversationList {
 
   build() {
     Column() {
-      if (this.conversationListState.conversationDataSource.totalCount() > 0) {
+      if (this.conversationListState.conversationList.totalCount() > 0) {
 
         this.ConversationListBuilder()
       } else if (this.isLoading) {
@@ -428,70 +409,48 @@ export struct ConversationList {
 
   private fetchConversationList() {
     this.isLoading = true;
-    const option = new ConversationFetchOption();
+    const option = new ConversationLoadOption();
     option.count = 100;
 
 
-    this.conversationListStore.fetchConversationList(option)
-      .then(() => {
-        const count = this.conversationListState.conversationDataSource.totalCount();
-
-        // Fetch total unread count
-        this.conversationListStore.getConversationTotalUnreadCount()
-          .catch((error: ErrorInfo) => {
-            console.error('Failed to get total unread count:', error.message);
-          });
-
-        if (count === 0) {
-
-
-          setTimeout(() => {
-            this.retryFetchConversationList();
-          }, 1000);
-        } else {
-          this.isLoading = false;
-        }
-      })
-      .catch((error: ErrorInfo) => {
-
+    this.conversationListStore.loadConversations(option, new CompletionHandlerAdapter(() => {
+      const count = this.conversationListState.conversationList.totalCount();
+      if (count === 0) {
+        setTimeout(() => {
+          this.retryFetchConversationList();
+        }, 1000);
+      } else {
         this.isLoading = false;
-      });
+      }
+    }, () => {
+      this.isLoading = false;
+    }));
   }
 
   private retryFetchConversationList() {
-    const option = new ConversationFetchOption();
+    const option = new ConversationLoadOption();
     option.count = 100;
 
 
-    this.conversationListStore.fetchConversationList(option)
-      .then(() => {
-        const count = this.conversationListState.conversationDataSource.totalCount();
-
-        this.isLoading = false;
-      })
-      .catch((error: ErrorInfo) => {
-
-        this.isLoading = false;
-      });
+    this.conversationListStore.loadConversations(option, new CompletionHandlerAdapter(() => {
+      this.isLoading = false;
+    }, () => {
+      this.isLoading = false;
+    }));
   }
 
-  private loadMoreConversationList() {
-    if (this.isLoading || !this.conversationListState.hasMoreConversation) {
-
+  private loadMoreConversations() {
+    if (this.isLoading || !this.conversationListState.hasMoreConversations) {
       return;
     }
 
 
     this.isLoading = true;
-    this.conversationListStore.fetchMoreConversationList()
-      .then(() => {
-
-        this.isLoading = false;
-      })
-      .catch((error: ErrorInfo) => {
-
-        this.isLoading = false;
-      });
+    this.conversationListStore.loadMoreConversations(new CompletionHandlerAdapter(() => {
+      this.isLoading = false;
+    }, () => {
+      this.isLoading = false;
+    }));
   }
 
   private showMoreDialog(conversation: ConversationInfo) {
@@ -524,24 +483,17 @@ export struct ConversationList {
 
       case DialogAction.CLEAR:
         console.log('Clearing conversation messages:', conversationId);
-        this.conversationListStore.clearConversationMessages(conversationId)
-          .then(() => {
-            console.log('Conversation messages cleared successfully');
-          })
-          .catch((error: ErrorInfo) => {
-            console.error('Failed to clear conversation messages:', error.message);
-          });
+        this.conversationListStore.clearConversationMessages(conversationId, new CompletionHandlerAdapter(undefined, (_code: number, desc: string) => {
+          console.error('Failed to clear conversation messages:', desc);
+        }));
         break;
 
       case DialogAction.PIN:
         console.log('Toggling conversation pin status:', conversationId);
-        this.conversationListStore.pinConversation(conversationId, !conversation.isPinned)
-          .then(() => {
-            console.log('Conversation pin status updated successfully');
-          })
-          .catch((error: ErrorInfo) => {
-            console.error('Failed to update conversation pin status:', error.message);
-          });
+        this.conversationListStore.pinConversation(conversationId, !conversation.isPinned,
+          new CompletionHandlerAdapter(undefined, (_code: number, desc: string) => {
+            console.error('Failed to update conversation pin status:', desc);
+          }));
         break;
 
       case DialogAction.MUTE:
@@ -555,13 +507,7 @@ export struct ConversationList {
   }
 
   private deleteConversation(conversation: ConversationInfo) {
-    this.conversationListStore.deleteConversation(conversation.ID)
-      .then(() => {
-
-      })
-      .catch((error: ErrorInfo) => {
-
-      });
+    this.conversationListStore.deleteConversation(conversation.conversationID, new CompletionHandlerAdapter());
   }
 
   private getDisplaySubTitle(item: ConversationInfo): string | Resource {
@@ -574,7 +520,7 @@ export struct ConversationList {
     
     // For muted conversations, only show [X条] when unreadCount >= 2
     // This avoids confusion when user marks as unread (unreadCount = 0)
-    if (item.receiveOption !== ReceiveMessageOpt.RECEIVE && (item.unreadCount ?? 0) >= 2) {
+    if (item.receiveOption !== ReceiveMessageOption.RECEIVE && (item.unreadCount ?? 0) >= 2) {
       // For muted conversations with 2+ unread messages, add count prefix for string type
       if (typeof abstract === 'string') {
         const messageCount = `[${item.unreadCount}${getContext().resourceManager.getStringSync($r('app.string.conversation_list_message_count_unit').id)}] `;
@@ -600,7 +546,8 @@ export struct ConversationList {
    * Check if conversation has unread status (real unread count > 0 OR marked as unread)
    */
   private hasUnreadStatus(item: ConversationInfo): boolean {
-    return (item.unreadCount ?? 0) > 0 || item.markList.includes(ConversationMarkType.UNREAD);
+    return (item.unreadCount ?? 0) > 0 ||
+      item.conversationMarkList.some((m: ConversationMarkType) => m.contains(ConversationMarkType.unread));
   }
 
   /**
@@ -624,7 +571,7 @@ export struct ConversationList {
    */
   private buildAtTagText(item: ConversationInfo): string {
     // Only show @ tag for group chats with unread messages
-    if ((item.unreadCount ?? 0) <= 0 || !item.ID || !item.ID.startsWith('group_')) {
+    if ((item.unreadCount ?? 0) <= 0 || !item.conversationID || !item.conversationID.startsWith('group_')) {
       return '';
     }
 
@@ -673,7 +620,7 @@ export struct ConversationList {
         // Build draft preview with red [Draft] label
         Text() {
           // Add unread count prefix for muted conversations (only when unreadCount >= 2)
-          if (item.receiveOption !== ReceiveMessageOpt.RECEIVE && (item.unreadCount ?? 0) >= 2) {
+          if (item.receiveOption !== ReceiveMessageOption.RECEIVE && (item.unreadCount ?? 0) >= 2) {
             Span(`[${item.unreadCount}${getContext().resourceManager.getStringSync($r('app.string.conversation_list_message_count_unit').id)}]`)
               .fontColor(this.themeState.colors.textColorSecondary)
           }
@@ -737,7 +684,7 @@ export struct ConversationList {
       }
     } else {
       // Handle Resource content with optional count prefix for muted conversations (only when unreadCount >= 2)
-      if (item.receiveOption !== ReceiveMessageOpt.RECEIVE && (item.unreadCount ?? 0) >= 2) {
+      if (item.receiveOption !== ReceiveMessageOption.RECEIVE && (item.unreadCount ?? 0) >= 2) {
         // Show count prefix for muted conversations with Resource content
         Text() {
           // Add @ tag(s) if present

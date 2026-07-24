@@ -27,6 +27,9 @@ export { VideoMessageView, VideoMessageViewContent } from './cells/VideoMessageV
 
 export { FaceMessageView, FaceMessageViewContent } from './cells/FaceMessageView';
 
+export { CustomMessageView, CustomMessageViewContent, parseCustomMessage, CUSTOM_BUSINESS_ID_TEXT_LINK } from './cells/CustomMessageView';
+export type { CustomMessage } from './cells/CustomMessageView';
+
 // Export context
 export { MessageRenderContext, createMessageRenderContext } from './context/MessageRenderContext';
 

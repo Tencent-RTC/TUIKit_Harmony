@@ -108,6 +108,22 @@
     { "name": "messagelist_reaction_added", "value": "Reaction added" },
     { "name": "messagelist_reaction_removed", "value": "Reaction removed" },
     { "name": "action_convert_to_text", "value": "Convert to Text" },
-    { "name": "messagelist_convert_to_text_failed", "value": "Failed to convert" }
+    { "name": "messagelist_convert_to_text_failed", "value": "Failed to convert" },
+    { "name": "messagelist_floating_new_messages", "value": " new messages" },
+    { "name": "messagelist_floating_mention", "value": "Mentioned me" },
+    { "name": "messagelist_floating_someone_mentioned_me", "value": "Someone mentioned me" },
+    { "name": "messagelist_floating_at_all", "value": "Someone mentioned all" },
+    { "name": "messagelist_floating_back_to_latest", "value": "Latest" },
+    { "name": "message_list_quote_deleted", "value": "Original message deleted" },
+    { "name": "message_list_quote_revoked", "value": "Original message recalled" },
+    { "name": "message_list_message_type_image", "value": "[Image]" },
+    { "name": "message_list_message_type_video", "value": "[Video]" },
+    { "name": "message_list_message_type_voice", "value": "[Voice]" },
+    { "name": "message_list_message_type_file", "value": "[File]" },
+    { "name": "message_list_message_type_animate_emoji", "value": "[Animated Sticker]" },
+    { "name": "message_list_message_type_custom", "value": "[Custom Message]" },
+    { "name": "message_list_message_type_merged", "value": "[Chat History]" },
+    { "name": "message_list_unsupported_message", "value": "[Unsupported Message]" },
+    { "name": "custom_message_view_details", "value": "View Details" }
   ]
 }

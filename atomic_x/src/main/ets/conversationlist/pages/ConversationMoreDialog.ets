@@ -56,10 +56,10 @@ export struct ConversationMoreDialog {
 
     // Add custom actions from ConversationList
     if (this.customActions && this.customActions.length > 0) {
-      this.customActions.forEach((customAction, index) => {
+      this.customActions.forEach((customAction: ConversationCustomAction, index: number) => {
         configuredActions.push({
           text: customAction.title,
-          value: `custom_${index}` // Use index as unique identifier
+          value: `custom_${index}`
         });
       });
     }
@@ -169,7 +169,7 @@ export struct ConversationMoreDialog {
     }
 
     if (this.onAction) {
-      this.onAction(action as ConversationDialogAction, this.conversation.ID);
+      this.onAction(action as ConversationDialogAction, this.conversation.conversationID);
     }
   }
 

@@ -1,4 +1,6 @@
-import { MessageActionStore, MessageInfo, MessageListStore, GroupMember, MessageType } from '@tencentcloud/atomicxcore';
+import { MessageActionStore } from '@tencentcloud/atomicxcore';
+import { MessageInfo, MessageListStore } from '@tencentcloud/atomicxcore';
+import { GroupMember } from '@tencentcloud/atomicxcore';
 import {
   Avatar,
   AvatarContentType,
@@ -7,6 +9,7 @@ import {
   ThemeState,
   Toast
 } from '../../basecomponent/Index';
+import { CompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 import { GetMessageView } from './MessageItem';
 import { ChatMessageListConfig, MessageListStyleProtocol } from '../config/MessageListConfig';
 import { MessageRenderContext } from '../context/MessageRenderContext';
@@ -256,21 +259,17 @@ export struct MessageReadReceiptDetailPage {
       return;
     }
 
-    this.messageActionStore.fetchMessageReadMembers(20)
-      .then(() => {
-        this.syncStateFromStore();
-      })
-      .catch(() => {
-        Toast.info($r('app.string.read_receipt_load_failed'), this.getUIContext());
-      });
+    this.messageActionStore.loadReadMembers(20, new CompletionHandlerAdapter(() => {
+      this.syncStateFromStore();
+    }, () => {
+      Toast.info($r('app.string.read_receipt_load_failed'), this.getUIContext());
+    }));
 
-    this.messageActionStore.fetchMessageUnreadMembers(20)
-      .then(() => {
-        this.syncStateFromStore();
-      })
-      .catch(() => {
-        Toast.info($r('app.string.read_receipt_load_failed'), this.getUIContext());
-      });
+    this.messageActionStore.loadUnreadMembers(20, new CompletionHandlerAdapter(() => {
+      this.syncStateFromStore();
+    }, () => {
+      Toast.info($r('app.string.read_receipt_load_failed'), this.getUIContext());
+    }));
   }
 
   private loadMoreMembers(isRead: boolean) {
@@ -278,13 +277,11 @@ export struct MessageReadReceiptDetailPage {
       return;
     }
 
-    this.messageActionStore.fetchMoreMessageMembers(isRead)
-      .then(() => {
-        this.syncStateFromStore();
-      })
-      .catch(() => {
-        Toast.info($r('app.string.read_receipt_load_failed'), this.getUIContext());
-      });
+    this.messageActionStore.loadMoreMembers(isRead, new CompletionHandlerAdapter(() => {
+      this.syncStateFromStore();
+    }, () => {
+      Toast.info($r('app.string.read_receipt_load_failed'), this.getUIContext());
+    }));
   }
 
   private syncStateFromStore() {
@@ -292,10 +289,10 @@ export struct MessageReadReceiptDetailPage {
       return;
     }
     const state = this.messageActionStore.state;
-    this.readMemberList = [...state.readMemberList];
-    this.unReadMemberList = [...state.unReadMemberList];
+    this.readMemberList = Array.from(state.readMemberList);
+    this.unReadMemberList = Array.from(state.unreadMemberList);
     this.hasMoreReadMembers = state.hasMoreReadMembers;
-    this.hasMoreUnReadMembers = state.hasMoreUnReadMembers;
+    this.hasMoreUnReadMembers = state.hasMoreUnreadMembers;
   }
 
   private formatTimestampToMMDDHHmm(timestamp?: number): string {

@@ -9,21 +9,20 @@ import {
   Toast,
   LanguageState
 } from '../../basecomponent/Index';
+import { ContactInfo, ContactState, ContactStore, ContactOnlineStatus } from '@tencentcloud/atomicxcore';
+import { ConversationListStore } from '@tencentcloud/atomicxcore';
+import { GroupJoinOption } from '@tencentcloud/atomicxcore';
+import { GroupMember, GroupMemberRole } from '@tencentcloud/atomicxcore';
+import { LoginStore } from '@tencentcloud/atomicxcore';
+import { GroupType } from '@tencentcloud/atomicxcore';
+import { GroupSettingState, GroupSettingStore } from '../viewmodel/GroupChatSettingViewModel';
 import {
-  ContactInfo,
-  ContactListState,
-  ContactListStore,
-  ContactOnlineStatus,
-  ConversationListStore,
-  GroupJoinOption,
-  GroupMember,
-  GroupMemberRole,
-  GroupSettingState,
-  GroupSettingStore,
-  GroupType,
-  LoginStore,
-  ErrorInfo
-} from '@tencentcloud/atomicxcore';
+  muteConversationCompat,
+  pinConversationCompat,
+  clearConversationMessagesCompat,
+  deleteConversationCompat,
+  fetchConversationInfoCompat
+} from '../viewmodel/GroupChatSettingViewModel';
 import { GroupPermission, GroupPermissionManager } from '../manager/GroupPermissionManager';
 import { ImmersiveMode, LevelMode, router } from '@kit.ArkUI';
 import { AvatarSelector } from './AvatarSelector';
@@ -32,6 +31,7 @@ import { GroupAnnouncementView } from './GroupAnnouncementView';
 import { GroupManagementView } from './GroupManagementView';
 import { GroupMemberListPage } from './GroupMemberListPage';
 import { UserPicker, UserPickerData } from '../../userpicker/Index';
+import { CompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 import { C2CChatSetting } from './C2CChatSetting';
 import { ContactDetailPage } from '../../contactlist/pages/dialog/ContactDetailPage';
 import { UserInteractionHelper } from '../helper/UserInteractionHelper';
@@ -40,8 +40,8 @@ type UserPickerDataType = ContactInfo | GroupMember;
 
 function convertContactToUserPickerData(contact: ContactInfo): UserPickerData<ContactInfo> {
   return {
-    key: contact.contactID || '',
-    label: contact.title || contact.contactID || '',
+    key: contact.userID || '',
+    label: contact.nickname || contact.userID || '',
     avatarUrl: contact.avatarURL || '',
     extraData: contact
   };
@@ -222,8 +222,8 @@ export struct GroupChatSetting {
   dialogController?: CustomDialogController;
   onSendMessageClick?: (newConversationID?: string, title?: string, avatarUrl?: string) => void;
   onGroupDelete?: () => void;
-  private contactListStore: ContactListStore = ContactListStore.create();
-  @State private contactListState: ContactListState = this.contactListStore.state;
+  private contactListStore: ContactStore = ContactStore.shared;
+  @State private contactListState: ContactState = this.contactListStore.state as ContactState;
   private userInteractionHelper: UserInteractionHelper = new UserInteractionHelper();
   private loadingTimeoutId?: number;
   private joinGroupDialogController?: CustomDialogController;
@@ -457,18 +457,24 @@ export struct GroupChatSetting {
           .fontColor(this.themeState.colors.textColorPrimary)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .flexShrink(1)
+          .constraintSize({ maxWidth: '75%' })
 
         if (this.hasPermission(GroupPermission.SET_GROUP_NAME)) {
           Image($rawfile('chatsetting/setting_edit_icon.svg'))
             .width(15)
             .height(15)
             .margin({ left: 12 })
+            .flexShrink(0)
             .fillColor(this.themeState.colors.textColorLink)
             .onClick(() => {
               this.openGroupNameEditDialog();
             })
         }
       }
+      .width('100%')
+      .padding({ left: 24, right: 24 })
+      .justifyContent(FlexAlign.Center)
       .margin({ bottom: 16 })
 
 
@@ -570,8 +576,12 @@ export struct GroupChatSetting {
         checked: this.groupState?.isNotDisturb ?? false,
         type: SwitchType.Basic,
         onCheckedChange: (isOn: boolean) => {
-          if (this.conversationID) {
-            this.conversationStore?.muteConversation(this.conversationID, isOn).then(() => {
+          if (this.conversationID && this.conversationStore) {
+            muteConversationCompat(this.conversationStore, this.conversationID, isOn).then(() => {
+              if (this.groupState) {
+                this.groupState.isNotDisturb = isOn;
+                this.groupState = this.groupStore?.state;
+              }
             }).catch((error: Error) => {
             });
           }
@@ -598,9 +608,12 @@ export struct GroupChatSetting {
         checked: this.groupState?.isPinned ?? false,
         type: SwitchType.Basic,
         onCheckedChange: (isOn: boolean) => {
-          if (this.conversationID) {
-            this.conversationStore?.pinConversation(this.conversationID, isOn).then(() => {
-
+          if (this.conversationID && this.conversationStore) {
+            pinConversationCompat(this.conversationStore, this.conversationID, isOn).then(() => {
+              if (this.groupState) {
+                this.groupState.isPinned = isOn;
+                this.groupState = this.groupStore?.state;
+              }
             }).catch((error: Error) => {
 
             });
@@ -746,22 +759,14 @@ export struct GroupChatSetting {
           .fontSize(17)
           .fontWeight(400)
           .fontFamily('SF Pro Text')
-          .fontColor(this.themeState.colors.textColorPrimary)
+          .fontColor(this.themeState.colors.textColorSecondary)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-        Image($rawfile('search/right_arrow_icon.svg'))
-          .width(12)
-          .height(24)
-          .fillColor(this.themeState.colors.textColorSecondary)
       }
     }
     .width('100%')
     .height(GroupChatSetting.CELL_HEIGHT)
     .padding({ left: GroupChatSetting.HORIZONTAL_PADDING, right: GroupChatSetting.HORIZONTAL_PADDING })
-    .onClick(() => {
-      console.log('Group Type clicked');
-    })
   }
 
   @Builder
@@ -1254,11 +1259,11 @@ export struct GroupChatSetting {
       const promises = [
         this.loadGroupInfo(),
         this.loadConversationInfo(),
-        this.loadGroupMembers(),
-        this.loadSelfMemberInfo()
+        this.loadGroupMembers()
       ];
 
       await Promise.all(promises);
+      await this.loadSelfMemberInfo();
       console.info('[GroupSettingPage] All data loaded successfully');
     } catch (error) {
       console.error('[GroupSettingPage] Error loading group data:', error);
@@ -1293,7 +1298,9 @@ export struct GroupChatSetting {
 
   private async loadConversationInfo(): Promise<void> {
     try {
-      await this.conversationStore?.fetchConversationInfo(this.conversationID);
+      if (this.conversationStore) {
+        await fetchConversationInfoCompat(this.conversationStore, this.conversationID);
+      }
       this.loadingProgress.conversationInfo = true;
       console.info('[GroupSettingPage] Conversation info loaded');
     } catch (error) {
@@ -1304,7 +1311,7 @@ export struct GroupChatSetting {
 
   private async loadGroupMembers(): Promise<void> {
     try {
-      await this.groupStore?.fetchGroupMemberList(GroupMemberRole.ALL);
+      await this.groupStore?.fetchGroupMemberList(GroupMemberRole.MEMBER);
       this.loadingProgress.groupMembers = true;
       console.info('[GroupSettingPage] Group members loaded');
     } catch (error) {
@@ -1325,11 +1332,16 @@ export struct GroupChatSetting {
   }
 
   private hasPermission(permission: GroupPermission): boolean {
-    const userRole = this.groupState?.currentUserRole;
+    let userRole = this.groupState?.currentUserRole;
     if (!userRole) {
-      return false;
+      userRole = GroupMemberRole.MEMBER;
     }
 
+    const currentUserID = LoginStore.shared().state.loginUserInfo?.userID;
+    const ownerID = this.groupState?.groupOwner?.userID;
+    if (currentUserID && ownerID && currentUserID === ownerID) {
+      userRole = GroupMemberRole.OWNER;
+    }
 
     const groupType = this.convertStringToGroupType(this.groupState?.groupType);
 
@@ -1348,11 +1360,13 @@ export struct GroupChatSetting {
       case 'Work':
         return GroupType.WORK;
       case 'Public':
-        return GroupType.PUBLIC;
+        return GroupType.PUBLIC_GROUP;
       case 'Meeting':
         return GroupType.MEETING;
       case 'AVChatRoom':
-        return GroupType.AVCHATROOM;
+        return GroupType.AV_CHAT_ROOM;
+      case 'ChatRoom':
+        return GroupType.MEETING;
       case 'Community':
         return GroupType.COMMUNITY;
       default:
@@ -1396,7 +1410,7 @@ export struct GroupChatSetting {
   }
 
   private getDisplayMembers(): GroupMember[] {
-    const allMembers = this.groupState?.allMembers ?? [];
+    const allMembers: GroupMember[] = this.groupState?.allMembers ?? [];
     const currentUserID = LoginStore.shared().state.loginUserInfo?.userID;
 
     if (allMembers.length === 0) {
@@ -1404,10 +1418,10 @@ export struct GroupChatSetting {
     }
 
 
-    const currentUser = allMembers.find(member => member.userID === currentUserID);
+    const currentUser = allMembers.find((member: GroupMember) => member.userID === currentUserID);
 
 
-    const otherMembers = allMembers.filter(member => member.userID !== currentUserID);
+    const otherMembers: GroupMember[] = allMembers.filter((member: GroupMember) => member.userID !== currentUserID);
 
 
     const displayMembers: GroupMember[] = [];
@@ -1419,8 +1433,10 @@ export struct GroupChatSetting {
 
 
     const maxOtherMembers = 2;
-    const otherMembersToShow = otherMembers.slice(0, maxOtherMembers);
-    displayMembers.push(...otherMembersToShow);
+    const otherMembersToShow: GroupMember[] = otherMembers.slice(0, maxOtherMembers);
+    for (let i = 0; i < otherMembersToShow.length; i++) {
+      displayMembers.push(otherMembersToShow[i]);
+    }
 
     return displayMembers;
   }
@@ -1432,11 +1448,11 @@ export struct GroupChatSetting {
     }
 
 
-    const allMembers = this.groupState?.allMembers ?? [];
+    const allMembers: GroupMember[] = this.groupState?.allMembers ?? [];
     const currentUserID = LoginStore.shared().state.loginUserInfo?.userID;
 
 
-    const currentUser = allMembers.find(member => member.userID === currentUserID);
+    const currentUser = allMembers.find((member: GroupMember) => member.userID === currentUserID);
 
     if (currentUser) {
 
@@ -1454,11 +1470,11 @@ export struct GroupChatSetting {
     switch (groupType) {
       case GroupType.WORK:
         return $r('app.string.chatsetting_group_type_work');
-      case GroupType.PUBLIC:
+      case GroupType.PUBLIC_GROUP:
         return $r('app.string.chatsetting_group_type_public_group');
       case GroupType.MEETING:
         return $r('app.string.chatsetting_group_type_meeting');
-      case GroupType.AVCHATROOM:
+      case GroupType.AV_CHAT_ROOM:
         return $r('app.string.chatsetting_group_type_chat_room');
       case GroupType.COMMUNITY:
         return $r('app.string.chatsetting_group_type_community');
@@ -1636,10 +1652,10 @@ export struct GroupChatSetting {
 
 
       const currentUserID = LoginStore.shared().state.loginUserInfo?.userID;
-      const allMembers = this.groupState?.allMembers ?? [];
+      const allMembers: GroupMember[] = this.groupState?.allMembers ?? [];
 
 
-      const availableMembers = allMembers.filter(member =>
+      const availableMembers: GroupMember[] = allMembers.filter((member: GroupMember) =>
       member.userID !== currentUserID
       );
 
@@ -1649,7 +1665,7 @@ export struct GroupChatSetting {
       }
 
 
-      const memberUserPickerData: UserPickerData<GroupMember>[] = availableMembers.map(member => 
+      const memberUserPickerData: UserPickerData<GroupMember>[] = availableMembers.map((member: GroupMember): UserPickerData<GroupMember> =>
         convertGroupMemberToUserPickerData(member)
       );
 
@@ -1678,13 +1694,13 @@ export struct GroupChatSetting {
       Toast.info($r('app.string.chatsetting_getting_friend_list'), this.getUIContext());
 
 
-      const currentMemberIds = (this.groupState?.allMembers ?? []).map(member => member.userID);
+      const currentMemberIds: string[] = (this.groupState?.allMembers ?? []).map((member: GroupMember): string => member.userID);
 
 
       const friendList: UserPickerData<ContactInfo>[] = await this.getFriendList();
 
 
-      const availableFriends = friendList.filter(friend =>
+      const availableFriends: UserPickerData<ContactInfo>[] = friendList.filter((friend: UserPickerData<ContactInfo>) =>
       !currentMemberIds.includes(friend.key)
       );
 
@@ -1709,12 +1725,20 @@ export struct GroupChatSetting {
   private async getFriendList(): Promise<UserPickerData<ContactInfo>[]> {
     try {
 
-      await this.contactListStore.fetchFriendList();
+      await new Promise<void>((resolve: () => void, reject: (e: Error) => void) => {
+        const completion = new CompletionHandlerAdapter(() => {
+          resolve();
+        }, (code: number, desc: string) => {
+          reject(new Error(`loadFriends failed: code=${code}, desc=${desc}`));
+        });
+        this.contactListStore.loadFriends(completion);
+      });
 
 
       const friendList: UserPickerData<ContactInfo>[] = [];
-      for (let i = 0; i < this.contactListState.contactDataSource.totalCount(); i++) {
-        const contact = this.contactListState.contactDataSource.getData(i) as ContactInfo;
+      const contacts: ContactInfo[] = this.contactListState.friendList;
+      for (let i = 0; i < contacts.length; i++) {
+        const contact = contacts[i];
         if (contact) {
           const userPickerData = convertContactToUserPickerData(contact);
           friendList.push(userPickerData);
@@ -1735,7 +1759,7 @@ export struct GroupChatSetting {
       return;
     }
 
-    console.log('[GroupSettingPage] Handle selected contacts for adding to group:', selectedContacts.map(c => c.title || c.contactID));
+    console.log('[GroupSettingPage] Handle selected contacts for adding to group:', selectedContacts.map((c: ContactInfo): string => c.nickname || c.userID));
 
 
     AlertDialog.show(
@@ -1763,7 +1787,7 @@ export struct GroupChatSetting {
 
     try {
 
-      const userIDs = selectedContacts.map(contact => contact.contactID);
+      const userIDs: string[] = selectedContacts.map((contact: ContactInfo): string => contact.userID);
 
 
       await this.groupStore.addGroupMember(userIDs);
@@ -1917,7 +1941,10 @@ export struct GroupChatSetting {
         console.log('[GroupSettingPage] Group dismissed successfully');
 
         // Delete conversation after dismissing group
-        return this.conversationStore?.deleteConversation(this.conversationID);
+        if (this.conversationStore) {
+          return deleteConversationCompat(this.conversationStore, this.conversationID);
+        }
+        return Promise.resolve();
       })
       .then(() => {
         console.log('[GroupSettingPage] Conversation deleted after group dismiss');
@@ -1967,13 +1994,15 @@ export struct GroupChatSetting {
 
     Toast.info($r('app.string.chatsetting_clearing_chat_history'), this.getUIContext());
 
-    this.conversationStore?.clearConversationMessages(this.conversationID).then(() => {
-      Toast.success($r('app.string.chatsetting_clear_chat_history_successful'), this.getUIContext());
-      console.log('[GroupSettingPage] Chat history cleared successfully');
-    }).catch((error: Error) => {
-      console.error('[GroupSettingPage] Failed to clear history:', error);
-      Toast.error($r('app.string.chatsetting_clear_chat_history_failed'), this.getUIContext());
-    });
+    if (this.conversationStore) {
+      clearConversationMessagesCompat(this.conversationStore, this.conversationID).then(() => {
+        Toast.success($r('app.string.chatsetting_clear_chat_history_successful'), this.getUIContext());
+        console.log('[GroupSettingPage] Chat history cleared successfully');
+      }).catch((error: Error) => {
+        console.error('[GroupSettingPage] Failed to clear history:', error);
+        Toast.error($r('app.string.chatsetting_clear_chat_history_failed'), this.getUIContext());
+      });
+    }
   }
 
   private showLeaveGroupConfirmDialog(): void {
@@ -2013,7 +2042,10 @@ export struct GroupChatSetting {
         console.log('[GroupSettingPage] Left group successfully');
 
         // Delete conversation after leaving group
-        return this.conversationStore?.deleteConversation(this.conversationID);
+        if (this.conversationStore) {
+          return deleteConversationCompat(this.conversationStore, this.conversationID);
+        }
+        return Promise.resolve();
       })
       .then(() => {
         console.log('[GroupSettingPage] Conversation deleted after leaving group');
@@ -2106,6 +2138,7 @@ export struct GroupChatSetting {
         alignment: DialogAlignment.Default,
         customStyle: true,
         autoCancel: true,
+        keyboardAvoidMode: KeyboardAvoidMode.NONE,
         levelMode: LevelMode.EMBEDDED,
         immersiveMode: ImmersiveMode.EXTEND,
         cancel: () => {
@@ -2147,6 +2180,7 @@ export struct GroupChatSetting {
         immersiveMode: ImmersiveMode.EXTEND,
         cancel: () => {
           this.groupMemberListDialogController = undefined;
+          this.loadGroupData();
         }
       });
 

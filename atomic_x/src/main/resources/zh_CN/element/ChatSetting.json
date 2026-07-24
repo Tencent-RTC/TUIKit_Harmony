@@ -698,7 +698,7 @@
     },
     {
       "name": "chatsetting_mute_notifications",
-      "value": "免打扰"
+      "value": "消息免打扰"
     },
     {
       "name": "chatsetting_pin_conversation",
@@ -726,11 +726,11 @@
     },
     {
       "name": "chatsetting_join_group_method",
-      "value": "加群方式"
+      "value": "主动加群方式"
     },
     {
       "name": "chatsetting_invite_method",
-      "value": "邀请方式"
+      "value": "邀请进群方式"
     },
     {
       "name": "chatsetting_mygroup_nickname",
@@ -886,7 +886,7 @@
     },
     {
       "name": "chatsetting_join_method_need_admin_approval",
-      "value": "需要管理员审批"
+      "value": "管理员审批"
     },
     {
       "name": "chatsetting_join_method_anyone_can_join",
@@ -898,7 +898,7 @@
     },
     {
       "name": "chatsetting_invite_method_anyone_can_invite",
-      "value": "任何人都可以邀请"
+      "value": "自动审批"
     }
   ]
 }

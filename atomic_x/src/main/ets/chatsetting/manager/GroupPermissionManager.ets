@@ -1,4 +1,5 @@
-import { GroupMemberRole, GroupType } from '@tencentcloud/atomicxcore';
+import { GroupMemberRole } from '@tencentcloud/atomicxcore';
+import { GroupType } from '@tencentcloud/atomicxcore';
 
 export enum GroupPermission {
   SET_GROUP_NAME = 'setGroupName',
@@ -287,7 +288,7 @@ export class GroupPermissionManager {
       dismissGroup: false,
       reportGroup: true
     });
-    matrix.set(GroupType.PUBLIC, publicGroupMap);
+    matrix.set(GroupType.PUBLIC_GROUP, publicGroupMap);
 
 
     const meetingGroupMap = new Map<GroupMemberRole, PermissionMap>();
@@ -515,7 +516,7 @@ export class GroupPermissionManager {
       dismissGroup: false,
       reportGroup: true
     });
-    matrix.set(GroupType.AVCHATROOM, avChatRoomMap);
+    matrix.set(GroupType.AV_CHAT_ROOM, avChatRoomMap);
 
     return matrix;
   }

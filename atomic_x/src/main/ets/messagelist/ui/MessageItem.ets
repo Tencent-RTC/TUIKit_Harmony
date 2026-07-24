@@ -1,15 +1,8 @@
-import {
-  MessageInfo,
-  MessageType,
-  MessageMediaFileType,
-  MessageListStore,
-  MessageStatus,
-  CustomMessageInfo,
-  MessageInputStore,
-  ErrorInfo,
-  MessageActionStore,
-  LoginStore
-} from '@tencentcloud/atomicxcore';
+import { MessageInfo, MessageType, MessageListStore, MessageStatus, CustomMessagePayload, TextMessagePayload, AudioMessagePayload, ImageMessagePayload, VideoMessagePayload, FileMessagePayload, FaceMessagePayload } from '@tencentcloud/atomicxcore';
+import { MessageInputStore, SendMessagePayload, TextSendMessagePayload, ImageSendMessagePayload, VideoSendMessagePayload, AudioSendMessagePayload, FileSendMessagePayload, FaceSendMessagePayload, CustomSendMessagePayload, SendMessageOption } from '@tencentcloud/atomicxcore';
+import { MessageActionStore, MediaQuality } from '@tencentcloud/atomicxcore';
+import { ConversationType } from '@tencentcloud/atomicxcore';
+import { LoginStore } from '@tencentcloud/atomicxcore';
 
 import { TextMessageView } from '../cells/TextMessageView';
 import { ImageMessageView } from '../cells/ImageMessageView';
@@ -21,9 +14,10 @@ import { MergedMessageView } from '../cells/MergedMessageView';
 import { Avatar, AvatarSize, AvatarContentType, TextUtils, ThemeState, ActionSheet, ActionItem,
   Toast } from '../../basecomponent/Index';
 import { AppBuilderConfig, MessageAlignment } from '../../basecomponent/utils/AppBuilderHelper';
+import { CompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 import { SystemMessageView } from '../cells/SystemMessageView';
 import { CreateGroupMessageView } from '../cells/CreateGroupMessageView';
-import { util } from '@kit.ArkTS';
+import { CustomMessageView } from '../cells/CustomMessageView';
 import { LengthMetrics } from '@kit.ArkUI';
 import clipboard from '@ohos.pasteboard';
 import { IMErrorCode } from '../../basecomponent/utils/IMErrorCode';
@@ -34,10 +28,14 @@ import { AsrDisplayManager } from '../utils/AsrDisplayManager';
 import { TranslationDisplayManager } from '../utils/TranslationDisplayManager';
 import { AuxiliaryTextPopupMenu, AuxiliaryTextMenuItemConfig } from './AuxiliaryTextPopupMenu';
 import { ClassicMessageActionPopup, ClassicCustomActionItem } from './ClassicMessageActionPopup';
+import { MessageQuoteBubbleView } from '../cells/MessageQuoteBubbleView';
+import { EventBus } from '../../basecomponent/utils/EventBus';
+import { MessageQuoteEvent } from './MessageQuoteEvent';
 import { EmojiItem } from '../../emojipicker/data/EmojiData';
 import { EmojiDataManager, EmojiTextSegment } from '../../emojipicker/Index';
 import { MessageRenderContext } from '../context/MessageRenderContext';
 import { MessageUtils, ReadReceiptLabelInfo } from '../utils/MessageUtils';
+import { TranslationTextParser } from '../utils/TranslationTextParser';
 import { CallMessageView, CallMessageBubbleView, shouldHideCallingMessage } from '../cells/CallMessageView';
 import { CallingMessageDataProvider, CallParticipantType, CallMessageDirection } from '../utils/CallingMessageDataProvider';
 
@@ -51,52 +49,65 @@ export enum MessageDisplayMode {
 
 @Builder
 export function GetMessageView(context: MessageRenderContext) {
-  if (context.message.messageType == MessageType.Text) {
+  if (context.message.messageType == MessageType.TEXT) {
     TextMessageView(context);
-  } else if (context.message.messageType == MessageType.Image) {
+  } else if (context.message.messageType == MessageType.IMAGE) {
     ImageMessageView(context);
-  } else if (context.message.messageType == MessageType.File) {
+  } else if (context.message.messageType == MessageType.FILE) {
     FileMessageView(context);
-  } else if (context.message.messageType == MessageType.Sound) {
+  } else if (context.message.messageType == MessageType.AUDIO) {
     SoundMessageView(context);
-  } else if (context.message.messageType == MessageType.Video) {
+  } else if (context.message.messageType == MessageType.VIDEO) {
     VideoMessageView(context);
-  } else if (context.message.messageType == MessageType.Face) {
+  } else if (context.message.messageType == MessageType.FACE) {
     FaceMessageView(context);
-  } else if (context.message.messageType == MessageType.Merged) {
+  } else if (context.message.messageType == MessageType.MERGED) {
     MergedMessageView(context);
-  } else if (context.message.messageType == MessageType.System) {
+  } else if (context.message.messageType == MessageType.TIPS) {
     SystemMessageView(context);
-  } else if (context.message.messageType == MessageType.Custom) {
-    // Custom message - handled in MessageItem build method
-    if (context.message.messageBody?.customMessage) {
-      if (isGroupCreated(context.message.messageBody?.customMessage)) {
-        CreateGroupMessageView(context);
-      } else if (isCallingC2C(context.message)) {
-        CallMessageBubbleView(context);
-      } else if (isCallingGroup(context.message)) {
-        CallMessageView(context);
-      } else if (isCallingSignal(context.message)) {
-      } else {
-        SystemMessageView(context);
-      }
+  } else if (context.message.messageType == MessageType.CUSTOM) {
+    if (isGroupCreatedMessage(context.message)) {
+      CreateGroupMessageView(context);
+    } else if (isCallingC2C(context.message)) {
+      CallMessageBubbleView(context);
+    } else if (isCallingGroup(context.message)) {
+      CallMessageView(context);
+    } else if (isCallingSignal(context.message)) {
     } else {
-      SystemMessageView(context);
+      CustomMessageView(context);
     }
   } else {
-    // Unsupported message type
     if ((context.config ?? new ChatMessageListConfig()).isShowUnsupportMessage) {
       TextMessageView(context);
     }
   }
 }
 
-function isGroupCreated(customMessage: CustomMessageInfo) {
-  const data = customMessage?.data;
-  if (data) {
+function isGroupCreatedMessage(message: MessageInfo): boolean {
+  const customPayload = message.messagePayload as CustomMessagePayload | undefined;
+  if (!customPayload) {
+    return false;
+  }
+  return isGroupCreated(customPayload);
+}
+
+function isBusinessCustomMessage(message: MessageInfo): boolean {
+  if (message.messageType !== MessageType.CUSTOM) {
+    return false;
+  }
+  if (isGroupCreatedMessage(message)) {
+    return false;
+  }
+  if (isCallingC2C(message) || isCallingGroup(message) || isCallingSignal(message)) {
+    return false;
+  }
+  return true;
+}
+
+function isGroupCreated(customPayload: CustomMessagePayload): boolean {
+  const dataStr = customPayload.customData;
+  if (dataStr) {
     try {
-      const textDecoder = new util.TextDecoder('utf-8');
-      const dataStr = textDecoder.decode(new Uint8Array(data));
       const customInfo = JSON.parse(dataStr) as Record<string, string | number | boolean | object>;
       if (customInfo["businessID"] === 'group_create') {
         return true;
@@ -171,6 +182,7 @@ export struct MessageItem {
   onDetail?: (message: MessageInfo) => void;
   onConvertToText?: (message: MessageInfo) => void;
   onTranslate?: (message: MessageInfo) => void;
+  onQuote?: (message: MessageInfo) => void;
   onEmojiReaction?: (emoji: EmojiItem, message: MessageInfo) => void;
   onExpandEmojiPicker?: (message: MessageInfo) => void;
 
@@ -182,14 +194,14 @@ export struct MessageItem {
     this.updateAvatarVisibility();
     this.downloadMessageViewSource(this.message);
 
-    // Auto-close action popup when message status becomes revoke or violation
-    if ((this.message.status === MessageStatus.recalled || this.message.status === MessageStatus.violation)
+    if ((this.message.status === MessageStatus.REVOKED || this.message.status === MessageStatus.VIOLATION)
       && this.showClassicActionPopup) {
       this.showClassicActionPopup = false;
     }
     // Initialize MessageInputStore for resending messages
-    if (this.messageListStore.conversationID) {
-      this.inputStore = MessageInputStore.create(this.messageListStore.conversationID);
+    const conversationID = this.getConversationID();
+    if (conversationID.length > 0) {
+      this.inputStore = MessageInputStore.create(conversationID);
       this.messageActionStore = MessageActionStore.create(this.message);
     }
   }
@@ -201,6 +213,18 @@ export struct MessageItem {
   private onInitialShowAvatarChanged(): void {
     this.showAvatar = this.initialShowAvatar;
     this.updateAvatarVisibility();
+  }
+
+  private getConversationID(): string {
+    if (this.message.conversationType === ConversationType.GROUP) {
+      return `group_${this.message.to}`;
+    }
+    const currentUserID = LoginStore.shared().state.loginUserInfo?.userID ?? '';
+    const peerID = this.message.isSentBySelf ? this.message.to : this.message.from.userID;
+    if (peerID.length === 0 || peerID === currentUserID) {
+      return '';
+    }
+    return `c2c_${peerID}`;
   }
 
   /**
@@ -218,41 +242,30 @@ export struct MessageItem {
   }
 
   downloadMessageViewSource(message: MessageInfo) {
-    if (!message || !this.messageListStore) {
+    if (!message) {
       return;
     }
 
     try {
-
-      if (message.messageType === MessageType.Image) {
-
-        this.messageListStore.downloadMessageResource(message, MessageMediaFileType.thumbImage)
-          .then(() => {
-            console.info('[MessageItem] Successfully downloaded thumb image');
-          })
-          .catch((error: object) => {
-            console.error('[MessageItem] Failed to download thumb image:', error);
-          });
-      } else if (message.messageType === MessageType.Video) {
-
-        this.messageListStore.downloadMessageResource(message, MessageMediaFileType.videoSnapshot)
-          .then(() => {
-            console.info('[MessageItem] Successfully downloaded video snapshot');
-          })
-          .catch((error: object) => {
-            console.error('[MessageItem] Failed to download video snapshot:', error);
-          });
-      } else if (message.messageType === MessageType.Sound) {
-
-        this.messageListStore.downloadMessageResource(message, MessageMediaFileType.sound)
-          .then(() => {
-            console.info('[MessageItem] Successfully downloaded sound');
-          })
-          .catch((error: object) => {
-            console.error('[MessageItem] Failed to download sound:', error);
-          });
-      } else if (message.messageType === MessageType.File) {
-
+      if (message.messageType === MessageType.IMAGE) {
+        MessageActionStore.create(message).downloadMedia(MediaQuality.THUMBNAIL, new CompletionHandlerAdapter(() => {
+          console.info('[MessageItem] Successfully downloaded thumb image');
+        }, (code: number, desc: string) => {
+          console.error('[MessageItem] Failed to download thumb image:', code, desc);
+        }));
+      } else if (message.messageType === MessageType.VIDEO) {
+        MessageActionStore.create(message).downloadMedia(MediaQuality.THUMBNAIL, new CompletionHandlerAdapter(() => {
+          console.info('[MessageItem] Successfully downloaded video snapshot');
+        }, (code: number, desc: string) => {
+          console.error('[MessageItem] Failed to download video snapshot:', code, desc);
+        }));
+      } else if (message.messageType === MessageType.AUDIO) {
+        MessageActionStore.create(message).downloadMedia(MediaQuality.ORIGINAL, new CompletionHandlerAdapter(() => {
+          console.info('[MessageItem] Successfully downloaded sound');
+        }, (code: number, desc: string) => {
+          console.error('[MessageItem] Failed to download sound:', code, desc);
+        }));
+      } else if (message.messageType === MessageType.FILE) {
         console.info('[MessageItem] File message, not downloading automatically');
       }
     } catch (error) {
@@ -261,13 +274,13 @@ export struct MessageItem {
   }
 
   @Builder
-  AvatarView(url?: string) {
+  AvatarView(url?: string, sideName?: string) {
     if (this.shouldShowAvatarValue) {
       Stack() {
         Avatar({
           content: {
             type: AvatarContentType.Image,
-            name: this.message.sender?.userID || '',
+            name: sideName ?? (this.message.from?.userID || ''),
             url: url || '',
           },
           avatarSize: AvatarSize.S
@@ -275,28 +288,30 @@ export struct MessageItem {
       }
       .width(32)
       .height(32)
-      .onClick(() => {
-        if (!this.getEffectiveIsSelf() && this.onUserClick && this.message.sender?.userID) {
-          this.onUserClick(this.message.sender.userID);
-        }
-      })
       .gesture(
-        LongPressGesture({ repeat: false, duration: 500 })
-          .onAction(() => {
-            // Long press on avatar triggers @ mention (only for non-self messages)
-            if (!this.getEffectiveIsSelf() && this.onUserLongPress && this.message.sender?.userID) {
-              const userID = this.message.sender.userID;
-              const nickname = this.message.sender.nickname || userID;
-              this.onUserLongPress(userID, nickname);
-            }
-          })
+        GestureGroup(GestureMode.Exclusive,
+          LongPressGesture({ repeat: false, duration: 300 })
+            .onAction(() => {
+              if (!this.getEffectiveIsSelf() && this.onUserLongPress && this.message.from?.userID) {
+                const userID = this.message.from.userID;
+                const nickname = this.message.from.nickname || userID;
+                this.onUserLongPress(userID, nickname);
+              }
+            }),
+          TapGesture({ count: 1 })
+            .onAction(() => {
+              if (!this.getEffectiveIsSelf() && this.onUserClick && this.message.from?.userID) {
+                this.onUserClick(this.message.from.userID);
+              }
+            })
+        )
       )
     }
   }
 
   @Builder
   NicknameView() {
-    Text(this.message.sender?.nickname || this.message.sender?.userID || '')
+    Text(this.message.from?.nickname || this.message.from?.userID || '')
       .fontSize(12)
       .fontColor(this.themeState.colors.textColorSecondary)
       .maxLines(1)
@@ -309,9 +324,9 @@ export struct MessageItem {
     if (this.shouldShowTimeInBubble(this.message) && this.message.timestamp) {
       Text(this.formatTimeInBubble(this.message.timestamp))
         .fontSize(10)
-        .fontColor(this.message.isSelf ?
+        .fontColor(this.message.isSentBySelf ?
         this.themeState.colors.textColorTertiary:
-        this.themeState.colors.textColorTertiary)
+          this.themeState.colors.textColorTertiary)
         .margin({ top: 4 })
         .padding({right:4})
         .alignSelf(ItemAlign.End)
@@ -326,14 +341,11 @@ export struct MessageItem {
   }
 
   private shouldShowTimeInBubble(message: MessageInfo): boolean {
-    return (this.effectiveConfig.isShowTimeInBubble ?? false) && message.messageType === MessageType.Text;
+    return (this.effectiveConfig.isShowTimeInBubble ?? false) && message.messageType === MessageType.TEXT;
   }
 
-  /**
-   * Check if message should hide bubble background (for image and video messages)
-   */
   private shouldHideBubbleBackground(): boolean {
-    return this.message.messageType === MessageType.Image || this.message.messageType === MessageType.Video;
+    return this.message.messageType === MessageType.IMAGE || this.message.messageType === MessageType.VIDEO;
   }
 
   /**
@@ -344,13 +356,9 @@ export struct MessageItem {
       return Color.Transparent;
     }
 
-    if (this.displayMode === MessageDisplayMode.Merged) {
-      return this.themeState.colors.bgColorBubbleReciprocal;
-    }
-
     return this.getEffectiveIsSelf() ?
-    this.themeState.colors.bgColorBubbleOwn :
-    this.themeState.colors.bgColorBubbleReciprocal;
+      this.themeState.colors.bgColorBubbleOwn :
+      this.themeState.colors.bgColorBubbleReciprocal;
   }
 
   /**
@@ -443,6 +451,11 @@ export struct MessageItem {
           this.onTranslate(this.message);
         }
       },
+      onQuote: () => {
+        if (this.onQuote) {
+          this.onQuote(this.message);
+        }
+      },
       onEmojiReaction: (emoji: EmojiItem) => {
         if (this.onEmojiReaction) {
           this.onEmojiReaction(emoji, this.message);
@@ -478,12 +491,18 @@ export struct MessageItem {
         .fontWeight(FontWeight.Regular)
         .margin({ left: 4, right: 4 })
         .onClick(() => {
-          const isGroup = !!this.message.groupID && this.message.groupID.length > 0;
+          const isGroup = this.message.conversationType === ConversationType.GROUP;
           if (isGroup && this.onDetail) {
             this.onDetail(this.message);
           }
         })
     }
+  }
+
+  private shouldShowAudioSendingIndicator(): boolean {
+    return this.getEffectiveIsSelf() &&
+      this.message.messageType === MessageType.AUDIO &&
+      this.message.status === MessageStatus.SENDING;
   }
 
   private getReadReceiptText(): string {
@@ -499,41 +518,54 @@ export struct MessageItem {
     return this.themeState.colors.textColorSecondary;
   }
 
+  private getMessageEffectiveIsSelf(message: MessageInfo): boolean {
+    if (isCallingC2C(message)) {
+      const callingProvider = new CallingMessageDataProvider(message);
+      return callingProvider.direction === CallMessageDirection.outcoming;
+    }
+    return message.isSentBySelf ?? false;
+  }
+
   @Builder
   MessageBubble(message: MessageInfo) {
 
-    if (message.messageType === MessageType.System ||
-      (message.messageType === MessageType.Custom && !isCallingC2C(message))) {
+    if (message.messageType === MessageType.TIPS ||
+      (message.messageType === MessageType.CUSTOM && !isCallingC2C(message) && !isBusinessCustomMessage(message))) {
 
       Text("")
         .width(0)
         .height(0)
-    } else if (message.messageType === MessageType.Image || message.messageType === MessageType.Video) {
+    } else if (message.messageType === MessageType.IMAGE || message.messageType === MessageType.VIDEO) {
       Column() {
         GetMessageView(this.createRenderContext(message));
         this.TimeInBubbleView();
       }
       .padding({ bottom: this.shouldShowTimeInBubble(message) ? 4 : 0 })
-    } else if (message.isSelf) {
+    } else if (this.getMessageEffectiveIsSelf(message)) {
       Column() {
         GetMessageView(this.createRenderContext(message));
         this.TimeInBubbleView();
       }
+      .flexShrink(1)
       .borderRadius({
         topStart: LengthMetrics.vp(16),
         topEnd: LengthMetrics.vp(16),
         bottomStart: LengthMetrics.vp(16),
         bottomEnd: LengthMetrics.vp(0)
       } as LocalizedBorderRadiuses)
-      .backgroundColor(this.themeState.colors.bgColorBubbleOwn)
+      .backgroundColor(this.isHighlighted ? 'rgba(0, 122, 255, 0.55)' : this.themeState.colors.bgColorBubbleOwn)
       .borderColor(this.themeState.colors.bgColorBubbleOwn)
       .padding({ bottom: this.shouldShowTimeInBubble(message) ? 4 : 0 })
+      .animation({
+        duration: 300,
+        curve: Curve.EaseInOut
+      })
     } else {
       Column() {
         GetMessageView(this.createRenderContext(message));
         this.TimeInBubbleView();
       }
-      .backgroundColor(this.themeState.colors.bgColorBubbleReciprocal)
+      .backgroundColor(this.isHighlighted ? 'rgba(0, 122, 255, 0.55)' : this.themeState.colors.bgColorBubbleReciprocal)
       .borderRadius({
         topStart: LengthMetrics.vp(16),
         topEnd: LengthMetrics.vp(16),
@@ -542,6 +574,30 @@ export struct MessageItem {
       } as LocalizedBorderRadiuses)
       .flexShrink(1)
       .padding({ bottom: this.shouldShowTimeInBubble(message) ? 4 : 0 })
+      .animation({
+        duration: 300,
+        curve: Curve.EaseInOut
+      })
+    }
+  }
+
+  @Builder
+  QuoteBubble(message: MessageInfo) {
+    if (message.quoteInfo) {
+      Column() {
+        MessageQuoteBubbleView({
+          quoteInfo: message.quoteInfo,
+          onQuoteClick: () => {
+            EventBus.getInstance().post(MessageQuoteEvent.LOCATE_QUOTED_MESSAGE, {
+              'msgID': message.quoteInfo!.msgID,
+              'sequence': message.quoteInfo!.sequence,
+              'timestamp': message.quoteInfo!.timestamp
+            });
+          }
+        })
+      }
+      .margin({ top: 4 })
+      .alignItems(message.isSentBySelf ? HorizontalAlign.End : HorizontalAlign.Start)
     }
   }
 
@@ -550,24 +606,24 @@ export struct MessageItem {
    * Returns true if converting or if has asrText and is expanded
    */
   private shouldShowAsrBubble(message: MessageInfo): boolean {
-    if (message.messageType !== MessageType.Sound) {
+    if (message.messageType !== MessageType.AUDIO) {
       return false;
     }
-
-    // Access version to trigger reactivity when AsrDisplayManager changes
+    
     const _ = this.asrDisplayManager.version;
-
+    
     const isConverting = this.asrDisplayManager.isConverting(message.msgID);
     if (isConverting) {
       return true;
     }
-
+    
     const isExpanded = this.asrDisplayManager.isExpanded(message.msgID);
     if (!isExpanded) {
       return false;
     }
-
-    const asrText = message.messageBody?.asrText ?? '';
+    
+    const audioPayload = message.messagePayload as AudioMessagePayload | undefined;
+    const asrText = audioPayload?.asrText ?? '';
     return asrText.length > 0;
   }
 
@@ -576,42 +632,57 @@ export struct MessageItem {
    * Returns true if translating or if has translatedText and is expanded
    */
   private shouldShowTranslationBubble(message: MessageInfo): boolean {
-    if (message.messageType !== MessageType.Text) {
+    if (message.messageType !== MessageType.TEXT) {
       return false;
     }
-
-    // Access version to trigger reactivity when TranslationDisplayManager changes
+    
     const _ = this.translationDisplayManager.version;
-
+    
     const isTranslating = this.translationDisplayManager.isTranslating(message.msgID);
     if (isTranslating) {
       return true;
     }
-
+    
     const isExpanded = this.translationDisplayManager.isExpanded(message.msgID);
     if (!isExpanded) {
       return false;
     }
-
-    // Get translated text
+    
     const translatedText = this.getTranslatedText(message);
     return translatedText.length > 0;
   }
 
-  /**
-   * Get translated text from message
-   */
   private getTranslatedText(message: MessageInfo): string {
-    const translatedTextMapRaw = message.messageBody?.translatedText;
+    const textPayload = message.messagePayload as TextMessagePayload | undefined;
+    const translatedTextMapRaw = textPayload?.translatedText;
     const translatedTextMap: Record<string, string> = {};
     if (translatedTextMapRaw) {
       translatedTextMapRaw.forEach((value: string, key: string) => {
         translatedTextMap[key] = value;
       });
     }
-    const originalText = message.messageBody?.text ?? '';
+    const originalText = textPayload?.text ?? '';
+    if (originalText.length === 0) {
+      return '';
+    }
     const translated = translatedTextMap[originalText];
-    return translated ?? '';
+    if (translated && translated.length > 0) {
+      return translated;
+    }
+    const splitResult = TranslationTextParser.splitTextByEmojiAndAtUsers(originalText, undefined);
+    if (!splitResult) {
+      return '';
+    }
+    const hasTranslatedFragment = splitResult.text.some((text: string) => translatedTextMap[text] !== undefined);
+    if (!hasTranslatedFragment) {
+      return '';
+    }
+    const replacedText = TranslationTextParser.replacedStringWithArray(
+      splitResult.result,
+      splitResult.textIndex,
+      translatedTextMap
+    );
+    return replacedText ?? '';
   }
 
   /**
@@ -621,28 +692,26 @@ export struct MessageItem {
   AsrTextBubble(message: MessageInfo) {
     Column() {
       if (this.asrDisplayManager?.isConverting(message.msgID) ?? false) {
-        // Loading state
         LoadingProgress()
           .width(16)
           .height(16)
-          .color(message.isSelf ? this.themeState.colors.textColorAntiPrimary :
+          .color(message.isSentBySelf ? this.themeState.colors.textColorAntiPrimary :
           this.themeState.colors.textColorPrimary)
       } else {
-        // Text display state
-        Text(message.messageBody?.asrText ?? '')
+        Text((message.messagePayload as AudioMessagePayload | undefined)?.asrText ?? '')
           .fontSize(14)
-          .fontColor(message.isSelf ? this.themeState.colors.textColorAntiPrimary :
+          .fontColor(message.isSentBySelf ? this.themeState.colors.textColorAntiPrimary :
           this.themeState.colors.textColorPrimary)
       }
     }
     .padding({ left: 12, right: 12, top: 10, bottom: 10 })
-    .backgroundColor(message.isSelf ? this.themeState.colors.bgColorBubbleOwn :
+    .backgroundColor(message.isSentBySelf ? this.themeState.colors.bgColorBubbleOwn :
     this.themeState.colors.bgColorBubbleReciprocal)
     .borderRadius(12)
     .margin({ top: 10 })
     .bindPopup(this.showAsrMenu && this.asrMenuMessage?.msgID === message.msgID, {
       builder: this.AsrTextMenuBuilder,
-      placement: message.isSelf ? Placement.TopRight : Placement.TopLeft,
+      placement: message.isSentBySelf ? Placement.TopRight : Placement.TopLeft,
       enableArrow: false,
       onStateChange: (e) => {
         if (!e.isVisible) {
@@ -654,7 +723,6 @@ export struct MessageItem {
     .gesture(
       LongPressGesture()
         .onAction(() => {
-          // Only show menu when not in loading state
           if (!this.asrDisplayManager.isConverting(message.msgID)) {
             this.asrMenuMessage = message;
             this.showAsrMenu = true;
@@ -671,52 +739,47 @@ export struct MessageItem {
   TranslationTextBubble(message: MessageInfo) {
     Column() {
       if (this.translationDisplayManager?.isTranslating(message.msgID) ?? false) {
-        // Loading state
         LoadingProgress()
           .width(16)
           .height(16)
-          .color(message.isSelf ? this.themeState.colors.textColorAntiPrimary :
+          .color(message.isSentBySelf ? this.themeState.colors.textColorAntiPrimary :
           this.themeState.colors.textColorPrimary)
       } else {
-        // Text display with bottom tips
         Column({ space: 6 }) {
-          // Translation text content with emoji support
           Text() {
-            ForEach(EmojiDataManager.parseEmojiText(this.getTranslatedText(message)),
+            ForEach(EmojiDataManager.parseEmojiText(this.getTranslatedText(message)), 
               (segment: EmojiTextSegment, index: number) => {
-                if (segment.type === 'text') {
-                  Span(segment.content)
-                } else if (segment.type === 'emoji' && segment.imageFile) {
-                  ImageSpan(EmojiDataManager.getEmojiImageResource(segment.imageFile))
-                    .width(20)
-                    .height(20)
-                    .objectFit(ImageFit.Contain)
-                    .verticalAlign(ImageSpanAlignment.CENTER)
-                }
-              }, (segment: EmojiTextSegment, index: number) => `${segment.type}_${index}_${segment.content}`)
+              if (segment.type === 'text') {
+                Span(segment.content)
+              } else if (segment.type === 'emoji' && segment.imageFile) {
+                ImageSpan(EmojiDataManager.getEmojiImageResource(segment.imageFile))
+                  .width(20)
+                  .height(20)
+                  .objectFit(ImageFit.Contain)
+                  .verticalAlign(ImageSpanAlignment.CENTER)
+              }
+            }, (segment: EmojiTextSegment, index: number) => `${segment.type}_${index}_${segment.content}`)
           }
           .fontSize(14)
-          .fontColor(message.isSelf ? this.themeState.colors.textColorAntiPrimary :
-          this.themeState.colors.textColorPrimary)
+          .fontColor(message.isSentBySelf ? this.themeState.colors.textColorAntiPrimary :
+            this.themeState.colors.textColorPrimary)
           .textOverflow({ overflow: TextOverflow.None })
           .maxLines(999)
           .wordBreak(WordBreak.BREAK_ALL)
-
-          // Bottom tips: checkmark icon + "Powered by Tencent Cloud IM"
+          
           Row({ space: 4 }) {
-            // Check circle icon (matching Flutter Icons.check_circle)
             Image($rawfile('basecomponent/check_circle_filled.svg'))
               .width(10)
               .height(10)
-              .fillColor(message.isSelf ?
-              this.themeState.colors.textColorAntiPrimary :
-              this.themeState.colors.textColorSecondary)
-
+              .fillColor(message.isSentBySelf ? 
+                this.themeState.colors.textColorAntiPrimary :
+                this.themeState.colors.textColorSecondary)
+            
             Text($r('app.string.messagelist_translation_tips'))
               .fontSize(10)
-              .fontColor(message.isSelf ?
-              this.themeState.colors.textColorAntiPrimary :
-              this.themeState.colors.textColorSecondary)
+              .fontColor(message.isSentBySelf ? 
+                this.themeState.colors.textColorAntiPrimary :
+                this.themeState.colors.textColorSecondary)
               .opacity(0.6)
           }
           .alignSelf(ItemAlign.Start)
@@ -725,13 +788,13 @@ export struct MessageItem {
       }
     }
     .padding({ left: 12, right: 12, top: 10, bottom: 10 })
-    .backgroundColor(message.isSelf ? this.themeState.colors.bgColorBubbleOwn :
+    .backgroundColor(message.isSentBySelf ? this.themeState.colors.bgColorBubbleOwn :
     this.themeState.colors.bgColorBubbleReciprocal)
     .borderRadius(12)
     .margin({ top: 10 })
     .bindPopup(this.showTranslationMenu && this.translationMenuMessage?.msgID === message.msgID, {
       builder: this.TranslationTextMenuBuilder,
-      placement: message.isSelf ? Placement.TopRight : Placement.TopLeft,
+      placement: message.isSentBySelf ? Placement.TopRight : Placement.TopLeft,
       enableArrow: false,
       onStateChange: (e) => {
         if (!e.isVisible) {
@@ -743,7 +806,6 @@ export struct MessageItem {
     .gesture(
       LongPressGesture()
         .onAction(() => {
-          // Only show menu when not in translating state
           if (!this.translationDisplayManager.isTranslating(message.msgID)) {
             this.translationMenuMessage = message;
             this.showTranslationMenu = true;
@@ -759,10 +821,11 @@ export struct MessageItem {
   AsrTextMenuBuilder() {
     AuxiliaryTextPopupMenu({
       menuItems: [
-      // Hide button
+        // Hide button - temporarily hidden, will be re-enabled in future version
         {
           text: $r('app.string.action_hide'),
           icon: $rawfile('messagelist/icon_extion_delete.svg'),
+          hidden: true,
           onClick: () => {
             if (this.asrMenuMessage) {
               this.asrDisplayManager.collapse(this.asrMenuMessage.msgID);
@@ -789,7 +852,8 @@ export struct MessageItem {
           icon: $rawfile('messagelist/icon_extion_copy.svg'),
           onClick: () => {
             if (this.asrMenuMessage) {
-              const asrText = this.asrMenuMessage.messageBody?.asrText ?? '';
+              const audioPayload = this.asrMenuMessage.messagePayload as AudioMessagePayload | undefined;
+              const asrText = audioPayload?.asrText ?? '';
               if (asrText.length > 0) {
                 this.copyAsrText(asrText);
               }
@@ -829,10 +893,11 @@ export struct MessageItem {
   TranslationTextMenuBuilder() {
     AuxiliaryTextPopupMenu({
       menuItems: [
-      // Hide button
+        // Hide button - temporarily hidden, will be re-enabled in future version
         {
           text: $r('app.string.action_hide'),
           icon: $rawfile('messagelist/icon_extion_delete.svg'),
+          hidden: true,
           onClick: () => {
             if (this.translationMenuMessage) {
               // Collapse translation display
@@ -861,16 +926,7 @@ export struct MessageItem {
           icon: $rawfile('messagelist/icon_extion_copy.svg'),
           onClick: () => {
             if (this.translationMenuMessage) {
-              // Get translated text and copy it
-              const translatedTextMapRaw = this.translationMenuMessage.messageBody?.translatedText;
-              const translatedTextMap: Record<string, string> = {};
-              if (translatedTextMapRaw) {
-                translatedTextMapRaw.forEach((value: string, key: string) => {
-                  translatedTextMap[key] = value;
-                });
-              }
-              const originalText = this.translationMenuMessage.messageBody?.text ?? '';
-              const translatedText = translatedTextMap[originalText] ?? '';
+              const translatedText = this.getTranslatedText(this.translationMenuMessage);
               if (translatedText.length > 0) {
                 this.copyTranslatedText(translatedText);
               }
@@ -908,7 +964,63 @@ export struct MessageItem {
       const callingProvider = new CallingMessageDataProvider(this.message);
       return callingProvider.direction === CallMessageDirection.outcoming;
     }
-    return this.message?.isSelf ?? false;
+    return this.message?.isSentBySelf ?? false;
+  }
+
+  private getSideFaceURL(isSelfSide: boolean): string {
+    const rawFaceURL = this.message?.rawMessage?.faceURL ?? '';
+    if (!isCallingC2C(this.message)) {
+      return rawFaceURL;
+    }
+    const loginUserID = LoginStore.shared().state.loginUserInfo?.userID ?? '';
+    const loginAvatar = LoginStore.shared().state.loginUserInfo?.avatarURL ?? '';
+    if (isSelfSide) {
+      return loginAvatar;
+    }
+    const list: MessageInfo[] = this.messageListStore?.state?.messageList ?? [];
+    for (let i = list.length - 1; i >= 0; i--) {
+      const m: MessageInfo = list[i];
+      if (!m) {
+        continue;
+      }
+      const fromID = m.from?.userID ?? '';
+      if (fromID.length > 0 && fromID !== loginUserID) {
+        const url: string | undefined = m.rawMessage?.faceURL;
+        if (url && url.length > 0) {
+          return url;
+        }
+      }
+    }
+    if (this.message?.from?.userID && this.message.from.userID !== loginUserID && rawFaceURL.length > 0) {
+      return rawFaceURL;
+    }
+    return rawFaceURL;
+  }
+
+  private getSideUserID(isSelfSide: boolean): string {
+    const fromUserID = this.message?.from?.userID ?? '';
+    if (!isCallingC2C(this.message)) {
+      return fromUserID;
+    }
+    const loginUserID = LoginStore.shared().state.loginUserInfo?.userID ?? '';
+    if (isSelfSide) {
+      return loginUserID;
+    }
+    if (fromUserID.length > 0 && fromUserID !== loginUserID) {
+      return fromUserID;
+    }
+    const list: MessageInfo[] = this.messageListStore?.state?.messageList ?? [];
+    for (let i = list.length - 1; i >= 0; i--) {
+      const m: MessageInfo = list[i];
+      if (!m) {
+        continue;
+      }
+      const id = m.from?.userID ?? '';
+      if (id.length > 0 && id !== loginUserID) {
+        return id;
+      }
+    }
+    return fromUserID;
   }
 
   build() {
@@ -927,7 +1039,7 @@ export struct MessageItem {
   @Builder
   messageAlignmentLeftStyle() {
     Column() {
-      if (this.message.messageType === MessageType.System) {
+      if (this.message.messageType === MessageType.TIPS) {
         // Only show system messages if configured
         if (this.effectiveConfig.isShowSystemMessage) {
           Row() {
@@ -937,7 +1049,7 @@ export struct MessageItem {
           .justifyContent(FlexAlign.Center)
           .margin({ bottom: 8 })
         }
-      } else if (this.message.messageType === MessageType.Custom && !isCallingC2C(this.message)) {
+      } else if (this.message.messageType === MessageType.CUSTOM && !isCallingC2C(this.message) && !isBusinessCustomMessage(this.message)) {
         if (!shouldHideCallingMessage(this.message)) {
           Row() {
             GetMessageView(this.createRenderContext());
@@ -950,7 +1062,7 @@ export struct MessageItem {
         Row() {
           if (this.shouldShowAvatarValue) {
             Stack() {
-              this.AvatarView(this.message?.rawMessage?.faceURL)
+              this.AvatarView(this.getSideFaceURL(this.getEffectiveIsSelf()), this.getSideUserID(this.getEffectiveIsSelf()))
             }
             .margin({ right: this.effectiveConfig.avatarSpacing ?? 6 })
           }
@@ -969,29 +1081,32 @@ export struct MessageItem {
                 this.NicknameView()
               }
             }
-
+            
             Column() {
               GetMessageView(this.createRenderContext());
             }
             .borderRadius(this.getBubbleBorderRadius())
-            // In merged mode, always use left bubble color; in normal mode, use color based on isSelf
-            .backgroundColor(this.getBubbleBackgroundColor())
+            .backgroundColor(this.isHighlighted ? 'rgba(0, 122, 255, 0.55)' : this.getBubbleBackgroundColor())
             .borderWidth(this.getBubbleBorderWidth())
             .borderColor(this.getBubbleBorderColor())
             .flexShrink(1)
             .alignItems(HorizontalAlign.Start)
             .justifyContent(FlexAlign.Start)
-
+            .animation({
+              duration: 300,
+              curve: Curve.EaseInOut
+            })
+            
             // ASR text bubble (separate from voice bubble)
             if (this.shouldShowAsrBubble(this.message)) {
               this.AsrTextBubble(this.message)
             }
-
+            
             // Translation text bubble (separate from text bubble)
             if (this.shouldShowTranslationBubble(this.message)) {
               this.TranslationTextBubble(this.message)
             }
-
+            
             // Show reaction bar
             if (this.effectiveConfig.isSupportReaction && this.message.reactionList && this.message.reactionList.length > 0) {
               MessageReactionBar({
@@ -1001,15 +1116,15 @@ export struct MessageItem {
                 }
               })
             }
-
+            
             // Show violation warning for sensitive content
-            if (this.message.status === MessageStatus.violation) {
+      if (this.message.status === MessageStatus.VIOLATION) {
               Text($r('app.string.messagelist_violation_warning'))
                 .fontSize(12)
                 .fontColor(this.themeState.colors.textColorError)
                 .margin({ top: 4 })
             }
-
+            
             // In normal LEFT mode, show nickname below bubble for self messages
             if (this.displayMode !== MessageDisplayMode.Merged) {
               if (this.getEffectiveIsSelf() && this.effectiveConfig.isShowRightNickname) {
@@ -1020,14 +1135,21 @@ export struct MessageItem {
           .flexShrink(1)
           .alignItems(HorizontalAlign.Start)
 
-          if (this.getEffectiveIsSelf() && (this.message.status === MessageStatus.sendFail || this.message.status === MessageStatus.violation)) {
+          if (this.shouldShowAudioSendingIndicator()) {
+            LoadingProgress()
+              .width(12)
+              .height(12)
+              .margin({ left: 4 })
+          }
+
+      if (this.getEffectiveIsSelf() && (this.message.status === MessageStatus.SEND_FAIL || this.message.status === MessageStatus.VIOLATION)) {
             Image($rawfile('messagelist/icon_message_send_error.svg'))
               .width(16)
               .height(16)
               .margin({ left: 4 })
               .onClick(() => {
                 // Only show resend dialog for sendFail, not for violation
-                if (this.message.status === MessageStatus.sendFail) {
+      if (this.message.status === MessageStatus.SEND_FAIL) {
                   this.showResendConfirmDialog();
                 }
               })
@@ -1048,26 +1170,20 @@ export struct MessageItem {
             })
         )
         .bindPopup(
-          this.showClassicActionPopup &&
-            this.effectiveConfig.messageActionStyle === 'popup' &&
-            this.message.status !== MessageStatus.recalled &&
-            this.message.status !== MessageStatus.violation,
+          this.showClassicActionPopup && 
+          this.effectiveConfig.messageActionStyle === 'popup' &&
+        this.message.status !== MessageStatus.REVOKED &&
+        this.message.status !== MessageStatus.VIOLATION,
           {
-            builder: this.ClassicActionPopupBuilder,
-            placement: this.getEffectiveIsSelf() ? Placement.TopRight : Placement.TopLeft,
-            enableArrow: false,
-            mask: false,
-            onStateChange: (e) => {
-              if (!e.isVisible) {
-                this.showClassicActionPopup = false;
-              }
+          builder: this.ClassicActionPopupBuilder,
+          placement: this.getEffectiveIsSelf() ? Placement.TopRight : Placement.TopLeft,
+          enableArrow: false,
+          mask: false,
+          onStateChange: (e) => {
+            if (!e.isVisible) {
+              this.showClassicActionPopup = false;
             }
-          })
-        .backgroundColor(this.isHighlighted ? 'rgba(0, 122, 255, 0.1)' : 'transparent')
-        .borderRadius(this.isHighlighted ? 8 : 0)
-        .animation({
-          duration: 300,
-          curve: Curve.EaseInOut
+          }
         })
       }
     }
@@ -1078,7 +1194,7 @@ export struct MessageItem {
   @Builder
   messageAlignmentRightStyle() {
     Column() {
-      if (this.message.messageType === MessageType.System) {
+      if (this.message.messageType === MessageType.TIPS) {
         // Only show system messages if configured
         if (this.effectiveConfig.isShowSystemMessage) {
           Row() {
@@ -1088,7 +1204,7 @@ export struct MessageItem {
           .justifyContent(FlexAlign.Center)
           .margin({ bottom: 8 })
         }
-      } else if (this.message.messageType === MessageType.Custom && !isCallingC2C(this.message)) {
+      } else if (this.message.messageType === MessageType.CUSTOM && !isCallingC2C(this.message) && !isBusinessCustomMessage(this.message)) {
         if (!shouldHideCallingMessage(this.message)) {
           Row() {
             GetMessageView(this.createRenderContext());
@@ -1104,14 +1220,21 @@ export struct MessageItem {
             this.ReadReceiptLabel()
           }
 
-          if (this.getEffectiveIsSelf() && (this.message.status === MessageStatus.sendFail || this.message.status === MessageStatus.violation)) {
+          if (this.shouldShowAudioSendingIndicator()) {
+            LoadingProgress()
+              .width(12)
+              .height(12)
+              .margin({ right: 4 })
+          }
+
+      if (this.getEffectiveIsSelf() && (this.message.status === MessageStatus.SEND_FAIL || this.message.status === MessageStatus.VIOLATION)) {
             Image($rawfile('messagelist/icon_message_send_error.svg'))
               .width(16)
               .height(16)
               .margin({ right: 4 })
               .onClick(() => {
                 // Only show resend dialog for sendFail, not for violation
-                if (this.message.status === MessageStatus.sendFail) {
+      if (this.message.status === MessageStatus.SEND_FAIL) {
                   this.showResendConfirmDialog();
                 }
               })
@@ -1121,28 +1244,32 @@ export struct MessageItem {
             if (!this.getEffectiveIsSelf() && this.effectiveConfig.isShowLeftNickname) {
               this.NicknameView()
             }
-
+            
             Column() {
               GetMessageView(this.createRenderContext());
             }
             .borderRadius(this.getBubbleBorderRadius())
-            .backgroundColor(this.getBubbleBackgroundColor())
+            .backgroundColor(this.isHighlighted ? 'rgba(0, 122, 255, 0.55)' : this.getBubbleBackgroundColor())
             .borderWidth(this.getBubbleBorderWidth())
             .borderColor(this.getBubbleBorderColor())
             .flexShrink(1)
             .alignItems(HorizontalAlign.End)
             .justifyContent(FlexAlign.End)
-
+            .animation({
+              duration: 300,
+              curve: Curve.EaseInOut
+            })
+            
             // ASR text bubble (separate from voice bubble)
             if (this.shouldShowAsrBubble(this.message)) {
               this.AsrTextBubble(this.message)
             }
-
+            
             // Translation text bubble (separate from text bubble)
             if (this.shouldShowTranslationBubble(this.message)) {
               this.TranslationTextBubble(this.message)
             }
-
+            
             // Show reaction bar
             if (this.effectiveConfig.isSupportReaction && this.message.reactionList && this.message.reactionList.length > 0) {
               MessageReactionBar({
@@ -1152,7 +1279,7 @@ export struct MessageItem {
                 }
               })
             }
-
+            
             // Show nickname for right messages (self)
             if (this.getEffectiveIsSelf() && this.effectiveConfig.isShowRightNickname) {
               this.NicknameView()
@@ -1163,7 +1290,7 @@ export struct MessageItem {
 
           if (this.shouldShowAvatarValue) {
             Stack() {
-              this.AvatarView(this.message?.rawMessage?.faceURL)
+              this.AvatarView(this.getSideFaceURL(this.getEffectiveIsSelf()), this.getSideUserID(this.getEffectiveIsSelf()))
             }
             .margin({ left: this.effectiveConfig.avatarSpacing ?? 6 })
           }
@@ -1178,26 +1305,20 @@ export struct MessageItem {
             })
         )
         .bindPopup(
-          this.showClassicActionPopup &&
-            this.effectiveConfig.messageActionStyle === 'popup' &&
-            this.message.status !== MessageStatus.recalled &&
-            this.message.status !== MessageStatus.violation,
+          this.showClassicActionPopup && 
+          this.effectiveConfig.messageActionStyle === 'popup' &&
+        this.message.status !== MessageStatus.REVOKED &&
+        this.message.status !== MessageStatus.VIOLATION,
           {
-            builder: this.ClassicActionPopupBuilder,
-            placement: this.getEffectiveIsSelf() ? Placement.TopRight : Placement.TopLeft,
-            enableArrow: false,
-            mask: false,
-            onStateChange: (e) => {
-              if (!e.isVisible) {
-                this.showClassicActionPopup = false;
-              }
+          builder: this.ClassicActionPopupBuilder,
+          placement: this.getEffectiveIsSelf() ? Placement.TopRight : Placement.TopLeft,
+          enableArrow: false,
+          mask: false,
+          onStateChange: (e) => {
+            if (!e.isVisible) {
+              this.showClassicActionPopup = false;
             }
-          })
-        .backgroundColor(this.isHighlighted ? 'rgba(0, 122, 255, 0.1)' : 'transparent')
-        .borderRadius(this.isHighlighted ? 8 : 0)
-        .animation({
-          duration: 300,
-          curve: Curve.EaseInOut
+          }
         })
       }
     }
@@ -1208,7 +1329,7 @@ export struct MessageItem {
   @Builder
   messageAlignmentTwosideStyle() {
     Column() {
-      if (this.message.messageType === MessageType.System) {
+      if (this.message.messageType === MessageType.TIPS) {
         // Only show system messages if configured
         if (this.effectiveConfig.isShowSystemMessage) {
           Row() {
@@ -1218,7 +1339,7 @@ export struct MessageItem {
           .justifyContent(FlexAlign.Center)
           .margin({ bottom: 8 })
         }
-      } else if (this.message.messageType === MessageType.Custom && !isCallingC2C(this.message)) {
+      } else if (this.message.messageType === MessageType.CUSTOM && !isCallingC2C(this.message) && !isBusinessCustomMessage(this.message)) {
         if (!shouldHideCallingMessage(this.message)) {
           Row() {
             GetMessageView(this.createRenderContext());
@@ -1232,40 +1353,55 @@ export struct MessageItem {
           if (this.getEffectiveIsSelf()) {
             // Sender's message (right side)
             Row() {
-              // Read receipt label outside bubble
-              this.ReadReceiptLabel()
-
-              if (this.message.status === MessageStatus.sendFail || this.message.status === MessageStatus.violation) {
-                Image($rawfile('messagelist/icon_message_send_error.svg'))
-                  .width(16)
-                  .height(16)
-                  .margin({ right: 4 })
-                  .onClick(() => {
-                    // Only show resend dialog for sendFail, not for violation
-                    if (this.message.status === MessageStatus.sendFail) {
-                      this.showResendConfirmDialog();
-                    }
-                  })
-              }
-
               Column() {
                 // Show nickname for right messages (self)
                 if (this.effectiveConfig.isShowRightNickname) {
                   this.NicknameView()
                 }
 
-                this.MessageBubble(this.message)
+                // Read receipt + main bubble in the same row, bottom-aligned
+                // so the read label sticks to the bottom-left of the main bubble,
+                // not to the bottom of the whole stack (bubble + quote + reaction).
+                Row() {
+                  if (this.shouldShowAudioSendingIndicator()) {
+                    LoadingProgress()
+                      .width(12)
+                      .height(12)
+                      .margin({ right: 4 })
+                  }
+
+                  if (this.message.status === MessageStatus.SEND_FAIL || this.message.status === MessageStatus.VIOLATION) {
+                    Image($rawfile('messagelist/icon_message_send_error.svg'))
+                      .width(16)
+                      .height(16)
+                      .margin({ right: 4 })
+                      .onClick(() => {
+                        // Only show resend dialog for sendFail, not for violation
+                        if (this.message.status === MessageStatus.SEND_FAIL) {
+                          this.showResendConfirmDialog();
+                        }
+                      })
+                  }
+
+                  this.ReadReceiptLabel()
+
+                  this.MessageBubble(this.message)
+                }
+                .alignItems(VerticalAlign.Bottom)
+                .alignSelf(ItemAlign.End)
+
+                this.QuoteBubble(this.message)
 
                 // ASR text bubble (separate from voice bubble)
                 if (this.shouldShowAsrBubble(this.message)) {
                   this.AsrTextBubble(this.message)
                 }
-
+                
                 // Translation text bubble (separate from text bubble)
                 if (this.shouldShowTranslationBubble(this.message)) {
                   this.TranslationTextBubble(this.message)
                 }
-
+                
                 // Show reaction bar
                 if (this.effectiveConfig.isSupportReaction && this.message.reactionList && this.message.reactionList.length > 0) {
                   MessageReactionBar({
@@ -1275,9 +1411,9 @@ export struct MessageItem {
                     }
                   })
                 }
-
+                
                 // Show violation warning for sensitive content
-                if (this.message.status === MessageStatus.violation) {
+      if (this.message.status === MessageStatus.VIOLATION) {
                   Text($r('app.string.messagelist_violation_warning'))
                     .fontSize(12)
                     .fontColor(this.themeState.colors.textColorError)
@@ -1290,7 +1426,7 @@ export struct MessageItem {
               // Avatar on the right side for sender
               if (this.shouldShowAvatarValue) {
                 Stack() {
-                  this.AvatarView(this.message?.rawMessage?.faceURL)
+                  this.AvatarView(this.getSideFaceURL(true), this.getSideUserID(true))
                 }
                 .margin({ left: this.effectiveConfig.avatarSpacing ?? 6 })
               }
@@ -1302,16 +1438,16 @@ export struct MessageItem {
               // Avatar or placeholder for alignment in grouped messages
               if (this.shouldShowAvatarValue) {
                 Stack() {
-                  this.AvatarView(this.message?.rawMessage?.faceURL)
+                  this.AvatarView(this.getSideFaceURL(false), this.getSideUserID(false))
                 }
                 .margin({ right: this.effectiveConfig.avatarSpacing ?? 6 })
               } else if (this.effectiveConfig.isShowLeftAvatar ?? true) {
                 // When avatar should not be shown but left avatar is enabled,
                 // render empty space with same dimensions for alignment
                 Stack() {}
-                .width(32)
-                .height(32)
-                .margin({ right: this.effectiveConfig.avatarSpacing ?? 6 })
+                  .width(32)
+                  .height(32)
+                  .margin({ right: this.effectiveConfig.avatarSpacing ?? 6 })
               }
 
               Column() {
@@ -1319,30 +1455,31 @@ export struct MessageItem {
                 if (this.effectiveConfig.isShowLeftNickname) {
                   this.NicknameView()
                 }
-
+                
                 this.MessageBubble(this.message)
-
+                this.QuoteBubble(this.message)
+                
                 // ASR text bubble (separate from voice bubble)
                 if (this.shouldShowAsrBubble(this.message)) {
                   this.AsrTextBubble(this.message)
                 }
-
+                
                 // Translation text bubble (separate from text bubble)
                 if (this.shouldShowTranslationBubble(this.message)) {
                   this.TranslationTextBubble(this.message)
                 }
-
-                // Show reaction bar
-                if (this.effectiveConfig.isSupportReaction && this.message.reactionList && this.message.reactionList.length > 0) {
-                  MessageReactionBar({
-                    reactionList: this.message.reactionList,
-                    onClickCallback: () => {
-                      this.showReactionDetail();
-                    }
-                  })
+                
+            // Show reaction bar
+            if (this.effectiveConfig.isSupportReaction && this.message.reactionList && this.message.reactionList.length > 0) {
+              MessageReactionBar({
+                reactionList: this.message.reactionList,
+                onClickCallback: () => {
+                  this.showReactionDetail();
                 }
-              }
-              .alignItems(HorizontalAlign.Start)
+              })
+            }
+          }
+          .alignItems(HorizontalAlign.Start)
             }
             .width('80%')
             .justifyContent(FlexAlign.Start)
@@ -1358,26 +1495,20 @@ export struct MessageItem {
             })
         )
         .bindPopup(
-          this.showClassicActionPopup &&
-            this.effectiveConfig.messageActionStyle === 'popup' &&
-            this.message.status !== MessageStatus.recalled &&
-            this.message.status !== MessageStatus.violation,
+          this.showClassicActionPopup && 
+          this.effectiveConfig.messageActionStyle === 'popup' &&
+        this.message.status !== MessageStatus.REVOKED &&
+        this.message.status !== MessageStatus.VIOLATION,
           {
-            builder: this.ClassicActionPopupBuilder,
-            placement: this.getEffectiveIsSelf() ? Placement.TopRight : Placement.TopLeft,
-            enableArrow: false,
-            mask: false,
-            onStateChange: (e) => {
-              if (!e.isVisible) {
-                this.showClassicActionPopup = false;
-              }
+          builder: this.ClassicActionPopupBuilder,
+          placement: this.getEffectiveIsSelf() ? Placement.TopRight : Placement.TopLeft,
+          enableArrow: false,
+          mask: false,
+          onStateChange: (e) => {
+            if (!e.isVisible) {
+              this.showClassicActionPopup = false;
             }
-          })
-        .backgroundColor(this.isHighlighted ? 'rgba(0, 122, 255, 0.1)' : 'transparent')
-        .borderRadius(this.isHighlighted ? 8 : 0)
-        .animation({
-          duration: 300,
-          curve: Curve.EaseInOut
+          }
         })
       }
     }
@@ -1393,17 +1524,17 @@ export struct MessageItem {
     if (AppBuilderConfig.getInstance().useClassicUI) {
       return true;
     }
-
+    
     switch (alignment) {
       case MessageAlignment.LEFT:
         // In LEFT mode, always show avatar based on style configuration
-        return true;
+          return true;
       case MessageAlignment.RIGHT:
         // In RIGHT mode, always show avatar based on style configuration
-        return  true
+          return  true
       case MessageAlignment.TWO_SIDED:
       default:
-      // In TWO_SIDED mode, respect both showAvatar flag and style configuration
+        // In TWO_SIDED mode, respect both showAvatar flag and style configuration
         if (this.getEffectiveIsSelf()) {
           const showRight = this.effectiveConfig.isShowRightAvatar ?? false;
           return showRight;
@@ -1450,18 +1581,107 @@ export struct MessageItem {
       return;
     }
 
-    console.info('[MessageItem] Resending original message:', this.message.ID);
+    console.info('[MessageItem] Resending original message:', this.message.msgID);
 
-    // Send the original message using MessageInputStore
-    this.inputStore.sendMessage(this.message)
-      .then(() => {
+    const payload = this.buildSendMessagePayload(this.message);
+    if (!payload) {
+      Toast.info($r('app.string.messagelist_resend_failed'), this.getUIContext());
+      return;
+    }
+    const option = this.buildSendMessageOption(this.message);
+
+    const sendNewMessage = (): void => {
+      this.inputStore!.sendMessage(payload, option, new CompletionHandlerAdapter(() => {
         console.info('[MessageItem] Message resent successfully');
         Toast.info($r('app.string.messagelist_resend_success'), this.getUIContext());
-      })
-      .catch((error: ErrorInfo) => {
-        const localizedMessage = IMErrorCode.getErrorMessage(error.code ??-1,""+error.code +error.message);
+      }, (code: number, desc: string) => {
+        const localizedMessage = IMErrorCode.getErrorMessage(code ?? -1, '' + code + (desc ?? ''));
         Toast.info(localizedMessage, this.getUIContext());
-      });
+      }));
+    };
+
+    if (this.message.rawMessage) {
+      MessageActionStore.create(this.message).delete(new CompletionHandlerAdapter(() => {
+        sendNewMessage();
+      }, (code: number, desc: string) => {
+        console.warn('[MessageItem] Delete failed message before resend failed:', code, desc);
+        sendNewMessage();
+      }));
+    } else {
+      sendNewMessage();
+    }
+  }
+
+  private buildSendMessagePayload(message: MessageInfo): SendMessagePayload | undefined {
+    const payload = message.messagePayload;
+    if (payload instanceof TextMessagePayload) {
+      const text = payload.text;
+      if (!text || text.length === 0) {
+        return undefined;
+      }
+      return new TextSendMessagePayload(text);
+    }
+    if (payload instanceof ImageMessagePayload) {
+      const imagePath = payload.originalImagePath;
+      if (!imagePath || imagePath.length === 0) {
+        return undefined;
+      }
+      return new ImageSendMessagePayload(imagePath, payload.originalImageWidth, payload.originalImageHeight);
+    }
+    if (payload instanceof VideoMessagePayload) {
+      const videoPath = payload.videoPath;
+      if (!videoPath || videoPath.length === 0) {
+        return undefined;
+      }
+      return new VideoSendMessagePayload(
+        videoPath,
+        payload.videoType ?? '',
+        payload.videoDuration,
+        payload.videoSnapshotPath ?? '',
+        payload.videoSnapshotWidth,
+        payload.videoSnapshotHeight
+      );
+    }
+    if (payload instanceof AudioMessagePayload) {
+      const audioPath = payload.audioPath;
+      if (!audioPath || audioPath.length === 0) {
+        return undefined;
+      }
+      return new AudioSendMessagePayload(audioPath, payload.audioDuration);
+    }
+    if (payload instanceof FileMessagePayload) {
+      const filePath = payload.filePath;
+      if (!filePath || filePath.length === 0) {
+        return undefined;
+      }
+      return new FileSendMessagePayload(filePath, payload.fileName ?? '', payload.fileSize);
+    }
+    if (payload instanceof FaceMessagePayload) {
+      return new FaceSendMessagePayload(payload.faceIndex, payload.faceData ?? '');
+    }
+    if (payload instanceof CustomMessagePayload) {
+      const customData = payload.customData;
+      if (!customData || customData.length === 0) {
+        return undefined;
+      }
+      return new CustomSendMessagePayload(
+        customData,
+        payload.description ?? '',
+        payload.extensionInfo ?? ''
+      );
+    }
+    return undefined;
+  }
+
+  private buildSendMessageOption(message: MessageInfo): SendMessageOption {
+    const option = new SendMessageOption();
+    option.atUserList = message.atUserList && message.atUserList.length > 0 ? message.atUserList : undefined;
+    option.quotedMessage = undefined;
+    option.needReadReceipt = message.needReadReceipt;
+    option.isExtensionEnabled = message.isExtensionEnabled;
+    option.onlineUserOnly = false;
+    option.offlinePushInfo = message.offlinePushInfo;
+    return option;
   }
 
   private showReactionDetail() {
@@ -1469,7 +1689,6 @@ export struct MessageItem {
       return;
     }
 
-    // In merged message detail view, do not show reaction detail dialog
     if (this.displayMode === MessageDisplayMode.Merged) {
       console.info('[MessageItem] Reaction click ignored in merged message detail view');
       return;
@@ -1483,12 +1702,12 @@ export struct MessageItem {
         currentUserID: currentUserID,
         onFetchUsers: (reactionID: string) => {
           if (this.messageActionStore) {
-            this.messageActionStore.fetchMessageReactionUsers(reactionID, 50);
+            this.messageActionStore.loadReactionUsers(reactionID, 50);
           }
         },
         onRemoveReaction: (reactionID: string) => {
           if (this.messageActionStore) {
-            this.messageActionStore.removeMessageReaction(reactionID);
+            this.messageActionStore.removeReaction(reactionID);
           }
         }
       }),

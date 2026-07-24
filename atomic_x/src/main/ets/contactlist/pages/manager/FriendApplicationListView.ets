@@ -1,4 +1,4 @@
-import { ErrorInfo, ContactListState, ContactListStore, FriendApplicationInfo, } from '@tencentcloud/atomicxcore';
+import { ContactState, ContactStore, FriendApplicationInfo } from '@tencentcloud/atomicxcore';
 import {
   Avatar,
   AvatarContentType,
@@ -7,6 +7,7 @@ import {
   TextUtils,
   ThemeState
 } from '../../../basecomponent/Index';
+import { CompletionHandlerAdapter } from '../../../basecomponent/utils/CompletionHandlers';
 import { ImmersiveMode, LevelMode } from '@ohos.promptAction';
 
 @CustomDialog
@@ -14,7 +15,7 @@ struct FriendRequestInfoDialog {
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   controller: CustomDialogController;
   @Prop application: FriendApplicationInfo;
-  @Prop contactListStore: ContactListStore;
+  @Prop contactStore: ContactStore;
   onClose?: () => void;
   onProcessed?: () => void;
   @State private isProcessing: boolean = false;
@@ -72,20 +73,21 @@ struct FriendRequestInfoDialog {
         Avatar({
           content: {
             type: AvatarContentType.Image,
-            name: TextUtils.getAvatarLetter(this.application.title || this.application.applicationID || ''),
+            url: this.application.avatarURL,
+            name: TextUtils.getAvatarLetter(this.application.title || this.application.userID || ''),
           },
           avatarSize: AvatarSize.L
         })
         // User info
         Column() {
-          Text(this.application.title || this.application.applicationID || '')
+          Text(this.application.title || this.application.userID || '')
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.themeState.colors.textColorPrimary)// Figma: rgba(0, 0, 0, 0.9)
             .textAlign(TextAlign.Start)
             .width('100%')
 
-          Text(`ID：${this.application.applicationID || ''}`)
+          Text(`ID：${this.application.userID || ''}`)
             .fontSize(12)
             .fontColor(this.themeState.colors.textColorSecondary)// Figma: rgba(0, 0, 0, 0.55)
             .textAlign(TextAlign.Start)
@@ -178,33 +180,32 @@ struct FriendRequestInfoDialog {
     // this.controller.close();
   }
 
-  private async handleFriendApplication(accept: boolean) {
+  private handleFriendApplication(accept: boolean) {
     if (this.isProcessing) {
       return;
     }
 
-    try {
-      this.isProcessing = true;
+    this.isProcessing = true;
 
-      if (accept) {
-        await this.contactListStore.acceptFriendApplication(this.application);
-      } else {
-        await this.contactListStore.refuseFriendApplication(this.application);
-      }
-
-      if (this.onProcessed) {
-        this.onProcessed();
-      }
-      this.handleClose();
-    } catch (error) {
-      const errorResult = error as ErrorInfo;
-      console.error('Failed to process friend application:', error.errorMessage);
-      if (this.onProcessed) {
-        this.onProcessed();
-      }
-      this.handleClose();
-    } finally {
+    const completion = new CompletionHandlerAdapter(() => {
       this.isProcessing = false;
+      if (this.onProcessed) {
+        this.onProcessed();
+      }
+      this.handleClose();
+    }, (code: number, desc: string) => {
+      this.isProcessing = false;
+      console.error('Failed to process friend application:', code, desc);
+      if (this.onProcessed) {
+        this.onProcessed();
+      }
+      this.handleClose();
+    });
+
+    if (accept) {
+      this.contactStore.acceptFriendApplication(this.application, completion);
+    } else {
+      this.contactStore.refuseFriendApplication(this.application, completion);
     }
   }
 }
@@ -216,19 +217,17 @@ export struct FriendApplicationListView {
   // Theme management
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   // Reuse external store - must be observable
-  @ObjectLink contactListStore: ContactListStore;
-  @State private contactListState: ContactListState = this.contactListStore.state;
+  @ObjectLink contactStore: ContactStore;
+  @State private contactState: ContactState = this.contactStore.state as ContactState;
   @State private isLoading: boolean = true;
   private friendRequestInfoDialogController: CustomDialogController | null = null;
   @State private dialogAnimationOffset: number = 100;
 
   aboutToAppear() {
     console.info('NewContactsPage aboutToAppear');
-    this.contactListState = this.contactListStore.state;
+    this.contactState = this.contactStore.state as ContactState;
     this.loadFriendApplications();
-    this.contactListStore.clearFriendApplicationUnreadCount().then(() => {
-
-    })
+    this.contactStore.clearFriendApplicationUnreadCount();
   }
 
   aboutToDisappear() {
@@ -298,7 +297,7 @@ export struct FriendApplicationListView {
         .width('100%')
         .height('100%')
         .justifyContent(FlexAlign.Center)
-      } else if (this.contactListState.friendApplicationDataSource.totalCount() === 0) {
+      } else if (this.contactState.friendApplicationList.length === 0) {
 
         Column() {
           Text($r('app.string.no_friend_applications_title'))
@@ -319,14 +318,14 @@ export struct FriendApplicationListView {
       } else {
 
         List() {
-          LazyForEach(this.contactListState.friendApplicationDataSource, (application: FriendApplicationInfo) => {
+          ForEach(this.contactState.friendApplicationList, (application: FriendApplicationInfo) => {
             ListItem() {
               Row() {
                 Avatar({
                   content: {
                     type: AvatarContentType.Image,
                     url: application.avatarURL,
-                    name: application.title || application.applicationID || '',
+                    name: application.title || application.userID || '',
                   },
                   shape: AvatarShape.Round,
                   avatarSize: AvatarSize.L
@@ -335,7 +334,7 @@ export struct FriendApplicationListView {
                 Row() {
 
                   Column() {
-                    Text(application.title || application.applicationID || '')
+                    Text(application.title || application.userID || '')
                       .fontSize(14)
                       .fontWeight(FontWeight.Normal)
                       .fontColor(this.themeState.colors.textColorPrimary)// Figma: rgba(0, 0, 0, 0.9)
@@ -413,7 +412,7 @@ export struct FriendApplicationListView {
               })
               .alignItems(VerticalAlign.Center)
             }
-          }, (application: FriendApplicationInfo) => application.applicationID || '')
+          }, (application: FriendApplicationInfo) => `${application.userID}_${application.type}`)
         }
         .width('100%')
         .layoutWeight(1)
@@ -439,7 +438,7 @@ export struct FriendApplicationListView {
     Column() {
       FriendRequestInfoDialog({
         application: application,
-        contactListStore: this.contactListStore,
+        contactStore: this.contactStore,
         onClose: () => {
           console.info('Friend request info dialog closed');
 
@@ -480,30 +479,24 @@ export struct FriendApplicationListView {
     }
   }
 
-  private async loadFriendApplications() {
-    try {
-      this.isLoading = true;
-      await this.contactListStore.fetchFriendApplicationList();
-    } catch (error) {
-      const errorResult = error as ErrorInfo;
-      console.error('Failed to load friend applications:', error.errorMessage);
-    } finally {
+  private loadFriendApplications() {
+    this.isLoading = true;
+    this.contactStore.loadFriendApplications(new CompletionHandlerAdapter(() => {
       this.isLoading = false;
-    }
+    }, (code: number, desc: string) => {
+      console.error('Failed to load friend applications:', code, desc);
+      this.isLoading = false;
+    }));
   }
 
-  private async handleFriendApplication(application: FriendApplicationInfo, accept: boolean) {
-    try {
-      if (accept) {
-        await this.contactListStore.acceptFriendApplication(application);
-      } else {
-        await this.contactListStore.refuseFriendApplication(application);
-      }
-
-      // await this.loadFriendApplications();
-    } catch (error) {
-      const errorResult = error as ErrorInfo;
-      console.error('Failed to process friend application:', error.errorMessage);
+  private handleFriendApplication(application: FriendApplicationInfo, accept: boolean) {
+    const completion = new CompletionHandlerAdapter(undefined, (code: number, desc: string) => {
+      console.error('Failed to process friend application:', code, desc);
+    });
+    if (accept) {
+      this.contactStore.acceptFriendApplication(application, completion);
+    } else {
+      this.contactStore.refuseFriendApplication(application, completion);
     }
   }
 

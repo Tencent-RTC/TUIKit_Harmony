@@ -9,7 +9,10 @@ import {
   Toast,
   LanguageState
 } from '../../basecomponent/Index';
-import { GroupMember, GroupMemberRole, GroupSettingState, GroupSettingStore, GroupType, LoginStore } from '@tencentcloud/atomicxcore';
+import { GroupMember, GroupMemberRole } from '@tencentcloud/atomicxcore';
+import { LoginStore } from '@tencentcloud/atomicxcore';
+import { GroupType } from '@tencentcloud/atomicxcore';
+import { GroupSettingState, GroupSettingStore } from '../viewmodel/GroupChatSettingViewModel';
 import { GroupPermission, GroupPermissionManager } from '../manager/GroupPermissionManager';
 import { ActionButtonConfig } from '../dialog/GroupSettingDialogs';
 import { UserInteractionHelper } from '../helper/UserInteractionHelper';
@@ -337,7 +340,7 @@ export struct GroupMemberListPage {
     try {
       await Promise.all([
         this.groupStore.fetchGroupInfo(),
-        this.groupStore.fetchGroupMemberList(GroupMemberRole.ALL)
+        this.groupStore.fetchGroupMemberList(GroupMemberRole.MEMBER)
       ]);
       this.filterMembers();
       console.log('[GroupMemberListPage] Group data loaded successfully');
@@ -350,13 +353,13 @@ export struct GroupMemberListPage {
   }
 
   private filterMembers(): void {
-    const allMembers = this.groupState?.allMembers || [];
+    const allMembers: GroupMember[] = this.groupState?.allMembers || [];
 
     if (this.searchText.trim().length === 0) {
       this.filteredMembers = allMembers;
     } else {
       const searchLower = this.searchText.toLowerCase();
-      this.filteredMembers = allMembers.filter(member => {
+      this.filteredMembers = allMembers.filter((member: GroupMember): boolean => {
         const name = (member.nameCard || member.nickname || member.userID).toLowerCase();
         const userID = member.userID.toLowerCase();
         return name.includes(searchLower) || userID.includes(searchLower);
@@ -369,32 +372,32 @@ export struct GroupMemberListPage {
     if (!currentUserID) {
       return [];
     }
-    return this.filteredMembers.filter(member => member.userID === currentUserID);
+    return this.filteredMembers.filter((member: GroupMember): boolean => member.userID === currentUserID);
   }
 
   private getGroupOwnerMembers(): GroupMember[] {
     const currentUserID = LoginStore.shared().state.loginUserInfo?.userID;
-    return this.filteredMembers.filter(member =>
+    return this.filteredMembers.filter((member: GroupMember): boolean =>
     member.role === GroupMemberRole.OWNER && member.userID !== currentUserID
     );
   }
 
   private getAdminMembers(): GroupMember[] {
     const currentUserID = LoginStore.shared().state.loginUserInfo?.userID;
-    return this.filteredMembers.filter(member =>
+    return this.filteredMembers.filter((member: GroupMember): boolean =>
     member.role === GroupMemberRole.ADMIN && member.userID !== currentUserID
     );
   }
 
   private getOrdinaryMembers(): GroupMember[] {
     const currentUserID = LoginStore.shared().state.loginUserInfo?.userID;
-    return this.filteredMembers.filter(member =>
+    return this.filteredMembers.filter((member: GroupMember): boolean =>
     member.role === GroupMemberRole.MEMBER && member.userID !== currentUserID
     );
   }
 
   private getFilteredOrdinaryMembers(): GroupMember[] {
-    return this.filteredMembers.filter(member =>
+    return this.filteredMembers.filter((member: GroupMember): boolean =>
     member.role === GroupMemberRole.MEMBER
     );
   }
@@ -417,11 +420,13 @@ export struct GroupMemberListPage {
       case 'Work':
         return GroupType.WORK;
       case 'Public':
-        return GroupType.PUBLIC;
+        return GroupType.PUBLIC_GROUP;
       case 'Meeting':
         return GroupType.MEETING;
       case 'AVChatRoom':
-        return GroupType.AVCHATROOM;
+        return GroupType.AV_CHAT_ROOM;
+      case 'ChatRoom':
+        return GroupType.MEETING;
       case 'Community':
         return GroupType.COMMUNITY;
       default:

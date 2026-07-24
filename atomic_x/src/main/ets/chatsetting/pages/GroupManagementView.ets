@@ -9,7 +9,10 @@ import {
   Toast,
   LanguageState
 } from '../../basecomponent/Index';
-import { GroupMember, GroupMemberRole, GroupSettingState, GroupSettingStore, GroupType, LoginStore } from '@tencentcloud/atomicxcore';
+import { GroupMember, GroupMemberRole } from '@tencentcloud/atomicxcore';
+import { LoginStore } from '@tencentcloud/atomicxcore';
+import { GroupType } from '@tencentcloud/atomicxcore';
+import { GroupSettingState, GroupSettingStore } from '../viewmodel/GroupChatSettingViewModel';
 import { UserPicker, UserPickerData } from '../../userpicker/Index';
 import { ImmersiveMode, LevelMode } from '@ohos.promptAction';
 
@@ -39,7 +42,7 @@ struct UserPickerDialogInManagement {
       },
       onSelectedChanged: (selectedItems: UserPickerData<GroupMember>[]) => {
         if (this.onConfirm) {
-          const selectedMembers = selectedItems.map(item => item.extraData);
+          const selectedMembers: GroupMember[] = selectedItems.map((item: UserPickerData<GroupMember>): GroupMember => item.extraData as GroupMember);
           this.onConfirm(selectedMembers, this.action);
         }
         this.controller.close();
@@ -412,7 +415,7 @@ export struct GroupManagementView {
   }
 
   private getMutedMembers(): GroupMember[] {
-    return (this.groupState?.allMembers ?? []).filter(member =>
+    return (this.groupState?.allMembers ?? []).filter((member: GroupMember) =>
     member.muteUntil > Date.now() / 1000
     ) ?? [];
   }
@@ -466,16 +469,16 @@ export struct GroupManagementView {
       console.log('[GroupManagementPage] Navigate to user picker for muted members');
 
 
-      const mutedMemberIds = (this.groupState?.allMembers ?? [])
-        .filter(member => member.muteUntil > Date.now() / 1000)
-        .map(member => member.userID);
+      const mutedMemberIds: string[] = (this.groupState?.allMembers ?? [])
+        .filter((member: GroupMember) => member.muteUntil > Date.now() / 1000)
+        .map((member: GroupMember): string => member.userID);
 
 
       const currentUserRole = this.groupState?.currentUserRole;
       console.log(`[GroupManagementPage] Current user role: ${currentUserRole}, total members: ${(this.groupState?.allMembers ??
         []).length}`);
 
-      const filteredMembers = (this.groupState?.allMembers ?? []).filter(member => {
+      const filteredMembers: GroupMember[] = (this.groupState?.allMembers ?? []).filter((member: GroupMember): boolean => {
 
         if (member.userID === LoginStore.shared().state.loginUserInfo?.userID) {
           return false;
@@ -497,7 +500,7 @@ export struct GroupManagementView {
 
       console.log(`[GroupManagementPage] Filtered ${filteredMembers.length} members available for muting`);
 
-      const userPickerData: UserPickerData<GroupMember>[] = filteredMembers.map(member =>
+      const userPickerData: UserPickerData<GroupMember>[] = filteredMembers.map((member: GroupMember): UserPickerData<GroupMember> =>
       this.convertMemberToUserPickerData(member)
       );
 
@@ -526,7 +529,7 @@ export struct GroupManagementView {
       return;
     }
 
-    console.log('[GroupManagementPage] Handle selected members for mute:', selectedMembers.map(m => m.nameCard || m.nickname || m.userID));
+    console.log('[GroupManagementPage] Handle selected members for mute:', selectedMembers.map((m: GroupMember): string => m.nameCard || m.nickname || m.userID));
 
 
     AlertDialog.show({
@@ -557,7 +560,7 @@ export struct GroupManagementView {
     try {
 
       const muteTime = 24 * 60 * 60;
-      const mutePromises = selectedMembers.map(member =>
+      const mutePromises: Promise<void>[] = selectedMembers.map((member: GroupMember): Promise<void> =>
       this.groupStore!.setGroupMemberMuteTime(member.userID, muteTime)
       );
 
@@ -645,7 +648,7 @@ export struct GroupManagementView {
 
     try {
       await this.groupStore.fetchGroupInfo();
-      await this.groupStore.fetchGroupMemberList(GroupMemberRole.ALL);
+      await this.groupStore.fetchGroupMemberList(GroupMemberRole.MEMBER);
       console.log('[GroupManagementPage] Group info loaded successfully');
     } catch (error) {
       console.error('[GroupManagementPage] Failed to load group info:', error);
@@ -710,7 +713,7 @@ export struct GroupManagementView {
 
     const currentTime = Date.now() / 1000;
     return this.groupState.allMembers
-      .filter(member => member.muteUntil && member.muteUntil > currentTime)
-      .map(member => member.userID);
+      .filter((member: GroupMember) => member.muteUntil && member.muteUntil > currentTime)
+      .map((member: GroupMember): string => member.userID);
   }
 }

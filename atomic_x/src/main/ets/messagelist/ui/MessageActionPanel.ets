@@ -1,4 +1,6 @@
-import { MessageInfo, MessageListStore, LoginStore, ErrorInfo, MessageType, MessageStatus } from '@tencentcloud/atomicxcore';
+import { MessageInfo, MessageListStore, MessageType, MessageStatus, TextMessagePayload, AudioMessagePayload } from '@tencentcloud/atomicxcore';
+import { LoginStore } from '@tencentcloud/atomicxcore';
+import { ConversationType } from '@tencentcloud/atomicxcore';
 import { GetMessageView, MessageItem } from './MessageItem';
 import { AppBuilderConfig, ThemeState, MessageAction, Toast } from '../../basecomponent/Index';
 import { MessageCustomAction } from '../components/MessageList';
@@ -34,6 +36,7 @@ export struct MessageActionDialog {
   onShowFullEmojiPicker?: () => void;  // Handle full emoji picker display
   onConvertToText?: (message: MessageInfo) => void;  // Handle convert voice to text
   onTranslateText?: (message: MessageInfo) => void;  // Handle translate text message
+  onQuote?: (message: MessageInfo) => void;
   asrDisplayManager?: AsrDisplayManager;  // ASR display state manager
   translationDisplayManager?: TranslationDisplayManager;  // Translation display state manager
   customActions?: MessageCustomAction[] = []; // Custom actions from MessageList
@@ -88,9 +91,8 @@ export struct MessageActionDialog {
 
   @Builder
   MessageBubble(message: MessageInfo) {
-    if (message.isSelf) {
-      // Text message: allow scrolling for long content
-      if (message.messageType === MessageType.Text) {
+    if (message.isSentBySelf) {
+      if (message.messageType === MessageType.TEXT) {
         Column() {
           Scroll() {
             GetMessageView(this.createRenderContext(message));
@@ -126,8 +128,7 @@ export struct MessageActionDialog {
         .borderColor(this.themeState.colors.bgColorBubbleOwn)
       }
     } else {
-      // Text message: allow scrolling for long content
-      if (message.messageType === MessageType.Text) {
+      if (message.messageType === MessageType.TEXT) {
         Column() {
           Scroll() {
             GetMessageView(this.createRenderContext(message));
@@ -169,7 +170,7 @@ export struct MessageActionDialog {
     Column() {
 
       // Reaction emoji picker first (only show if reaction is supported and not violation)
-      if (this.effectiveConfig.isSupportReaction && this.message.status !== MessageStatus.violation) {
+      if (this.effectiveConfig.isSupportReaction && this.message.status !== MessageStatus.VIOLATION) {
         Row() {
           ReactionEmojiPicker({
             onEmojiClick: (emoji: EmojiItem) => {
@@ -181,12 +182,11 @@ export struct MessageActionDialog {
           })
         }
         .width('100%')
-        .justifyContent(this.message.isSelf ? FlexAlign.End : FlexAlign.Start)
-        .margin({ bottom: 8, left: this.message.isSelf ? 0 : 36, right: this.message.isSelf ? 0 : 0 })
+        .justifyContent(this.message.isSentBySelf ? FlexAlign.End : FlexAlign.Start)
+        .margin({ bottom: 8, left: this.message.isSentBySelf ? 0 : 36, right: this.message.isSentBySelf ? 0 : 0 })
       }
 
-      // Message bubble second
-      if (this.message.isSelf) {
+      if (this.message.isSentBySelf) {
 
         Row() {
           Row() {
@@ -217,8 +217,7 @@ export struct MessageActionDialog {
         .margin({ bottom: 8 })
       }
 
-      // Action menu last
-      if (this.message.isSelf) {
+      if (this.message.isSentBySelf) {
 
         Row() {
           if (this.showPrimaryMenu) {
@@ -254,7 +253,7 @@ export struct MessageActionDialog {
     .height('100%')
     .padding(16)
     .justifyContent(FlexAlign.Center)
-    .alignItems(this.message.isSelf ? HorizontalAlign.End : HorizontalAlign.Start)
+    .alignItems(this.message.isSentBySelf ? HorizontalAlign.End : HorizontalAlign.Start)
     .backgroundColor('rgba(0, 0, 0, 0.6)')
     .backdropBlur(8)
     .onClick(() => this.handleAction('close'))
@@ -322,9 +321,9 @@ export struct MessageActionDialog {
     }
 
     // Failed and violation messages cannot be forwarded
-    if (this.effectiveConfig.isSupportForward && 
-        this.message.status !== MessageStatus.violation &&
-        this.message.status !== MessageStatus.sendFail) {
+    if (this.effectiveConfig.isSupportForward &&
+        this.message.status !== MessageStatus.VIOLATION &&
+        this.message.status !== MessageStatus.SEND_FAIL) {
       const actionConfig = this.getActionConfig(MessageAction.FORWARD);
       if (actionConfig) {
         configuredActions.push(actionConfig);
@@ -378,48 +377,47 @@ export struct MessageActionDialog {
       });
     }
 
-    // Add custom actions from MessageList
+    // Add quote action for messages
+    if (this.shouldShowQuote()) {
+      configuredActions.push({
+        text: $r('app.string.action_quote'),
+        action: 'quote',
+        icon: $rawfile('messagelist/icon_extion_quote.svg')
+      });
+    }
+
     if (this.customActions && this.customActions.length > 0) {
-      this.customActions.forEach((customAction, index) => {
+      this.customActions.forEach((customAction: MessageCustomAction, index: number) => {
         configuredActions.push({
           text: customAction.title,
-          action: `custom_${index}`, // Use index to distinguish custom actions
+          action: `custom_${index}`,
           icon: customAction.iconName as Resource
         });
       });
     }
 
-    // Setup actions based on configured actions only
     const maxPrimaryActions = 4;
 
     if (configuredActions.length <= maxPrimaryActions) {
-      // All actions fit in primary menu
-      this.primaryActions = [...configuredActions];
+      this.primaryActions = Array.from(configuredActions);
       this.secondaryActions = [];
     } else {
-      // Need secondary menu for overflow actions
-      this.primaryActions = [
-        ...configuredActions.slice(0, maxPrimaryActions - 1),
-        {
-          text: $r('app.string.action_more'),
-          action: 'more',
-          icon: $rawfile('messagelist/icon_extion_more.png'),
-          color: '#147AFF',
-          showDivider: true,
-        }
-      ];
-
-      // Setup secondary actions menu with remaining configured actions
-      this.secondaryActions = [
-        ...configuredActions.slice(maxPrimaryActions - 1),
-        {
-          text: $r('app.string.action_back'),
-          action: 'back',
-          icon: $rawfile('messagelist/icon_extion_more.png'),
-          color: '#147AFF',
-          showDivider: true,
-        }
-      ];
+      const moreItem: ActionButtonConfig = {
+        text: $r('app.string.action_more'),
+        action: 'more',
+        icon: $rawfile('messagelist/icon_extion_more.png'),
+        color: '#147AFF',
+        showDivider: true,
+      };
+      const backItem: ActionButtonConfig = {
+        text: $r('app.string.action_back'),
+        action: 'back',
+        icon: $rawfile('messagelist/icon_extion_more.png'),
+        color: '#147AFF',
+        showDivider: true,
+      };
+      this.primaryActions = configuredActions.slice(0, maxPrimaryActions - 1).concat([moreItem]);
+      this.secondaryActions = configuredActions.slice(maxPrimaryActions - 1).concat([backItem]);
     }
   }
 
@@ -428,13 +426,12 @@ export struct MessageActionDialog {
    * Only for text messages (not merged, file, video, image messages)
    */
   private shouldShowCopy(): boolean {
-    // Only text messages can be copied
-    if (this.message.messageType !== MessageType.Text) {
+    if (this.message.messageType !== MessageType.TEXT) {
       return false;
     }
-    
-    // Must have text content to copy
-    const hasTextContent = !!(this.message.messageBody?.text && this.message.messageBody.text.length > 0);
+
+    const textPayload = this.message.messagePayload as TextMessagePayload | undefined;
+    const hasTextContent = !!(textPayload?.text && textPayload.text.length > 0);
     return hasTextContent;
   }
 
@@ -443,103 +440,84 @@ export struct MessageActionDialog {
       return false;
     }
 
-    if (!this.message.isSelf) {
+    if (!this.message.isSentBySelf) {
       return false;
     }
 
-    // Violation messages cannot be recalled
-    if (this.message.status === MessageStatus.violation) {
+    if (this.message.status === MessageStatus.VIOLATION) {
       return false;
     }
 
-    if (this.message.status !== MessageStatus.sendSuccess) {
+    if (this.message.status !== MessageStatus.SEND_SUCCESS) {
       return false;
     }
 
-    // Recall is only allowed within 2 minutes (120 seconds)
     const currentTime = Math.floor(Date.now() / 1000);
     const messageTime = this.message.timestamp || 0;
-    const timeLimit = 120; // 2 minutes
+    const timeLimit = 120;
 
     return (currentTime - messageTime) < timeLimit;
   }
 
   private shouldShowReadReceiptDetail(): boolean {
     return this.effectiveConfig.enableReadReceipt === true &&
-      this.message.isSelf === true &&
-      !!this.message.groupID &&
-      this.message.groupID.length > 0 &&
+      this.message.isSentBySelf === true &&
+      this.message.conversationType === ConversationType.GROUP &&
       !!this.message.needReadReceipt;
   }
 
-  /**
-   * Check if "Convert to Text" action should be shown
-   * Only for sound messages that are sent successfully and not already showing ASR text
-   */
   private shouldShowConvertToText(): boolean {
-    // Check if feature is enabled
     if (!this.effectiveConfig.isSupportConvertToText) {
       return false;
     }
-    
-    // Only for sound messages
-    if (this.message.messageType !== MessageType.Sound) {
+
+    if (this.message.messageType !== MessageType.AUDIO) {
       return false;
     }
-    
-    // Violation messages cannot be converted to text
-    if (this.message.status === MessageStatus.violation) {
+
+    if (this.message.status === MessageStatus.VIOLATION) {
       return false;
     }
-    
-    // Only for successfully sent messages
-    if (this.message.status !== MessageStatus.sendSuccess) {
+
+    if (this.message.status !== MessageStatus.SEND_SUCCESS) {
       return false;
     }
-    
-    // Check if ASR text is already showing
-    const hasAsrText = (this.message.messageBody?.asrText ?? '').length > 0;
+
+    const audioPayload = this.message.messagePayload as AudioMessagePayload | undefined;
+    const hasAsrText = (audioPayload?.asrText ?? '').length > 0;
     const isExpanded = this.asrDisplayManager?.isExpanded(this.message.msgID) ?? false;
-    
-    // Show if no ASR text or ASR bubble is hidden
+
     return !hasAsrText || !isExpanded;
   }
 
-  /**
-   * Check if "Translate" action should be shown
-   * Only for text messages that are sent successfully and not already showing translation
-   */
   private shouldShowTranslate(): boolean {
-    // Check if feature is enabled
     if (!this.effectiveConfig.isSupportTranslate) {
       return false;
     }
-    
-    // Only for text messages
-    if (this.message.messageType !== MessageType.Text) {
+
+    if (this.message.messageType !== MessageType.TEXT) {
       return false;
     }
-    
-    // Violation messages cannot be translated
-    if (this.message.status === MessageStatus.violation) {
+
+    if (this.message.status === MessageStatus.VIOLATION) {
       return false;
     }
-    
-    // Only for successfully sent messages
-    if (this.message.status !== MessageStatus.sendSuccess) {
+
+    if (this.message.status !== MessageStatus.SEND_SUCCESS) {
       return false;
     }
-    
-    // Check if translation text is already showing - Convert Map to Record
-    const translatedTextMapRaw = this.message.messageBody?.translatedText;
-    let hasTranslatedText: boolean = false;
-    if (translatedTextMapRaw) {
-      hasTranslatedText = translatedTextMapRaw.size > 0;
+
+    return true;
+  }
+
+  private shouldShowQuote(): boolean {
+    if (!this.effectiveConfig.isSupportQuote) {
+      return false;
     }
-    const isExpanded = this.translationDisplayManager?.isExpanded(this.message.msgID) ?? false;
-    
-    // Show if no translated text or translation bubble is hidden
-    return !hasTranslatedText || !isExpanded;
+    if (this.message.status !== MessageStatus.SEND_SUCCESS) {
+      return false;
+    }
+    return true;
   }
 
   @Builder
@@ -602,6 +580,8 @@ export struct MessageActionDialog {
       this.handleConvertToText();
     } else if (action === 'translate') {
       this.handleTranslateText();
+    } else if (action === 'quote') {
+      this.handleQuoteMessage();
     } else if (action.startsWith('custom_')) {
       // Handle custom actions
       this.handleCustomAction(action)
@@ -644,6 +624,12 @@ export struct MessageActionDialog {
     }
   }
 
+  private handleQuoteMessage() {
+    if (this.onQuote) {
+      this.onQuote(this.message);
+    }
+  }
+
   // Handle custom action execution
   private handleCustomAction(action: string) {
     const indexStr = action.replace('custom_', '');
@@ -670,8 +656,9 @@ export struct MessageActionDialog {
   private copyMessageToClipboard() {
 
     let messageContent = '';
-    if (this.message.messageBody?.text) {
-      messageContent = this.message.messageBody.text;
+    const textPayload = this.message.messagePayload as TextMessagePayload | undefined;
+    if (textPayload?.text) {
+      messageContent = textPayload.text;
     } else {
       Toast.info($r('app.string.messagelist_copy_unsupported'), this.getUIContext());
       return;
@@ -690,14 +677,14 @@ export struct MessageActionDialog {
 
   private recallMessage() {
 
-    if (!this.message.isSelf) {
+    if (!this.message.isSentBySelf) {
       Toast.info($r('app.string.messagelist_recall_only_own'), this.getUIContext());
       return;
     }
 
 
     if (this.onMessageRecalled) {
-      this.onMessageRecalled(this.message.ID);
+      this.onMessageRecalled(this.message.msgID);
     } else {
       Toast.info($r('app.string.messagelist_recall_failed_no_callback'), this.getUIContext());
     }
@@ -706,7 +693,7 @@ export struct MessageActionDialog {
   private deleteMessage() {
     if (this.onMessageDeleted) {
 
-      this.onMessageDeleted(this.message.ID);
+      this.onMessageDeleted(this.message.msgID);
     } else {
       Toast.info($r('app.string.messagelist_delete_failed_no_callback'), this.getUIContext());
     }

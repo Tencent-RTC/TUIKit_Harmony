@@ -1,11 +1,7 @@
-import {
-  ContactInfo,
-  ContactListState,
-  ContactListStore,
-  GroupMember,
-  ErrorInfo
-} from '@tencentcloud/atomicxcore';
-import { ThemeState, TextUtils, LanguageState } from '../../basecomponent/Index';
+import { ContactInfo, ContactState, ContactStore } from '@tencentcloud/atomicxcore';
+import { GroupMember } from '@tencentcloud/atomicxcore';
+import { ThemeState, LanguageState } from '../../basecomponent/Index';
+import { GetContactInfoCompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 import { ContactDetailPage } from '../../contactlist/pages/dialog/ContactDetailPage';
 import { C2CChatSetting } from '../pages/C2CChatSetting';
 import { ComponentContent, ImmersiveMode, LevelMode, promptAction } from '@kit.ArkUI';
@@ -33,75 +29,64 @@ interface ContactDetailDialogParams {
 export class UserInteractionHelper {
   private static currentContentNode: ComponentContent<C2CDialogParams | ContactDetailDialogParams> | null = null;
   private static ctx: UIContext | null = null;
-  
-  private contactListStore: ContactListStore;
-  private contactListState: ContactListState;
+
+  private contactStore: ContactStore;
+  private contactState: ContactState;
 
   constructor() {
-    this.contactListStore = ContactListStore.create();
-    this.contactListState = this.contactListStore.state;
+    this.contactStore = ContactStore.shared;
+    this.contactState = this.contactStore.state as ContactState;
   }
 
   static setUIContext(context: UIContext): void {
     UserInteractionHelper.ctx = context;
   }
 
-  checkFriendStatus(userID: string): Promise<boolean> {
-    return new Promise<boolean>((resolve, reject) => {
-      this.contactListStore.fetchUserInfo(userID)
-        .then(() => {
-          const userInfo = this.contactListState.addFriendInfo;
-          if (userInfo) {
-            const isFriend = userInfo.isContact === true;
-            resolve(isFriend);
-          } else {
-            resolve(false);
-          }
-        })
-        .catch((error: ErrorInfo) => {
-          console.error(`[UserInteractionHelper] Failed to fetch user info: ${error.message}`);
-          reject(error);
-        });
+  checkFriendStatus(userID: string): Promise<ContactInfo | undefined> {
+    return new Promise<ContactInfo | undefined>((resolve: (info: ContactInfo | undefined) => void, reject: (e: Error) => void) => {
+      const completion = new GetContactInfoCompletionHandlerAdapter((contactInfoList: ContactInfo[]) => {
+        const userInfo: ContactInfo | undefined = contactInfoList && contactInfoList.length > 0 ? contactInfoList[0] : undefined;
+        resolve(userInfo);
+      }, (code: number, desc: string) => {
+        console.error(`[UserInteractionHelper] Failed to fetch user info: code=${code}, desc=${desc}`);
+        reject(new Error(`getContactInfo failed: code=${code}, desc=${desc}`));
+      });
+      this.contactStore.getContactInfo([userID], completion);
     });
   }
 
 
   createContactInfoFromMember(member: GroupMember): ContactInfo {
-    const contactInfo = new ContactInfo(
-      member.userID || '', 
-      member.avatarURL || '', 
-      member.nameCard || member.nickname || member.userID || ''
-    );
-    contactInfo.contactID = member.userID || '';
+    const contactInfo = new ContactInfo(member.userID || '');
     contactInfo.avatarURL = member.avatarURL || '';
-    contactInfo.title = member.nameCard || member.nickname || member.userID || '';
-    contactInfo.isContact = false;
+    contactInfo.nickname = member.nameCard || member.nickname || member.userID || '';
+    contactInfo.isFriend = false;
     return contactInfo;
   }
 
   createContactInfoFromUserID(userID: string): ContactInfo {
-    const contactInfo = new ContactInfo(userID, '', userID);
-    contactInfo.contactID = userID;
-    contactInfo.title = userID;
-    contactInfo.isContact = false;
+    const contactInfo = new ContactInfo(userID);
+    contactInfo.nickname = userID;
+    contactInfo.isFriend = false;
     return contactInfo;
   }
 
   getUserInteractionInfo(userID: string): Promise<UserInteractionResult> {
-    return new Promise<UserInteractionResult>((resolve, reject) => {
+    return new Promise<UserInteractionResult>((resolve: (r: UserInteractionResult) => void, _reject: (e: Error) => void) => {
       console.log(`[UserInteractionHelper] Getting interaction info for user: ${userID}`);
-      
+
       this.checkFriendStatus(userID)
-        .then((isFriend: boolean) => {
-          const userInfo = this.contactListState.addFriendInfo || this.createContactInfoFromUserID(userID);
+        .then((userInfo: ContactInfo | undefined) => {
+          const finalUserInfo: ContactInfo = userInfo || this.createContactInfoFromUserID(userID);
+          const isFriend: boolean = finalUserInfo.isFriend === true;
           const result: UserInteractionResult = {
             isFriend: isFriend,
-            userInfo: userInfo,
+            userInfo: finalUserInfo,
             conversationID: isFriend ? 'c2c_' + userID : undefined
           };
           resolve(result);
         })
-        .catch((error: ErrorInfo) => {
+        .catch((error: Error) => {
           console.error(`[UserInteractionHelper] Failed to get user interaction info: ${error.message}`);
           const fallbackUserInfo = this.createContactInfoFromUserID(userID);
           const result: UserInteractionResult = {
@@ -109,7 +94,7 @@ export class UserInteractionHelper {
             userInfo: fallbackUserInfo,
             conversationID: undefined
           };
-          resolve(result); 
+          resolve(result);
         });
     });
   }

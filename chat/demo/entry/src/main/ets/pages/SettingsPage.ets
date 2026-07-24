@@ -1,17 +1,127 @@
 import { MMKV } from '@tencent/mmkv';
-import { ErrorInfo, LoginStore, UserProfile, Gender, LoginState } from '@tencentcloud/atomicxcore';
-import { ImageSizeUtil, ThemeState, Log, Toast, TextUtils, ToastType, Avatar, AvatarSize , AvatarContentType,AvatarShape, AppBuilderConfig, Switch, LanguageState } from '@tencentcloud/atomicx';
-
-import Prompt from '@system.prompt';
+import { LoginStore, UserProfile, Gender, LoginState } from '@tencentcloud/atomicxcore';
+import { ImageSizeUtil, ThemeState, Log, Toast, TextUtils, ToastType, Avatar, AvatarSize , AvatarContentType,AvatarShape, AppBuilderConfig, Switch, LanguageState } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index';
 import router from '@ohos.router';
 import DemoConstants from '../utils/DemoConstants';
 import { i18n } from '@kit.LocalizationKit';
 import systemDateTime from '@ohos.systemDateTime';
 import { Configuration, ImmersiveMode, LengthMetrics, LevelMode } from '@kit.ArkUI';
 import { Want, common } from '@kit.AbilityKit';
-import { ThemeMode } from '@tencentcloud/atomicx';
-import { AvatarSelector } from '@tencentcloud/atomicx';
+import { ThemeMode } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index';
+import { AvatarSelector } from '@tencentcloud/atomicx/src/main/ets/chatsetting/Index';
+import { TIMPushInterfaces } from '../push/TIMPushInterfaces';
 
+enum SettingsCompletionAction {
+  LOGOUT,
+  UPDATE_ALLOW_TYPE,
+  UPDATE_NICKNAME,
+  UPDATE_SIGNATURE,
+  UPDATE_GENDER,
+  UPDATE_BIRTHDAY,
+  UPDATE_AVATAR
+}
+
+class SettingsCompletionHandler {
+  private settingsPage?: SettingsPage;
+  private settingItemView?: SettingItemView;
+  private profileDialog?: ProfileDetailDialog;
+  private action: SettingsCompletionAction = SettingsCompletionAction.LOGOUT;
+  private allowType: number = 0;
+  private nickname: string = '';
+  private signature: string = '';
+  private gender: Gender = Gender.UNKNOWN;
+  private birthday: number = 0;
+  private avatarURL: string = '';
+
+  constructor(action: SettingsCompletionAction) {
+    this.action = action;
+  }
+
+  setSettingsPage(page: SettingsPage): SettingsCompletionHandler {
+    this.settingsPage = page;
+    return this;
+  }
+
+  setSettingItemView(view: SettingItemView): SettingsCompletionHandler {
+    this.settingItemView = view;
+    return this;
+  }
+
+  setProfileDialog(dialog: ProfileDetailDialog): SettingsCompletionHandler {
+    this.profileDialog = dialog;
+    return this;
+  }
+
+  setAllowType(allowType: number): SettingsCompletionHandler {
+    this.allowType = allowType;
+    return this;
+  }
+
+  setNickname(nickname: string): SettingsCompletionHandler {
+    this.nickname = nickname;
+    return this;
+  }
+
+  setSignature(signature: string): SettingsCompletionHandler {
+    this.signature = signature;
+    return this;
+  }
+
+  setGender(gender: Gender): SettingsCompletionHandler {
+    this.gender = gender;
+    return this;
+  }
+
+  setBirthday(birthday: number): SettingsCompletionHandler {
+    this.birthday = birthday;
+    return this;
+  }
+
+  setAvatarURL(avatarURL: string): SettingsCompletionHandler {
+    this.avatarURL = avatarURL;
+    return this;
+  }
+
+  onSuccess(): void {
+    switch (this.action) {
+      case SettingsCompletionAction.LOGOUT:
+        this.settingsPage?.onLogoutSuccess();
+        break;
+      case SettingsCompletionAction.UPDATE_ALLOW_TYPE:
+        this.settingItemView?.onUpdateAllowTypeSuccess(this.allowType);
+        break;
+      case SettingsCompletionAction.UPDATE_NICKNAME:
+        this.profileDialog?.onUpdateNicknameSuccess(this.nickname);
+        break;
+      case SettingsCompletionAction.UPDATE_SIGNATURE:
+        this.profileDialog?.onUpdateSignatureSuccess(this.signature);
+        break;
+      case SettingsCompletionAction.UPDATE_GENDER:
+        this.profileDialog?.onUpdateGenderSuccess(this.gender);
+        break;
+      case SettingsCompletionAction.UPDATE_BIRTHDAY:
+        this.profileDialog?.onUpdateBirthdaySuccess(this.birthday);
+        break;
+      case SettingsCompletionAction.UPDATE_AVATAR:
+        this.profileDialog?.onUpdateAvatarSuccess(this.avatarURL);
+        break;
+    }
+  }
+
+  onFailure(code: number, desc: string): void {
+    switch (this.action) {
+      case SettingsCompletionAction.LOGOUT:
+        this.settingsPage?.onLogoutFailure(code, desc);
+        break;
+      case SettingsCompletionAction.UPDATE_ALLOW_TYPE:
+        this.settingItemView?.onUpdateAllowTypeFailure(code, desc);
+        break;
+      default:
+        this.profileDialog?.onUpdateProfileFailure(code, desc);
+        break;
+    }
+  }
+}
 
 class LanguageModel {
   languageID: string = "";        
@@ -46,8 +156,17 @@ export struct SettingsPage {
   private static readonly LARGE_TITLE_HEIGHT: number = 52;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   @State loginState: LoginState = LoginStore.shared().state;
+  @State loginUserInfo?: UserProfile = LoginStore.shared().state.loginUserInfo;
   
   private profileDetailDialogController?: CustomDialogController;
+
+  aboutToAppear() {
+    this.refreshSelfInfo();
+  }
+
+  private refreshSelfInfo(): void {
+    this.loginUserInfo = LoginStore.shared().state.loginUserInfo;
+  }
 
   build() {
     Column() {
@@ -56,7 +175,7 @@ export struct SettingsPage {
       Scroll() {
         Column() {
           SelfInfoView({ 
-            loginState: this.loginState,
+            loginUserInfo: this.loginUserInfo,
             onProfileClick: () => {
               this.showProfileDetailDialog();
             }
@@ -73,14 +192,15 @@ export struct SettingsPage {
               .height(56)
               .margin({ top: 16, bottom: 38 })
               .onClick(() => {
-                LoginStore.shared().logout().then(() => {
-                  let mmkv = MMKV.defaultMMKV();
-                  mmkv.removeValueForKey(DemoConstants.AUTO_LOGIN);
-                  mmkv.removeValueForKey(DemoConstants.LOGIN_USER_SIG);
-                  return router.replaceUrl({ url: "pages/DevLoginPage" });
-                }).catch((reason: Object) => {
-                  Log.e("Profile", "logout failed, " + reason);
-                })
+                const handler = new SettingsCompletionHandler(SettingsCompletionAction.LOGOUT).setSettingsPage(this);
+                LoginStore.shared().logout()
+                  .then(() => { handler.onSuccess(); })
+                  .catch((reason: Object) => {
+                    let code = 0;
+                    let desc = String(reason);
+                    if (reason instanceof Error) { desc = reason.message; }
+                    handler.onFailure(code, desc);
+                  });
               })
 
           }
@@ -97,9 +217,24 @@ export struct SettingsPage {
     .backgroundColor(this.themeState.colors.bgColorOperate)
   }
   
+  onLogoutSuccess(): void {
+    let mmkv = MMKV.defaultMMKV();
+    mmkv.removeValueForKey(DemoConstants.AUTO_LOGIN);
+    mmkv.removeValueForKey(DemoConstants.LOGIN_USER_SIG);
+    TIMPushInterfaces.unRegisterPush();
+    router.replaceUrl({ url: "pages/DevLoginPage" });
+  }
+
+  onLogoutFailure(code: number, desc: string): void {
+    Log.e("Profile", "logout failed, " + code + ", " + desc);
+  }
+
   private showProfileDetailDialog() {
     this.profileDetailDialogController = new CustomDialogController({
       builder: ProfileDetailDialog({
+        onProfileUpdated: () => {
+          this.refreshSelfInfo();
+        },
         onClose: () => {
           if (this.profileDetailDialogController) {
             this.profileDetailDialogController.close();
@@ -138,21 +273,17 @@ export struct SettingsPage {
 
 @Component
 struct SelfInfoView {
-  @Prop @Watch('onLoginStateChange') loginState: LoginState;
+  @Prop loginUserInfo?: UserProfile;
   onProfileClick?: () => void;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
-
-  onLoginStateChange() {
-    // This will be called when loginState changes
-  }
 
   build() {
     RelativeContainer() {
       Avatar({
         content: {
           type: AvatarContentType.Image,
-          url: this.loginState.loginUserInfo?.avatarURL,
-          name: TextUtils.getAvatarLetter(this.loginState.loginUserInfo?.nickname || this.loginState.loginUserInfo?.userID) || '',
+          url: this.loginUserInfo?.avatarURL,
+          name: TextUtils.getAvatarLetter(this.loginUserInfo?.nickname || this.loginUserInfo?.userID) || '',
         },
         avatarSize: AvatarSize.XL,
         shape:AvatarShape.Round
@@ -162,7 +293,7 @@ struct SelfInfoView {
           start: { anchor: "__container__", align: HorizontalAlign.Start },
         })
 
-      Text(this.loginState.loginUserInfo?.nickname || this.loginState.loginUserInfo?.userID)
+      Text(this.loginUserInfo?.nickname || this.loginUserInfo?.userID)
         .id("userName")
         .fontSize($r("app.float.demo_profile_name_font_size"))
         .fontColor(this.themeState.colors.textColorPrimary)
@@ -181,7 +312,7 @@ struct SelfInfoView {
           .fontColor(this.themeState.colors.textColorPrimary)
           .fontSize($r("app.float.demo_profile_id_font_size"))
 
-        Text(this.loginState.loginUserInfo?.userID)
+        Text(this.loginUserInfo?.userID)
           .id("userID")
           .fontColor(this.themeState.colors.textColorPrimary)
           .fontSize($r("app.float.demo_profile_id_font_size"))
@@ -203,7 +334,7 @@ struct SelfInfoView {
           top: { anchor: "idRow", align: VerticalAlign.Bottom }
         })
 
-      Text(this.loginState.loginUserInfo?.selfSignature)
+      Text(this.loginUserInfo?.selfSignature)
         .id("signature")
         .fontColor(this.themeState.colors.textColorPrimary)
         .fontSize($r("app.float.demo_profile_id_font_size"))
@@ -246,6 +377,7 @@ struct SettingItemView {
   @State friendRequestVisible: boolean = false;
   @State languageSelectVisible: boolean = false;
   @State translateLanguageSelectVisible: boolean = false;
+  @State currentAllowType: number = 0;
   @State currentAllowTypeText: string | Resource = '';
   @State currentThemeText: string | Resource= '';
   @State currentLanguageText: string | Resource = '';
@@ -295,7 +427,7 @@ struct SettingItemView {
 
   friendRequestDialogController: CustomDialogController = new CustomDialogController({
     builder: FriendRequestDialog({
-      currentAllowType: this.getCurrentAllowType(),
+      currentAllowType: $currentAllowType,
       onClose: () => {
         this.friendRequestVisible = false;
       },
@@ -418,6 +550,7 @@ struct SettingItemView {
   private updateStatusTexts() {
     // Update allow type text
     const allowType = this.getCurrentAllowType();
+    this.currentAllowType = allowType;
     this.currentAllowTypeText = this.getAllowTypeText(allowType);
     // Update theme text
     this.currentThemeText = this.getThemeText(this.themeState.currentMode);
@@ -589,12 +722,10 @@ struct SettingItemView {
     // Get current user info
     const currentUserInfo = this.loginState.loginUserInfo;
     if (currentUserInfo) {
-      // Create updated user profile
-      const updatedUserInfo = new UserProfile(
-        currentUserInfo.userID,
-        currentUserInfo.nickname,
-        currentUserInfo.avatarURL
-      );
+      const updatedUserInfo = new UserProfile();
+      updatedUserInfo.userID = currentUserInfo.userID;
+      updatedUserInfo.nickname = currentUserInfo.nickname;
+      updatedUserInfo.avatarURL = currentUserInfo.avatarURL;
       updatedUserInfo.selfSignature = currentUserInfo.selfSignature;
       updatedUserInfo.gender = currentUserInfo.gender;
       updatedUserInfo.role = currentUserInfo.role;
@@ -603,16 +734,35 @@ struct SettingItemView {
       updatedUserInfo.allowType = allowType;
       updatedUserInfo.customInfo = currentUserInfo.customInfo;
 
-      // Update user info via LoginStore
-      LoginStore.shared().setSelfInfo(updatedUserInfo).then(() => {
-        const allowTypeText = this.getAllowTypeText(allowType);
-        const updateMessage = getContext().resourceManager.getStringSync($r('app.string.friend_request_updated'));
-        Toast.success(allowTypeText, this.getUIContext());
-      }).catch((error:ErrorInfo) => {
-        console.error('Failed to update allowType:', error);
-        Toast.error($r('app.string.friend_request_update_failed'), this.getUIContext());
-      });
+      LoginStore.shared().setSelfInfo(updatedUserInfo)
+        .then(() => {
+          const handler = new SettingsCompletionHandler(SettingsCompletionAction.UPDATE_ALLOW_TYPE)
+            .setSettingItemView(this)
+            .setAllowType(allowType);
+          handler.onSuccess();
+        })
+        .catch((reason: Object) => {
+          let code = 0;
+          let desc = String(reason);
+          if (reason instanceof Error) { desc = reason.message; }
+          new SettingsCompletionHandler(SettingsCompletionAction.UPDATE_ALLOW_TYPE)
+            .setSettingItemView(this)
+            .setAllowType(allowType)
+            .onFailure(code, desc);
+        });
     }
+  }
+
+  onUpdateAllowTypeSuccess(allowType: number): void {
+    const allowTypeText = this.getAllowTypeText(allowType);
+    this.currentAllowType = allowType;
+    this.currentAllowTypeText = allowTypeText;
+    Toast.success(allowTypeText, this.getUIContext());
+  }
+
+  onUpdateAllowTypeFailure(code: number, desc: string): void {
+    console.error('Failed to update allowType:', code, desc);
+    Toast.error($r('app.string.friend_request_update_failed'), this.getUIContext());
   }
 
   private getAllowTypeText(allowType: number): Resource {
@@ -805,7 +955,7 @@ struct FriendRequestDialog {
   private static readonly BUTTON_HEIGHT: number = 56;
   private static readonly BOTTOM_RADIUS: number = 14;
   controller?: CustomDialogController;
-  currentAllowType: number = 1;
+  @Link currentAllowType: number;
   onClose?: () => void;
   onSelectAllowType?: (allowType: number) => void;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
@@ -1247,6 +1397,7 @@ struct ProfileDetailDialog {
   @State displayBirthday: string = '';
   controller?: CustomDialogController;
   onClose?: () => void;
+  onProfileUpdated?: () => void;
   @State loginStore: LoginStore = LoginStore.shared();
   @State @Watch('onLoginStateChange') loginState?: LoginState = this.loginStore.state;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
@@ -1619,7 +1770,6 @@ struct ProfileDetailDialog {
         title: $r('app.string.profile_edit_signature'),
         currentText: this.selfSignature,
         placeholder: $r('app.string.profile_edit_signature'),
-        helpText: $r('app.string.profile_edit_name_desc'),
         onSave: (newText: string) => {
           this.updateSignature(newText);
         },
@@ -1657,16 +1807,25 @@ struct ProfileDetailDialog {
   private updateNickname(newNickname: string) {
     const userID = this.loginState?.loginUserInfo?.userID;
     if (userID) {
-      const user = new UserProfile(userID);
+      const user = new UserProfile();
+      user.userID = userID;
       user.nickname = newNickname;
       
-      LoginStore.shared().setSelfInfo(user).then(() => {
-        this.nickname = newNickname;
-        this.updateDisplayTexts();
-        Toast.show($r('app.string.update_profile_success'), ToastType.Success, this.getUIContext(), 2000);
-      }).catch((error: Error) => {
-        Toast.show($r('app.string.update_profile_failed'), ToastType.Error, this.getUIContext(), 3000);
-      });
+      LoginStore.shared().setSelfInfo(user)
+        .then(() => {
+          new SettingsCompletionHandler(SettingsCompletionAction.UPDATE_NICKNAME)
+            .setProfileDialog(this)
+            .setNickname(newNickname)
+            .onSuccess();
+        })
+        .catch((reason: Object) => {
+          let desc = String(reason);
+          if (reason instanceof Error) { desc = reason.message; }
+          new SettingsCompletionHandler(SettingsCompletionAction.UPDATE_NICKNAME)
+            .setProfileDialog(this)
+            .setNickname(newNickname)
+            .onFailure(0, desc);
+        });
     }
     this.showNicknameDialog = false;
   }
@@ -1674,16 +1833,25 @@ struct ProfileDetailDialog {
   private updateSignature(newSignature: string) {
     const userID = this.loginState?.loginUserInfo?.userID;
     if (userID) {
-      const user = new UserProfile(userID);
+      const user = new UserProfile();
+      user.userID = userID;
       user.selfSignature = newSignature;
       
-      LoginStore.shared().setSelfInfo(user).then(() => {
-        this.selfSignature = newSignature;
-        this.updateDisplayTexts();
-        Toast.show($r('app.string.update_profile_success'), ToastType.Success, this.getUIContext(), 2000);
-      }).catch((error: Error) => {
-        Toast.show($r('app.string.update_profile_failed'), ToastType.Error, this.getUIContext(), 3000);
-      });
+      LoginStore.shared().setSelfInfo(user)
+        .then(() => {
+          new SettingsCompletionHandler(SettingsCompletionAction.UPDATE_SIGNATURE)
+            .setProfileDialog(this)
+            .setSignature(newSignature)
+            .onSuccess();
+        })
+        .catch((reason: Object) => {
+          let desc = String(reason);
+          if (reason instanceof Error) { desc = reason.message; }
+          new SettingsCompletionHandler(SettingsCompletionAction.UPDATE_SIGNATURE)
+            .setProfileDialog(this)
+            .setSignature(newSignature)
+            .onFailure(0, desc);
+        });
     }
     this.showSignatureDialog = false;
   }
@@ -1691,19 +1859,67 @@ struct ProfileDetailDialog {
   private updateGender(newGender: Gender) {
     const userID = this.loginState?.loginUserInfo?.userID;
     if (userID) {
-      const user = new UserProfile(userID);
+      const user = new UserProfile();
+      user.userID = userID;
       user.gender = newGender;
       
-      LoginStore.shared().setSelfInfo(user).then(() => {
-        this.gender = newGender;
-        this.updateDisplayTexts();
-        Toast.show($r('app.string.update_profile_success'), ToastType.Success, this.getUIContext(), 2000);
-      }).catch((error: Error) => {
-        const errorMessage = getContext().resourceManager.getStringSync($r('app.string.update_profile_failed'));
-        Toast.show($r('app.string.update_profile_failed'), ToastType.Error, this.getUIContext(), 3000);
-      });
+      LoginStore.shared().setSelfInfo(user)
+        .then(() => {
+          new SettingsCompletionHandler(SettingsCompletionAction.UPDATE_GENDER)
+            .setProfileDialog(this)
+            .setGender(newGender)
+            .onSuccess();
+        })
+        .catch((reason: Object) => {
+          let desc = String(reason);
+          if (reason instanceof Error) { desc = reason.message; }
+          new SettingsCompletionHandler(SettingsCompletionAction.UPDATE_GENDER)
+            .setProfileDialog(this)
+            .setGender(newGender)
+            .onFailure(0, desc);
+        });
     }
     this.showGenderDialog = false;
+  }
+
+  onUpdateNicknameSuccess(newNickname: string): void {
+    this.nickname = newNickname;
+    this.notifyProfileUpdated();
+    Toast.show($r('app.string.update_profile_success'), ToastType.Success, this.getUIContext(), 2000);
+  }
+
+  onUpdateSignatureSuccess(newSignature: string): void {
+    this.selfSignature = newSignature;
+    this.notifyProfileUpdated();
+    Toast.show($r('app.string.update_profile_success'), ToastType.Success, this.getUIContext(), 2000);
+  }
+
+  onUpdateGenderSuccess(newGender: Gender): void {
+    this.gender = newGender;
+    this.notifyProfileUpdated();
+    Toast.show($r('app.string.update_profile_success'), ToastType.Success, this.getUIContext(), 2000);
+  }
+
+  onUpdateBirthdaySuccess(newBirthday: number): void {
+    this.birthday = newBirthday;
+    this.notifyProfileUpdated();
+    Toast.show($r('app.string.update_profile_success'), ToastType.Success, this.getUIContext(), 2000);
+  }
+
+  onUpdateAvatarSuccess(newAvatarURL: string): void {
+    this.avatarURL = newAvatarURL;
+    this.notifyProfileUpdated();
+    Toast.show($r('app.string.update_profile_success'), ToastType.Success, this.getUIContext(), 2000);
+  }
+
+  private notifyProfileUpdated(): void {
+    this.updateDisplayTexts();
+    this.onProfileUpdated?.();
+  }
+
+  onUpdateProfileFailure(code: number, desc: string): void {
+    Log.e("ProfileDetailDialog", "update profile failed, " + code + ", " + desc);
+    Toast.show($r('app.string.update_profile_failed'), ToastType.Error, this.getUIContext(), 3000);
   }
 
   private showBirthdayPickerDialog() {
@@ -1723,16 +1939,25 @@ struct ProfileDetailDialog {
   private updateBirthday(newBirthday: number) {
     const userID = this.loginState?.loginUserInfo?.userID;
     if (userID) {
-      const user = new UserProfile(userID);
+      const user = new UserProfile();
+      user.userID = userID;
       user.birthday = newBirthday;
       
-      LoginStore.shared().setSelfInfo(user).then(() => {
-        this.birthday = newBirthday;
-        this.updateDisplayTexts();
-        Toast.show($r('app.string.update_profile_success'), ToastType.Success, this.getUIContext(), 2000);
-      }).catch((error: Error) => {
-        Toast.show($r('app.string.update_profile_failed'), ToastType.Error, this.getUIContext(), 3000);
-      });
+      LoginStore.shared().setSelfInfo(user)
+        .then(() => {
+          new SettingsCompletionHandler(SettingsCompletionAction.UPDATE_BIRTHDAY)
+            .setProfileDialog(this)
+            .setBirthday(newBirthday)
+            .onSuccess();
+        })
+        .catch((reason: Object) => {
+          let desc = String(reason);
+          if (reason instanceof Error) { desc = reason.message; }
+          new SettingsCompletionHandler(SettingsCompletionAction.UPDATE_BIRTHDAY)
+            .setProfileDialog(this)
+            .setBirthday(newBirthday)
+            .onFailure(0, desc);
+        });
     }
   }
 
@@ -1780,16 +2005,25 @@ struct ProfileDetailDialog {
   private updateAvatar(newAvatarURL: string) {
     const userID = this.loginState?.loginUserInfo?.userID;
     if (userID) {
-      const user = new UserProfile(userID);
+      const user = new UserProfile();
+      user.userID = userID;
       user.avatarURL = newAvatarURL;
       
-      LoginStore.shared().setSelfInfo(user).then(() => {
-        this.avatarURL = newAvatarURL;
-        this.updateDisplayTexts();
-        Toast.show($r('app.string.update_profile_success'), ToastType.Success, this.getUIContext(), 2000);
-      }).catch((error: Error) => {
-        Toast.show($r('app.string.update_profile_failed'), ToastType.Error, this.getUIContext(), 3000);
-      });
+      LoginStore.shared().setSelfInfo(user)
+        .then(() => {
+          new SettingsCompletionHandler(SettingsCompletionAction.UPDATE_AVATAR)
+            .setProfileDialog(this)
+            .setAvatarURL(newAvatarURL)
+            .onSuccess();
+        })
+        .catch((reason: Object) => {
+          let desc = String(reason);
+          if (reason instanceof Error) { desc = reason.message; }
+          new SettingsCompletionHandler(SettingsCompletionAction.UPDATE_AVATAR)
+            .setProfileDialog(this)
+            .setAvatarURL(newAvatarURL)
+            .onFailure(0, desc);
+        });
     }
   }
 }
@@ -1832,7 +2066,7 @@ struct TextEditDialog {
   title: Resource = $r('app.string.edit');
   currentText: string = '';
   placeholder: Resource = $r('app.string.please_input');
-  helpText: Resource = $r('app.string.profile_edit_name_desc');
+  helpText?: Resource;
   onSave?: (text: string) => void;
   onCancel?: () => void;
   controller?: CustomDialogController;
@@ -1865,11 +2099,13 @@ struct TextEditDialog {
         })
 
       // Help text
-      Text(this.helpText)
-        .fontSize(14)
-        .fontColor(this.themeState.colors.textColorSecondary)
-        .width('100%')
-        .textAlign(TextAlign.Start)
+      if (this.helpText) {
+        Text(this.helpText)
+          .fontSize(14)
+          .fontColor(this.themeState.colors.textColorSecondary)
+          .width('100%')
+          .textAlign(TextAlign.Start)
+      }
 
       // Buttons
       Row({ space: 12 }) {

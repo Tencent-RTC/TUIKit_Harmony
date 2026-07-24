@@ -1,12 +1,11 @@
-import { AppBuilderConfig, ThemeState, SearchBar, FriendSearchInfo, GroupSearchInfo, MessageSearchResultItem } from '@tencentcloud/atomicx';
-import { ConversationList } from '@tencentcloud/atomicx';
-import {
-  ConversationInfo,
-  ContactInfo,
-  MessageInfo
-} from '@tencentcloud/atomicxcore';
-import { StartConversationDialog, DialogType } from '@tencentcloud/atomicx';
-import { GroupInfo } from '@tencentcloud/atomicx';
+import { AppBuilderConfig, ThemeState } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index';
+import { SearchBar } from '@tencentcloud/atomicx/src/main/ets/search/Index';
+import { FriendSearchInfo, GroupSearchInfo, MessageSearchResultItem } from '@tencentcloud/atomicxcore';
+import { ConversationList } from '@tencentcloud/atomicx/src/main/ets/conversationlist/Index';
+import { ConversationInfo } from '@tencentcloud/atomicxcore';
+import { ContactInfo } from '@tencentcloud/atomicxcore';
+import { MessageInfo } from '@tencentcloud/atomicxcore';
+import { StartConversationDialog, DialogType, GroupInfo } from '@tencentcloud/atomicx/src/main/ets/contactlist/Index';
 
 @Component
 export struct ConversationsPage {
@@ -169,7 +168,7 @@ export struct ConversationsPage {
         }
         ConversationList({
           onConversationClick: (item: ConversationInfo) => {
-            console.info(`Navigate to conversation detail with ID: ${item.ID}`);
+            console.info(`Navigate to conversation detail with ID: ${item.conversationID}`);
             if (this.onConversationClick) {
               this.onConversationClick(item);
             }
@@ -227,10 +226,10 @@ export struct ConversationsPage {
         },
         onSelectUser: (contact: ContactInfo) => {
 
-          if (contact.contactID && this.onConversationClick) {
+          if (contact.userID && this.onConversationClick) {
             const conversationInfo = new ConversationInfo();
-            conversationInfo.ID = `c2c_${contact.contactID}`;
-            conversationInfo.title = contact.title || contact.contactID;
+            conversationInfo.conversationID = `c2c_${contact.userID}`;
+            conversationInfo.title = contact.friendRemark || contact.nickname || contact.userID;
             conversationInfo.avatarURL = contact.avatarURL;
             this.onConversationClick(conversationInfo);
           }
@@ -270,7 +269,7 @@ export struct ConversationsPage {
         onCreateGroup: (groupInfo: GroupInfo) => {
           if (groupInfo.groupID && this.onConversationClick) {
             const conversationInfo = new ConversationInfo();
-            conversationInfo.ID = `group_${groupInfo.groupID}`;
+            conversationInfo.conversationID = `group_${groupInfo.groupID}`;
             conversationInfo.title = groupInfo.groupName || groupInfo.groupID;
             conversationInfo.avatarURL = groupInfo.avatarUrl;
             this.onConversationClick(conversationInfo);
@@ -292,7 +291,7 @@ export struct ConversationsPage {
 
   private showChatDialog(conversationID: string, title: string, avatarURL?: string, message?: MessageInfo): void {
     const conversationInfo = new ConversationInfo();
-    conversationInfo.ID = conversationID;
+    conversationInfo.conversationID = conversationID;
     conversationInfo.title = title;
     conversationInfo.avatarURL = avatarURL ?? '';
     

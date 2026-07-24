@@ -1,5 +1,6 @@
 import { ThemeState, Toast, LanguageState } from '../../basecomponent/Index';
-import { GroupSettingState, GroupSettingStore, GroupType } from '@tencentcloud/atomicxcore';
+import { GroupType } from '@tencentcloud/atomicxcore';
+import { GroupSettingState, GroupSettingStore } from '../viewmodel/GroupChatSettingViewModel';
 import { GroupPermission, GroupPermissionManager } from '../manager/GroupPermissionManager';
 
 @Component
@@ -350,7 +351,8 @@ export struct GroupAnnouncementView {
       this.announcement = this.groupState?.notice || '';
       this.originalAnnouncement = this.announcement;
     } catch (error) {
-      console.error('[GroupAnnouncementPage] Failed to load group info:', error);
+      const e = error as Error;
+      console.error('[GroupAnnouncementPage] Failed to load group info:', e?.message);
       this.announcement = '';
       this.originalAnnouncement = '';
     } finally {
@@ -386,11 +388,13 @@ export struct GroupAnnouncementView {
       case 'Work':
         return GroupType.WORK;
       case 'Public':
-        return GroupType.PUBLIC;
+        return GroupType.PUBLIC_GROUP;
       case 'Meeting':
         return GroupType.MEETING;
       case 'AVChatRoom':
-        return GroupType.AVCHATROOM;
+        return GroupType.AV_CHAT_ROOM;
+      case 'ChatRoom':
+        return GroupType.MEETING;
       case 'Community':
         return GroupType.COMMUNITY;
       default:

@@ -1,1 +1,2 @@
-export { ImageSourceType, ImageElement, EventHandler, ImageViewerDialog,ImageViewer } from './components/ImageViewer';
+export { ImageSourceType, ImageElement, EventHandler, ImageViewer, ImageViewerDialog } from './components/ImageViewer';
+export { ImageViewerWidget, ImageViewerWidgetDialog } from './components/ImageViewerWidget';

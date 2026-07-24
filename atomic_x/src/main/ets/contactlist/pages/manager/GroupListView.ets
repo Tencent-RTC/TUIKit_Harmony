@@ -1,5 +1,7 @@
-import { ErrorInfo, ContactInfo, ContactListState, ContactListStore } from '@tencentcloud/atomicxcore';
+import { ContactInfo } from '@tencentcloud/atomicxcore';
+import { GroupInfo, GroupState, GroupStore } from '@tencentcloud/atomicxcore';
 import { PinyinUtils } from '../../../basecomponent/utils/PinyinUtils';
+import { CompletionHandlerAdapter } from '../../../basecomponent/utils/CompletionHandlers';
 import { AppBuilderConfig, TextUtils, ThemeState } from '../../../basecomponent/Index';
 import { AZOrderedList, AZOrderedListItem, AZOrderedListConfig } from '../../../basecomponent/components/AZOrderedList';
 
@@ -10,8 +12,8 @@ export struct GroupListView {
   onShowProfile?: (group: ContactInfo) => void;
   // Theme management
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
-  @ObjectLink contactListStore: ContactListStore;
-  @State private contactListState: ContactListState = this.contactListStore.state;
+  @ObjectLink groupStore: GroupStore;
+  @State private groupState: GroupState = this.groupStore.state as GroupState;
   @State private isLoading: boolean = true;
   @State private searchKeyword: string = '';
   @State private showSearchResults: boolean = false;
@@ -20,7 +22,7 @@ export struct GroupListView {
 
   aboutToAppear() {
     console.info('MyGroupPage aboutToAppear');
-    this.contactListState = this.contactListStore.state;
+    this.groupState = this.groupStore.state as GroupState;
     this.loadGroupList();
   }
 
@@ -40,7 +42,7 @@ export struct GroupListView {
       Stack() {
         if (this.isLoading) {
           this.buildLoadingState()
-        } else if (this.contactListState.joinedGroupDataSource.totalCount() === 0) {
+        } else if (this.groupState.joinedGroupList.length === 0) {
           this.buildEmptyState()
         } else {
           this.buildGroupContent()
@@ -213,7 +215,7 @@ export struct GroupListView {
   }
 
   private handleSelectGroup(group: ContactInfo): void {
-    console.log('[MyGroupPage] handleSelectGroup - Returning with group:', group.title);
+    console.log('[MyGroupPage] handleSelectGroup - Returning with group:', group.nickname);
 
 
     if (this.onShowProfile) {
@@ -221,36 +223,36 @@ export struct GroupListView {
     }
   }
 
-  private async loadGroupList() {
-    try {
-      this.isLoading = true;
-      await this.contactListStore.fetchJoinedGroupList();
-      
+  private loadGroupList() {
+    this.isLoading = true;
+    this.groupStore.loadJoinedGroups(new CompletionHandlerAdapter(() => {
       this.convertGroupsToAZOrderedListItems();
-
-    } catch (error) {
-      const errorResult = error as ErrorInfo;
-      console.error('Failed to load group list:', error.errorMessage);
-    } finally {
       this.isLoading = false;
-    }
+    }, (code: number, desc: string) => {
+      console.error('Failed to load group list:', code, desc);
+      this.isLoading = false;
+    }));
   }
 
   private convertGroupsToAZOrderedListItems(): void {
     const items: AZOrderedListItem<ContactInfo>[] = [];
-    
-    for (let i = 0; i < this.contactListState.joinedGroupDataSource.totalCount(); i++) {
-      const group = this.contactListState.joinedGroupDataSource.getData(i) as ContactInfo;
+
+    const groups = this.groupState.joinedGroupList;
+    for (let i = 0; i < groups.length; i++) {
+      const group: GroupInfo = groups[i];
       if (group) {
+        const wrapped = new ContactInfo(group.groupID);
+        wrapped.nickname = group.groupName;
+        wrapped.avatarURL = group.avatarURL;
         items.push({
-          key: group.contactID || `group_${i}`,
-          label: group.title || group.contactID || '',
+          key: group.groupID || `group_${i}`,
+          label: group.groupName || group.groupID || '',
           avatarUrl: group.avatarURL,
-          extraData: group
+          extraData: wrapped
         });
       }
     }
-    
+
     this.groupListItems = items;
     console.log('[MyGroupPage] Converted groups to AZOrderedList items:', items.length);
   }

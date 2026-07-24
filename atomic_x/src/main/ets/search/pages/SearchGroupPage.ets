@@ -1,10 +1,6 @@
 import { AppBuilderConfig, Avatar, AvatarContentType, AvatarSize, ThemeState, LanguageState } from '../../basecomponent/Index';
-import {
-  GroupSearchInfo,
-  SearchOption,
-  SearchStore,
-  SearchType
-} from '@tencentcloud/atomicxcore';
+import { GroupSearchInfo, SearchOption, SearchStore, SearchType } from '@tencentcloud/atomicxcore';
+import { CompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 import { HighlightText } from '../components/HighlightText';
 
 @Component
@@ -86,7 +82,7 @@ export struct SearchGroupPage {
 
         TextInput({
           placeholder: $r('app.string.search_search_groups_placeholder'),
-          text: this.searchKeyword
+          text: $$this.searchKeyword
         })
           .placeholderColor(this.themeState.colors.textColorTertiary)
           .fontSize(16)
@@ -95,29 +91,27 @@ export struct SearchGroupPage {
           .border({ width: 0 })
           .layoutWeight(1)
           .onChange((value: string) => {
-            this.searchKeyword = value;
             this.handleSearchInputChange(value);
           })
           .onSubmit(() => {
             this.performSearch();
           })
 
-        if (this.searchKeyword.length > 0) {
-          Button() {
-            Image($rawfile('contactlist/contact_del.svg'))
-              .width(16)
-              .height(16)
-              .fillColor(this.themeState.colors.textColorSecondary)
-          }
-          .type(ButtonType.Normal)
-          .backgroundColor(Color.Transparent)
-          .width(32)
-          .height(32)
-          .onClick(() => {
-            this.searchKeyword = '';
-            this.clearSearch();
-          })
+        Button() {
+          Image($rawfile('contactlist/contact_del.svg'))
+            .width(16)
+            .height(16)
+            .fillColor(this.themeState.colors.textColorSecondary)
         }
+        .type(ButtonType.Normal)
+        .backgroundColor(Color.Transparent)
+        .width(32)
+        .height(32)
+        .visibility(this.searchKeyword.length > 0 ? Visibility.Visible : Visibility.Hidden)
+        .onClick(() => {
+          this.searchKeyword = '';
+          this.clearSearch();
+        })
       }
       .backgroundColor(this.themeState.colors.bgColorInput)
       .borderRadius(20)
@@ -275,16 +269,14 @@ export struct SearchGroupPage {
     this.isLoading = true;
 
     const option = new SearchOption()
-    option.searchType = SearchType.Group
+    option.searchScope = [SearchType.GROUP]
 
-    this.searchStore.search([this.searchKeyword], option)
-      .then(() => {
-        this.isLoading = false;
-      })
-      .catch((error: Error) => {
-        this.isLoading = false;
-        console.error('Search groups failed:', error.message)
-      })
+    this.searchStore.search([this.searchKeyword], option, new CompletionHandlerAdapter(() => {
+      this.isLoading = false;
+    }, (code: number, desc: string) => {
+      this.isLoading = false;
+      console.error('Search groups failed:', code, desc)
+    }))
   }
 
   private handleGroupClick(item: GroupSearchInfo): void {

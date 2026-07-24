@@ -1,5 +1,8 @@
 import { Avatar, AvatarContentType, AvatarSize, ThemeState } from '../../../basecomponent/Index';
-import { ErrorInfo, ContactInfo, ContactListState, ContactListStore, LoginStore, } from '@tencentcloud/atomicxcore';
+import { ContactInfo, ContactStore } from '@tencentcloud/atomicxcore';
+import { GroupStore } from '@tencentcloud/atomicxcore';
+import { GroupInfo as CoreGroupInfo } from '@tencentcloud/atomicxcore';
+import { GetContactInfoCompletionHandlerAdapter, GetGroupInfoCompletionHandlerAdapter } from '../../../basecomponent/utils/CompletionHandlers';
 import { ContactDetailPage } from './ContactDetailPage';
 import { GroupDetailPage } from './GroupDetailPage';
 import { C2CChatSetting } from '../../../chatsetting/pages/C2CChatSetting';
@@ -39,8 +42,8 @@ export struct AddContactDialog {
   // Callback function
   onCancel?: () => void;
   onSearchUser?: (keyword: string) => void;
-  private contactListStore: ContactListStore = ContactListStore.create();
-  @State private contactListState: ContactListState = this.contactListStore.state;
+  private contactStore: ContactStore = ContactStore.shared;
+  private groupStore: GroupStore = GroupStore.shared;
 
   setSearchType(type: SearchResultType) {
     this.searchType = type;
@@ -149,28 +152,6 @@ export struct AddContactDialog {
 
     // Divider
     this.SeparatorBuilder()
-  }
-
-  @Builder
-  UserIdDisplayBuilder() {
-
-    Row() {
-      Text($r('app.string.my_user_id_label'))
-        .fontSize(14)
-        .fontColor(this.themeState.colors.textColorPrimary)
-        .fontFamily('PingFang SC')
-        .textAlign(TextAlign.Center)
-        .height(44)
-      Text((LoginStore.shared().state.loginUserInfo?.userID ?? ""))
-        .fontSize(14)
-        .fontColor(this.themeState.colors.textColorPrimary)
-        .fontFamily('PingFang SC')
-        .textAlign(TextAlign.Center)
-        .height(44)
-    }
-    .justifyContent(FlexAlign.Center)
-    .width('100%')
-    .height(44)
   }
 
   @Builder
@@ -416,11 +397,6 @@ export struct AddContactDialog {
           this.SearchFieldBuilder()
 
 
-          if (!this.hasSearched) {
-            this.UserIdDisplayBuilder()
-          }
-
-
           this.SearchResultsBuilder()
         }
 
@@ -471,54 +447,51 @@ export struct AddContactDialog {
   }
 
   private searchUsers(keyword: string) {
-    // Clear previous result to avoid showing stale data
-    this.contactListStore.fetchUserInfo(keyword)
-      .then(() => {
-        const result = this.contactListState.addFriendInfo;
-        const resultItems: SearchResultItem[] = result ? [
-          {
-            id: result.contactID || '',
-            name: result.title || '',
-            avatar: result.avatarURL || '',
-            subtitle: '',
-            type: SearchResultType.USER,
-            rawData: result
-          } as SearchResultItem
-        ] : [];
+    this.contactStore.getContactInfo([keyword], new GetContactInfoCompletionHandlerAdapter((contactInfoList: ContactInfo[]) => {
+      const result: ContactInfo | undefined = contactInfoList && contactInfoList.length > 0 ? contactInfoList[0] : undefined;
+      const resultItems: SearchResultItem[] = result ? [
+        {
+          id: result.userID || '',
+          name: result.nickname || '',
+          avatar: result.avatarURL || '',
+          subtitle: '',
+          type: SearchResultType.USER,
+          rawData: result
+        } as SearchResultItem
+      ] : [];
 
-        this.isSearching = false;
-        this.searchResults = resultItems;
-      })
-      .catch((error: ErrorInfo) => {
-        this.isSearching = false;
-        this.searchResults = [];
-      });
+      this.isSearching = false;
+      this.searchResults = resultItems;
+    }, () => {
+      this.isSearching = false;
+      this.searchResults = [];
+    }));
   }
 
   private searchGroups(keyword: string) {
-    // Clear previous result to avoid showing stale data
+    const self = this;
+    const completion = new GetGroupInfoCompletionHandlerAdapter((groupInfo: CoreGroupInfo) => {
+      const wrapped = new ContactInfo(groupInfo.groupID);
+      wrapped.nickname = groupInfo.groupName;
+      wrapped.avatarURL = groupInfo.avatarURL;
+      const resultItems: SearchResultItem[] = [
+        {
+          id: groupInfo.groupID || '',
+          name: groupInfo.groupName || '',
+          avatar: groupInfo.avatarURL || '',
+          subtitle: '',
+          type: SearchResultType.GROUP,
+          rawData: wrapped
+        } as SearchResultItem
+      ];
 
-    this.contactListStore.fetchGroupInfo(keyword)
-      .then(() => {
-        const result = this.contactListState.joinGroupInfo;
-        const resultItems: SearchResultItem[] = result ? [
-          {
-            id: result.contactID || '',
-            name: result.title || '',
-            avatar: result.avatarURL || '',
-            subtitle: '',
-            type: SearchResultType.GROUP,
-            rawData: result
-          } as SearchResultItem
-        ] : [];
-
-        this.isSearching = false;
-        this.searchResults = resultItems;
-      })
-      .catch((error: ErrorInfo) => {
-        this.isSearching = false;
-        this.searchResults = [];
-      });
+      self.isSearching = false;
+      self.searchResults = resultItems;
+    }, () => {
+      self.isSearching = false;
+      self.searchResults = [];
+    });
+    this.groupStore.getGroupInfo(keyword, completion);
   }
 
   private handleItemClick(item: SearchResultItem) {

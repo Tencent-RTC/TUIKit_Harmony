@@ -3,10 +3,31 @@ import Prompt from '@system.prompt';
 import { genTestUserSig, SDKAPPID } from '../signature/GenerateTestUserSig';
 import router from '@ohos.router';
 import { MMKV } from '@tencent/mmkv';
-import { ImageSizeUtil, ThemeState, Log, Toast } from '@tencentcloud/atomicx';
+import { ImageSizeUtil, ThemeState, Log, Toast, ContextProvider } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index';
 import DemoConstants from '../utils/DemoConstants';
+import { TIMPushInterfaces } from '../push/TIMPushInterfaces';
 import { common } from '@kit.AbilityKit';
-import { TUICallKit } from '@tencentcloud/tuicallkit';
+
+class DevLoginCompletionHandler {
+  private page: DevLoginPage;
+  private userID: string = '';
+  private userSig: string = '';
+
+  constructor(page: DevLoginPage, userID: string, userSig: string) {
+    this.page = page;
+    this.userID = userID;
+    this.userSig = userSig;
+  }
+
+  onSuccess(): void {
+    Log.i("DevLoginPage", "login success");
+    this.page.onLoginSuccess(this.userID, this.userSig);
+  }
+
+  onFailure(code: number, desc: string): void {
+    this.page.onLoginFailed(code, desc);
+  }
+}
 
 @Entry
 @Component
@@ -77,26 +98,51 @@ struct DevLoginPage {
     .justifyContent(FlexAlign.Center)
   }
 
-  login() {
+  login(): void {
     if (this.userID && this.userID.length > 0) {
       this.inLogin = true;
-      let userSig = genTestUserSig(this.userID);
-      this.mmkv?.encodeString(DemoConstants.LOGIN_USER_ID, this.userID);
+      const userSig = genTestUserSig(this.userID);
+      const userID = this.userID;
+      this.mmkv?.encodeString(DemoConstants.LOGIN_USER_ID, userID);
       this.mmkv?.encodeString(DemoConstants.LOGIN_USER_SIG, userSig);
       this.mmkv?.encodeBool(DemoConstants.AUTO_LOGIN, true);
-      LoginStore.shared().login(SDKAPPID, this.userID, userSig).then(() => {
-        Log.i("DevLoginPage", "login success");
-        this.inLogin = false;
-        const userID = LoginStore.shared().state.loginUserInfo?.userID || '';
-        Toast.success($r('app.string.login_success_message', userID), this.getUIContext());
-
-        TUICallKit.createInstance(getContext());
-        router.replaceUrl({ url: "pages/HomePage" });
-
-      }).catch((reason: Object) => {
-        this.inLogin = false;
-        Log.i("DevLoginPage", "login failed, " + reason);
-      });
+      const handler = new DevLoginCompletionHandler(this, userID, userSig);
+      LoginStore.shared().login(SDKAPPID, userID, userSig, getContext())
+        .then(() => {
+          handler.onSuccess();
+        })
+        .catch((reason: Object) => {
+          let code = 0;
+          let desc = String(reason);
+          if (reason instanceof Error) {
+            desc = reason.message;
+          }
+          handler.onFailure(code, desc);
+        });
     }
+  }
+
+  onLoginSuccess(userID: string, userSig: string): void {
+    this.inLogin = false;
+    const loginUserID = LoginStore.shared().state.loginUserInfo?.userID || '';
+    Toast.success($r('app.string.login_success_message', loginUserID), this.getUIContext());
+    this.registerPush();
+    router.replaceUrl({ url: "pages/HomePage" });
+  }
+
+  private registerPush(): void {
+    try {
+      const appContext = ContextProvider.getAppContext();
+      if (appContext && (appContext as common.UIAbilityContext).resourceManager) {
+        TIMPushInterfaces.registerPush(appContext);
+      }
+    } catch (reason) {
+      Log.i("DevLoginPage", "register push failed, " + reason);
+    }
+  }
+
+  onLoginFailed(code: number, desc: string): void {
+    this.inLogin = false;
+    Log.i("DevLoginPage", "login failed, " + code + ", " + desc);
   }
 }

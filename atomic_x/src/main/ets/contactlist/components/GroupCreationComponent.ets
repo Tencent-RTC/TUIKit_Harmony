@@ -1,6 +1,9 @@
 import { Avatar, AvatarContentType, AvatarSize, ThemeState, Toast } from '../../basecomponent/Index';
-import { ErrorInfo, ContactInfo, ContactListStore } from '@tencentcloud/atomicxcore';
+import { ContactInfo } from '@tencentcloud/atomicxcore';
+import { GroupCreateParams, GroupStore } from '@tencentcloud/atomicxcore';
+import { GroupType as CoreGroupType } from '@tencentcloud/atomicxcore';
 import { GroupType, GroupTypeSelection, GroupTypeSelector } from './GroupTypeSelector';
+import { CreateGroupCompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 
 export { GroupType };
 
@@ -32,13 +35,13 @@ export struct GroupCreationComponent {
   @State groupTypeDescription: string | Resource = $r('app.string.group_type_work_description');
   @State selectedPortraitIndex: number = 0;
   @State showGroupTypeSelector: boolean = false;
-  private contactListStore: ContactListStore = ContactListStore.create();
+  private groupStore: GroupStore = GroupStore.shared;
 
   aboutToAppear() {
 
     if (this.selectedContacts.length > 0) {
       const names = this.selectedContacts.slice(0, 3).map(contact =>
-      contact.title || contact.contactID
+      contact.nickname || contact.userID
       );
       this.groupName = names.join(', ');
       if (this.selectedContacts.length > 3) {
@@ -233,9 +236,9 @@ export struct GroupCreationComponent {
     Column() {
 
       Row() {
-        Text(`PARTICIPANTS: ${this.selectedContacts.length + 1} OF 512`)
-          .fontSize(14)
-          .fontWeight(600)
+        Text($r('app.string.contact_list_selected_group_member'))
+          .fontSize(16)
+          .fontWeight(FontWeight.Bold)
           .fontFamily('PingFang SC')
           .fontColor(this.themeState.colors.textColorPrimary)
       }
@@ -289,7 +292,7 @@ export struct GroupCreationComponent {
         content: {
           type: AvatarContentType.Image,
           url: contact.avatarURL,
-          name: contact.title || contact.contactID || '',
+          name: contact.nickname || contact.userID || '',
         },
         avatarSize: AvatarSize.S,
       })
@@ -456,43 +459,60 @@ export struct GroupCreationComponent {
   })();
 
   private removeParticipant(contact: ContactInfo) {
-    const index = this.selectedContacts.findIndex(c => c.contactID === contact.contactID);
+    const index = this.selectedContacts.findIndex(c => c.userID === contact.userID);
     if (index > -1) {
       this.selectedContacts.splice(index, 1);
     }
   }
 
-  private async handleCreateGroup() {
+  private handleCreateGroup() {
     if (this.groupName.trim().length === 0) {
       return;
     }
 
-    try {
-      const avatarUrl = this.getGroupAvatarUrl() || "";
-      this.contactListStore.createGroup(
-        this.groupType,
-        this.groupName,
-        this.groupID || undefined,
-        avatarUrl,
-        this.selectedContacts
-      ).then((creatGroupID:string)=> {
-        if (this.onCreate) {
-          const groupInfo: GroupInfo = {
-            groupName: this.groupName,
-            groupID: creatGroupID,
-            groupType: this.groupType,
-            avatarUrl: avatarUrl || undefined || "",
-            selectedPortraitIndex: this.selectedPortraitIndex,
-            selectedContacts: this.selectedContacts
-          };
-          this.onCreate(groupInfo);
-        }
-      }).catch((error:ErrorInfo) =>{
-        Toast.error($r('app.string.create_group_failed', error?.code?.toString() || "none"), this.getUIContext());
-      })
+    const avatarUrl = this.getGroupAvatarUrl() || '';
+    const params = new GroupCreateParams(
+      this.groupName,
+      this.mapGroupType(this.groupType),
+      this.groupID || undefined,
+      avatarUrl,
+      this.selectedContacts.map((c: ContactInfo): string => c.userID)
+    );
 
-    } catch (error) {
-      console.log('[GroupCreationComponent] handleCreateGroup:', error);
+    const self = this;
+    const completion = new CreateGroupCompletionHandlerAdapter((createGroupID: string) => {
+      if (self.onCreate) {
+        const groupInfo: GroupInfo = {
+          groupName: self.groupName,
+          groupID: createGroupID,
+          groupType: self.groupType,
+          avatarUrl: avatarUrl,
+          selectedPortraitIndex: self.selectedPortraitIndex,
+          selectedContacts: self.selectedContacts
+        };
+        self.onCreate(groupInfo);
+      }
+    }, (code: number, desc: string) => {
+      Toast.error($r('app.string.create_group_failed', code.toString()), self.getUIContext());
+      console.error('[GroupCreationComponent] createGroup failed:', code, desc);
+    });
+    this.groupStore.createGroup(params, completion);
+  }
+
+  private mapGroupType(type: GroupType): CoreGroupType {
+    switch (type) {
+      case GroupType.WORK:
+        return CoreGroupType.WORK;
+      case GroupType.PUBLIC:
+        return CoreGroupType.PUBLIC_GROUP;
+      case GroupType.MEETING:
+        return CoreGroupType.MEETING;
+      case GroupType.AVCHATROOM:
+        return CoreGroupType.AV_CHAT_ROOM;
+      case GroupType.COMMUNITY:
+        return CoreGroupType.COMMUNITY;
+      default:
+        return CoreGroupType.WORK;
     }
   }
 
@@ -503,4 +523,4 @@ export struct GroupCreationComponent {
 
     return this.portraitOptions[this.selectedPortraitIndex];
   }
-} 
+}

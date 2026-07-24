@@ -1,13 +1,7 @@
 import { AppBuilderConfig, Avatar, AvatarContentType, AvatarSize, ThemeState, LanguageState } from '../../basecomponent/Index';
-import {
-  FriendSearchInfo,
-  GroupSearchInfo,
-  MessageSearchResultItem,
-  SearchOption,
-  SearchStore,
-  SearchType,
-  MessageInfo
-} from '@tencentcloud/atomicxcore';
+import { FriendSearchInfo, GroupSearchInfo, MessageSearchResultItem, SearchOption, SearchStore, SearchType } from '@tencentcloud/atomicxcore';
+import { MessageInfo } from '@tencentcloud/atomicxcore';
+import { CompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 import { router } from '@kit.ArkUI';
 import { SearchContactPage } from './SearchContactPage';
 import { SearchGroupPage } from './SearchGroupPage';
@@ -17,7 +11,8 @@ import { HighlightText } from '../components/HighlightText';
 import { MessageUtils } from '../../messagelist/utils/MessageUtils';
 
 // Re-export SDK types for convenience
-export { FriendSearchInfo, GroupSearchInfo, MessageSearchResultItem, MessageInfo } from '@tencentcloud/atomicxcore';
+export { FriendSearchInfo, GroupSearchInfo, MessageSearchResultItem } from '@tencentcloud/atomicxcore';
+export { MessageInfo } from '@tencentcloud/atomicxcore';
 
 interface SearchCategoryInfo {
   type: SearchType
@@ -33,13 +28,14 @@ export struct SearchListPage {
   private static readonly SEARCH_BAR_HEIGHT: number = 56;
   private static readonly DIVIDER_HEIGHT: number = 0;
   private static readonly MAX_RESULTS_PER_CATEGORY: number = 3;
+  private static readonly SEARCH_DEBOUNCE_DELAY: number = 300;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   @StorageLink('LanguageState') languageState: LanguageState = LanguageState.getInstance();
   @State searchKeyword: string = '';
   @State showSearchResults: boolean = false;
   @State searchHistory: string[] = [];
   @State showDetailView: boolean = false;
-  @State detailViewType: SearchType = SearchType.Friend;
+  @State detailViewType: SearchType = SearchType.FRIEND;
   @State showConversationDetail: boolean = false;
   @State selectedConversation: MessageSearchResultItem | null = null;
   @State friendCategoryInfo: SearchCategoryInfo | null = null;
@@ -52,6 +48,8 @@ export struct SearchListPage {
   onBack?: () => void;
   onShowMore?: (type: SearchType) => void;
   @State private searchStore: SearchStore = SearchStore.create();
+  private searchTimer?: number;
+  private searchSequence: number = 0;
 
   aboutToAppear() {
     console.info('SearchListPage aboutToAppear');
@@ -60,23 +58,27 @@ export struct SearchListPage {
 
   aboutToDisappear() {
     console.info('SearchListPage aboutToDisappear');
+    this.cancelDebounceSearch();
+    this.searchSequence++;
   }
 
   build() {
     Column() {
-      Column() {
-        if (this.showConversationDetail) {
-          this.ConversationDetailBuilder()
-        } else if (this.showDetailView) {
-          this.DetailViewBuilder()
-        } else if (this.showSearchResults) {
+      if (this.showConversationDetail) {
+        this.ConversationDetailBuilder()
+      } else if (this.showDetailView) {
+        this.DetailViewBuilder()
+      } else {
+        if (!AppBuilderConfig.getInstance().hideSearch) {
+          this.SearchBarBuilder()
+        }
+
+        if (this.showSearchResults) {
           this.SearchResultsBuilder()
         } else {
           this.SearchHistoryBuilder()
         }
       }
-      .width('100%')
-      .layoutWeight(1)
     }
     .width('100%')
     .height('100%')
@@ -123,7 +125,7 @@ export struct SearchListPage {
 
         TextInput({
           placeholder: $r('app.string.search_search_placeholder'),
-          text: this.searchKeyword
+          text: $$this.searchKeyword
         })
           .placeholderColor(this.themeState.colors.textColorTertiary)
           .fontSize(16)
@@ -132,29 +134,30 @@ export struct SearchListPage {
           .border({ width: 0 })
           .layoutWeight(1)
           .onChange((value: string) => {
-            this.searchKeyword = value;
             this.handleSearchInputChange(value);
           })
           .onSubmit(() => {
+            this.cancelDebounceSearch();
             this.performSearch();
           })
 
-        if (this.searchKeyword.length > 0) {
-          Button() {
-            Image($rawfile('contactlist/contact_del.svg'))
-              .width(16)
-              .height(16)
-              .fillColor(this.themeState.colors.textColorSecondary)
-          }
-          .type(ButtonType.Normal)
-          .backgroundColor(Color.Transparent)
-          .width(32)
-          .height(32)
-          .onClick(() => {
-            this.searchKeyword = '';
-            this.clearSearch();
-          })
+        Button() {
+          Image($rawfile('contactlist/contact_del.svg'))
+            .width(16)
+            .height(16)
+            .fillColor(this.themeState.colors.textColorSecondary)
         }
+        .type(ButtonType.Normal)
+        .backgroundColor(Color.Transparent)
+        .width(32)
+        .height(32)
+        .visibility(this.searchKeyword.length > 0 ? Visibility.Visible : Visibility.Hidden)
+        .onClick(() => {
+          this.cancelDebounceSearch();
+          this.searchSequence++;
+          this.searchKeyword = '';
+          this.clearSearch();
+        })
       }
       .backgroundColor(this.themeState.colors.bgColorInput)
       .borderRadius(20)
@@ -192,10 +195,6 @@ export struct SearchListPage {
   @Builder
   SearchHistoryBuilder() {
     Column() {
-      if (!AppBuilderConfig.getInstance().hideSearch) {
-        this.SearchBarBuilder()
-      }
-
       if (this.searchHistory.length > 0) {
         List() {
           ForEach(this.searchHistory, (item: string, index: number) => {
@@ -232,6 +231,7 @@ export struct SearchListPage {
               .backgroundColor(this.themeState.colors.bgColorOperate)
             }
             .onClick(() => {
+              this.cancelDebounceSearch();
               this.searchKeyword = item;
               this.performSearch();
             })
@@ -261,16 +261,12 @@ export struct SearchListPage {
       }
     }
     .width('100%')
-    .height('100%')
+    .layoutWeight(1)
   }
 
   @Builder
   SearchResultsBuilder() {
     Column() {
-      if (!AppBuilderConfig.getInstance().hideSearch) {
-        this.SearchBarBuilder()
-      }
-
       if (this.hasAnyResults()) {
         List() {
           // Friends section
@@ -330,7 +326,7 @@ export struct SearchListPage {
       }
     }
     .width('100%')
-    .height('100%')
+    .layoutWeight(1)
   }
 
   @Builder
@@ -554,7 +550,7 @@ export struct SearchListPage {
 
   @Builder
   DetailViewBuilder() {
-    if (this.detailViewType.value === SearchType.Friend.value) {
+    if (this.detailViewType === SearchType.FRIEND) {
       SearchContactPage({
         initialSearchKeyword: this.searchKeyword,
         onSelectContact: (contact: FriendSearchInfo) => {
@@ -566,7 +562,7 @@ export struct SearchListPage {
           this.showDetailView = false;
         }
       })
-    } else if (this.detailViewType.value === SearchType.Group.value) {
+    } else if (this.detailViewType === SearchType.GROUP) {
       SearchGroupPage({
         initialSearchKeyword: this.searchKeyword,
         onSelectGroup: (group: GroupSearchInfo) => {
@@ -578,7 +574,7 @@ export struct SearchListPage {
           this.showDetailView = false;
         }
       })
-    } else if (this.detailViewType.value === SearchType.Message.value) {
+    } else if (this.detailViewType === SearchType.MESSAGE) {
       SearchMessageInAllConversationsPage({
         initialSearchKeyword: this.searchKeyword,
         onSelectMessage: (message: MessageSearchResultItem) => {
@@ -618,6 +614,8 @@ export struct SearchListPage {
 
   private handleSearchInputChange(value: string): void {
     if (value.trim().length === 0) {
+      this.cancelDebounceSearch();
+      this.searchSequence++;
       this.clearSearch();
     } else {
       this.debounceSearch(value);
@@ -625,28 +623,44 @@ export struct SearchListPage {
   }
 
   private debounceSearch(keyword: string): void {
-    if (keyword.trim().length > 0) {
-      this.performSearch();
+    this.cancelDebounceSearch();
+    this.searchTimer = setTimeout(() => {
+      this.searchTimer = undefined;
+      if (keyword === this.searchKeyword) {
+        this.performSearch(keyword);
+      }
+    }, SearchListPage.SEARCH_DEBOUNCE_DELAY);
+  }
+
+  private cancelDebounceSearch(): void {
+    if (this.searchTimer !== undefined) {
+      clearTimeout(this.searchTimer);
+      this.searchTimer = undefined;
     }
   }
 
-  private performSearch(): void {
-    if (this.searchKeyword.trim().length === 0) {
+  private performSearch(keyword: string = this.searchKeyword): void {
+    if (keyword.trim().length === 0) {
       return;
     }
 
+    const currentSequence = ++this.searchSequence;
     const option = new SearchOption()
-    option.searchType = SearchType.combine(SearchType.Friend, SearchType.Group, SearchType.Message)
+    option.searchScope = [SearchType.FRIEND, SearchType.GROUP, SearchType.MESSAGE]
 
-    this.searchStore.search([this.searchKeyword], option)
-      .then(() => {
-        this.updateCategoryInfo();
-        this.showSearchResults = true;
-        this.addSearchHistory(this.searchKeyword);
-      })
-      .catch((error: Error) => {
-        console.error('Search failed:', error.message)
-      })
+    this.searchStore.search([keyword], option, new CompletionHandlerAdapter(() => {
+      if (currentSequence !== this.searchSequence || keyword !== this.searchKeyword) {
+        return;
+      }
+      this.updateCategoryInfo();
+      this.showSearchResults = true;
+      this.addSearchHistory(keyword);
+    }, (code: number, desc: string) => {
+      if (currentSequence !== this.searchSequence || keyword !== this.searchKeyword) {
+        return;
+      }
+      console.error('Search failed:', code, desc)
+    }))
   }
 
   private updateCategoryInfo(): void {
@@ -656,7 +670,7 @@ export struct SearchListPage {
     const friendCount = state.friendList.totalCount()
     if (friendCount > 0) {
       this.friendCategoryInfo = {
-        type: SearchType.Friend,
+        type: SearchType.FRIEND,
         title: getContext().resourceManager.getStringSync($r('app.string.search_contacts_title').id),
         hasMore: friendCount > SearchListPage.MAX_RESULTS_PER_CATEGORY,
         totalCount: friendCount
@@ -669,7 +683,7 @@ export struct SearchListPage {
     const groupCount = state.groupList.totalCount()
     if (groupCount > 0) {
       this.groupCategoryInfo = {
-        type: SearchType.Group,
+        type: SearchType.GROUP,
         title: getContext().resourceManager.getStringSync($r('app.string.search_groups_title').id),
         hasMore: groupCount > SearchListPage.MAX_RESULTS_PER_CATEGORY,
         totalCount: groupCount
@@ -682,7 +696,7 @@ export struct SearchListPage {
     const messageCount = state.messageResults.totalCount()
     if (messageCount > 0) {
       this.messageCategoryInfo = {
-        type: SearchType.Message,
+        type: SearchType.MESSAGE,
         title: getContext().resourceManager.getStringSync($r('app.string.search_messages_title').id),
         hasMore: messageCount > SearchListPage.MAX_RESULTS_PER_CATEGORY,
         totalCount: messageCount

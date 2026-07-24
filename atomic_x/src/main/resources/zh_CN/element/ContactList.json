@@ -357,6 +357,10 @@
       "value": "群头像"
     },
     {
+      "name": "contact_list_selected_group_member",
+      "value": "已选择的群成员"
+    },
+    {
       "name": "frequently_contacted",
       "value": "常联系"
     },

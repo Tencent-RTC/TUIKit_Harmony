@@ -1,31 +1,30 @@
-import {
-  MessageInfo,
-  MessageType,
-  MessageStatus,
-  SystemMessageInfo,
-  GroupJoinOption,
-  RecallMessageSystemMessage,
-  JoinGroupSystemMessage,
-  InviteToGroupSystemMessage,
-  QuitGroupSystemMessage,
-  KickedFromGroupSystemMessage,
-  SetGroupAdminSystemMessage,
-  CancelGroupAdminSystemMessage,
-  ChangeGroupNameSystemMessage,
-  ChangeGroupAvatarSystemMessage,
-  ChangeGroupNotificationSystemMessage,
-  ChangeGroupIntroductionSystemMessage,
-  ChangeGroupOwnerSystemMessage,
-  ChangeGroupMuteAllSystemMessage,
-  ChangeJoinGroupApprovalSystemMessage,
-  ChangeInviteToGroupApprovalSystemMessage,
-  MuteGroupMemberSystemMessage,
-  PinGroupMessageSystemMessage,
-  UnpinGroupMessageSystemMessage
-} from '@tencentcloud/atomicxcore';
-import { TextUtils } from '../../basecomponent/Index';
+import { MessageInfo, MessageType, MessageStatus, TextMessagePayload, AudioMessagePayload, CustomMessagePayload, TipsMessagePayload, GroupTipsInfo, JoinGroup, InviteToGroup, QuitGroup, KickedFromGroup, SetGroupAdmin, CancelGroupAdmin, ChangeGroupName, ChangeGroupAvatar, ChangeGroupNotification, ChangeGroupIntroduction, ChangeGroupOwner, ChangeGroupMuteAll, ChangeJoinGroupApproval, ChangeInviteToGroupApproval, MuteGroupMember, PinGroupMessage, UnpinGroupMessage } from '@tencentcloud/atomicxcore';
+import { ConversationType } from '@tencentcloud/atomicxcore';
+import { GroupJoinOption, GroupInviteOption } from '@tencentcloud/atomicxcore';
+import { GroupMember } from '@tencentcloud/atomicxcore';
 import { CallingMessageDataProvider } from './CallingMessageDataProvider';
-import { util } from '@kit.ArkTS';
+
+interface GroupTipsLike {
+  opUser?: GroupMember;
+  joinMember?: GroupMember;
+  inviter?: GroupMember;
+  invitees?: GroupMember[];
+  quitMember?: GroupMember;
+  kickedMembers?: GroupMember[];
+  setAdminMembers?: GroupMember[];
+  cancelAdminMembers?: GroupMember[];
+  groupName?: string;
+  groupAvatar?: string;
+  groupNotification?: string;
+  groupIntroduction?: string;
+  groupOwner?: string;
+  isMuteAll?: boolean;
+  groupJoinOption?: GroupJoinOption;
+  groupInviteOption?: GroupInviteOption;
+  mutedGroupMembers?: GroupMember[];
+  isSelfMuted?: boolean;
+  muteTime?: number;
+}
 
 export class ReadReceiptLabelInfo {
   text: string;
@@ -38,270 +37,196 @@ export class ReadReceiptLabelInfo {
 }
 
 export class MessageUtils {
-  static isKnownSystemMessage(message: MessageInfo): boolean {
-    const systemMessages = message.messageBody?.systemMessage;
-    if (!systemMessages || systemMessages.length === 0) {
-      return true;
+  // TODO(harmony): IM SDK Harmony 版会把群 @ 系统镜像消息(sender 以 @TIM#SYSTEM 结尾)
+  // 透传到 onRecvNewMessage,Android SDK 在 native 层已消化。SDK 修复后可移除此方法及调用方。
+  static isMentionMirrorMessage(message: MessageInfo): boolean {
+    if (message.messageType === MessageType.TIPS) {
+      return false;
     }
-    const systemInfo = systemMessages[0];
-    return systemInfo instanceof RecallMessageSystemMessage ||
-      systemInfo instanceof JoinGroupSystemMessage ||
-      systemInfo instanceof InviteToGroupSystemMessage ||
-      systemInfo instanceof QuitGroupSystemMessage ||
-      systemInfo instanceof KickedFromGroupSystemMessage ||
-      systemInfo instanceof SetGroupAdminSystemMessage ||
-      systemInfo instanceof CancelGroupAdminSystemMessage ||
-      systemInfo instanceof ChangeGroupNameSystemMessage ||
-      systemInfo instanceof ChangeGroupAvatarSystemMessage ||
-      systemInfo instanceof ChangeGroupNotificationSystemMessage ||
-      systemInfo instanceof ChangeGroupIntroductionSystemMessage ||
-      systemInfo instanceof ChangeGroupOwnerSystemMessage ||
-      systemInfo instanceof ChangeGroupMuteAllSystemMessage ||
-      systemInfo instanceof ChangeJoinGroupApprovalSystemMessage ||
-      systemInfo instanceof ChangeInviteToGroupApprovalSystemMessage ||
-      systemInfo instanceof MuteGroupMemberSystemMessage ||
-      systemInfo instanceof PinGroupMessageSystemMessage ||
-      systemInfo instanceof UnpinGroupMessageSystemMessage;
+    const senderID = message.from?.userID ?? '';
+    return senderID.endsWith('@TIM#SYSTEM');
   }
 
-  static getSystemInfoDisplayString(systemInfo?: SystemMessageInfo): string | Resource {
-    if (!systemInfo) {
-      return "";
+  static getRecallDisplayString(message: MessageInfo): string | Resource {
+    const revokeReason = message.revokeReason ?? '';
+    if (message.conversationType === ConversationType.GROUP) {
+      const revokerName = MessageUtils.revokerDisplayName(message);
+      if (revokerName.length > 0) {
+        if (revokeReason.length > 0) {
+          return `${revokerName}${MessageUtils.resourceToString($r('app.string.message_tips_recall'))}: ${revokeReason}`;
+        }
+        return $r('app.string.message_tips_recall_format', revokerName);
+      }
+      if (revokeReason.length > 0) {
+        return `${MessageUtils.resourceToString($r('app.string.message_tips_normal_recall'))}: ${revokeReason}`;
+      }
+      return $r('app.string.message_tips_normal_recall');
     }
-
-    if (systemInfo instanceof RecallMessageSystemMessage) {
-      return MessageUtils.getRecallDisplayString(systemInfo);
-    } else if (systemInfo instanceof JoinGroupSystemMessage) {
-      return MessageUtils.getJoinGroupDisplayString(systemInfo);
-    } else if (systemInfo instanceof InviteToGroupSystemMessage) {
-      return MessageUtils.getInviteToGroupDisplayString(systemInfo);
-    } else if (systemInfo instanceof QuitGroupSystemMessage) {
-      return MessageUtils.getQuitGroupDisplayString(systemInfo);
-    } else if (systemInfo instanceof KickedFromGroupSystemMessage) {
-      return MessageUtils.getKickedFromGroupDisplayString(systemInfo);
-    } else if (systemInfo instanceof SetGroupAdminSystemMessage) {
-      return MessageUtils.getSetGroupAdminDisplayString(systemInfo);
-    } else if (systemInfo instanceof CancelGroupAdminSystemMessage) {
-      return MessageUtils.getCancelGroupAdminDisplayString(systemInfo);
-    } else if (systemInfo instanceof ChangeGroupNameSystemMessage) {
-      return MessageUtils.getChangeGroupNameDisplayString(systemInfo);
-    } else if (systemInfo instanceof ChangeGroupAvatarSystemMessage) {
-      return MessageUtils.getChangeGroupAvatarDisplayString(systemInfo);
-    } else if (systemInfo instanceof ChangeGroupNotificationSystemMessage) {
-      return MessageUtils.getChangeGroupNotificationDisplayString(systemInfo);
-    } else if (systemInfo instanceof ChangeGroupIntroductionSystemMessage) {
-      return MessageUtils.getChangeGroupIntroductionDisplayString(systemInfo);
-    } else if (systemInfo instanceof ChangeGroupOwnerSystemMessage) {
-      return MessageUtils.getChangeGroupOwnerDisplayString(systemInfo);
-    } else if (systemInfo instanceof ChangeGroupMuteAllSystemMessage) {
-      return MessageUtils.getChangeGroupMuteAllDisplayString(systemInfo);
-    } else if (systemInfo instanceof ChangeJoinGroupApprovalSystemMessage) {
-      return MessageUtils.getChangeJoinGroupApprovalDisplayString(systemInfo);
-    } else if (systemInfo instanceof ChangeInviteToGroupApprovalSystemMessage) {
-      return MessageUtils.getChangeInviteToGroupApprovalDisplayString(systemInfo);
-    } else if (systemInfo instanceof MuteGroupMemberSystemMessage) {
-      return MessageUtils.getMuteGroupMemberDisplayString(systemInfo);
-    } else if (systemInfo instanceof PinGroupMessageSystemMessage) {
-      return MessageUtils.getPinGroupMessageDisplayString(systemInfo);
-    } else if (systemInfo instanceof UnpinGroupMessageSystemMessage) {
-      return MessageUtils.getUnpinGroupMessageDisplayString(systemInfo);
-    } else {
-      return $r('app.string.unknown');
-    }
-  }
-
-  static getRecallDisplayString(systemInfo: RecallMessageSystemMessage): string | Resource {
-    const reason = systemInfo.recallReason || "";
-    if (systemInfo.isRecalledBySelf) {
+    if (message.isSentBySelf) {
+      if (revokeReason.length > 0) {
+        return `${MessageUtils.resourceToString($r('app.string.message_tips_you_recall'))}: ${revokeReason}`;
+      }
       return $r('app.string.message_tips_you_recall');
-    } else if (systemInfo.isInGroup) {
-      const op = systemInfo.recallMessageOperator || "";
-      if (reason) {
-        const baseMessage = $r('app.string.message_tips_recall_format', op);
-        return `${baseMessage}: ${reason}`;
-      } else {
-        return $r('app.string.message_tips_recall_format', op);
-      }
-    } else {
-      return $r('app.string.message_tips_others_recall');
     }
+    if (revokeReason.length > 0) {
+      return `${MessageUtils.resourceToString($r('app.string.message_tips_others_recall'))}: ${revokeReason}`;
+    }
+    return $r('app.string.message_tips_others_recall');
   }
 
-  static getJoinGroupDisplayString(systemInfo: JoinGroupSystemMessage): string | Resource {
-    const name = systemInfo.joinMember || "";
-    return $r('app.string.message_tips_join_group', name);
-  }
+  static getSystemInfoDisplayString(tips?: GroupTipsInfo): string | Resource {
+    if (!tips) {
+      return '';
+    }
 
-  static getInviteToGroupDisplayString(systemInfo: InviteToGroupSystemMessage): string | Resource {
-    const inviter = systemInfo.inviter || "";
-    const invitees = systemInfo.inviteesShowName || "";
-    return $r('app.string.message_tips_invite_join_group', inviter, invitees);
-  }
-
-  static getQuitGroupDisplayString(systemInfo: QuitGroupSystemMessage): string | Resource {
-    const name = systemInfo.quitMember || "";
-    return $r('app.string.message_tips_leave_group', name);
-  }
-
-  static getKickedFromGroupDisplayString(systemInfo: KickedFromGroupSystemMessage): string | Resource {
-    const op = systemInfo.kickOperator || "";
-    const kicked = systemInfo.kickedMembersShowName || "";
-    return $r('app.string.message_tips_kickoff_group', op, kicked);
-  }
-
-  static getSetGroupAdminDisplayString(systemInfo: SetGroupAdminSystemMessage): string | Resource {
-    const name = systemInfo.setAdminMembersShowName || "";
-    return $r('app.string.message_tips_set_admin', name);
-  }
-
-  static getCancelGroupAdminDisplayString(systemInfo: CancelGroupAdminSystemMessage): string | Resource {
-    const name = systemInfo.cancelAdminMembersShowName || "";
-    return $r('app.string.message_tips_cancel_admin', name);
-  }
-
-  static getChangeGroupNameDisplayString(systemInfo: ChangeGroupNameSystemMessage): string | Resource {
-    const op = systemInfo.groupNameOperator || "";
-    const name = systemInfo.groupName || '';
-    return $r('app.string.message_tips_edit_group_name', op, name);
-  }
-
-  static getChangeGroupAvatarDisplayString(systemInfo: ChangeGroupAvatarSystemMessage): string | Resource {
-    const op = systemInfo.groupAvatarOperator || "";
-    return $r('app.string.message_tips_edit_group_avatar', op);
-  }
-
-  static getChangeGroupNotificationDisplayString(systemInfo: ChangeGroupNotificationSystemMessage): string | Resource {
-    const op = systemInfo.groupNotificationOperator || "";
-    const announce = systemInfo.groupNotification || '';
-    return $r('app.string.message_tips_edit_group_announce', op, announce);
-  }
-
-  static getChangeGroupIntroductionDisplayString(systemInfo: ChangeGroupIntroductionSystemMessage): string | Resource {
-    const op = systemInfo.groupIntroductionOperator || "";
-    const intro = systemInfo.groupIntroduction || '';
-    return $r('app.string.message_tips_edit_group_intro', op, intro);
-  }
-
-  static getChangeGroupOwnerDisplayString(systemInfo: ChangeGroupOwnerSystemMessage): string | Resource {
-    const op = systemInfo.groupOwnerOperator || "";
-    const owner = systemInfo.groupOwner || "";
-    return $r('app.string.message_tips_edit_group_owner', op, owner);
-  }
-
-  static getChangeGroupMuteAllDisplayString(systemInfo: ChangeGroupMuteAllSystemMessage): string | Resource {
-    const op = systemInfo.groupMuteAllOperator || "";
-    return systemInfo.isMuteAll ?
-    $r('app.string.message_tips_shutup_all', op) :
-    $r('app.string.message_tips_cancel_shutup_all', op);
-  }
-
-  static getChangeJoinGroupApprovalDisplayString(systemInfo: ChangeJoinGroupApprovalSystemMessage): string | Resource {
-    const op = systemInfo.groupJoinApprovalOperator || "";
-    const approvalDesc = MessageUtils.getJoinApprovalDescription(systemInfo.groupJoinOption);
-    return $r('app.string.message_tips_edit_group_join', op, approvalDesc);
-  }
-
-  static getChangeInviteToGroupApprovalDisplayString(systemInfo: ChangeInviteToGroupApprovalSystemMessage): string | Resource {
-    const op = systemInfo.groupInviteApprovalOperator || "";
-    const approvalDesc = MessageUtils.getInviteApprovalDescription(systemInfo.groupInviteOption);
-    return $r('app.string.message_tips_edit_group_invite', op, approvalDesc);
-  }
-
-  static getMuteGroupMemberDisplayString(systemInfo: MuteGroupMemberSystemMessage): string | Resource {
-    const muteTime = systemInfo.muteTime || 0;
-    const memberShowName = systemInfo.mutedGroupMembersShowName || "";
-    const isSelfMuted = systemInfo.isSelfMuted || false;
-
-    if (muteTime === 0) {
-      if (isSelfMuted) {
-        return $r('app.string.message_tips_self_unmute');
-      } else {
-        return $r('app.string.message_tips_member_unmute', memberShowName || "");
+    const t = tips as GroupTipsLike;
+    if (t.joinMember !== undefined) {
+      return $r('app.string.message_tips_join_group',
+        MessageUtils.memberDisplayName(t.joinMember));
+    } else if (t.invitees !== undefined && t.inviter !== undefined) {
+      return $r('app.string.message_tips_invite_join_group',
+        MessageUtils.memberDisplayName(t.inviter),
+        MessageUtils.joinMemberNames(t.invitees));
+    } else if (t.quitMember !== undefined) {
+      return $r('app.string.message_tips_leave_group',
+        MessageUtils.memberDisplayName(t.quitMember));
+    } else if (t.kickedMembers !== undefined && t.opUser !== undefined) {
+      return $r('app.string.message_tips_kickoff_group',
+        MessageUtils.memberDisplayName(t.opUser),
+        MessageUtils.joinMemberNames(t.kickedMembers));
+    } else if (t.setAdminMembers !== undefined) {
+      return $r('app.string.message_tips_set_admin',
+        MessageUtils.joinMemberNames(t.setAdminMembers));
+    } else if (t.cancelAdminMembers !== undefined) {
+      return $r('app.string.message_tips_cancel_admin',
+        MessageUtils.joinMemberNames(t.cancelAdminMembers));
+    } else if (t.groupName !== undefined && t.opUser !== undefined) {
+      return $r('app.string.message_tips_edit_group_name',
+        MessageUtils.memberDisplayName(t.opUser), t.groupName);
+    } else if (t.groupAvatar !== undefined && t.opUser !== undefined) {
+      return $r('app.string.message_tips_edit_group_avatar',
+        MessageUtils.memberDisplayName(t.opUser));
+    } else if (t.groupNotification !== undefined && t.opUser !== undefined) {
+      return $r('app.string.message_tips_edit_group_announce',
+        MessageUtils.memberDisplayName(t.opUser), t.groupNotification);
+    } else if (t.groupIntroduction !== undefined && t.opUser !== undefined) {
+      return $r('app.string.message_tips_edit_group_intro',
+        MessageUtils.memberDisplayName(t.opUser), t.groupIntroduction);
+    } else if (t.groupOwner !== undefined && t.opUser !== undefined) {
+      return $r('app.string.message_tips_edit_group_owner',
+        MessageUtils.memberDisplayName(t.opUser), t.groupOwner);
+    } else if (t.isMuteAll !== undefined && t.opUser !== undefined) {
+      const op = MessageUtils.memberDisplayName(t.opUser);
+      return t.isMuteAll ?
+        $r('app.string.message_tips_shutup_all', op) :
+        $r('app.string.message_tips_cancel_shutup_all', op);
+    } else if (t.groupJoinOption !== undefined && t.opUser !== undefined) {
+      return $r('app.string.message_tips_edit_group_join',
+        MessageUtils.memberDisplayName(t.opUser),
+        MessageUtils.getJoinApprovalDescription(t.groupJoinOption));
+    } else if (t.groupInviteOption !== undefined && t.opUser !== undefined) {
+      return $r('app.string.message_tips_edit_group_invite',
+        MessageUtils.memberDisplayName(t.opUser),
+        MessageUtils.getInviteApprovalDescription(t.groupInviteOption));
+    } else if (t.mutedGroupMembers !== undefined) {
+      const memberShowName = MessageUtils.joinMemberNames(t.mutedGroupMembers);
+      const isSelfMuted = t.isSelfMuted ?? false;
+      const muteTime = t.muteTime ?? 0;
+      if (muteTime === 0) {
+        if (isSelfMuted) {
+          return $r('app.string.message_tips_self_unmute');
+        }
+        return $r('app.string.message_tips_member_unmute', memberShowName);
       }
-    } else {
       const duration = MessageUtils.formatMuteTime(muteTime);
       if (isSelfMuted) {
         return $r('app.string.message_tips_self_mute', duration);
-      } else {
-        return $r('app.string.message_tips_member_mute', memberShowName || "", duration);
       }
+      return $r('app.string.message_tips_member_mute', memberShowName, duration);
+    } else if (tips instanceof PinGroupMessage && t.opUser !== undefined) {
+      return $r('app.string.message_tips_group_pin',
+        MessageUtils.memberDisplayName(t.opUser));
+    } else if (tips instanceof UnpinGroupMessage && t.opUser !== undefined) {
+      return $r('app.string.message_tips_group_unpin',
+        MessageUtils.memberDisplayName(t.opUser));
+    } else {
+      return '';
     }
-  }
-
-  static getPinGroupMessageDisplayString(systemInfo: PinGroupMessageSystemMessage): string | Resource {
-    const op = systemInfo.pinGroupMessageOperator || "";
-    return $r('app.string.message_tips_group_pin', op);
-  }
-
-  static getUnpinGroupMessageDisplayString(systemInfo: UnpinGroupMessageSystemMessage): string | Resource {
-    const op = systemInfo.unpinGroupMessageOperator || "";
-    return $r('app.string.message_tips_group_unpin', op);
   }
 
   static getMessageAbstract(messageInfo?: MessageInfo): string | Resource {
     if (!messageInfo) {
-      return "";
+      return '';
     }
 
     switch (messageInfo.messageType) {
-      case MessageType.Text:
-        return messageInfo.messageBody?.text || "";
-      case MessageType.Image:
+      case MessageType.TEXT: {
+        const textPayload = messageInfo.messagePayload as TextMessagePayload | undefined;
+        return textPayload?.text || '';
+      }
+      case MessageType.IMAGE:
         return $r('app.string.message_type_image');
-      case MessageType.Sound:
+      case MessageType.AUDIO:
         return $r('app.string.message_type_voice');
-      case MessageType.File:
+      case MessageType.FILE:
         return $r('app.string.message_type_file');
-      case MessageType.Video:
+      case MessageType.VIDEO:
         return $r('app.string.message_type_video');
-      case MessageType.Face:
+      case MessageType.FACE:
         return $r('app.string.message_type_animate_emoji');
-      case MessageType.Merged:
+      case MessageType.MERGED:
         return $r('app.string.message_type_merged');
-      case MessageType.Custom:
-        const customMessage = messageInfo.messageBody?.customMessage;
-        const data = customMessage?.data;
-        if (data) {
-          const textDecoder = new util.TextDecoder('utf-8');
-          const dataStr = textDecoder.decode(new Uint8Array(data));
-          if (dataStr) {
-            try {
-              const customInfo = JSON.parse(dataStr) as Record<string, string | number | boolean | object>;
-              const callingProvider = new CallingMessageDataProvider(messageInfo);
-              if (callingProvider.isCallingSignal) {
-                return callingProvider.content;
-              }
-              if (customInfo && customInfo["businessID"] === "group_create") {
-                const sender = customInfo["opUser"] as string || "";
-                const cmd = customInfo["cmd"] as number || 0;
-                if (cmd === 1) {
-                  return $r('app.string.community_create_tips_format', sender);
-                } else {
-                  return $r('app.string.group_create_tips_format', sender);
-                }
-              } else {
-                return $r('app.string.message_tips_unsupport_custom');
-              }
-            } catch (e) {
-              console.error("error:", e.message);
-            }
-          }
+      case MessageType.CUSTOM: {
+        const customPayload = messageInfo.messagePayload as CustomMessagePayload | undefined;
+        const dataStr = customPayload?.customData;
+        if (!dataStr) {
           return $r('app.string.message_tips_unsupport_custom');
         }
-      case MessageType.System:
-        const systemMessages = messageInfo.messageBody?.systemMessage;
-        if (systemMessages && systemMessages.length > 0) {
-          return MessageUtils.getSystemInfoDisplayString(systemMessages[0]);
+        try {
+          const customInfo = JSON.parse(dataStr) as Record<string, string | number | boolean | object>;
+          const callingProvider = new CallingMessageDataProvider(messageInfo);
+          if (callingProvider.isCallingSignal) {
+            return callingProvider.content;
+          }
+          if (customInfo && customInfo['businessID'] === 'group_create') {
+            const sender = customInfo['opUser'] as string || '';
+            const cmd = customInfo['cmd'] as number || 0;
+            if (cmd === 1) {
+              return $r('app.string.community_create_tips_format', sender);
+            }
+            return $r('app.string.group_create_tips_format', sender);
+          }
+          if (customInfo && customInfo['businessID'] === 'text_link') {
+            const text = customInfo['text'];
+            if (typeof text === 'string' && text.length > 0) {
+              return text;
+            }
+            return $r('app.string.message_tips_unsupport_custom');
+          }
+          return $r('app.string.message_tips_unsupport_custom');
+        } catch (e) {
+          return $r('app.string.message_tips_unsupport_custom');
         }
-        return "";
+      }
+      case MessageType.TIPS: {
+        if (messageInfo.status === MessageStatus.REVOKED) {
+          return MessageUtils.getRecallDisplayString(messageInfo);
+        }
+        const tipsPayload = messageInfo.messagePayload as TipsMessagePayload | undefined;
+        const tipsList = tipsPayload?.groupTips;
+        if (tipsList && tipsList.length > 0) {
+          return MessageUtils.getSystemInfoDisplayString(tipsList[0]);
+        }
+        return '';
+      }
       default:
-        return "";
+        return '';
     }
   }
 
   static formatMuteTime(seconds: number): string {
     if (seconds <= 0) {
-      return "";
+      return '';
     }
 
     let timeStr = `${seconds} second${seconds > 1 ? 's' : ''}`;
@@ -332,12 +257,11 @@ export class MessageUtils {
 
   static convertDateToHMStr(timeStamp?: number): string {
     if (!timeStamp) {
-      return "";
+      return '';
     }
     if (timeStamp === 0) {
-      return "";
+      return '';
     }
-
     const date = new Date(timeStamp * 1000);
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
@@ -345,34 +269,82 @@ export class MessageUtils {
   }
 
   private static getJoinApprovalDescription(option?: GroupJoinOption): string | Resource {
-    try {
-      switch (option) {
-        case GroupJoinOption.FORBID:
-          return $r('app.string.group_join_disable');
-        case GroupJoinOption.AUTH:
-          return $r('app.string.group_admin_approve');
-        case GroupJoinOption.ANY:
-          return $r('app.string.group_auto_approval');
-        default:
-          return $r('app.string.unknown');
-      }
-    } catch (error) {
-      console.error('[MessageUtils] Failed to get join approval description:', error);
-      return '';
-    }
-  }
-
-  private static getInviteApprovalDescription(option?: GroupJoinOption): string | Resource {
     switch (option) {
       case GroupJoinOption.FORBID:
-        return $r('app.string.group_invite_disable');
+        return $r('app.string.group_join_disable');
       case GroupJoinOption.AUTH:
         return $r('app.string.group_admin_approve');
       case GroupJoinOption.ANY:
         return $r('app.string.group_auto_approval');
       default:
-        return $r('app.string.unknown');
+        return $r('app.string.group_admin_approve');
     }
+  }
+
+  private static getInviteApprovalDescription(option?: GroupInviteOption): string | Resource {
+    switch (option) {
+      case GroupInviteOption.FORBID:
+        return $r('app.string.group_invite_disable');
+      case GroupInviteOption.AUTH:
+        return $r('app.string.group_admin_approve');
+      case GroupInviteOption.ANY:
+        return $r('app.string.group_auto_approval');
+      default:
+        return $r('app.string.group_admin_approve');
+    }
+  }
+
+  private static memberDisplayName(member: GroupMember): string {
+    if (member.nameCard && member.nameCard.length > 0) {
+      return member.nameCard;
+    }
+    if (member.friendRemark && member.friendRemark.length > 0) {
+      return member.friendRemark;
+    }
+    if (member.nickname && member.nickname.length > 0) {
+      return member.nickname;
+    }
+    return member.userID;
+  }
+
+  private static revokerDisplayName(message: MessageInfo): string {
+    const revoker = message.revokerInfo;
+    if (!revoker) {
+      return '';
+    }
+    if (revoker.nickname && revoker.nickname.length > 0) {
+      return revoker.nickname;
+    }
+    return revoker.userID ?? '';
+  }
+
+  private static resourceToString(resource: Resource): string {
+    try {
+      return getContext().resourceManager.getStringSync(resource.id);
+    } catch (e) {
+      return '';
+    }
+  }
+
+  private static joinMemberNames(members: GroupMember[]): string {
+    return members.map((m: GroupMember) => MessageUtils.memberDisplayName(m)).join(', ');
+  }
+
+  static senderDisplayName(message: MessageInfo): string {
+    const sender = message.from;
+    if (!sender) {
+      return '';
+    }
+    if (sender.nameCard && sender.nameCard.length > 0) {
+      return sender.nameCard;
+    }
+    if (sender.friendRemark && sender.friendRemark.length > 0) {
+      return sender.friendRemark;
+    }
+    if (sender.nickname && sender.nickname.length > 0) {
+      return sender.nickname;
+    }
+    return sender.userID ?? '';
   }
 
   static getMessageAbstractString(messageInfo?: MessageInfo): string {
@@ -387,25 +359,27 @@ export class MessageUtils {
     }
   }
 
-  static shouldShowReadReceipt(message: MessageInfo, enableReadReceipt: boolean, isInMergedDetailView: boolean = false): boolean {
+  static shouldShowReadReceipt(message: MessageInfo, enableReadReceipt: boolean,
+    isInMergedDetailView: boolean = false): boolean {
     return !isInMergedDetailView &&
       enableReadReceipt === true &&
-      message.isSelf === true &&
+      message.isSentBySelf === true &&
       !!message.needReadReceipt &&
-      message.status === MessageStatus.sendSuccess &&
-      message.messageType !== MessageType.System;
+      message.status === MessageStatus.SEND_SUCCESS &&
+      message.messageType !== MessageType.TIPS;
   }
 
   static getReadReceiptIconResource(message: MessageInfo): Resource {
-    const isGroup = !!message.groupID && message.groupID.length > 0;
+    const isGroup = message.conversationType === ConversationType.GROUP;
 
     if (!isGroup) {
-      const peerRead = message.receipt?.isPeerRead === true;
-      return peerRead ? $rawfile('messagelist/msg_status_all_people_read.svg') : $rawfile('messagelist/msg_status_send_succ.svg');
+      const peerRead = message.readReceiptInfo?.isPeerRead === true;
+      return peerRead ? $rawfile('messagelist/msg_status_all_people_read.svg') :
+        $rawfile('messagelist/msg_status_send_succ.svg');
     }
 
-    const readCount = message.receipt?.readCount ?? 0;
-    const unreadCount = message.receipt?.unreadCount ?? 0;
+    const readCount = message.readReceiptInfo?.readCount ?? 0;
+    const unreadCount = message.readReceiptInfo?.unreadCount ?? 0;
     const totalCount = readCount + unreadCount;
 
     if (readCount === 0) {
@@ -420,56 +394,78 @@ export class MessageUtils {
   }
 
   static getReadReceiptLabelInfo(message: MessageInfo): ReadReceiptLabelInfo | null {
-    const isGroup = !!message.groupID && message.groupID.length > 0;
+    const isGroup = message.conversationType === ConversationType.GROUP;
 
     if (!isGroup) {
-      const peerRead = message.receipt?.isPeerRead === true;
+      const peerRead = message.readReceiptInfo?.isPeerRead === true;
       if (peerRead) {
-        return new ReadReceiptLabelInfo(getContext().resourceManager.getStringSync($r('app.string.read_receipt_read_by').id), false);
-      } else {
-        return new ReadReceiptLabelInfo(getContext().resourceManager.getStringSync($r('app.string.read_receipt_delivered_to').id), true);
+        return new ReadReceiptLabelInfo(
+          getContext().resourceManager.getStringSync($r('app.string.read_receipt_read_by').id), false);
       }
+      return new ReadReceiptLabelInfo(
+        getContext().resourceManager.getStringSync($r('app.string.read_receipt_delivered_to').id), true);
     }
 
-    const readCount = message.receipt?.readCount ?? 0;
-    const unreadCount = message.receipt?.unreadCount ?? 0;
+    const readCount = message.readReceiptInfo?.readCount ?? 0;
+    const unreadCount = message.readReceiptInfo?.unreadCount ?? 0;
     const totalCount = readCount + unreadCount;
 
     if (totalCount > 0 && readCount === totalCount) {
-      return new ReadReceiptLabelInfo(getContext().resourceManager.getStringSync($r('app.string.read_receipt_all_read').id), false);
-    } else if (readCount > 0) {
+      return new ReadReceiptLabelInfo(
+        getContext().resourceManager.getStringSync($r('app.string.read_receipt_all_read').id), false);
+    }
+    if (readCount > 0) {
       try {
         const template = getContext().resourceManager.getStringSync($r('app.string.read_receipt_n_person_read').id);
         return new ReadReceiptLabelInfo(template.replace('%d', readCount.toString()), true);
       } catch (e) {
         return new ReadReceiptLabelInfo(`${readCount}`, true);
       }
-    } else {
-      return new ReadReceiptLabelInfo(getContext().resourceManager.getStringSync($r('app.string.read_receipt_delivered_to').id), true);
     }
+    return new ReadReceiptLabelInfo(
+      getContext().resourceManager.getStringSync($r('app.string.read_receipt_delivered_to').id), true);
   }
 
-  /**
-   * Compute a stable hash from message properties for LazyForEach key generation.
-   */
   static getMessageStateHash(message: MessageInfo): string {
     try {
       const stateObj: Map<string, Object | undefined> = new Map();
       stateObj.set('msgID', message.msgID);
       stateObj.set('status', message.status);
       stateObj.set('timestamp', message.timestamp);
-      stateObj.set('isSelf', message.isSelf);
+      stateObj.set('isSentBySelf', message.isSentBySelf);
       stateObj.set('messageType', message.messageType);
-      // Receipt info
-      stateObj.set('receiptIsPeerRead', message.receipt?.isPeerRead);
-      stateObj.set('receiptReadCount', message.receipt?.readCount);
-      stateObj.set('receiptUnreadCount', message.receipt?.unreadCount);
-      // Other reactive properties
-      stateObj.set('progress', message.progress);
+      stateObj.set('receiptIsPeerRead', message.readReceiptInfo?.isPeerRead);
+      stateObj.set('receiptReadCount', message.readReceiptInfo?.readCount);
+      stateObj.set('receiptUnreadCount', message.readReceiptInfo?.unreadCount);
+      stateObj.set('uploadProgress', message.uploadMediaProgress);
+      stateObj.set('downloadProgress', message.downloadMediaProgress);
       stateObj.set('extensionListLength', message.extensionList?.length);
       stateObj.set('reactionListLength', message.reactionList?.length);
+      if (message.quoteInfo) {
+        stateObj.set('quoteMsgID', message.quoteInfo.msgID);
+        stateObj.set('quoteStatus', message.quoteInfo.status);
+        stateObj.set('quoteMessageType', message.quoteInfo.messageType);
+        if (message.quoteInfo.messagePayload instanceof TextMessagePayload) {
+          stateObj.set('quoteTextLength', message.quoteInfo.messagePayload.text?.length);
+        }
+      }
+      const reactionList = message.reactionList;
+      if (reactionList && reactionList.length > 0) {
+        const reactionSignature = reactionList
+          .map((r) => `${r.reactionID}:${r.totalUserCount ?? 0}:${r.reactedByMyself ? 1 : 0}`)
+          .join('|');
+        stateObj.set('reactionSignature', reactionSignature);
+      }
 
-      // Convert Map to array for JSON serialization
+      if (message.messageType === MessageType.TEXT) {
+        const textPayload = message.messagePayload as TextMessagePayload | undefined;
+        stateObj.set('translatedSize', textPayload?.translatedText?.size);
+        stateObj.set('translateLanguage', textPayload?.translateLanguage);
+      } else if (message.messageType === MessageType.AUDIO) {
+        const audioPayload = message.messagePayload as AudioMessagePayload | undefined;
+        stateObj.set('asrTextLength', audioPayload?.asrText?.length);
+      }
+
       const entries: Array<[string, Object | undefined]> = [];
       stateObj.forEach((value: Object | undefined, key: string) => {
         entries.push([key, value]);
@@ -482,8 +478,7 @@ export class MessageUtils {
       }
       return hash.toString();
     } catch (e) {
-      // Fallback to stable ID
-      return message.ID;
+      return message.msgID;
     }
   }
 }

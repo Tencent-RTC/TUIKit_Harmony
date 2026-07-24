@@ -1,6 +1,5 @@
-import { MessageInfo, MessageStatus } from '@tencentcloud/atomicxcore';
+import { MessageInfo, MessageStatus, MessagePayload } from '@tencentcloud/atomicxcore';
 import { ThemeState } from '../../basecomponent/Index';
-import { MessageBody, MessageListStore } from '@tencentcloud/atomicxcore';
 import { MessageRenderContext } from '../context/MessageRenderContext';
 import {
   CallingMessageDataProvider,
@@ -13,7 +12,7 @@ import {
 @Component
 export struct CallMessageSystemViewContent {
   @State message?: MessageInfo = undefined;
-  @ObjectLink messageBody: MessageBody;
+  @ObjectLink messagePayload: MessagePayload;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
 
   build() {
@@ -70,7 +69,7 @@ export struct CallMessageSystemViewContent {
 @Component
 export struct CallMessageBubbleViewContent {
   @State message?: MessageInfo = undefined;
-  @ObjectLink messageBody: MessageBody;
+  @ObjectLink messagePayload: MessagePayload;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
 
   private getEffectiveIsSelf(): boolean {
@@ -80,7 +79,7 @@ export struct CallMessageBubbleViewContent {
         return callingProvider.direction === CallMessageDirection.outcoming;
       }
     }
-    return this.message?.isSelf ?? false;
+    return this.message?.isSentBySelf ?? false;
   }
 
   build() {
@@ -165,20 +164,20 @@ export function shouldHideCallingMessage(message: MessageInfo): boolean {
 
 @Builder
 export function CallMessageView(context: MessageRenderContext) {
-  if (context.message && context.message.messageBody) {
+  if (context.message && context.message.messagePayload) {
     CallMessageSystemViewContent({
       message: context.message,
-      messageBody: context.message.messageBody
+      messagePayload: context.message.messagePayload
     })
   }
 }
 
 @Builder
 export function CallMessageBubbleView(context: MessageRenderContext) {
-  if (context.message && context.message.messageBody) {
+  if (context.message && context.message.messagePayload) {
     CallMessageBubbleViewContent({
       message: context.message,
-      messageBody: context.message.messageBody
+      messagePayload: context.message.messagePayload
     })
   }
 }

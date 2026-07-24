@@ -1,5 +1,6 @@
-import { ErrorInfo, ContactInfo, ContactListState, ContactListStore } from '@tencentcloud/atomicxcore';
+import { ContactInfo, ContactState, ContactStore } from '@tencentcloud/atomicxcore';
 import { Avatar, AvatarContentType, AvatarSize, ThemeState } from '../../../basecomponent/Index';
+import { CompletionHandlerAdapter } from '../../../basecomponent/utils/CompletionHandlers';
 
 @Component
 export struct BlackListView {
@@ -7,13 +8,13 @@ export struct BlackListView {
   // Theme management
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   onShowProfile?: (item: ContactInfo) => void;
-  @ObjectLink contactListStore: ContactListStore;
-  @State private contactListState: ContactListState = this.contactListStore.state;
+  @ObjectLink contactStore: ContactStore;
+  @State private contactState: ContactState = this.contactStore.state as ContactState;
   @State private isLoading: boolean = true;
 
   aboutToAppear() {
     console.info('BlackListPage aboutToAppear');
-    this.contactListState = this.contactListStore.state;
+    this.contactState = this.contactStore.state as ContactState;
     this.loadBlackList();
   }
 
@@ -34,7 +35,7 @@ export struct BlackListView {
 
       if (this.isLoading) {
         this.buildLoadingState()
-      } else if (this.contactListState.blackListDataSource.totalCount() === 0) {
+      } else if (this.contactState.blackList.length === 0) {
         this.buildEmptyState()
       } else {
         this.buildBlackList()
@@ -96,11 +97,11 @@ export struct BlackListView {
   @Builder
   buildBlackList() {
     List() {
-      LazyForEach(this.contactListState.blackListDataSource, (blackListInfo: ContactInfo) => {
+      ForEach(this.contactState.blackList, (blackListInfo: ContactInfo) => {
         ListItem() {
           this.buildBlackListItem(blackListInfo)
         }
-      }, (blackListInfo: ContactInfo) => blackListInfo.contactID || '')
+      }, (blackListInfo: ContactInfo) => blackListInfo.userID || '')
     }
     .width('100%')
     .layoutWeight(1)
@@ -121,13 +122,13 @@ export struct BlackListView {
         content: {
           type: AvatarContentType.Image,
           url: blackListInfo.avatarURL,
-          name: blackListInfo.title || blackListInfo.contactID || '',
+          name: blackListInfo.nickname || blackListInfo.userID || '',
         },
         avatarSize: AvatarSize.M,
       })
       // User info
       Column() {
-        Text(blackListInfo.title || blackListInfo.contactID || '')
+        Text(blackListInfo.nickname || blackListInfo.userID || '')
           .fontSize(14)
           .fontColor(this.themeState.colors.textColorPrimary)
           .fontWeight(FontWeight.Normal)
@@ -196,20 +197,18 @@ export struct BlackListView {
     }
   }
 
-  private async loadBlackList() {
-    try {
-      this.isLoading = true;
-      await this.contactListStore.fetchBlackList();
-    } catch (error) {
-      const errorResult = error as ErrorInfo;
-      console.error('Failed to load black list:', error.errorMessage);
-    } finally {
+  private loadBlackList() {
+    this.isLoading = true;
+    this.contactStore.loadBlackList(new CompletionHandlerAdapter(() => {
       this.isLoading = false;
-    }
+    }, (code: number, desc: string) => {
+      console.error('Failed to load black list:', code, desc);
+      this.isLoading = false;
+    }));
   }
 
   private showUnblockDialog(blackListInfo: ContactInfo) {
-    const userName = blackListInfo.title || blackListInfo.contactID || '';
+    const userName = blackListInfo.nickname || blackListInfo.userID || '';
     AlertDialog.show({
       title: $r('app.string.unblock_user_title'),
       message: `确定要解除黑名单 ${userName}？`,
@@ -228,17 +227,11 @@ export struct BlackListView {
     });
   }
 
-  private async unblockUser(blackListInfo: ContactInfo) {
-    try {
-
-
-      // await this.contactListStore.removeFromBlackList(blackListInfo.identifier);
-
-
-      await this.loadBlackList();
-    } catch (error) {
-      const errorResult = error as ErrorInfo;
-      console.error('Failed to unblock user:', error.errorMessage);
-    }
+  private unblockUser(blackListInfo: ContactInfo) {
+    this.contactStore.removeFromBlacklist(blackListInfo.userID, new CompletionHandlerAdapter(() => {
+      this.loadBlackList();
+    }, (code: number, desc: string) => {
+      console.error('Failed to unblock user:', code, desc);
+    }));
   }
 }

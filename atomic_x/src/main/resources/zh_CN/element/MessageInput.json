@@ -66,7 +66,7 @@
     },
     {
       "name": "menu_custom",
-      "value": "自定义"
+      "value": "自定义消息"
     },
     {
       "name": "cancel",
@@ -111,6 +111,30 @@
     {
       "name": "voice_release_to_send",
       "value": "松开发送"
+    },
+    {
+      "name": "voice_release_to_end",
+      "value": "松开 结束"
+    },
+    {
+      "name": "voice_release_to_cancel_short",
+      "value": "松开 取消"
+    },
+    {
+      "name": "voice_release_to_transcribe",
+      "value": "松开 转文字"
+    },
+    {
+      "name": "voice_transcription_action",
+      "value": "转文字"
+    },
+    {
+      "name": "voice_transcription_send_original_voice",
+      "value": "原语音"
+    },
+    {
+      "name": "voice_transcription_empty",
+      "value": "未识别到文字"
     },
     {
       "name": "mention_all",

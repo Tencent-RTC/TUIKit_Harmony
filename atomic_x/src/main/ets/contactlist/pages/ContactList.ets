@@ -1,5 +1,7 @@
 import { BadgeControl, BadgeType, ThemeState, AZOrderedList, AZOrderedListItem, AZOrderedListConfig } from '../../basecomponent/Index';
-import { ErrorInfo, ContactInfo, ContactListState, ContactListStore } from '@tencentcloud/atomicxcore';
+import { ContactInfo, ContactState, ContactStore } from '@tencentcloud/atomicxcore';
+import { GroupState, GroupStore } from '@tencentcloud/atomicxcore';
+import { CompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 import { GroupListView } from './manager/GroupListView';
 import { BlackListView } from './manager/BlackListView';
 import { FriendApplicationListView } from './manager/FriendApplicationListView';
@@ -15,8 +17,10 @@ export struct ContactList {
   private static readonly NOTIFICATION_BADGE_SIZE: number = 20;
   // Theme management
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
-  @ObjectLink contactListStore: ContactListStore;
-  @State private contactListState: ContactListState = this.contactListStore.state;
+  @ObjectLink contactStore: ContactStore;
+  @ObjectLink groupStore: GroupStore;
+  @State private contactState: ContactState = this.contactStore.state as ContactState;
+  @State private groupState: GroupState = this.groupStore.state as GroupState;
   // State management
   @State isLoading: boolean = false;
   @State showSearchResults: boolean = false;
@@ -29,25 +33,19 @@ export struct ContactList {
   private groupListDialogController: CustomDialogController | null = null;
   private blackListDialogController: CustomDialogController | null = null;
   @State private dialogAnimationOffset: number = 0;
-  private dataChangeListener?: DataChangeListener | undefined;
 
   aboutToAppear() {
-    this.registerDataSourceListener();
-    this.contactListState = this.contactListStore.state;
-    
-    // Initialize contact items
-    this.contactItems = this.convertContactsToAZOrderedListItems();
+    this.contactState = this.contactStore.state as ContactState;
+    this.groupState = this.groupStore.state as GroupState;
 
     this.fetchContactList();
     console.info('ContactListPage aboutToAppear');
-    this.contactListStore.fetchBlackList();
-
-    this.contactListStore.fetchFriendApplicationList();
-    this.contactListStore.fetchGroupApplicationList();
+    this.contactStore.loadBlackList();
+    this.contactStore.loadFriendApplications();
+    this.groupStore.loadApplications();
   }
 
   aboutToDisappear() {
-    this.unregisterDataSourceListener();
   }
 
 
@@ -63,9 +61,9 @@ export struct ContactList {
           .layoutWeight(1)
 
         Row() {
-          if (this.contactListState.friendApplicationUnreadCount > 0) {
+          if (this.contactState.friendApplicationUnreadCount > 0) {
             BadgeControl({
-              text: this.contactListState.friendApplicationUnreadCount.toString(),
+              text: this.contactState.friendApplicationUnreadCount.toString(),
               type: BadgeType.Text
             })
               .margin({ right: 8 })
@@ -95,9 +93,9 @@ export struct ContactList {
           .layoutWeight(1)
 
         Row() {
-          if (this.contactListState.groupApplicationUnreadCount > 0) {
+          if (this.groupState.unreadApplicationCount > 0) {
             BadgeControl({
-              text: this.contactListState.groupApplicationUnreadCount.toString(),
+              text: this.groupState.unreadApplicationCount.toString(),
               type: BadgeType.Text
             })
               .margin({ right: 8 })
@@ -188,7 +186,7 @@ export struct ContactList {
   @Builder
   GroupedContactListBuilder() {
     AZOrderedList({
-      dataSource: this.contactItems,
+      dataSource: this.convertContactsToAZOrderedListItems(),
       config: { showIndexBar: true },
       header: this.getHeaderBuilder(),
       onItemClick: (item: AZOrderedListItem<ContactInfo>) => {
@@ -280,7 +278,7 @@ export struct ContactList {
 
         if (this.isLoading) {
           this.LoadingStateBuilder()
-        } else if (this.contactListState.contactDataSource.totalCount() === 0) {
+        } else if (this.contactState.friendList.length === 0) {
           Column() {
             this.ManagementSectionBuilder()
             this.EmptyStateBuilder()
@@ -298,74 +296,14 @@ export struct ContactList {
     .backgroundColor(this.themeState.colors.bgColorOperate)
   }
 
-  private registerDataSourceListener() {
-    this.dataChangeListener = {
-      // BasicDataSource
-      onDataReloaded: () => {
-        this.onDataSourceChanged();
-      },
-      onDataAdd: (index: number) => {
-        this.onDataSourceChanged();
-      },
-      onDataChange: (index: number) => {
-        this.onDataSourceChanged();
-      },
-      onDataDelete: (index: number) => {
-        this.onDataSourceChanged();
-      },
-      onDataMove: (from: number, to: number) => {
-        this.onDataSourceChanged();
-      },
-      onDataAdded: (index: number) => {
-        this.onDataSourceChanged();
-      },
-      onDataChanged: (index: number) => {
-        this.onDataSourceChanged();
-      },
-      onDataDeleted: (index: number) => {
-        this.onDataSourceChanged();
-      },
-      onDataMoved: (from: number, to: number) => {
-        this.onDataSourceChanged();
-      },
-      onDatasetChange: () => {
-        this.onDataSourceChanged();
-      }
-    };
-    if (this.dataChangeListener) {
-      this.contactListState.contactDataSource.registerDataChangeListener(this.dataChangeListener);
-    }
-  }
-
-  private unregisterDataSourceListener() {
-    if (this.dataChangeListener) {
-      this.contactListState.contactDataSource.unregisterDataChangeListener(this.dataChangeListener);
-      this.dataChangeListener = undefined;
-    }
-  }
-
-  private onDataSourceChanged() {
-    // Update contact items state to trigger UI refresh
-    const newItems = this.convertContactsToAZOrderedListItems();
-    console.info('[ContactList] Data source changed, old items:', this.contactItems.length, 'new items:', newItems.length);
-    this.contactItems = newItems;
-    console.info('[ContactList] Contact items updated, first 3:', this.contactItems.slice(0, 3).map(item => item.label));
-  }
-
-
   private fetchContactList() {
 
     this.isLoading = true;
-    this.contactListStore.fetchFriendList()
-      .then(() => {
-        this.isLoading = false;
-        // Update contact items after successful fetch
-        this.contactItems = this.convertContactsToAZOrderedListItems();
-      })
-      .catch((error: ErrorInfo) => {
-
-        this.isLoading = false;
-      });
+    this.contactStore.loadFriends(new CompletionHandlerAdapter(() => {
+      this.isLoading = false;
+    }, () => {
+      this.isLoading = false;
+    }));
 
 
     setTimeout(() => {
@@ -377,34 +315,34 @@ export struct ContactList {
   }
 
   private getContactDisplayName(contact: ContactInfo): string {
-    return contact.title || contact.contactID || '';
+    return (contact.friendRemark && contact.friendRemark.length > 0) ? contact.friendRemark
+      : (contact.nickname && contact.nickname.length > 0) ? contact.nickname
+        : contact.userID || '';
   }
 
   // Convert ContactInfo to AZOrderedListItem
-  @State private contactItems: AZOrderedListItem<ContactInfo>[] = [];
-  
   private convertContactsToAZOrderedListItems(): AZOrderedListItem<ContactInfo>[] {
     const items: AZOrderedListItem<ContactInfo>[] = [];
-    
-    for (let i = 0; i < this.contactListState.contactDataSource.totalCount(); i++) {
-      const contact = this.contactListState.contactDataSource.getData(i);
+
+    for (let i = 0; i < this.contactState.friendList.length; i++) {
+      const contact = this.contactState.friendList[i];
       if (contact) {
         items.push({
-          key: contact.contactID,
+          key: contact.userID,
           label: this.getContactDisplayName(contact),
           avatarUrl: contact.avatarURL,
           extraData: contact
         });
       }
     }
-    
+
     return items;
   }
 
   // Convert search results to AZOrderedListItem
   private convertSearchResultsToAZOrderedListItems(): AZOrderedListItem<ContactInfo>[] {
     return this.searchResults.map((contact: ContactInfo): AZOrderedListItem<ContactInfo> => ({
-      key: contact.contactID,
+      key: contact.userID,
       label: this.getContactDisplayName(contact),
       avatarUrl: contact.avatarURL,
       extraData: contact
@@ -416,7 +354,7 @@ export struct ContactList {
   FriendApplicationDialogBuilder() {
     Column() {
       FriendApplicationListView({
-        contactListStore: this.contactListStore,
+        contactStore: this.contactStore,
         onBack: () => {
           this.friendApplicationDialogController?.close();
           this.friendApplicationDialogController = null;
@@ -440,7 +378,7 @@ export struct ContactList {
   GroupApplicationDialogBuilder() {
     Column() {
       GroupApplicationListView({
-        contactListStore: this.contactListStore,
+        groupStore: this.groupStore,
         onBack: () => {
           this.groupApplicationDialogController?.close();
           this.groupApplicationDialogController = null;
@@ -464,13 +402,13 @@ export struct ContactList {
   GroupListDialogBuilder() {
     Column() {
       GroupListView({
-        contactListStore: this.contactListStore,
+        groupStore: this.groupStore,
         onBack: () => {
           this.groupListDialogController?.close();
           this.groupListDialogController = null;
         },
         onShowProfile: (group: ContactInfo) => {
-          console.log('[ContactList] Selected group:', group.title);
+          console.log('[ContactList] Selected group:', group.nickname);
           this.groupListDialogController?.close();
           this.groupListDialogController = null;
           // Trigger onGroupClick callback
@@ -497,7 +435,7 @@ export struct ContactList {
   BlackListDialogBuilder() {
     Column() {
       BlackListView({
-        contactListStore: this.contactListStore,
+        contactStore: this.contactStore,
         onBack: () => {
           this.blackListDialogController?.close();
           this.blackListDialogController = null;

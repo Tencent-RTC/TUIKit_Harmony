@@ -7,6 +7,7 @@ export interface AuxiliaryTextMenuItemConfig {
   text: Resource;
   icon: Resource;
   onClick: () => void;
+  hidden?: boolean;
 }
 
 /**
@@ -21,7 +22,7 @@ export struct AuxiliaryTextPopupMenu {
 
   build() {
     Row() {
-      ForEach(this.menuItems, (item: AuxiliaryTextMenuItemConfig, index: number) => {
+      ForEach(this.menuItems.filter((item: AuxiliaryTextMenuItemConfig) => !item.hidden), (item: AuxiliaryTextMenuItemConfig, index: number) => {
         this.MenuItem(item)
       }, (item: AuxiliaryTextMenuItemConfig, index: number) => `${index}`)
     }

@@ -1,0 +1,171 @@
+import { ThemeState } from '../../basecomponent/Index';
+
+type VoiceTranscriptionDraftState = 'loading' | 'empty' | 'text';
+
+@Component
+export struct VoiceTranscriptionDraftView {
+  @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
+
+  @Prop audioDuration: number = 0;
+  @Prop text: string = '';
+  @Prop isLoading: boolean = false;
+
+  onCancel?: () => void;
+  onSendAudio?: () => void;
+  onSendText?: (text: string) => void;
+
+  @State private draftText: string = '';
+  private controller: TextAreaController = new TextAreaController();
+
+  aboutToAppear(): void {
+    this.draftText = this.text;
+  }
+
+  aboutToDisappear(): void {
+    this.draftText = '';
+  }
+
+  build() {
+    Column({ space: 14 }) {
+      this.BubbleBuilder()
+      Row() {
+        this.ActionButtonBuilder($r('app.string.cancel'), this.themeState.colors.buttonColorSecondaryDefault, this.themeState.colors.textColorPrimary, 56, 48, () => {
+          this.onCancel?.();
+        })
+        Blank()
+        this.ActionButtonBuilder($r('app.string.voice_transcription_send_original_voice'), this.themeState.colors.buttonColorSecondaryDefault, this.themeState.colors.textColorPrimary, 56, 48, () => {
+          this.onSendAudio?.();
+        })
+        Blank()
+        this.ActionButtonBuilder($r('app.string.send_button'), this.canSendText() ? this.themeState.colors.buttonColorPrimaryDefault : this.themeState.colors.buttonColorPrimaryDisabled, this.themeState.colors.textColorButton, 80, 56, () => {
+          if (this.canSendText()) {
+            this.onSendText?.(this.currentDraftText().trim());
+          }
+        })
+      }
+      .width('100%')
+      .padding({ left: 28, right: 28 })
+      .alignItems(VerticalAlign.Center)
+
+      Row({ space: 10 }) {
+        Row({ space: 4 }) {
+          this.WaveDotBuilder(0.35)
+          this.WaveDotBuilder(0.53)
+          this.WaveDotBuilder(0.71)
+          this.WaveDotBuilder(0.35)
+          this.WaveDotBuilder(0.53)
+          this.WaveDotBuilder(0.71)
+          this.WaveDotBuilder(0.35)
+          this.WaveDotBuilder(0.53)
+          this.WaveDotBuilder(0.71)
+          this.WaveDotBuilder(0.35)
+          this.WaveDotBuilder(0.53)
+          this.WaveDotBuilder(0.71)
+        }
+        .layoutWeight(1)
+        .justifyContent(FlexAlign.Center)
+
+        Text(this.formatDuration(this.audioDuration))
+          .fontSize(12)
+          .fontColor(this.themeState.colors.textColorSecondary)
+      }
+      .width('92%')
+      .height(40)
+      .padding({ left: 16, right: 16 })
+      .backgroundColor(this.themeState.colors.bgColorInput)
+      .borderRadius(20)
+    }
+    .width('100%')
+    .padding({ top: 16, bottom: 16 })
+    .backgroundColor(this.themeState.colors.bgColorOperate)
+  }
+
+  @Builder
+  private WaveDotBuilder(opacity: number) {
+    Circle()
+      .width(3)
+      .height(3)
+      .fill(this.themeState.colors.textColorPrimary)
+      .opacity(opacity)
+  }
+
+  @Builder
+  private BubbleBuilder() {
+    Stack() {
+      if (this.currentState() === 'loading') {
+        Row({ space: 8 }) {
+          Circle().width(6).height(6).fill(this.themeState.colors.textColorButton).opacity(0.45)
+          Circle().width(6).height(6).fill(this.themeState.colors.textColorButton).opacity(0.7)
+          Circle().width(6).height(6).fill(this.themeState.colors.textColorButton).opacity(1)
+        }
+        .width('100%')
+        .height('100%')
+        .justifyContent(FlexAlign.Start)
+        .alignItems(VerticalAlign.Center)
+        .padding({ left: 18 })
+      } else if (this.currentState() === 'empty') {
+        Text($r('app.string.voice_transcription_empty'))
+          .fontSize(16)
+          .fontColor(this.themeState.colors.textColorButton)
+          .width('100%')
+          .height('100%')
+          .padding({ left: 16, right: 16 })
+          .textAlign(TextAlign.Start)
+      } else {
+        TextArea({ text: this.currentDraftText(), controller: this.controller })
+          .fontSize(16)
+          .fontColor(this.themeState.colors.textColorButton)
+          .backgroundColor(Color.Transparent)
+          .width('100%')
+          .height('100%')
+          .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+          .maxLines(4)
+          .onChange((value: string) => {
+            this.draftText = value;
+          })
+      }
+    }
+    .width('84%')
+    .height(this.currentState() === 'text' && this.draftText.length > 24 ? 104 : 68)
+    .backgroundColor(this.currentState() === 'empty' ? this.themeState.colors.buttonColorHangupDefault : this.themeState.colors.buttonColorPrimaryDefault)
+    .borderRadius(8)
+  }
+
+  @Builder
+  private ActionButtonBuilder(text: Resource, backgroundColor: ResourceColor, fontColor: ResourceColor, width: number, height: number, action: () => void) {
+    Text(text)
+      .fontSize(14)
+      .fontColor(fontColor)
+      .textAlign(TextAlign.Center)
+      .width(width)
+      .height(height)
+      .borderRadius(height / 2)
+      .backgroundColor(backgroundColor)
+      .onClick(action)
+  }
+
+  private currentState(): VoiceTranscriptionDraftState {
+    if (this.isLoading) {
+      return 'loading';
+    }
+    if (!this.currentDraftText() || this.currentDraftText().trim().length === 0) {
+      return 'empty';
+    }
+    return 'text';
+  }
+
+  private canSendText(): boolean {
+    return !this.isLoading && this.currentDraftText().trim().length > 0;
+  }
+
+  private currentDraftText(): string {
+    return this.draftText.length > 0 ? this.draftText : this.text;
+  }
+
+  private formatDuration(seconds: number): string {
+    const safeSeconds = Math.max(0, Math.floor(seconds));
+    const minutes = Math.floor(safeSeconds / 60);
+    const remainingSeconds = safeSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  }
+}

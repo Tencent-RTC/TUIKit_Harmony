@@ -1,13 +1,8 @@
 import { AppBuilderConfig, Avatar, AvatarContentType, AvatarSize, ThemeState, LanguageState } from '../../basecomponent/Index';
-import {
-  MessageSearchResultItem,
-  MessageInfo,
-  SearchOption,
-  SearchStore,
-  SearchType,
-  MessageSearchFilter,
-  BasicDataSource
-} from '@tencentcloud/atomicxcore';
+import { MessageSearchResultItem, SearchOption, SearchStore, SearchType, MessageSearchFilter } from '@tencentcloud/atomicxcore';
+import { MessageInfo } from '@tencentcloud/atomicxcore';
+import { BasicDataSource } from '@tencentcloud/atomicxcore';
+import { CompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 import { HighlightText } from '../components/HighlightText';
 import { MessageUtils } from '../../messagelist/utils/MessageUtils';
 
@@ -94,7 +89,7 @@ export struct SearchMessageInOneConversationPage {
 
         TextInput({
           placeholder: $r('app.string.search_search_in_conversation_placeholder'),
-          text: this.searchKeyword
+          text: $$this.searchKeyword
         })
           .placeholderColor(this.themeState.colors.textColorTertiary)
           .fontSize(16)
@@ -103,29 +98,27 @@ export struct SearchMessageInOneConversationPage {
           .border({ width: 0 })
           .layoutWeight(1)
           .onChange((value: string) => {
-            this.searchKeyword = value;
             this.handleSearchInputChange(value);
           })
           .onSubmit(() => {
             this.performSearch();
           })
 
-        if (this.searchKeyword.length > 0) {
-          Button() {
-            Image($rawfile('contactlist/contact_del.svg'))
-              .width(16)
-              .height(16)
-              .fillColor(this.themeState.colors.textColorSecondary)
-          }
-          .type(ButtonType.Normal)
-          .backgroundColor(Color.Transparent)
-          .width(32)
-          .height(32)
-          .onClick(() => {
-            this.searchKeyword = '';
-            this.clearSearch();
-          })
+        Button() {
+          Image($rawfile('contactlist/contact_del.svg'))
+            .width(16)
+            .height(16)
+            .fillColor(this.themeState.colors.textColorSecondary)
         }
+        .type(ButtonType.Normal)
+        .backgroundColor(Color.Transparent)
+        .width(32)
+        .height(32)
+        .visibility(this.searchKeyword.length > 0 ? Visibility.Visible : Visibility.Hidden)
+        .onClick(() => {
+          this.searchKeyword = '';
+          this.clearSearch();
+        })
       }
       .backgroundColor(this.themeState.colors.bgColorInput)
       .borderRadius(20)
@@ -167,7 +160,7 @@ export struct SearchMessageInOneConversationPage {
         .onClick(() => {
           this.handleMessageClick(message);
         })
-      }, (message: MessageInfo) => message.ID ?? message.msgID ?? `${message.timestamp}`)
+      }, (message: MessageInfo) => message.getKey())
 
       if (this.isLoadingMore) {
         ListItem() {
@@ -239,7 +232,7 @@ export struct SearchMessageInOneConversationPage {
       Avatar({
         content: {
           type: AvatarContentType.Image,
-          url: message.sender?.avatarURL || '',
+          url: message.from.avatarURL || '',
           name: this.getSenderDisplayName(message),
         },
         avatarSize: AvatarSize.M,
@@ -333,19 +326,17 @@ export struct SearchMessageInOneConversationPage {
     this.isLoading = true;
 
     const option = new SearchOption()
-    option.searchType = SearchType.Message
+    option.searchScope = [SearchType.MESSAGE]
     option.messageFilter = new MessageSearchFilter()
     option.messageFilter.conversationID = this.conversationInfo.conversationID
 
-    this.searchStore.search([this.searchKeyword], option)
-      .then(() => {
-        this.isLoading = false;
-        this.updateMessageList();
-      })
-      .catch((error: Error) => {
-        this.isLoading = false;
-        console.error('Search messages in conversation failed:', error.message)
-      })
+    this.searchStore.search([this.searchKeyword], option, new CompletionHandlerAdapter(() => {
+      this.isLoading = false;
+      this.updateMessageList();
+    }, (code: number, desc: string) => {
+      this.isLoading = false;
+      console.error('Search messages in conversation failed:', code, desc)
+    }))
   }
 
   private loadMoreMessages(): void {
@@ -355,15 +346,13 @@ export struct SearchMessageInOneConversationPage {
 
     this.isLoadingMore = true;
 
-    this.searchStore.searchMore(SearchType.Message)
-      .then(() => {
-        this.isLoadingMore = false;
-        this.updateMessageList();
-      })
-      .catch((error: Error) => {
-        this.isLoadingMore = false;
-        console.error('Load more messages failed:', error.message)
-      })
+    this.searchStore.searchMore(SearchType.MESSAGE, new CompletionHandlerAdapter(() => {
+      this.isLoadingMore = false;
+      this.updateMessageList();
+    }, (code: number, desc: string) => {
+      this.isLoadingMore = false;
+      console.error('Load more messages failed:', code, desc)
+    }))
   }
 
   private updateMessageList(): void {
@@ -436,11 +425,10 @@ export struct SearchMessageInOneConversationPage {
   }
 
   private getSenderDisplayName(message: MessageInfo): string {
-    const senderInfo = message.sender;
+    const senderInfo = message.from;
     if (!senderInfo) {
       return '';
     }
-    // Priority: nameCard > friendRemark > nickname > userID
     return senderInfo.nameCard || senderInfo.friendRemark || senderInfo.nickname || senderInfo.userID || '';
   }
 }

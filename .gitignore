@@ -8,3 +8,6 @@
 .DS_Store
 .idea
 .codebuddy
+build.sh
+verification.html
+local.properties

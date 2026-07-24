@@ -1,4 +1,5 @@
-import { MessageReaction, UserProfile } from '@tencentcloud/atomicxcore';
+import { MessageReaction } from '@tencentcloud/atomicxcore';
+import { UserProfile } from '@tencentcloud/atomicxcore';
 import { ThemeState, Avatar, AvatarSize, AvatarContentType } from '../../basecomponent/Index';
 import { EmojiDataManager } from '../../emojipicker/data/EmojiData';
 

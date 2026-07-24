@@ -357,6 +357,10 @@
       "value": "صورة المجموعة"
     },
     {
+      "name": "contact_list_selected_group_member",
+      "value": "الأعضاء المحددين في المجموعة"
+    },
+    {
       "name": "frequently_contacted",
       "value": "جهات الاتصال المتكررة"
     },

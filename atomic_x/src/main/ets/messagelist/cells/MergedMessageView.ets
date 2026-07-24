@@ -1,4 +1,4 @@
-import { MessageInfo, MessageBody, MessageListStore } from '@tencentcloud/atomicxcore';
+import { MessageInfo, MergedMessagePayload, MessageListStore } from '@tencentcloud/atomicxcore';
 import { ThemeState, ContextProvider, LanguageState } from '../../basecomponent/Index';
 import { EmojiDataManager, EmojiTextSegment } from '../../emojipicker/Index';
 import { MergedMessageDetailPage } from '../ui/MergedMessageDetailPage';
@@ -10,15 +10,15 @@ import { MessageRenderContext } from '../context/MessageRenderContext';
 
 @Component
 export struct MergedMessageViewContent {
-  @ObjectLink messageBody: MessageBody;
+  @ObjectLink messagePayload: MergedMessagePayload;
   @ObjectLink message: MessageInfo;
   @ObjectLink messageListStore: MessageListStore;
   @Prop config?: MessageListStyleProtocol = undefined;
   @Prop isInMergedDetailView: boolean = false;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   @StorageLink('LanguageState') languageState: LanguageState = LanguageState.getInstance();
-  onRequestCloseParentDialog?: () => void; // Callback to close parent dialog (e.g., MessageActionDialog)
-  
+  onRequestCloseParentDialog?: () => void;
+
   private readonly BUBBLE_WIDTH: number = 220;
   private detailDialogController?: CustomDialogController;
 
@@ -27,15 +27,15 @@ export struct MergedMessageViewContent {
       this.config?.enableReadReceipt ?? AppBuilderConfig.getInstance().enableReadReceipt,
       this.isInMergedDetailView);
   }
-  
+
   private getMergedTitle(): string {
-    return this.messageBody?.mergedMessage?.title ?? '';
+    return this.messagePayload?.title ?? '';
   }
-  
+
   private getAbstractList(): string[] {
-    return this.messageBody?.mergedMessage?.abstractList ?? [];
+    return this.messagePayload?.abstractList ?? [];
   }
-  
+
   @Builder
   buildAbstractText(abstract: string) {
     Text() {
@@ -61,7 +61,6 @@ export struct MergedMessageViewContent {
   build() {
     Stack({ alignContent: Alignment.BottomEnd }) {
       Column() {
-        // Title
         Text(this.getMergedTitle() || $r('app.string.merged_message_title'))
           .fontSize(14)
           .fontWeight(FontWeight.Medium)
@@ -71,8 +70,7 @@ export struct MergedMessageViewContent {
           .width('100%')
           .direction(this.languageState.getLayoutDirection() === LayoutDirection.RTL ? Direction.Rtl : Direction.Ltr)
           .padding({ left: 12, right: 12, top: 10 })
-        
-        // Abstract list (max 4 lines)
+
         if (this.getAbstractList().length > 0) {
           Column({ space: 4 }) {
             ForEach(this.getAbstractList().slice(0, 4), (abstract: string, index: number) => {
@@ -83,19 +81,17 @@ export struct MergedMessageViewContent {
           .padding({ left: 12, right: 12, top: 8 })
           .alignItems(HorizontalAlign.Start)
         }
-        
-        // Divider
+
         Divider()
           .color(this.themeState.colors.shadowColor)
           .strokeWidth(0.5)
           .margin({ left: 12, right: 12, top: 8 })
-        
-        // Bottom hint with read receipt spacing
+
         Row() {
           Text($r('app.string.merged_message_hint'))
             .fontSize(10)
             .fontColor(this.themeState.colors.textColorTertiary)
-          
+
           if (this.shouldShowReceipt()) {
             Blank()
               .width(18)
@@ -110,7 +106,6 @@ export struct MergedMessageViewContent {
         this.openMergedMessageDetail();
       })
 
-      // Read receipt icon
       if (this.shouldShowReceipt()) {
         Image(MessageUtils.getReadReceiptIconResource(this.message))
           .width(14)
@@ -120,16 +115,12 @@ export struct MergedMessageViewContent {
     }
     .width(this.BUBBLE_WIDTH)
   }
-  
+
   private openMergedMessageDetail() {
-    console.info('[MergedMessageView] Opening merged message detail, messageID:', this.message.ID);
-    
-    // Close parent dialog first if callback is provided (e.g., MessageActionDialog)
     if (this.onRequestCloseParentDialog) {
       this.onRequestCloseParentDialog();
     }
-    
-    // Add a small delay to ensure parent dialog closes before opening new one
+
     setTimeout(() => {
       this.detailDialogController = new CustomDialogController({
         builder: MergedMessageDetailPage({
@@ -141,7 +132,7 @@ export struct MergedMessageViewContent {
         levelMode: LevelMode.EMBEDDED,
         immersiveMode: ImmersiveMode.EXTEND,
       });
-      
+
       this.detailDialogController.open();
     }, 100);
   }
@@ -149,10 +140,10 @@ export struct MergedMessageViewContent {
 
 @Builder
 export function MergedMessageView(context: MessageRenderContext) {
-  if (context.message && context.message.messageBody) {
+  if (context.message && context.message.messagePayload) {
     MergedMessageViewContent({
       message: context.message,
-      messageBody: context.message.messageBody,
+      messagePayload: context.message.messagePayload as MergedMessagePayload,
       messageListStore: context.messageListStore,
       config: context.config,
       isInMergedDetailView: context.isInMergedDetailView ?? false,

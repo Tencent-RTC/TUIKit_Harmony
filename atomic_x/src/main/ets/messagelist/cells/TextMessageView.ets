@@ -1,6 +1,5 @@
-import { MessageInfo } from '@tencentcloud/atomicxcore';
+import { MessageInfo, TextMessagePayload } from '@tencentcloud/atomicxcore';
 import { ThemeState, LanguageState } from '../../basecomponent/Index';
-import { MessageBody } from '@tencentcloud/atomicxcore';
 import { EmojiDataManager, EmojiTextSegment } from '../../emojipicker/Index';
 import { MessageListStyleProtocol } from '../config/MessageListConfig';
 import { MessageRenderContext } from '../context/MessageRenderContext';
@@ -10,7 +9,7 @@ export struct TextMessageViewContent {
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   @StorageLink('LanguageState') languageState: LanguageState = LanguageState.getInstance();
   @State message?: MessageInfo = undefined;
-  @ObjectLink messageBody: MessageBody;
+  @ObjectLink messagePayload: TextMessagePayload;
   @Prop config?: MessageListStyleProtocol = undefined;
   @Prop isInMergedDetailView: boolean = false;
   @State private parsedSegments: EmojiTextSegment[] = [];
@@ -25,7 +24,6 @@ export struct TextMessageViewContent {
 
   build() {
     Column() {
-      // Text content
       Text() {
         ForEach(this.parsedSegments, (segment: EmojiTextSegment, index: number) => {
           if (segment.type === 'text') {
@@ -40,7 +38,7 @@ export struct TextMessageViewContent {
         }, (segment: EmojiTextSegment, index: number) => `${segment.type}_${index}_${segment.content}`)
       }
       .fontSize(15)
-      .fontColor(this.message?.isSelf ?
+      .fontColor(this.message?.isSentBySelf ?
         this.themeState.colors.textColorAntiPrimary :
         this.themeState.colors.textColorPrimary)
       .textOverflow({ overflow: TextOverflow.None })
@@ -48,6 +46,7 @@ export struct TextMessageViewContent {
       .wordBreak(WordBreak.BREAK_ALL)
       .direction(this.languageState.getLayoutDirection() === LayoutDirection.RTL ? Direction.Rtl : Direction.Ltr)
     }
+    .constraintSize({ minWidth: 0, maxWidth: 240 })
     .padding({
       left: 8,
       right: 8,
@@ -57,17 +56,17 @@ export struct TextMessageViewContent {
   }
 
   private updateParsedSegments() {
-    const text = this.messageBody?.text ?? '';
+    const text = this.messagePayload?.text ?? '';
     this.parsedSegments = EmojiDataManager.parseEmojiText(text);
   }
 }
 
 @Builder
 export function TextMessageView(context: MessageRenderContext) {
-  if (context.message && context.message.messageBody) {
+  if (context.message && context.message.messagePayload) {
     TextMessageViewContent({
       message: context.message,
-      messageBody: context.message.messageBody,
+      messagePayload: context.message.messagePayload as TextMessagePayload,
       config: context.config,
       isInMergedDetailView: context.isInMergedDetailView ?? false
     })

@@ -1,6 +1,5 @@
-import { MessageInfo } from '@tencentcloud/atomicxcore';
+import { MessageInfo, VideoMessagePayload, MessageListStore } from '@tencentcloud/atomicxcore';
 import { ImageSizeUtil, ThemeState } from '../../basecomponent/Index';
-import { MessageBody } from '@tencentcloud/atomicxcore';
 import router from '@ohos.router';
 import { AppBuilderConfig } from '../../basecomponent/utils/AppBuilderHelper';
 import { MessageListStyleProtocol } from '../config/MessageListConfig';
@@ -11,31 +10,53 @@ import {
   VideoData,
   VideoPlayerDialog
 } from '../../videoplayer/Index';
-import { MessageMediaFileType, MessageListStore } from '@tencentcloud/atomicxcore';
 import { MessageRenderContext } from '../context/MessageRenderContext';
 
-// import { AppContext } from '../../basecomponent/Index';
+function toLocalUri(path?: string): string {
+  if (!path) {
+    return '';
+  }
+  if (path.startsWith('file://') || path.startsWith('http://') || path.startsWith('https://') || path.startsWith('datashare://')) {
+    return path;
+  }
+  if (path.startsWith('/')) {
+    return 'file://' + path;
+  }
+  return path;
+}
+
+function takeNonBlank(value?: string): string {
+  return value && value.length > 0 ? value : '';
+}
+
+function resolveDisplayVideoSnapshot(payload?: VideoMessagePayload): string {
+  if (!payload) {
+    return '';
+  }
+  const localPath = takeNonBlank(payload.videoSnapshotPath);
+  if (localPath.length > 0) {
+    return toLocalUri(localPath);
+  }
+  return takeNonBlank(payload.videoSnapshotURL);
+}
 
 const DEFAULT_IMAGE_MAX_SIZE = 180;
 
 @Component
 export struct VideoMessageViewContent {
   @State message?: MessageInfo = undefined;
-  @ObjectLink messageBody: MessageBody;
+  @ObjectLink messagePayload: VideoMessagePayload;
   @Prop config?: MessageListStyleProtocol = undefined;
   @Prop isInMergedDetailView: boolean = false;
   @State isPlaying: boolean = false;
   @ObjectLink messageListStore: MessageListStore;
-  
-  // Dialog controller for video player
+
   private videoPlayerDialogController?: CustomDialogController;
 
   aboutToAppear() {
-    // Video player listener removed - using direct dialog approach
   }
 
   aboutToDisappear() {
-    // Clean up dialog controller
     if (this.videoPlayerDialogController) {
       this.videoPlayerDialogController = undefined;
     }
@@ -44,7 +65,7 @@ export struct VideoMessageViewContent {
   build() {
     Stack({ alignContent: Alignment.BottomEnd }) {
 
-      Image(this.messageBody?.videoSnapshotPath)
+      Image(resolveDisplayVideoSnapshot(this.messagePayload))
         .width('100%')
         .height('100%')
         .borderRadius(8)
@@ -65,7 +86,7 @@ export struct VideoMessageViewContent {
 
 
       Row() {
-        Text(this.formatDuration(this.messageBody?.videoDuration ?? 0))
+        Text(this.formatDuration(this.messagePayload?.videoDuration ?? 0))
           .fontSize(12)
           .fontColor(Color.White)
           .backgroundColor('#99000000')
@@ -89,51 +110,39 @@ export struct VideoMessageViewContent {
           .margin({ right: 45, bottom: 6 })
       }
     }
-     .size({ width: `${this.getImageSize().width}vp`, height: `${this.getImageSize().height}vp` })
+    .size({ width: `${this.getImageSize().width}vp`, height: `${this.getImageSize().height}vp` })
     .onClick(() => {
-
-      if (!this.messageBody?.videoSnapshotPath) {
-        console.error('Thumbnail is empty');
+      if (resolveDisplayVideoSnapshot(this.messagePayload).length === 0) {
         return;
       }
-
       this.openVideoPlayerDialog();
     })
   }
 
-
-
   private openVideoPlayerDialog() {
-    if (!this.messageBody?.videoSnapshotPath) {
+    if (resolveDisplayVideoSnapshot(this.messagePayload).length === 0) {
       return;
     }
 
-    // Create video data
     const videoData: VideoData = {
-      thumbnailPath: this.messageBody?.videoSnapshotPath || '',
-      videoPath: this.messageBody?.videoPath || '',
-      width: this.messageBody?.videoSnapshotWidth,
-      height: this.messageBody?.videoSnapshotHeight,
-      duration: this.messageBody?.videoDuration,
-      // Add download functionality support
+      thumbnailPath: resolveDisplayVideoSnapshot(this.messagePayload),
+      videoPath: takeNonBlank(this.messagePayload?.videoPath),
+      width: this.messagePayload?.videoSnapshotWidth,
+      height: this.messagePayload?.videoSnapshotHeight,
+      duration: this.messagePayload?.videoDuration,
       messageInfo: this.message,
       messageListStore: this.messageListStore
     };
 
-    // Create dialog controller
     this.videoPlayerDialogController = new CustomDialogController({
       builder: VideoPlayerDialog({
         videoData: videoData,
         onDialogClose: () => {
-          console.log('[VideoMessageView] Video player dialog closed');
-          // Clean up dialog reference
           this.videoPlayerDialogController = undefined;
         },
         onDownloadComplete: (videoPath: string) => {
-          console.log('[VideoMessageView] Video download completed in dialog:', videoPath);
-          // Update message body with new video path
-          if (this.messageBody) {
-            this.messageBody.videoPath = videoPath;
+          if (this.messagePayload) {
+            this.messagePayload.videoPath = videoPath;
           }
         }
       }),
@@ -141,15 +150,12 @@ export struct VideoMessageViewContent {
       customStyle: true
     });
 
-    // Open dialog immediately (will show loading state if no video path)
     this.videoPlayerDialogController.open();
-    
-    console.log('[VideoMessageView] Video player dialog opened, initial videoPath:', this.messageBody?.videoPath);
   }
 
   private getImageSize(): SizeOptions {
-    const originalWidth =   ImageSizeUtil.getSquareSize().width * 0.6;
-    const originalHeight =  ImageSizeUtil.getSquareSize().height;
+    const originalWidth = ImageSizeUtil.getSquareSize().width * 0.6;
+    const originalHeight = ImageSizeUtil.getSquareSize().height;
     return ImageSizeUtil.calculateOptimalSize(originalWidth, originalHeight);
   }
 
@@ -166,10 +172,10 @@ export struct VideoMessageViewContent {
 
 @Builder
 export function VideoMessageView(context: MessageRenderContext) {
-  if (context.message && context.message.messageBody) {
+  if (context.message && context.message.messagePayload) {
     VideoMessageViewContent({
       message: context.message,
-      messageBody: context.message.messageBody,
+      messagePayload: context.message.messagePayload as VideoMessagePayload,
       messageListStore: context.messageListStore,
       config: context.config,
       isInMergedDetailView: context.isInMergedDetailView ?? false

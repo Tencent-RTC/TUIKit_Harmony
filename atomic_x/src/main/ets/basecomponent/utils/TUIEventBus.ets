@@ -68,6 +68,21 @@ export class TUIEventBus {
     }
   }
 
+  /**
+   * Check whether the given event has at least one live subscriber.
+   *
+   * Intended for lightweight capability probing (e.g. "Is TUICallKit
+   * integrated in the host app?"): a module registers a subscriber during its
+   * initialization, and other modules can detect its presence via this API.
+   * Mirrors the reflection-based `isCallKitIntegrated` check on Android,
+   * where ArkTS has no runtime class lookup.
+   */
+  hasSubscribers(event: string, key: string | null = null): boolean {
+    const eventKey = this.buildEventKey(event, key);
+    const observers = this.observerMap.get(eventKey);
+    return !!observers && observers.length > 0;
+  }
+
   publish(event: string, key: string | null, params: PublishParams | null): void {
     const eventKey = this.buildEventKey(event, key);
 

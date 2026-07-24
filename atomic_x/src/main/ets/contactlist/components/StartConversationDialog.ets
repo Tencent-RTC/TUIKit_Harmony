@@ -1,19 +1,10 @@
 import { ThemeState } from '../../basecomponent/Index';
-import {
-  ContactInfo,
-  ContactListState,
-  ContactListStore,
-  ContactOnlineStatus,
-  CustomMessageInfo,
-  LoginStore,
-  MessageBody,
-  MessageInfo,
-  MessageInputStore,
-  MessageType
-} from '@tencentcloud/atomicxcore';
+import { ContactInfo, ContactState, ContactStore, ContactOnlineStatus } from '@tencentcloud/atomicxcore';
+import { CustomSendMessagePayload, MessageInputStore } from '@tencentcloud/atomicxcore';
+import { LoginStore } from '@tencentcloud/atomicxcore';
+import { CompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 import { UserPickerData, UserPicker } from '../../userpicker/components/UserPicker';
 import { GroupCreationComponent, GroupInfo, GroupType } from './GroupCreationComponent';
-import { buffer } from '@kit.ArkTS';
 
 export enum DialogType {
   START_CONVERSATION = 'startConversation',
@@ -39,8 +30,8 @@ export struct StartConversationDialog {
   @State friendList: UserPickerData<ContactInfo>[] = [];
   @State currentPage: DialogPageState = DialogPageState.USER_PICKER;
   @State selectedContactsForGroup: ContactInfo[] = [];
-  private contactListStore: ContactListStore = ContactListStore.create();
-  @State private contactListState: ContactListState = this.contactListStore.state;
+  private contactStore: ContactStore = ContactStore.shared;
+  @State private contactState: ContactState = this.contactStore.state as ContactState;
 
   aboutToAppear() {
     console.info('[StartConversationDialog] Dialog about to appear, type:', this.dialogType);
@@ -134,33 +125,31 @@ export struct StartConversationDialog {
     $r('app.string.start_conversation_button');
   }
 
-  private async loadFriendList(): Promise<void> {
-    try {
-      console.log('[StartConversationDialog] Loading friend list...');
+  private loadFriendList(): void {
+    console.log('[StartConversationDialog] Loading friend list...');
 
-      await this.contactListStore.fetchFriendList();
-
+    this.contactStore.loadFriends(new CompletionHandlerAdapter(() => {
       const friendList: UserPickerData<ContactInfo>[] = [];
-      for (let i = 0; i < this.contactListState.contactDataSource.totalCount(); i++) {
-        const contact = this.contactListState.contactDataSource.getData(i) as ContactInfo;
+      const contacts = this.contactState.friendList;
+      for (let i = 0; i < contacts.length; i++) {
+        const contact = contacts[i];
         if (contact) {
           const userPickerData: UserPickerData<ContactInfo> = {
-            key: contact.contactID || '',
-            label: contact.title || contact.contactID || '',
+            key: contact.userID || '',
+            label: contact.nickname || contact.userID || '',
             avatarUrl: contact.avatarURL || '',
             extraData: contact
           };
           friendList.push(userPickerData);
         }
       }
-
       this.friendList = friendList;
       console.log('[StartConversationDialog] Friend list loaded:', this.friendList.length);
       this.isLoading = false;
-    } catch (error) {
-      console.error('[StartConversationDialog] Failed to load friend list:', error);
+    }, (code: number, desc: string) => {
+      console.error('[StartConversationDialog] Failed to load friend list:', code, desc);
       this.isLoading = false;
-    }
+    }));
   }
 
   private handleUserCancelComplete = () => {
@@ -198,71 +187,50 @@ export struct StartConversationDialog {
   }
 
   private findContactInfoByIdentifier(identifier: string): ContactInfo | null {
-    for (let i = 0; i < this.contactListState.contactDataSource.totalCount(); i++) {
-      const contact = this.contactListState.contactDataSource.getData(i) as ContactInfo;
-      if (contact && contact.contactID === identifier) {
+    const contacts = this.contactState.friendList;
+    for (let i = 0; i < contacts.length; i++) {
+      const contact = contacts[i];
+      if (contact && contact.userID === identifier) {
         return contact;
       }
     }
     return null;
   }
 
-  private async handleGroupCreation(groupInfo: GroupInfo) {
+  private handleGroupCreation(groupInfo: GroupInfo) {
     console.info('[StartConversationDialog] Group creation started:', groupInfo.groupName);
-    try {
-      if (this.onCreateGroup) {
-        this.onCreateGroup(groupInfo);
-      }
-
-      setTimeout(() => {
-        // Send group create message after successful group creation
-        if (groupInfo.groupID) {
-          this.sendGroupCreateMessage(groupInfo.groupID, groupInfo.groupType);
-        }
-      }, 1000);
-
-      // Close dialog
-      this.controller.close();
-    } catch (error) {
-      console.error('[StartConversationDialog] Failed to create group:', error);
+    if (this.onCreateGroup) {
+      this.onCreateGroup(groupInfo);
     }
+
+    setTimeout(() => {
+      // Send group create message after successful group creation
+      if (groupInfo.groupID) {
+        this.sendGroupCreateMessage(groupInfo.groupID, groupInfo.groupType);
+      }
+    }, 1000);
+
+    // Close dialog
+    this.controller.close();
   }
 
-  private async sendGroupCreateMessage(groupID: string, groupType: GroupType): Promise<void> {
-    try {
-      const conversationID = `group_${groupID}`;
-      const currentUser = LoginStore.shared().state.loginUserInfo;
-      const customContent: Record<string, ESObject> = {};
-      customContent["version"] = 1;
-      customContent["businessID"] = "group_create";
-      customContent["opUser"] = currentUser?.userID || "";
-      customContent["content"] = $r('app.string.create_group_chat');
-      customContent["cmd"] = groupType === GroupType.COMMUNITY ? 1 : 0;
+  private sendGroupCreateMessage(groupID: string, groupType: GroupType): void {
+    const conversationID = `group_${groupID}`;
+    const currentUser = LoginStore.shared().state.loginUserInfo;
+    const customContent: Record<string, ESObject> = {};
+    customContent['version'] = 1;
+    customContent['businessID'] = 'group_create';
+    customContent['opUser'] = currentUser?.userID || '';
+    customContent['content'] = $r('app.string.create_group_chat');
+    customContent['cmd'] = groupType === GroupType.COMMUNITY ? 1 : 0;
 
-      const messageInputStore = MessageInputStore.create(conversationID);
+    const messageInputStore = MessageInputStore.create(conversationID);
+    const payload = new CustomSendMessagePayload(JSON.stringify(customContent), 'group_create', '');
 
-      const messageInfo = new MessageInfo();
-      messageInfo.messageBody = new MessageBody();
-      // Convert JSON string to ArrayBuffer
-      const jsonStr = JSON.stringify(customContent);
-      messageInfo.messageBody.customMessage = new CustomMessageInfo(
-        buffer.from(jsonStr).buffer,
-        'group_create',
-        ""
-      );
-      messageInfo.messageType = MessageType.Custom;
-      await new Promise<void>((resolve, reject) => {
-        messageInputStore.sendMessage(messageInfo).then(() => {
-          console.info('[StartConversationDialog] Group create message sent successfully');
-          resolve();
-        }).catch((error: Error) => {
-          console.error('[StartConversationDialog] Failed to send group create message:', error);
-          resolve();
-        });
-      });
-
-    } catch (error) {
-      console.error('[StartConversationDialog] Exception in sendGroupCreateMessage:', error);
-    }
+    messageInputStore.sendMessage(payload, undefined, new CompletionHandlerAdapter(() => {
+      console.info('[StartConversationDialog] Group create message sent successfully');
+    }, (code: number, desc: string) => {
+      console.error('[StartConversationDialog] Failed to send group create message:', code, desc);
+    }));
   }
 }

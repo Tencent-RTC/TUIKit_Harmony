@@ -267,6 +267,50 @@
     {
       "name": "read_receipt_delivered_to",
       "value": "تم التسليم إلى"
+    },
+    {
+      "name": "message_list_quote_deleted",
+      "value": "تم حذف الرسالة الأصلية"
+    },
+    {
+      "name": "message_list_quote_revoked",
+      "value": "تم سحب الرسالة الأصلية"
+    },
+    {
+      "name": "message_list_message_type_image",
+      "value": "[صورة]"
+    },
+    {
+      "name": "message_list_message_type_video",
+      "value": "[فيديو]"
+    },
+    {
+      "name": "message_list_message_type_voice",
+      "value": "[صوت]"
+    },
+    {
+      "name": "message_list_message_type_file",
+      "value": "[ملف]"
+    },
+    {
+      "name": "message_list_message_type_animate_emoji",
+      "value": "[ملصق متحرك]"
+    },
+    {
+      "name": "message_list_message_type_custom",
+      "value": "[رسالة مخصصة]"
+    },
+    {
+      "name": "message_list_message_type_merged",
+      "value": "[سجل الدردشة]"
+    },
+    {
+      "name": "message_list_unsupported_message",
+      "value": "[رسالة غير مدعومة]"
+    },
+    {
+      "name": "custom_message_view_details",
+      "value": "عرض التفاصيل"
     }
   ]
 }

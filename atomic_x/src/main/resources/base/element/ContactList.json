@@ -357,6 +357,10 @@
       "value": "Group portrait"
     },
     {
+      "name": "contact_list_selected_group_member",
+      "value": "Participants"
+    },
+    {
       "name": "more",
       "value": "More"
     },

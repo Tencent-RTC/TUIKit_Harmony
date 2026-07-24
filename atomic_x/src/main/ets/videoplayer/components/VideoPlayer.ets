@@ -1,7 +1,22 @@
 import router from '@ohos.router';
 import common from '@ohos.app.ability.common';
 import media from '@ohos.multimedia.media';
-import { MessageInfo, MessageListStore, MessageMediaFileType } from '@tencentcloud/atomicxcore';
+import { MessageInfo, MessageListStore, VideoMessagePayload } from '@tencentcloud/atomicxcore';
+import { MessageActionStore, MediaQuality } from '@tencentcloud/atomicxcore';
+import { CompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
+
+function toLocalUri(path?: string): string {
+  if (!path) {
+    return '';
+  }
+  if (path.startsWith('file://') || path.startsWith('http://') || path.startsWith('https://') || path.startsWith('datashare://')) {
+    return path;
+  }
+  if (path.startsWith('/')) {
+    return 'file://' + path;
+  }
+  return path;
+}
 
 export enum MediaType {
   IMAGE = 0,
@@ -96,8 +111,8 @@ export struct VideoPlayer {
     // Support both dialog usage and router usage
     if (this.videoData) {
       // Dialog usage - use videoData prop
-      this.thumbnailPath = this.videoData.thumbnailPath || '';
-      this.videoPath = this.videoData.videoPath || '';
+      this.thumbnailPath = toLocalUri(this.videoData.thumbnailPath);
+      this.videoPath = toLocalUri(this.videoData.videoPath);
       this.mediaType = MediaType.VIDEO;
       console.info(`[VideoPlayer] Dialog mode - thumbnail: ${this.thumbnailPath}, videoPath: ${this.videoPath}`);
     }
@@ -485,7 +500,7 @@ export struct VideoPlayer {
     console.log('[VideoPlayer] setVideoPath called with path:', path);
 
     // Update video path
-    this.videoPath = path;
+    this.videoPath = toLocalUri(path);
     this.isDownloading = false;
     this.downloadProgress = 100;
 
@@ -518,32 +533,29 @@ export struct VideoPlayer {
     this.downloadProgress = 0;
 
     // Start download
-    this.videoData.messageListStore.downloadMessageResource(this.videoData.messageInfo, MessageMediaFileType.video)
-      .then(() => {
-        console.log('[VideoPlayer] Video download completed');
-
-        // Get the updated video path from message body
-        const videoPath = this.videoData?.messageInfo?.messageBody?.videoPath;
-        if (videoPath) {
-          this.handleDownloadComplete(videoPath);
-        } else {
-          console.warn('[VideoPlayer] Download completed but video path is empty');
-          this.isDownloading = false;
-          this.downloadProgress = 100;
-        }
-      })
-      .catch((error: object) => {
-        console.error('[VideoPlayer] Video download failed:', error);
+    const messageInfo = this.videoData.messageInfo;
+    MessageActionStore.create(messageInfo).downloadMedia(MediaQuality.ORIGINAL, new CompletionHandlerAdapter(() => {
+      console.log('[VideoPlayer] Video download completed');
+      const payload = messageInfo.messagePayload as VideoMessagePayload | undefined;
+      const videoPath = payload?.videoPath;
+      if (videoPath) {
+        this.handleDownloadComplete(videoPath);
+      } else {
+        console.warn('[VideoPlayer] Download completed but video path is empty');
         this.isDownloading = false;
-        this.downloadProgress = 0;
-        // Set a timeout to retry download after a short delay
-        setTimeout(() => {
-          if (!this.videoPath && !this.hasError) {
-            console.log('[VideoPlayer] Retrying download after failure');
-            this.requestVideoDownload();
-          }
-        }, 2000);
-      });
+        this.downloadProgress = 100;
+      }
+    }, (_code: number, desc: string) => {
+      console.error('[VideoPlayer] Video download failed:', desc);
+      this.isDownloading = false;
+      this.downloadProgress = 0;
+      setTimeout(() => {
+        if (!this.videoPath && !this.hasError) {
+          console.log('[VideoPlayer] Retrying download after failure');
+          this.requestVideoDownload();
+        }
+      }, 2000);
+    }));
   }
 
   private onPlayButtonClick() {

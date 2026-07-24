@@ -1,6 +1,8 @@
-import { MessageInfo, MessageStatus, MessageBody, MessageListStore, MessageMediaFileType } from '@tencentcloud/atomicxcore';
+import { MessageInfo, MessageStatus, FileMessagePayload, MessageListStore } from '@tencentcloud/atomicxcore';
+import { MessageActionStore, MediaQuality } from '@tencentcloud/atomicxcore';
 import { ThemeState, Toast } from '../../basecomponent/Index';
 import { AppBuilderConfig } from '../../basecomponent/utils/AppBuilderHelper';
+import { CompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 import { MessageListStyleProtocol } from '../config/MessageListConfig';
 import { MessageUtils } from '../utils/MessageUtils';
 import { filePreview } from '@kit.PreviewKit';
@@ -11,7 +13,7 @@ import { MessageRenderContext } from '../context/MessageRenderContext';
 @Component
 export struct FileMessageViewContent {
   @State message?: MessageInfo = undefined;
-  @ObjectLink messageBody: MessageBody;
+  @ObjectLink messagePayload: FileMessagePayload;
   @ObjectLink messageListStore: MessageListStore;
   @Prop config?: MessageListStyleProtocol = undefined;
   @Prop isInMergedDetailView: boolean = false;
@@ -25,7 +27,7 @@ export struct FileMessageViewContent {
           .height(22)
           .margin({ right: 10 })
         Column() {
-          Text(this.messageBody?.fileName || $r('app.string.messagelist_unknown_file'))
+          Text(this.messagePayload?.fileName || $r('app.string.messagelist_unknown_file'))
             .fontSize(16)
             .fontColor(this.themeState.colors.textColorPrimary)
             .fontWeight(FontWeight.Medium)
@@ -45,15 +47,12 @@ export struct FileMessageViewContent {
         this.handleFileClick();
       })
 
-      // Time and status - inline with text
       Row() {
-        // Left side - File size
-        Text(this.formatFileSize(this.messageBody?.fileSize))
+        Text(this.formatFileSize(this.messagePayload?.fileSize))
           .fontSize(12)
-          .fontColor(this.message?.isSelf ? this.themeState.colors.textColorAntiSecondary :
+          .fontColor(this.message?.isSentBySelf ? this.themeState.colors.textColorAntiSecondary :
           this.themeState.colors.textColorPrimary)
           .margin({ left: 1, top: 4 })
-        // Right side - Status and time
         Row() {
           if (this.message && MessageUtils.shouldShowReadReceipt(this.message,
             this.config?.enableReadReceipt ?? AppBuilderConfig.getInstance().enableReadReceipt,
@@ -64,7 +63,7 @@ export struct FileMessageViewContent {
               .margin({ right: 4 })
           }
 
-          if (this.message?.status === MessageStatus.sending) {
+          if (this.message?.status === MessageStatus.SENDING) {
             LoadingProgress()
               .width(12)
               .height(12)
@@ -81,6 +80,7 @@ export struct FileMessageViewContent {
         right: 16
       })
     }
+    .width(240)
   }
 
   private handleFileClick() {
@@ -88,12 +88,13 @@ export struct FileMessageViewContent {
       return;
     }
 
-    if (!this.messageBody?.fileName) {
+    if (!this.messagePayload?.fileName) {
       return;
     }
 
-    if (this.messageBody?.filePath && this.messageBody.filePath.length > 0) {
-      this.openFile(this.messageBody.filePath);
+    const latestPath = this.getLatestFilePath(this.message.msgID);
+    if (latestPath && latestPath.length > 0) {
+      this.openFile(latestPath);
       return;
     }
 
@@ -105,34 +106,43 @@ export struct FileMessageViewContent {
       return;
     }
 
-    console.info('[FileMessageView] start download filed:', this.messageBody?.fileName);
-
     this.showDownloadToast($r('app.string.messagelist_downloading'));
 
-    this.messageListStore.downloadMessageResource(this.message, MessageMediaFileType.file)
-      .then(() => {
-        this.showDownloadToast($r('app.string.messagelist_file_download_success'));
-        if (this.messageBody?.filePath) {
-          this.openFile(this.messageBody.filePath);
-        } else {
-          this.showDownloadToast($r('app.string.messagelist_file_download_failed'));
-        }
-      })
-      .catch((error: object) => {
+    const msgID = this.message.msgID;
+    const actionStore = MessageActionStore.create(this.message);
+    actionStore.downloadMedia(MediaQuality.ORIGINAL, new CompletionHandlerAdapter(() => {
+      const latestPath = this.getLatestFilePath(msgID);
+      if (latestPath && latestPath.length > 0) {
+        this.openFile(latestPath);
+      } else {
+        this.showDownloadToast($r('app.string.messagelist_file_download_failed'));
+      }
+    }, (code: number, desc: string) => {
+      console.error('[FileMessageView] download failure:', code, desc);
+      this.showDownloadToast($r('app.string.messagelist_file_download_failed'));
+    }));
+  }
 
-      });
+  private getLatestFilePath(msgID?: string): string {
+    if (!msgID) {
+      return this.messagePayload?.filePath ?? '';
+    }
+    const list: MessageInfo[] = this.messageListStore?.state?.messageList ?? [];
+    for (let i = list.length - 1; i >= 0; i--) {
+      const m: MessageInfo = list[i];
+      if (m && m.msgID === msgID) {
+        const payload = m.messagePayload as FileMessagePayload | undefined;
+        return payload?.filePath ?? '';
+      }
+    }
+    return this.messagePayload?.filePath ?? '';
   }
 
   private openFile(filePath: string) {
     try {
       const cleanPath = filePath.startsWith('file://') ? filePath.substring(7) : filePath;
-      const fileName = this.messageBody?.fileName || '';
-      const fileExtension = this.getFileExtension(fileName).toLowerCase();
-
       this.openWithSystemApp(cleanPath);
-
     } catch (error) {
-
     }
   }
 
@@ -141,9 +151,7 @@ export struct FileMessageViewContent {
       let uiContext = this.getUIContext().getHostContext() as Context;
       let uri = fileUri.getUriFromPath(filePath);
 
-      filePreview.canPreview(uiContext, uri).then((result) => {
-        console.info(`Succeeded in obtaining the result of whether it can be previewed. result = ${result}`);
-        let uiContext = this.getUIContext().getHostContext() as Context;
+      filePreview.canPreview(uiContext, uri).then((result: boolean) => {
         let displayInfo: filePreview.DisplayInfo = {
           x: 100,
           y: 100,
@@ -151,19 +159,17 @@ export struct FileMessageViewContent {
           height: 800
         };
         let fileInfo: filePreview.PreviewInfo = {
-          title: this.messageBody?.fileName,
+          title: this.messagePayload?.fileName,
           uri: uri,
           mimeType: this.getMimeType(filePath)
         };
         filePreview.openPreview(uiContext, fileInfo, displayInfo).then(() => {
-          console.info('Succeeded in opening preview');
         }).catch((err: BusinessError) => {
           console.error(`Failed to open preview, err.code = ${err.code}, err.message = ${err.message}`);
         });
       }).catch((err: BusinessError) => {
-        console.error(`Failed to obtain the result of whether it can be previewed, err.code = ${err.code}, err.message = ${err.message}`);
+        console.error(`Failed to obtain canPreview, err.code = ${err.code}, err.message = ${err.message}`);
       });
-
 
     } catch (error) {
       console.error('[FileMessageView] error:', error);
@@ -174,7 +180,6 @@ export struct FileMessageViewContent {
     const extension = this.getFileExtension(fileName).toLowerCase();
 
     const mimeTypes: Record<string, string> = {
-      // image
       'jpg': 'image/jpeg',
       'jpeg': 'image/jpeg',
       'png': 'image/png',
@@ -182,8 +187,6 @@ export struct FileMessageViewContent {
       'bmp': 'image/bmp',
       'webp': 'image/webp',
       'svg': 'image/svg+xml',
-
-      // video
       'mp4': 'video/mp4',
       'avi': 'video/x-msvideo',
       'mov': 'video/quicktime',
@@ -192,8 +195,6 @@ export struct FileMessageViewContent {
       'mkv': 'video/x-matroska',
       '3gp': 'video/3gpp',
       'webm': 'video/webm',
-
-      // voice
       'mp3': 'audio/mpeg',
       'wav': 'audio/wav',
       'aac': 'audio/aac',
@@ -201,8 +202,6 @@ export struct FileMessageViewContent {
       'ogg': 'audio/ogg',
       'm4a': 'audio/mp4',
       'wma': 'audio/x-ms-wma',
-
-      // file
       'pdf': 'application/pdf',
       'doc': 'application/msword',
       'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -211,13 +210,9 @@ export struct FileMessageViewContent {
       'ppt': 'application/vnd.ms-powerpoint',
       'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
       'txt': 'text/plain',
-
-      // zip
       'zip': 'application/zip',
       'rar': 'application/x-rar-compressed',
       '7z': 'application/x-7z-compressed',
-
-      // other
       'json': 'application/json',
       'xml': 'application/xml',
       'html': 'text/html',
@@ -234,11 +229,10 @@ export struct FileMessageViewContent {
   }
 
   private showDownloadToast(message: string | Resource) {
-    console.info('[FileMessageView] Toast:', message);
     try {
       Toast.info(message, this.getUIContext());
     } catch (error) {
-      console.error('[FileMessageView] Download error:', error);
+      console.error('[FileMessageView] Toast error:', error);
     }
   }
 
@@ -261,10 +255,10 @@ export struct FileMessageViewContent {
 
 @Builder
 export function FileMessageView(context: MessageRenderContext) {
-  if (context.message && context.message.messageBody && context.messageListStore) {
+  if (context.message && context.message.messagePayload && context.messageListStore) {
     FileMessageViewContent({
       message: context.message,
-      messageBody: context.message.messageBody,
+      messagePayload: context.message.messagePayload as FileMessagePayload,
       messageListStore: context.messageListStore,
       config: context.config,
       isInMergedDetailView: context.isInMergedDetailView ?? false

@@ -1,7 +1,5 @@
-import { MessageInfo } from '@tencentcloud/atomicxcore';
+import { MessageInfo, FaceMessagePayload } from '@tencentcloud/atomicxcore';
 import { ImageSizeUtil } from '../../basecomponent/Index';
-import { MessageBody } from '@tencentcloud/atomicxcore';
-import { MessageListStore } from '@tencentcloud/atomicxcore';
 import { MessageRenderContext } from '../context/MessageRenderContext';
 
 let DEFAULT_IMAGE_MAX_SIZE = 180;
@@ -9,16 +7,15 @@ let DEFAULT_IMAGE_MAX_SIZE = 180;
 @Component
 export struct FaceMessageViewContent {
   @State mesage?: MessageInfo = undefined;
-  @ObjectLink messageBody: MessageBody;
+  @ObjectLink messagePayload: FaceMessagePayload;
 
   getImageSize(): SizeOptions {
-    // Faces are typically square, so we'll return a fixed size
     return { width: 24, height: 24 };
   }
 
   build() {
     Column() {
-      Image(this.messageBody?.faceName)
+      Image(this.messagePayload?.faceData)
         .borderRadius(5)
         .interpolation(ImageInterpolation.Medium)
         .objectFit(ImageFit.Cover)
@@ -29,7 +26,7 @@ export struct FaceMessageViewContent {
 
 @Builder
 export function FaceMessageView(context: MessageRenderContext) {
-  if (context.message && context.message.messageBody) {
-    FaceMessageViewContent({ messageBody: context.message.messageBody })
+  if (context.message && context.message.messagePayload) {
+    FaceMessageViewContent({ messagePayload: context.message.messagePayload as FaceMessagePayload })
   }
 }

@@ -4,12 +4,36 @@ import { genTestUserSig, SDKAPPID } from '../signature/GenerateTestUserSig';
 import Prompt from '@system.prompt';
 import window from '@ohos.window';
 import common from '@ohos.app.ability.common';
-import { ImageSizeUtil, ThemeState, Log, Toast, TextUtils } from '@tencentcloud/atomicx';
+import { ImageSizeUtil, ThemeState, Log, Toast, TextUtils, ContextProvider } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index';
 import { MMKV } from '@tencent/mmkv';
 import DemoConstants from '../utils/DemoConstants';
 import { LoginStore, UserProfile } from '@tencentcloud/atomicxcore';
-import { AppBuilderConfig, AppBuilderHelper } from '@tencentcloud/atomicx';
-import { TUICallKit } from '@tencentcloud/tuicallkit';
+import { AppBuilderConfig, AppBuilderHelper } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index';
+import { TIMPushInterfaces } from '../push/TIMPushInterfaces';
+
+class SplashLoginCompletionHandler {
+  private userID: string = '';
+  private userSig: string = '';
+
+  constructor(userID: string, userSig: string) {
+    this.userID = userID;
+    this.userSig = userSig;
+  }
+
+  onSuccess(): void {
+    const appContext = ContextProvider.getAppContext();
+    if (appContext && (appContext as common.UIAbilityContext).resourceManager) {
+      TIMPushInterfaces.registerPush(appContext);
+    }
+
+    router.replaceUrl({ url: "pages/HomePage" });
+  }
+
+  onFailure(code: number, desc: string): void {
+    Log.e("SplashScreenPage", "auto login failed, " + code + ", " + desc);
+    router.replaceUrl({ url: "pages/LoginPage" });
+  }
+}
 
 @Entry
 @Component
@@ -20,19 +44,21 @@ struct SplashScreenPage {
     if (autoLogin) {
       let userID = mmkv.decodeString(DemoConstants.LOGIN_USER_ID);
       let userSig = mmkv.decodeString(DemoConstants.LOGIN_USER_SIG);
-      LoginStore.shared()
-        .login(SDKAPPID, userID!!, userSig!!, getContext().getApplicationContext())
+      const handler = new SplashLoginCompletionHandler(userID!!, userSig!!);
+      LoginStore.shared().login(SDKAPPID, userID!!, userSig!!, getContext())
         .then(() => {
-
-          TUICallKit.createInstance(getContext());
-          return router.replaceUrl({ url: "pages/HomePage" });
+          handler.onSuccess();
         })
         .catch((reason: Object) => {
-          Log.e("SplashScreenPage", "auto login failed, " + reason);
-          router.replaceUrl({ url: "pages/DevLoginPage" });
+          let code = 0;
+          let desc = String(reason);
+          if (reason instanceof Error) {
+            desc = reason.message;
+          }
+          handler.onFailure(code, desc);
         });
     } else {
-      router.replaceUrl({ url: "pages/DevLoginPage" })
+      router.replaceUrl({ url: "pages/LoginPage" })
     }
   }
 

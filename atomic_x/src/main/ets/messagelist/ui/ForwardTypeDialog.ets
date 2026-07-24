@@ -46,9 +46,9 @@ export struct ForwardTypeDialog {
       onActionSelected: (item: ActionItem) => {
         if (this.onForwardTypeSelected) {
           if (item.value === 'separate') {
-            this.onForwardTypeSelected(MessageForwardType.separate);
+            this.onForwardTypeSelected(MessageForwardType.SEPARATE);
           } else {
-            this.onForwardTypeSelected(MessageForwardType.merged);
+            this.onForwardTypeSelected(MessageForwardType.MERGED);
           }
         }
       },

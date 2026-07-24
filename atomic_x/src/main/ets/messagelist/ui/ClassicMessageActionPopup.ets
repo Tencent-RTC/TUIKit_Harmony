@@ -1,4 +1,6 @@
-import { MessageInfo, MessageListStore, MessageType, MessageStatus, LoginStore } from '@tencentcloud/atomicxcore';
+import { MessageInfo, MessageListStore, MessageType, MessageStatus, TextMessagePayload, AudioMessagePayload } from '@tencentcloud/atomicxcore';
+import { LoginStore } from '@tencentcloud/atomicxcore';
+import { ConversationType } from '@tencentcloud/atomicxcore';
 import { ThemeState, AppBuilderConfig, MessageAction } from '../../basecomponent/Index';
 import { MessageListStyleProtocol, ChatMessageListConfig } from '../config/MessageListConfig';
 import { ReactionEmojiPicker, RecentEmojiManager } from './ReactionEmojiPicker';
@@ -50,6 +52,7 @@ export struct ClassicMessageActionPopup {
   onDetail?: () => void;
   onConvertToText?: () => void;
   onTranslate?: () => void;
+  onQuote?: () => void;
   onEmojiReaction?: (emoji: EmojiItem) => void;
   onExpandEmojiPicker?: () => void;
   onClose?: () => void;
@@ -78,9 +81,9 @@ export struct ClassicMessageActionPopup {
     }
 
     // Forward action - exclude failed and violation messages
-    if (this.effectiveConfig.isSupportForward && 
-        this.message.status !== MessageStatus.violation &&
-        this.message.status !== MessageStatus.sendFail) {
+    if (this.effectiveConfig.isSupportForward &&
+        this.message.status !== MessageStatus.VIOLATION &&
+        this.message.status !== MessageStatus.SEND_FAIL) {
       items.push({
         text: $r('app.string.action_forward'),
         icon: $rawfile('messagelist/icon_extion_forward.svg'),
@@ -142,9 +145,18 @@ export struct ClassicMessageActionPopup {
       });
     }
 
+    // Quote action - only for send success messages
+    if (this.shouldShowQuote()) {
+      items.push({
+        text: $r('app.string.action_quote'),
+        icon: $rawfile('messagelist/icon_extion_quote.svg'),
+        action: 'quote'
+      });
+    }
+
     // Custom actions
     if (this.customActions && this.customActions.length > 0) {
-      this.customActions.forEach((customAction, index) => {
+          this.customActions.forEach((customAction: ClassicCustomActionItem, index: number) => {
         items.push({
           text: customAction.title,
           icon: customAction.iconName as Resource,
@@ -157,10 +169,11 @@ export struct ClassicMessageActionPopup {
   }
 
   private shouldShowCopy(): boolean {
-    if (this.message.messageType !== MessageType.Text) {
+    if (this.message.messageType !== MessageType.TEXT) {
       return false;
     }
-    const hasTextContent = !!(this.message.messageBody?.text && this.message.messageBody.text.length > 0);
+    const textPayload = this.message.messagePayload as TextMessagePayload | undefined;
+    const hasTextContent = !!(textPayload?.text && textPayload.text.length > 0);
     return hasTextContent;
   }
 
@@ -168,26 +181,25 @@ export struct ClassicMessageActionPopup {
     if (!this.effectiveConfig.isSupportRecall) {
       return false;
     }
-    if (!this.message.isSelf) {
+    if (!this.message.isSentBySelf) {
       return false;
     }
-    if (this.message.status === MessageStatus.violation) {
+    if (this.message.status === MessageStatus.VIOLATION) {
       return false;
     }
-    if (this.message.status !== MessageStatus.sendSuccess) {
+    if (this.message.status !== MessageStatus.SEND_SUCCESS) {
       return false;
     }
     const currentTime = Math.floor(Date.now() / 1000);
     const messageTime = this.message.timestamp || 0;
-    const timeLimit = 120; // 2 minutes
+    const timeLimit = 120;
     return (currentTime - messageTime) < timeLimit;
   }
 
   private shouldShowReadReceiptDetail(): boolean {
     return this.effectiveConfig.enableReadReceipt === true &&
-      this.message.isSelf === true &&
-      !!this.message.groupID &&
-      this.message.groupID.length > 0 &&
+      this.message.isSentBySelf === true &&
+      this.message.conversationType === ConversationType.GROUP &&
       !!this.message.needReadReceipt;
   }
 
@@ -195,16 +207,17 @@ export struct ClassicMessageActionPopup {
     if (!this.effectiveConfig.isSupportConvertToText) {
       return false;
     }
-    if (this.message.messageType !== MessageType.Sound) {
+    if (this.message.messageType !== MessageType.AUDIO) {
       return false;
     }
-    if (this.message.status === MessageStatus.violation) {
+    if (this.message.status === MessageStatus.VIOLATION) {
       return false;
     }
-    if (this.message.status !== MessageStatus.sendSuccess) {
+    if (this.message.status !== MessageStatus.SEND_SUCCESS) {
       return false;
     }
-    const hasAsrText = (this.message.messageBody?.asrText ?? '').length > 0;
+    const audioPayload = this.message.messagePayload as AudioMessagePayload | undefined;
+    const hasAsrText = (audioPayload?.asrText ?? '').length > 0;
     const isExpanded = this.asrDisplayManager?.isExpanded(this.message.msgID) ?? false;
     return !hasAsrText || !isExpanded;
   }
@@ -213,22 +226,26 @@ export struct ClassicMessageActionPopup {
     if (!this.effectiveConfig.isSupportTranslate) {
       return false;
     }
-    if (this.message.messageType !== MessageType.Text) {
+    if (this.message.messageType !== MessageType.TEXT) {
       return false;
     }
-    if (this.message.status === MessageStatus.violation) {
+    if (this.message.status === MessageStatus.VIOLATION) {
       return false;
     }
-    if (this.message.status !== MessageStatus.sendSuccess) {
+    if (this.message.status !== MessageStatus.SEND_SUCCESS) {
       return false;
     }
-    const translatedTextMapRaw = this.message.messageBody?.translatedText;
-    let hasTranslatedText: boolean = false;
-    if (translatedTextMapRaw) {
-      hasTranslatedText = translatedTextMapRaw.size > 0;
+    return true;
+  }
+
+  private shouldShowQuote(): boolean {
+    if (!this.effectiveConfig.isSupportQuote) {
+      return false;
     }
-    const isExpanded = this.translationDisplayManager?.isExpanded(this.message.msgID) ?? false;
-    return !hasTranslatedText || !isExpanded;
+    if (this.message.status !== MessageStatus.SEND_SUCCESS) {
+      return false;
+    }
+    return true;
   }
 
   private handleAction(action: string) {
@@ -253,6 +270,8 @@ export struct ClassicMessageActionPopup {
       this.onConvertToText();
     } else if (action === 'translate' && this.onTranslate) {
       this.onTranslate();
+    } else if (action === 'quote' && this.onQuote) {
+      this.onQuote();
     } else if (action.startsWith('custom_')) {
       this.handleCustomAction(action);
     }
@@ -273,7 +292,7 @@ export struct ClassicMessageActionPopup {
   build() {
     Column() {
       // Reaction emoji picker at the top (inside popup)
-      if (this.effectiveConfig.isSupportReaction && this.message.status !== MessageStatus.violation) {
+      if (this.effectiveConfig.isSupportReaction && this.message.status !== MessageStatus.VIOLATION) {
         Row() {
           ReactionEmojiPicker({
             onEmojiClick: (emoji: EmojiItem) => {
@@ -300,7 +319,7 @@ export struct ClassicMessageActionPopup {
       }
 
       // Divider line
-      if (this.effectiveConfig.isSupportReaction && this.message.status !== MessageStatus.violation && this.actionItems.length > 0) {
+      if (this.effectiveConfig.isSupportReaction && this.message.status !== MessageStatus.VIOLATION && this.actionItems.length > 0) {
         Divider()
           .width('90%')
           .height(0.5)
@@ -320,7 +339,7 @@ export struct ClassicMessageActionPopup {
 
               Text(item.text)
                 .fontSize(11)
-                .fontColor(this.themeState.colors.textColorPrimary)
+                .fontColor(item.color ?? this.themeState.colors.textColorPrimary)
                 .margin({ top: 6 })
                 .maxLines(1)
                 .textOverflow({ overflow: TextOverflow.Ellipsis })

@@ -1,12 +1,8 @@
 import { ThemeState, AvatarContentType } from '../../basecomponent/Index';
 import { Avatar, AvatarSize, AvatarShape } from '../../basecomponent/Index';
 import { MessageCheckBox } from './MessageCheckBox';
-import {
-  ConversationListStore,
-  ConversationInfo,
-  ConversationFetchOption,
-  ConversationListState,
-} from '@tencentcloud/atomicxcore';
+import { ConversationListStore, ConversationInfo, ConversationLoadOption, ConversationListState } from '@tencentcloud/atomicxcore';
+import { CompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 
 /**
  * ForwardTargetSelector component for selecting conversation targets to forward messages
@@ -108,11 +104,11 @@ export struct ForwardTargetSelector {
           .margin({ top: 100 })
       } else {
         List() {
-          LazyForEach(this.conversationListState.conversationDataSource, (conversation: ConversationInfo) => {
+          LazyForEach(this.conversationListState.conversationList, (conversation: ConversationInfo) => {
             ListItem() {
               this.ConversationRow(conversation);
             }
-          }, (conversation: ConversationInfo) => conversation.ID)
+          }, (conversation: ConversationInfo) => conversation.conversationID)
         }
         .width('100%')
         .layoutWeight(1)
@@ -153,7 +149,7 @@ export struct ForwardTargetSelector {
       
       // Checkbox for multi-selection
       MessageCheckBox({
-        isSelected: this.selectedConversationIDs.has(conversation.ID),
+        isSelected: this.selectedConversationIDs.has(conversation.conversationID),
         isEnabled: true,
         onTap: () => {
           this.toggleConversation(conversation);
@@ -183,7 +179,7 @@ export struct ForwardTargetSelector {
           Row({ space: 8 }) {
             ForEach(this.selectedConversations, (conversation: ConversationInfo) => {
               this.ConversationChip(conversation);
-            }, (conversation: ConversationInfo) => conversation.ID)
+            }, (conversation: ConversationInfo) => conversation.conversationID)
           }
           .padding({ left: this.HORIZONTAL_PADDING, right: 8 })
         }
@@ -247,37 +243,33 @@ export struct ForwardTargetSelector {
   }
 
   private toggleConversation(conversation: ConversationInfo) {
-    if (this.selectedConversationIDs.has(conversation.ID)) {
-      this.selectedConversationIDs.delete(conversation.ID);
-      this.selectedConversations = this.selectedConversations.filter(c => c.ID !== conversation.ID);
+    if (this.selectedConversationIDs.has(conversation.conversationID)) {
+      this.selectedConversationIDs.delete(conversation.conversationID);
+      this.selectedConversations = this.selectedConversations.filter((c: ConversationInfo) => c.conversationID !== conversation.conversationID);
     } else {
-      this.selectedConversationIDs.add(conversation.ID);
+      this.selectedConversationIDs.add(conversation.conversationID);
       this.selectedConversations.push(conversation);
     }
-    // Trigger UI update
     this.selectedConversationIDs = new Set(this.selectedConversationIDs);
-    this.selectedConversations = [...this.selectedConversations];
+    this.selectedConversations = Array.from(this.selectedConversations);
   }
 
   private removeConversation(conversation: ConversationInfo) {
-    this.selectedConversationIDs.delete(conversation.ID);
-    this.selectedConversations = this.selectedConversations.filter(c => c.ID !== conversation.ID);
-    // Trigger UI update
+    this.selectedConversationIDs.delete(conversation.conversationID);
+    this.selectedConversations = this.selectedConversations.filter((c: ConversationInfo) => c.conversationID !== conversation.conversationID);
     this.selectedConversationIDs = new Set(this.selectedConversationIDs);
   }
 
   private loadConversations() {
     this.isLoading = true;
-    const option = new ConversationFetchOption();
-    this.conversationListStore.fetchConversationList(option)
-      .then(() => {
-        this.isLoading = false;
-        console.log('[ForwardTargetSelector] Loaded conversations:', 
-          this.conversationListState.conversationDataSource.totalCount());
-      })
-      .catch((error: Error) => {
-        this.isLoading = false;
-        console.error('[ForwardTargetSelector] Failed to load conversations:', error);
-      });
+    const option = new ConversationLoadOption();
+    this.conversationListStore.loadConversations(option, new CompletionHandlerAdapter(() => {
+      this.isLoading = false;
+      console.log('[ForwardTargetSelector] Loaded conversations:',
+        this.conversationListState.conversationList.totalCount());
+    }, (_code: number, desc: string) => {
+      this.isLoading = false;
+      console.error('[ForwardTargetSelector] Failed to load conversations:', desc);
+    }));
   }
 }

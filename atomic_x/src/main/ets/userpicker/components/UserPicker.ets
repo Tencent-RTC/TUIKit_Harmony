@@ -390,20 +390,11 @@ export struct UserPicker {
       .height(44)
       .justifyContent(FlexAlign.SpaceBetween)
 
-      Row() {
-        Text(`${this.selectedKeysOrder.length}/${this.maxCount !== undefined ? this.maxCount : 512}`)
-          .fontSize(12)
-          .fontWeight(400)
-          .fontColor(this.themeState.colors.textColorTertiary)
-      }
-      .width('100%')
-      .height(30)
-      .justifyContent(FlexAlign.Center)
     }
     .width('100%')
-    .height(74)
-    .padding({ left: 16, right: 16 })
+    .height(44)
     .margin({ top: 22 })
+    .padding({ left: 16, right: 16 })
     .backgroundColor(this.themeState.colors.bgColorOperate)
   }
 

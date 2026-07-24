@@ -9,14 +9,17 @@ import {
   Toast,
   LanguageState
 } from '../../basecomponent/Index';
+import { ConversationInfo, ConversationListStore, ConversationListState } from '@tencentcloud/atomicxcore';
+import { C2CSettingState, C2CSettingStore } from '../viewmodel/C2CChatSettingViewModel';
 import {
-  C2CSettingState,
-  C2CSettingStore,
-  ConversationInfo,
-  ConversationListState,
-  ConversationListStore
-} from '@tencentcloud/atomicxcore';
+  muteConversationCompat,
+  pinConversationCompat,
+  clearConversationMessagesCompat,
+  deleteConversationCompat,
+  fetchConversationInfoCompat
+} from '../viewmodel/C2CChatSettingViewModel';
 import { GroupNameEditDialog } from '../dialog/GroupSettingDialogs';
+import { AtomicCallEventPublisher } from '../../common/AtomicCallEventPublisher';
 
 @CustomDialog
 export struct C2CSettingDialog {
@@ -24,6 +27,8 @@ export struct C2CSettingDialog {
   userID: string = '';
   onSendMessageClick?: (newConversationID?: string, title?: string, avatarUrl?: string) => void;
   onContactDelete?: () => void;
+  onVoiceCallClick?: () => void;
+  onVideoCallClick?: () => void;
 
   build() {
     C2CChatSetting({
@@ -36,6 +41,16 @@ export struct C2CSettingDialog {
       onContactDelete: () => {
         if (this.onContactDelete) {
           this.onContactDelete();
+        }
+      },
+      onVoiceCallClick: () => {
+        if (this.onVoiceCallClick) {
+          this.onVoiceCallClick();
+        }
+      },
+      onVideoCallClick: () => {
+        if (this.onVideoCallClick) {
+          this.onVideoCallClick();
         }
       },
       dialogController: this.controller
@@ -61,6 +76,16 @@ export struct C2CChatSetting {
   dialogController?: CustomDialogController;
   onSendMessageClick?: (newConversationID?: string, title?: string, avatarUrl?: string) => void;
   onContactDelete?: () => void;
+  /**
+   * Voice call entry callback. If the host app provides one, it takes
+   * precedence and the built-in `AtomicCallEventPublisher.publishStartCall`
+   * will NOT be invoked. If unset, tapping the voice call action publishes a
+   * default start-call event to the current userID (aligned with Android
+   * `C2CChatSettingView`).
+   */
+  onVoiceCallClick?: () => void;
+  /** Video call entry callback; see `onVoiceCallClick`. */
+  onVideoCallClick?: () => void;
   private remarkEditDialogController?: CustomDialogController = new CustomDialogController({
     builder: GroupNameEditDialog({
       title: $r('app.string.chatsetting_set_remark'),
@@ -395,8 +420,12 @@ export struct C2CChatSetting {
       Switch({
         checked: this.c2cState?.isNotDisturb || false,
         onCheckedChange: (isOn: boolean) => {
-          if (this.conversationID) {
-            this.conversationStore?.muteConversation(this.conversationID, isOn).then(() => {
+          if (this.conversationID && this.conversationStore) {
+            muteConversationCompat(this.conversationStore, this.conversationID, isOn).then(() => {
+              if (this.c2cState) {
+                this.c2cState.isNotDisturb = isOn;
+                this.c2cState = this.c2cStore?.state;
+              }
             }).catch((error: Error) => {
               console.error('setChatMuted failed:', error);
             });
@@ -425,8 +454,12 @@ export struct C2CChatSetting {
         checked: this.c2cState?.isPinned || false,
         type: SwitchType.Basic,
         onCheckedChange: (isOn: boolean) => {
-          if (this.conversationID) {
-            this.conversationStore?.pinConversation(this.conversationID, isOn).then(() => {
+          if (this.conversationID && this.conversationStore) {
+            pinConversationCompat(this.conversationStore, this.conversationID, isOn).then(() => {
+              if (this.c2cState) {
+                this.c2cState.isPinned = isOn;
+                this.c2cState = this.c2cStore?.state;
+              }
             }).catch((error: Error) => {
               console.error('setChatMuted failed:', error);
             });
@@ -492,6 +525,7 @@ export struct C2CChatSetting {
           if (isOn) {
             this.c2cStore?.addToBlacklist()
               .then(() => {
+                this.c2cState = this.c2cStore?.state;
                 Toast.success($r('app.string.chatsetting_added_to_blacklist'), this.getUIContext());
               })
               .catch((error: Error) => {
@@ -501,6 +535,7 @@ export struct C2CChatSetting {
           } else {
             this.c2cStore?.removeFromBlacklist()
               .then(() => {
+                this.c2cState = this.c2cStore?.state;
                 Toast.success($r('app.string.chatsetting_removed_from_blacklist'), this.getUIContext());
               })
               .catch((error: Error) => {
@@ -529,8 +564,8 @@ export struct C2CChatSetting {
 
       this.ActionButtonBuilder($r('app.string.chatsetting_clear_chat_history_title'),
         this.themeState.colors.textColorError, () => {
-          if (this.conversationID) {
-            this.conversationStore?.clearConversationMessages(this.conversationID).then(() => {
+          if (this.conversationID && this.conversationStore) {
+            clearConversationMessagesCompat(this.conversationStore, this.conversationID).then(() => {
               Toast.success($r('app.string.chatsetting_clear_chat_success'), this.getUIContext());
             }).catch((error: Error) => {
               Toast.error($r('app.string.chatsetting_clear_chat_fail'), this.getUIContext());
@@ -548,8 +583,8 @@ export struct C2CChatSetting {
             Toast.success($r('app.string.chatsetting_delete_friend_success'), this.getUIContext());
 
             // Delete conversation after deleting friend
-            if (this.conversationID.length > 0) {
-              return this.conversationStore?.deleteConversation(this.conversationID ?? "");
+            if (this.conversationID.length > 0 && this.conversationStore) {
+              return deleteConversationCompat(this.conversationStore, this.conversationID);
             }
             return Promise.resolve();
           }).then(() => {
@@ -654,6 +689,39 @@ export struct C2CChatSetting {
     }
   }
 
+  /**
+   * Voice call entry handler used by future voice call action UI in this
+   * page. Aligned with Android `C2CChatSettingView.createVoiceCallButton`:
+   * host callback takes precedence, otherwise the default publisher is
+   * invoked (which is a no-op when TUICallKit is not integrated).
+   */
+  private handleVoiceCallClick(): void {
+    if (this.onVoiceCallClick) {
+      this.onVoiceCallClick();
+      return;
+    }
+    if (this.userID.length > 0) {
+      AtomicCallEventPublisher.publishStartCall(
+        [this.userID],
+        AtomicCallEventPublisher.MEDIA_TYPE_AUDIO
+      );
+    }
+  }
+
+  /** Video call counterpart of `handleVoiceCallClick`. */
+  private handleVideoCallClick(): void {
+    if (this.onVideoCallClick) {
+      this.onVideoCallClick();
+      return;
+    }
+    if (this.userID.length > 0) {
+      AtomicCallEventPublisher.publishStartCall(
+        [this.userID],
+        AtomicCallEventPublisher.MEDIA_TYPE_VIDEO
+      );
+    }
+  }
+
   private initializeWithUserID(): void {
     console.info('[C2CChatSettingPage] userID:', this.userID);
 
@@ -672,13 +740,15 @@ export struct C2CChatSetting {
 
         if (this.conversationID) {
           let conversation = new ConversationInfo();
-          conversation.ID = this.conversationID;
-          this.conversationStore?.fetchConversationInfo(this.conversationID).then(() => {
-            this.isLoading = false;
-          }).catch((error: Error) => {
-            Toast.error($r('app.string.chatsetting_clear_chat_fail'), this.getUIContext());
-            console.error('Fetch conversation info failed:', error);
-          });
+          conversation.conversationID = this.conversationID;
+          if (this.conversationStore) {
+            fetchConversationInfoCompat(this.conversationStore, this.conversationID).then(() => {
+              this.isLoading = false;
+            }).catch((error: Error) => {
+              Toast.error($r('app.string.chatsetting_clear_chat_fail'), this.getUIContext());
+              console.error('Fetch conversation info failed:', error);
+            });
+          }
         }
 
       } catch (error) {
@@ -688,8 +758,8 @@ export struct C2CChatSetting {
   }
 
   private getUserInitials(): string {
-    const name = this.c2cState?.nickname || this.c2cStore?.userID || 'Dominik';
-    const words = name.split(' ');
+    const name: string = this.c2cState?.nickname || this.c2cStore?.userID || 'Dominik';
+    const words: string[] = name.split(' ');
     if (words.length >= 2) {
       return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
     }

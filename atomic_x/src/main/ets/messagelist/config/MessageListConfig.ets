@@ -42,6 +42,7 @@ export interface MessageActionConfigProtocol {
   isSupportReaction?: boolean;
   isSupportConvertToText?: boolean;
   isSupportTranslate?: boolean;
+  isSupportQuote?: boolean;
 }
 
 /**
@@ -81,6 +82,7 @@ export class ChatMessageListConfig implements MessageListStyleProtocol {
   private userIsSupportReaction?: boolean;
   private userIsSupportConvertToText?: boolean;
   private userIsSupportTranslate?: boolean;
+  private userIsSupportQuote?: boolean;
 
   constructor(config?: Partial<MessageListStyleProtocol>) {
     if (config) {
@@ -106,6 +108,7 @@ export class ChatMessageListConfig implements MessageListStyleProtocol {
       this.userIsSupportReaction = config.isSupportReaction;
       this.userIsSupportConvertToText = config.isSupportConvertToText;
       this.userIsSupportTranslate = config.isSupportTranslate;
+      this.userIsSupportQuote = config.isSupportQuote;
     }
   }
 
@@ -229,6 +232,13 @@ export class ChatMessageListConfig implements MessageListStyleProtocol {
     return true; // Default to true
   }
 
+  get isSupportQuote(): boolean {
+    if (this.userIsSupportQuote !== undefined) {
+      return this.userIsSupportQuote;
+    }
+    return true;
+  }
+
   get messageActionStyle(): MessageActionStyle {
     if (this.userMessageActionStyle !== undefined) {
       return this.userMessageActionStyle;
@@ -330,6 +340,10 @@ export class MergedMessageListConfig implements MessageListStyleProtocol {
 
   // Disable translate in merged detail view
   get isSupportTranslate(): boolean {
+    return false;
+  }
+
+  get isSupportQuote(): boolean {
     return false;
   }
 

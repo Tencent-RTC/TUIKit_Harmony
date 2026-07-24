@@ -24,6 +24,10 @@ export interface MessageInputConfigProtocol {
   inputStyle?: InputStyle;
   isShowAudioRecorder?: boolean;
   isShowPhotoTaker?: boolean;
+  /** Show audio call entry in the more menu (default: true) */
+  isShowAudioCall?: boolean;
+  /** Show video call entry in the more menu (default: true) */
+  isShowVideoCall?: boolean;
   isShowMore?: boolean;
   isShowSendButton?: boolean;
   /** Enable @ mention feature for group conversations (default: true) */
@@ -39,6 +43,8 @@ export class ChatMessageInputConfig implements MessageInputConfigProtocol {
   private userInputStyle?: InputStyle;
   private userIsShowAudioRecorder?: boolean;
   private userIsShowPhotoTaker?: boolean;
+  private userIsShowAudioCall?: boolean;
+  private userIsShowVideoCall?: boolean;
   private userIsShowMore?: boolean;
   private userIsShowSendButton?: boolean;
   private userEnableMention?: boolean;
@@ -49,6 +55,8 @@ export class ChatMessageInputConfig implements MessageInputConfigProtocol {
       this.userInputStyle = config.inputStyle;
       this.userIsShowAudioRecorder = config.isShowAudioRecorder;
       this.userIsShowPhotoTaker = config.isShowPhotoTaker;
+      this.userIsShowAudioCall = config.isShowAudioCall;
+      this.userIsShowVideoCall = config.isShowVideoCall;
       this.userIsShowMore = config.isShowMore;
       this.userIsShowSendButton = config.isShowSendButton;
       this.userEnableMention = config.enableMention;
@@ -70,6 +78,14 @@ export class ChatMessageInputConfig implements MessageInputConfigProtocol {
 
   get isShowPhotoTaker(): boolean {
     return this.userIsShowPhotoTaker ?? true;
+  }
+
+  get isShowAudioCall(): boolean {
+    return this.userIsShowAudioCall ?? true;
+  }
+
+  get isShowVideoCall(): boolean {
+    return this.userIsShowVideoCall ?? true;
   }
 
   get isShowMore(): boolean {

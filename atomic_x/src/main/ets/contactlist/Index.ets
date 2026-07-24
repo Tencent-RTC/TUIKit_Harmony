@@ -19,5 +19,5 @@ export { GroupCreationComponent, GroupInfo, GroupCreationParams } from './compon
 export { GroupTypeSelector, GroupType, GroupTypeSelection } from './components/GroupTypeSelector'
 
 export {
-  ContactListStore, ContactInfo, ContactDataSource
+  ContactStore, ContactInfo
 } from '@tencentcloud/atomicxcore'

@@ -1,7 +1,8 @@
 import { ThemeState } from '../../basecomponent/Index';
-import { GroupMember, GroupMemberRole, GroupSettingStore } from '@tencentcloud/atomicxcore';
+import { GroupMember, GroupMemberFilterRole, GroupMemberStore } from '@tencentcloud/atomicxcore';
 import { UserPicker, UserPickerData } from '../../userpicker/Index';
 import { MentionInfo } from './MentionInfo';
+import { CompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 
 /**
  * Dialog for selecting group members to mention
@@ -24,11 +25,11 @@ export struct MentionMemberDialog {
   onMembersSelected?: (mentions: MentionInfo[]) => void;
   onCancel?: () => void;
 
-  private groupSettingStore?: GroupSettingStore;
+  private groupMemberStore?: GroupMemberStore;
 
   aboutToAppear() {
     if (this.groupID) {
-      this.groupSettingStore = GroupSettingStore.create(this.groupID);
+      this.groupMemberStore = GroupMemberStore.create(this.groupID);
       this.loadMembers();
     } else {
       this.isLoading = false;
@@ -36,50 +37,46 @@ export struct MentionMemberDialog {
   }
 
   private loadMembers(): void {
-    if (!this.groupSettingStore) {
+    if (!this.groupMemberStore) {
       this.isLoading = false;
       return;
     }
 
-    this.groupSettingStore.fetchGroupMemberList(GroupMemberRole.ALL)
-      .then(() => {
-        this.updateMembersFromState();
-        this.isLoading = false;
-      })
-      .catch((error: Error) => {
-        console.error('[MentionMemberDialog] Failed to load group members:', error.message);
-        this.isLoading = false;
-      });
+    this.groupMemberStore.loadMembers([GroupMemberFilterRole.ALL], new CompletionHandlerAdapter(() => {
+      this.updateMembersFromState();
+      this.isLoading = false;
+    }, (_code: number, desc: string) => {
+      console.error('[MentionMemberDialog] Failed to load group members:', desc);
+      this.isLoading = false;
+    }));
   }
 
   private loadMoreMembers(): void {
-    if (!this.groupSettingStore || this.isLoadingMore) {
+    if (!this.groupMemberStore || this.isLoadingMore) {
       return;
     }
 
-    const state = this.groupSettingStore.state;
-    if (!state.hasMoreGroupMembers) {
+    const state = this.groupMemberStore.state;
+    if (!state.hasMoreMembers) {
       return;
     }
 
     this.isLoadingMore = true;
-    this.groupSettingStore.fetchMoreGroupMemberList()
-      .then(() => {
-        this.updateMembersFromState();
-        this.isLoadingMore = false;
-      })
-      .catch((error: Error) => {
-        console.error('[MentionMemberDialog] Failed to load more group members:', error.message);
-        this.isLoadingMore = false;
-      });
+    this.groupMemberStore.loadMoreMembers(new CompletionHandlerAdapter(() => {
+      this.updateMembersFromState();
+      this.isLoadingMore = false;
+    }, (_code: number, desc: string) => {
+      console.error('[MentionMemberDialog] Failed to load more group members:', desc);
+      this.isLoadingMore = false;
+    }));
   }
 
   private updateMembersFromState(): void {
-    if (!this.groupSettingStore) {
+    if (!this.groupMemberStore) {
       return;
     }
 
-    const members = this.groupSettingStore.state.allMembers;
+    const members = this.groupMemberStore.state.memberList;
     const list: UserPickerData<GroupMember>[] = members.map((member: GroupMember): UserPickerData<GroupMember> => {
       const displayName = this.getDisplayName(member);
       const data: UserPickerData<GroupMember> = {

@@ -298,8 +298,8 @@ class AudioRecorderImpl {
     const fileName = `voice_record_${timestamp}.m4a`;
 
     const cacheDir = this.context
-      ? this.context.getApplicationContext().cacheDir
-      : getContext().getApplicationContext().cacheDir;
+      ? this.context.cacheDir
+      : getContext().cacheDir;
 
     const voiceDir = `${cacheDir}/atomicx_core_data/voice`;
     return `${voiceDir}/${fileName}`;

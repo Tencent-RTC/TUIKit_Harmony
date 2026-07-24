@@ -1,6 +1,11 @@
 {
   "apiType": "stageMode",
   "buildOption": {
+    "nativeLib": {
+      "filter": {
+        "pickFirsts": ["**/libaki_jsbind.so"]
+      }
+    }
   },
   "buildOptionSet": [
     {

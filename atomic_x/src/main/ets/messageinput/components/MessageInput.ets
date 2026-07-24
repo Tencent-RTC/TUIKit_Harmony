@@ -1,9 +1,17 @@
 import { ThemeState, Toast ,IMErrorCode } from '../../basecomponent/Index';
 import { EventBus } from '../../basecomponent/utils/EventBus';
+import { MessageQuoteEvent } from '../../messagelist/ui/MessageQuoteEvent';
+import {
+  MessageQuoteDisplayPolicy,
+  MessageQuoteLabels
+} from '../../messagelist/cells/MessageQuoteDisplayPolicy';
 import emitter from '@ohos.events.emitter';
-import { MessageBody, MessageInfo, MessageInputStore, MessageType, ErrorInfo, ConversationListStore, ConversationType, OfflinePushInfo, LoginStore } from '@tencentcloud/atomicxcore';
+import { MessageInfo, MessageQuoteInfo, MessageType, OfflinePushInfo, TextMessagePayload } from '@tencentcloud/atomicxcore';
+import { MessageInputStore, SendMessagePayload, SendMessageOption, TextSendMessagePayload, ImageSendMessagePayload, VideoSendMessagePayload, AudioSendMessagePayload, FileSendMessagePayload, CustomSendMessagePayload } from '@tencentcloud/atomicxcore';
+import { ConversationListStore, ConversationInfo, ConversationType } from '@tencentcloud/atomicxcore';
+import { LoginStore } from '@tencentcloud/atomicxcore';
 import { MessageInputMoreDialog, MenuItem } from './MessageInputMoreDialog';
-import { EmojiDataManager, EmojiItem, EmojiPicker } from '../../emojipicker/Index';
+import { EmojiDataManager, EmojiItem, EmojiPicker, EmojiTextSegment } from '../../emojipicker/Index';
 import { AudioRecorder } from '../../audiorecorder/Index';
 import { AudioRecorderView } from '../Index';
 import { FilePicker } from '../../filepicker/Index';
@@ -20,6 +28,19 @@ import { MentionInfo } from './MentionInfo';
 import { MentionMemberDialog } from './MentionMemberDialog';
 import { ClassicInputBar, ClassicInputBarCallbacks } from './ClassicInputBar';
 import { MinimalistInputBar, MinimalistInputBarCallbacks } from './MinimalistInputBar';
+import { VoiceTranscriptionDraftView } from './VoiceTranscriptionDraftView';
+import { AudioTranscriber } from './AudioTranscriber';
+import {
+  CompletionHandlerAdapter,
+  GetConversationInfoCompletionHandlerAdapter
+} from '../../basecomponent/utils/CompletionHandlers';
+import { AtomicCallEventPublisher } from '../../common/AtomicCallEventPublisher';
+import { GroupMemberPickerDialog } from '../../chatsetting/pages/GroupMemberPickerDialog';
+import { GroupMember } from '@tencentcloud/atomicxcore';
+import { CallMediaType } from '../../call/common/CallStore';
+import { UserPickerData } from '../../userpicker/Index';
+
+type VoiceRecordReleaseAction = 'send' | 'cancel' | 'transcribe';
 
 @Component
 export struct MessageInput {
@@ -37,14 +58,22 @@ export struct MessageInput {
   @State private inputState: MessageInputStore | null = null;
   @State private showEmojiPicker: boolean = false;
   private context = getContext(this) as common.UIAbilityContext;
+  private audioTranscriber: AudioTranscriber = new AudioTranscriber();
   @State private inputFocused: boolean = false;
   private hiddenButtonId: string = 'hiddenFocusButton';
   @State private isVoiceRecording: boolean = false;
   @State private recordingDuration: number = 0;
   @State private showKeyboardPlaceholder: boolean = false;
   @State private shouldCancelRecording: boolean = false;
+  @State private shouldTranscribeRecording: boolean = false;
   @State private dragOffset: number = 0;
+  @State private showVoiceTranscriptionDraft: boolean = false;
+  @State private voiceTranscriptionAudioPath: string = '';
+  @State private voiceTranscriptionAudioDuration: number = 0;
+  @State private voiceTranscriptionText: string = '';
+  @State private voiceTranscriptionLoading: boolean = false;
   private readonly cancelThreshold: number = -50; // Upward drag threshold for cancel
+  private voiceRecordReleaseAction: VoiceRecordReleaseAction = 'send';
   private longPressTimer?: number;
   private initialTouchY: number = 0;
   // Draft related properties
@@ -59,7 +88,15 @@ export struct MessageInput {
   private isRemovingMention: boolean = false;
   // Parsed from conversationID for @ mention feature
   private parsedGroupID: string = '';
+  private parsedUserID: string = '';
   private parsedConversationType: ConversationType = ConversationType.UNKNOWN;
+  // Dialog controller for the group call member picker (kept as field to avoid GC issues)
+  private groupCallMemberPickerController?: CustomDialogController;
+  // Quote message related properties
+  @State private quotedMessage?: MessageInfo = undefined;
+  @State private quotedSummary: string = '';
+  @State private quotedSenderPrefix: string = '';
+  @State private quotedContentText: string = '';
 
   aboutToAppear() {
     if (this.conversationID) {
@@ -87,6 +124,11 @@ export struct MessageInput {
     EventBus.getInstance().on('onUserLongPress', (eventData) => {
       this.handleMentionEvent(eventData);
     });
+
+    // Subscribe to EventBus for quote message events
+    EventBus.getInstance().on(MessageQuoteEvent.QUOTE_MESSAGE, (eventData: emitter.EventData) => {
+      this.handleQuoteMessageEvent(eventData);
+    });
   }
 
   /**
@@ -97,13 +139,80 @@ export struct MessageInput {
     if (this.conversationID.startsWith('group_')) {
       this.parsedConversationType = ConversationType.GROUP;
       this.parsedGroupID = this.conversationID.substring(6); // Remove "group_" prefix
+      this.parsedUserID = '';
     } else if (this.conversationID.startsWith('c2c_')) {
       this.parsedConversationType = ConversationType.C2C;
       this.parsedGroupID = '';
+      this.parsedUserID = this.conversationID.substring(4); // Remove "c2c_" prefix
     } else {
       this.parsedConversationType = ConversationType.UNKNOWN;
       this.parsedGroupID = '';
+      this.parsedUserID = '';
     }
+  }
+
+  /**
+   * Start an audio call from the input more-menu.
+   *
+   * Aligned with Android `MessageInputViewModel.startAudioCall`:
+   *   - C2C conversation: publish start-call directly to the peer user
+   *   - Group conversation: pop up group member picker; after members are
+   *     selected, publish start-call with the group id + selected participants
+   *
+   * Callers can override the default behavior by supplying
+   * `onVoiceCallClick`; when provided, we defer to the host and skip the
+   * built-in publisher.
+   */
+  private startAudioCall(): void {
+    if (this.onVoiceCallClick) {
+      this.onVoiceCallClick();
+      return;
+    }
+    this.handleStartCall(AtomicCallEventPublisher.MEDIA_TYPE_AUDIO);
+  }
+
+  /** Same as `startAudioCall` but for video. */
+  private startVideoCall(): void {
+    if (this.onVideoCallClick) {
+      this.onVideoCallClick();
+      return;
+    }
+    this.handleStartCall(AtomicCallEventPublisher.MEDIA_TYPE_VIDEO);
+  }
+
+  private handleStartCall(mediaType: CallMediaType): void {
+    if (this.parsedConversationType === ConversationType.C2C) {
+      if (this.parsedUserID.length === 0) {
+        return;
+      }
+      AtomicCallEventPublisher.publishStartCall([this.parsedUserID], mediaType);
+      return;
+    }
+    if (this.parsedConversationType === ConversationType.GROUP) {
+      if (this.parsedGroupID.length === 0) {
+        return;
+      }
+      this.showGroupCallMemberPicker(this.parsedGroupID, mediaType);
+    }
+  }
+
+  private showGroupCallMemberPicker(chatGroupId: string, mediaType: CallMediaType): void {
+    this.groupCallMemberPickerController = new CustomDialogController({
+      builder: GroupMemberPickerDialog({
+        groupID: chatGroupId,
+        onConfirm: (selectedItems: UserPickerData<GroupMember>[]) => {
+          if (selectedItems.length > 0) {
+            const participantIds: string[] =
+              selectedItems.map((item: UserPickerData<GroupMember>): string => item.key);
+            AtomicCallEventPublisher.publishStartCall(participantIds, mediaType, chatGroupId);
+          }
+        },
+      }),
+      autoCancel: true,
+      alignment: DialogAlignment.Bottom,
+      customStyle: true,
+    });
+    this.groupCallMemberPickerController.open();
   }
 
   /**
@@ -197,6 +306,7 @@ export struct MessageInput {
     
     // Unsubscribe from EventBus
     EventBus.getInstance().off('onUserLongPress');
+    EventBus.getInstance().off(MessageQuoteEvent.QUOTE_MESSAGE);
   }
 
   // Initialize dialog controller with menu items based on style
@@ -244,31 +354,36 @@ export struct MessageInput {
         }
       });
 
-    if (this.onVoiceCallClick) {
+    if (this.effectiveConfig.isShowAudioCall) {
       menuItems.push({
         id: 'voiceCall',
         text: $r('app.string.menu_voice_call'),
         icon: $rawfile('messageinput/voice_call_icon.svg'),
         action: () => {
-          if (this.onVoiceCallClick) {
-            this.onVoiceCallClick();
-          }
+          this.startAudioCall();
         }
       });
     }
 
-    if (this.onVideoCallClick) {
+    if (this.effectiveConfig.isShowVideoCall) {
       menuItems.push({
         id: 'videoCall',
         text: $r('app.string.menu_video_call'),
         icon: $rawfile('messageinput/video_call_icon.svg'),
         action: () => {
-          if (this.onVideoCallClick) {
-            this.onVideoCallClick();
-          }
+          this.startVideoCall();
         }
       });
     }
+
+    menuItems.push({
+      id: 'customMessage',
+      text: $r('app.string.menu_custom'),
+      icon: $rawfile('messageinput/custom_icon.svg'),
+      action: () => {
+        this.sendTextLinkCustomMessage();
+      }
+    });
 
     // Create dialog controller with menu items
     this.dialogController = new CustomDialogController({
@@ -288,17 +403,171 @@ export struct MessageInput {
 
   build() {
     Column() {
-      // Route to different input bar styles based on configuration
-      if (this.effectiveConfig.inputStyle === 'classic') {
-        this.buildClassicStyle()
+      // Quote preview bar above the input
+      this.QuotePreviewBar()
+      if (this.showVoiceTranscriptionDraft) {
+        this.VoiceTranscriptionDraftBuilder()
       } else {
-        this.buildMinimalistStyle()
+        // Route to different input bar styles based on configuration
+        if (this.effectiveConfig.inputStyle === 'classic') {
+          this.buildClassicStyle()
+        } else {
+          this.buildMinimalistStyle()
+        }
       }
     }
     .width('100%')
     .justifyContent(FlexAlign.End)
     .alignItems(HorizontalAlign.Center)
     .expandSafeArea([SafeAreaType.SYSTEM, SafeAreaType.KEYBOARD], [SafeAreaEdge.BOTTOM])
+  }
+
+  @Builder
+  private VoiceTranscriptionDraftBuilder() {
+    VoiceTranscriptionDraftView({
+      audioDuration: this.voiceTranscriptionAudioDuration,
+      text: this.voiceTranscriptionText,
+      isLoading: this.voiceTranscriptionLoading,
+      onCancel: () => {
+        this.hideVoiceTranscriptionDraft();
+      },
+      onSendAudio: () => {
+        this.sendVoiceMessage(this.voiceTranscriptionAudioDuration, this.voiceTranscriptionAudioPath);
+        this.hideVoiceTranscriptionDraft();
+      },
+      onSendText: (text: string) => {
+        this.sendVoiceTranscriptionText(text);
+      }
+    })
+  }
+
+  @Builder
+  private QuotePreviewBar() {
+    if (this.quotedMessage) {
+      Row() {
+        Text() {
+          if (this.quotedSenderPrefix.length > 0) {
+            Span(this.quotedSenderPrefix)
+          }
+          ForEach(EmojiDataManager.parseEmojiText(this.quotedContentText),
+            (segment: EmojiTextSegment, index: number) => {
+              if (segment.type === 'text') {
+                Span(segment.content)
+              } else if (segment.type === 'emoji' && segment.imageFile) {
+                ImageSpan(EmojiDataManager.getEmojiImageResource(segment.imageFile))
+                  .width(18)
+                  .height(18)
+                  .objectFit(ImageFit.Contain)
+                  .verticalAlign(ImageSpanAlignment.CENTER)
+              }
+            },
+            (segment: EmojiTextSegment, index: number) => `quote_preview_${segment.type}_${index}_${segment.content}`)
+        }
+          .fontSize(13)
+          .fontColor(this.themeState.colors.textColorSecondary)
+          .layoutWeight(1)
+          .maxLines(2)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+        Text('×')
+          .fontSize(20)
+          .fontColor(this.themeState.colors.textColorSecondary)
+          .padding({ left: 12, right: 4 })
+          .onClick(() => {
+            this.clearQuotedMessage();
+          })
+      }
+      .width('100%')
+      .padding({ left: 16, right: 12, top: 8, bottom: 8 })
+      .backgroundColor(this.themeState.colors.bgColorBubbleReciprocal)
+    }
+  }
+
+  private handleQuoteMessageEvent(eventData: emitter.EventData): void {
+    const data = eventData.data as Record<string, Object> | undefined;
+    if (!data) {
+      return;
+    }
+    const conversationID = data['conversationID'] as string | undefined;
+    if (!conversationID || conversationID !== this.conversationID) {
+      return;
+    }
+    const message = data['message'] as MessageInfo | undefined;
+    if (!message) {
+      return;
+    }
+    this.quotedMessage = message;
+    this.quotedSummary = this.buildQuotedSummary(message);
+    this.updateQuotedSummaryParts(message);
+  }
+
+  private clearQuotedMessage(): void {
+    this.quotedMessage = undefined;
+    this.quotedSummary = '';
+    this.quotedSenderPrefix = '';
+    this.quotedContentText = '';
+  }
+
+  private updateQuotedSummaryParts(message: MessageInfo): void {
+    const quoteInfo = new MessageQuoteInfo();
+    quoteInfo.msgID = message.msgID;
+    quoteInfo.status = message.status;
+    quoteInfo.timestamp = message.timestamp ?? 0;
+    quoteInfo.sequence = message.sequence ?? 0;
+    quoteInfo.sender = message.from;
+    quoteInfo.messageType = message.messageType;
+    quoteInfo.messagePayload = message.messagePayload;
+    const labels: MessageQuoteLabels = {
+      deleted: this.getString($r('app.string.message_list_quote_deleted')),
+      revoked: this.getString($r('app.string.message_list_quote_revoked')),
+      image: this.getString($r('app.string.message_list_message_type_image')),
+      video: this.getString($r('app.string.message_list_message_type_video')),
+      voice: this.getString($r('app.string.message_list_message_type_voice')),
+      file: this.getString($r('app.string.message_list_message_type_file')),
+      face: this.getString($r('app.string.message_list_message_type_animate_emoji')),
+      custom: this.getString($r('app.string.message_list_message_type_custom')),
+      merged: this.getString($r('app.string.message_list_message_type_merged')),
+      unknown: this.getString($r('app.string.message_list_unsupported_message'))
+    };
+    const data = MessageQuoteDisplayPolicy.resolve(quoteInfo, labels);
+    this.quotedSenderPrefix = data.senderName.length > 0 ? `${data.senderName}: ` : '';
+    this.quotedContentText = data.contentText;
+  }
+
+  private buildQuotedSummary(message: MessageInfo): string {
+    const quoteInfo = new MessageQuoteInfo();
+    quoteInfo.msgID = message.msgID;
+    quoteInfo.status = message.status;
+    quoteInfo.timestamp = message.timestamp ?? 0;
+    quoteInfo.sequence = message.sequence ?? 0;
+    quoteInfo.sender = message.from;
+    quoteInfo.messageType = message.messageType;
+    quoteInfo.messagePayload = message.messagePayload;
+    const labels: MessageQuoteLabels = {
+      deleted: this.getString($r('app.string.message_list_quote_deleted')),
+      revoked: this.getString($r('app.string.message_list_quote_revoked')),
+      image: this.getString($r('app.string.message_list_message_type_image')),
+      video: this.getString($r('app.string.message_list_message_type_video')),
+      voice: this.getString($r('app.string.message_list_message_type_voice')),
+      file: this.getString($r('app.string.message_list_message_type_file')),
+      face: this.getString($r('app.string.message_list_message_type_animate_emoji')),
+      custom: this.getString($r('app.string.message_list_message_type_custom')),
+      merged: this.getString($r('app.string.message_list_message_type_merged')),
+      unknown: this.getString($r('app.string.message_list_unsupported_message'))
+    };
+    const data = MessageQuoteDisplayPolicy.resolve(quoteInfo, labels);
+    if (data.senderName.length > 0) {
+      return `${data.senderName}: ${data.contentText}`;
+    }
+    return data.contentText;
+  }
+
+  private getString(resource: Resource): string {
+    try {
+      return getContext(this).resourceManager.getStringSync(resource);
+    } catch (_e) {
+      return '';
+    }
   }
 
   /**
@@ -312,19 +581,21 @@ export struct MessageInput {
       // Voice recording overlay - same as minimalist style
       AudioRecorderView({
         recordingDuration: this.recordingDuration,
-        shouldCancelRecording: this.shouldCancelRecording,
+        shouldCancelRecording: $shouldCancelRecording,
+        shouldTranscribeRecording: $shouldTranscribeRecording,
         primaryColor: this.themeState.colors.textColorLink || '#4A90E2',
         onCancel: () => {
           this.cancelVoiceRecording();
         },
-        onSend: () => {
-          this.finishVoiceRecording();
+        onSend: (action?: VoiceRecordReleaseAction) => {
+          this.finishVoiceRecording(action ?? 'send');
         },
         onTimeLimitReached: () => {
           this.finishVoiceRecording();
         },
-        onDragUpdate: (shouldCancel: boolean) => {
+        onDragUpdate: (shouldCancel: boolean, shouldTranscribe?: boolean) => {
           this.shouldCancelRecording = shouldCancel;
+          this.shouldTranscribeRecording = shouldTranscribe ?? false;
         }
       })
     } else {
@@ -342,16 +613,13 @@ export struct MessageInput {
           onVoiceRecordStart: () => {
             this.startVoiceRecording();
           },
-          onVoiceRecordEnd: (cancelled: boolean) => {
-            if (cancelled) {
-              this.cancelVoiceRecording();
-            } else {
-              this.finishVoiceRecording();
-            }
+          onVoiceRecordEnd: (action: VoiceRecordReleaseAction) => {
+            this.finishVoiceRecording(action);
           },
-          onVoiceRecordDragUpdate: (dragOffset: number, shouldCancel: boolean) => {
+          onVoiceRecordDragUpdate: (dragOffset: number, shouldCancel: boolean, shouldTranscribe?: boolean) => {
             this.dragOffset = dragOffset;
             this.shouldCancelRecording = shouldCancel;
+            this.shouldTranscribeRecording = shouldTranscribe ?? false;
           },
           onEmojiSelected: (emoji: EmojiItem) => {
             this.handleEmojiSelected(emoji);
@@ -436,19 +704,22 @@ export struct MessageInput {
       // Voice recording overlay
       AudioRecorderView({
         recordingDuration: this.recordingDuration,
-        shouldCancelRecording: this.shouldCancelRecording,
+        shouldCancelRecording: $shouldCancelRecording,
+        shouldTranscribeRecording: $shouldTranscribeRecording,
         primaryColor: this.themeState.colors.textColorLink || '#4A90E2',
+        transcribeHorizontalActionThreshold: -72,
         onCancel: () => {
           this.cancelVoiceRecording();
         },
-        onSend: () => {
-          this.finishVoiceRecording();
+        onSend: (action?: VoiceRecordReleaseAction) => {
+          this.finishVoiceRecording(action ?? 'send');
         },
         onTimeLimitReached: () => {
           this.finishVoiceRecording();
         },
-        onDragUpdate: (shouldCancel: boolean) => {
+        onDragUpdate: (shouldCancel: boolean, shouldTranscribe?: boolean) => {
           this.shouldCancelRecording = shouldCancel;
+          this.shouldTranscribeRecording = shouldTranscribe ?? false;
         }
       })
     } else {
@@ -470,16 +741,13 @@ export struct MessageInput {
           onVoiceRecordStart: () => {
             this.startVoiceRecording();
           },
-          onVoiceRecordEnd: (cancelled: boolean) => {
-            if (cancelled) {
-              this.cancelVoiceRecording();
-            } else {
-              this.finishVoiceRecording();
-            }
+          onVoiceRecordEnd: (action: VoiceRecordReleaseAction) => {
+            this.finishVoiceRecording(action);
           },
-          onVoiceRecordDragUpdate: (dragOffset: number, shouldCancel: boolean) => {
+          onVoiceRecordDragUpdate: (dragOffset: number, shouldCancel: boolean, shouldTranscribe?: boolean) => {
             this.dragOffset = dragOffset;
             this.shouldCancelRecording = shouldCancel;
+            this.shouldTranscribeRecording = shouldTranscribe ?? false;
           },
           onCameraClick: () => {
             this.takePhoto();
@@ -654,33 +922,65 @@ export struct MessageInput {
       }
     });
 
-    if (this.onVoiceCallClick) {
+    if (this.effectiveConfig.isShowAudioCall) {
       menuItems.push({
         id: 'voiceCall',
         text: $r('app.string.menu_voice_call'),
         icon: $rawfile('messageinput/classic/voice_call_icon.svg'),
         action: () => {
-          if (this.onVoiceCallClick) {
-            this.onVoiceCallClick();
-          }
+          this.startAudioCall();
         }
       });
     }
 
-    if (this.onVideoCallClick) {
+    if (this.effectiveConfig.isShowVideoCall) {
       menuItems.push({
         id: 'videoCall',
         text: $r('app.string.menu_video_call'),
         icon: $rawfile('messageinput/classic/video_call_icon.svg'),
         action: () => {
-          if (this.onVideoCallClick) {
-            this.onVideoCallClick();
-          }
+          this.startVideoCall();
         }
       });
     }
 
+    menuItems.push({
+      id: 'customMessage',
+      text: $r('app.string.menu_custom'),
+      icon: $rawfile('messageinput/classic/custom_icon.svg'),
+      action: () => {
+        this.sendTextLinkCustomMessage();
+      }
+    });
+
     return menuItems;
+  }
+
+  private sendTextLinkCustomMessage(): void {
+    if (!this.inputState) {
+      console.warn('[MessageInput] sendTextLinkCustomMessage: inputState is not ready');
+      return;
+    }
+    try {
+      const customData = JSON.stringify({
+        'businessID': 'text_link',
+        'text': '欢迎加入腾讯云 IM 大家庭！',
+        'link': 'https://cloud.tencent.com/document/product/269/3794'
+      } as Record<string, string>);
+      const payload = new CustomSendMessagePayload(customData, 'CustomTextLinkMessage', '');
+      const option = new SendMessageOption();
+      option.needReadReceipt = this.effectiveConfig.enableReadReceipt ?? false;
+
+      this.inputState.sendMessage(payload, option, new CompletionHandlerAdapter(() => {
+        console.log('[MessageInput] sendTextLinkCustomMessage: sent successfully');
+      }, (code: number, desc: string) => {
+        console.error(`[MessageInput] sendTextLinkCustomMessage failed: code=${code}, message=${desc}`);
+        const localizedMessage = IMErrorCode.getErrorMessage(code ?? -1, '' + code + desc);
+        Toast.error(localizedMessage, this.getUIContext());
+      }));
+    } catch (error) {
+      console.error(`[MessageInput] sendTextLinkCustomMessage exception: ${error}`);
+    }
   }
 
   private async sendTextMessage() {
@@ -706,36 +1006,26 @@ export struct MessageInput {
     this.clearEditor();
 
     try {
-      const messageBody = new MessageBody();
-      messageBody.text = messageText.trim();
-
-      const message = new MessageInfo();
-      message.messageType = MessageType.Text;
-      message.messageBody = messageBody;
-      message.isSelf = true;
-      message.timestamp = new Date().getTime();
-      message.ID = '';
-      message.needReadReceipt = this.effectiveConfig.enableReadReceipt;
-      // Set atUserList on MessageInfo if there are mentions
+      const payload = new TextSendMessagePayload(messageText.trim());
+      const option = new SendMessageOption();
+      option.needReadReceipt = this.effectiveConfig.enableReadReceipt ?? false;
       if (atUserList.length > 0) {
-        message.atUserList = atUserList;
+        option.atUserList = atUserList;
         console.log(`[MessageInput] Message has ${atUserList.length} mentions`);
       }
-
-      // Create offline push info
-      message.offlinePushInfo = this.createOfflinePushInfo(message);
+      option.offlinePushInfo = this.createOfflinePushInfoForText(messageText.trim());
+      option.quotedMessage = this.quotedMessage;
+      this.clearQuotedMessage();
 
       console.log(`[MessageInput] Sending message: "${messageText.trim()}", mentions: ${atUserList.length}`);
-      
-      this.inputState.sendMessage(message)
-        .then(() => {
-            console.log(`[MessageInput] Message sent successfully`);
-        })
-        .catch((error: ErrorInfo) => {
-          console.error(`[MessageInput] Send failed: code=${error.code}, message=${error.message}`);
-          const localizedMessage = IMErrorCode.getErrorMessage(error.code ??-1,""+error.code +error.message);
-          Toast.error(localizedMessage, this.getUIContext());
-        });
+
+      this.inputState.sendMessage(payload, option, new CompletionHandlerAdapter(() => {
+        console.log(`[MessageInput] Message sent successfully`);
+      }, (code: number, desc: string) => {
+        console.error(`[MessageInput] Send failed: code=${code}, message=${desc}`);
+        const localizedMessage = IMErrorCode.getErrorMessage(code ?? -1, '' + code + desc);
+        Toast.error(localizedMessage, this.getUIContext());
+      }));
     } catch (error) {
       console.error(`[MessageInput] sendTextMessage exception: ${error}`);
     }
@@ -749,9 +1039,9 @@ export struct MessageInput {
         const result = results[0]; 
         if (result.filePath) {
           if (result.type === PickMode.IMAGE) {
-            this.handleSelectedMedia(result.filePath, MessageType.Image);
+            this.handleSelectedMedia(result.filePath, MessageType.IMAGE);
           } else if (result.type === PickMode.VIDEO) {
-            this.handleSelectedMedia(result.filePath, MessageType.Video);
+            this.handleSelectedMedia(result.filePath, MessageType.VIDEO);
           }
         }
       } else {
@@ -769,7 +1059,7 @@ export struct MessageInput {
         {
           onPhotoCaptured: (filePath: string) => {
             console.log(`[MessageInput] Photo captured successfully: ${filePath}`);
-            this.handleSelectedMedia(filePath, MessageType.Image);
+            this.handleSelectedMedia(filePath, MessageType.IMAGE);
           },
           onError: (errorCode: VideoRecorderErrorCode) => {
             console.error(`[MessageInput] Photo capture failed: ${errorCode}`);
@@ -791,7 +1081,7 @@ export struct MessageInput {
         {
           onVideoCaptured: (filePath: string, duration: number) => {
             console.log(`[MessageInput] Video recorded successfully: ${filePath}, duration: ${duration}s`);
-            this.handleSelectedMedia(filePath, MessageType.Video);
+            this.handleSelectedMedia(filePath, MessageType.VIDEO);
           },
           onError: (errorCode: VideoRecorderErrorCode) => {
             console.error(`[MessageInput] Video recording failed: ${errorCode}`);
@@ -810,7 +1100,7 @@ export struct MessageInput {
       return;
     }
     const user_file_uri = mediaPath;
-    const tempDir = this.context.getApplicationContext().cacheDir + "/media/";
+    const tempDir = this.context.cacheDir + "/media/";
     const fileName = user_file_uri.split("/").pop() || `temp_${Date.now()}`;
     const app_file_path = tempDir + fileName;
 
@@ -821,100 +1111,93 @@ export struct MessageInput {
       // Directory might already exist, ignore error
     }
 
-    try {
-      let user_file = await fs.open(user_file_uri, fs.OpenMode.READ_ONLY);
-      let app_file = await fs.open(app_file_path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
-      await fs.copyFile(user_file.fd, app_file.fd, 0);
-      await fs.close(user_file);
-      await fs.close(app_file);
-    } catch (copyError) {
-      console.error(`[MessageInput] File copy FAILED: ${JSON.stringify(copyError)}`);
-      return;
-    }
+    let user_file = await fs.open(user_file_uri, fs.OpenMode.READ_ONLY);
+    let app_file = await fs.open(app_file_path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
+    await fs.copyFile(user_file.fd, app_file.fd, 0);
+    await fs.close(user_file);
+    await fs.close(app_file);
 
     try {
-      
-      const messageBody = new MessageBody();
+      let payload: SendMessagePayload | undefined = undefined;
+      let pushDescription = '';
 
-      if (messageType === MessageType.Image) {
-        messageBody.originalImagePath = app_file_path;
-        
+      if (messageType === MessageType.IMAGE) {
+        let imageWidth = 0;
+        let imageHeight = 0;
         try {
           const imageSourceApi = image.createImageSource(app_file_path);
           const imageInfo = await imageSourceApi.getImageInfo();
-          messageBody.originalImageWidth = imageInfo.size.width;
-          messageBody.originalImageHeight = imageInfo.size.height;
-          console.log(`[MessageInput] Image dimensions: ${imageInfo.size.width}x${imageInfo.size.height}`);
+          imageWidth = imageInfo.size.width;
+          imageHeight = imageInfo.size.height;
+          console.log(`[MessageInput] Image dimensions: ${imageWidth}x${imageHeight}`);
         } catch (error) {
           console.error('[MessageInput] Failed to get image dimensions:', error);
-          messageBody.originalImageWidth = 0;
-          messageBody.originalImageHeight = 0;
         }
-      } else if (messageType === MessageType.Video) {
-        messageBody.videoPath = app_file_path;
-        const fileExtension = app_file_path.split(".").pop()?.toLowerCase() || "mp4";
-        messageBody.videoType = fileExtension;
+        payload = new ImageSendMessagePayload(app_file_path, imageWidth, imageHeight);
+        pushDescription = getContext().resourceManager.getStringSync($r('app.string.message_type_image').id);
+      } else if (messageType === MessageType.VIDEO) {
+        const fileExtension = app_file_path.split('.').pop()?.toLowerCase() || 'mp4';
         console.log(`[MessageInput] Video type: ${fileExtension}`);
 
-        const videoFileName = app_file_path.split("/").pop()?.split(".")[0] || "video_cover";
-        const thumbnail_file_path = tempDir + videoFileName + "_cover.jpg";
+        const videoFileName = app_file_path.split('/').pop()?.split('.')[0] || 'video_cover';
+        const thumbnail_file_path = tempDir + videoFileName + '_cover.jpg';
+
+        let videoDurationSec = 1;
+        let snapshotWidth = 0;
+        let snapshotHeight = 0;
+        let snapshotPath = '';
 
         try {
           let predicates = new dataSharePredicates.DataSharePredicates();
-          predicates.equalTo("uri", user_file_uri);
+          predicates.equalTo('uri', user_file_uri);
           let fetchResult = await photoAccessHelper.getPhotoAccessHelper(getContext()).getAssets({
             fetchColumns: [photoAccessHelper.PhotoKeys.DURATION],
             predicates: predicates,
           });
           const asset: photoAccessHelper.PhotoAsset = await fetchResult.getFirstObject();
-          
+
           const videoDuration = asset.get(photoAccessHelper.PhotoKeys.DURATION) as number;
-          messageBody.videoDuration = (videoDuration / 1000);
-          console.log(`[MessageInput] Video duration: ${messageBody.videoDuration} seconds`);
-          
+          videoDurationSec = (videoDuration / 1000);
+          console.log(`[MessageInput] Video duration: ${videoDurationSec} seconds`);
+
           const thumbnail: image.PixelMap = await asset.getThumbnail();
           const thumbnailInfo = await thumbnail.getImageInfo();
-          messageBody.videoSnapshotWidth =  thumbnailInfo.size.width;
-          messageBody.videoSnapshotHeight = thumbnailInfo.size.height;
-          console.log(`[MessageInput] Video thumbnail dimensions: ${thumbnailInfo.size.width}x${thumbnailInfo.size.height}`);
-          
+          snapshotWidth = thumbnailInfo.size.width;
+          snapshotHeight = thumbnailInfo.size.height;
+          console.log(`[MessageInput] Video thumbnail dimensions: ${snapshotWidth}x${snapshotHeight}`);
+
           const imagePackerApi = image.createImagePacker();
           const thumbnail_file = await fs.open(thumbnail_file_path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
           await imagePackerApi.packToFile(thumbnail, thumbnail_file.fd, {
-            format: "image/jpeg",
+            format: 'image/jpeg',
             quality: 100,
           });
           await fs.close(thumbnail_file);
-          messageBody.videoSnapshotPath = thumbnail_file_path;
+          snapshotPath = thumbnail_file_path;
         } catch (error) {
           console.error('[MessageInput] Failed to get video info or generate thumbnail:', error);
-          messageBody.videoDuration = 1;
-          messageBody.videoSnapshotPath = '';
         }
+
+        payload = new VideoSendMessagePayload(app_file_path, fileExtension, videoDurationSec,
+          snapshotPath, snapshotWidth, snapshotHeight);
+        pushDescription = getContext().resourceManager.getStringSync($r('app.string.message_type_video').id);
       }
 
+      if (!payload) {
+        return;
+      }
 
-      const message = new MessageInfo();
-      message.messageType = messageType;
-      message.messageBody = messageBody;
-      message.isSelf = true;
-      message.timestamp = new Date().getTime();
-      message.ID = '';
-      message.needReadReceipt = this.effectiveConfig.enableReadReceipt;
+      const option = new SendMessageOption();
+      option.needReadReceipt = this.effectiveConfig.enableReadReceipt ?? false;
+      option.offlinePushInfo = this.createOfflinePushInfoForDescription(pushDescription);
+      option.quotedMessage = this.quotedMessage;
+      this.clearQuotedMessage();
 
-      // Create offline push info
-      message.offlinePushInfo = this.createOfflinePushInfo(message);
-
-      // Send message
       if (this.inputState) {
-        this.inputState.sendMessage(message)
-          .then(() => {
-
-          })
-          .catch((error: ErrorInfo) => {
-            const localizedMessage = IMErrorCode.getErrorMessage(error.code ??-1,""+error.code +error.message);
-            Toast.error(localizedMessage, this.getUIContext());
-          });
+        this.inputState.sendMessage(payload, option, new CompletionHandlerAdapter(undefined, (code: number, desc: string) => {
+          const localizedMessage = IMErrorCode.getErrorMessage(code ?? -1, '' + code + desc);
+          Toast.error(localizedMessage, this.getUIContext());
+        }));
       }
     } catch (error) {
 
@@ -1096,6 +1379,7 @@ export struct MessageInput {
     // Reset recording state
     this.recordingDuration = 0;
     this.shouldCancelRecording = false;
+    this.shouldTranscribeRecording = false;
     this.dragOffset = 0;
     
     AudioRecorder.getInstance().startRecord(null, false, {
@@ -1109,17 +1393,25 @@ export struct MessageInput {
       },
       onRecordingStop: (filePath: string, duration: number) => {
         this.isVoiceRecording = false;
-        // Reset UI state immediately after stopping
+        const releaseAction = this.voiceRecordReleaseAction;
+        this.voiceRecordReleaseAction = 'send';
         this.recordingDuration = 0;
         this.shouldCancelRecording = false;
+        this.shouldTranscribeRecording = false;
         this.dragOffset = 0;
-        this.sendVoiceMessage(duration, filePath);
+        if (releaseAction === 'transcribe') {
+          this.showVoiceTranscriptionDraftView(filePath, duration);
+        } else {
+          this.sendVoiceMessage(Math.max(1, Math.floor(duration)), filePath);
+        }
         console.log('[MessageInput] Voice recording stopped');
       },
       onRecordingCancel: () => {
         this.isVoiceRecording = false;
+        this.voiceRecordReleaseAction = 'send';
         this.recordingDuration = 0;
         this.shouldCancelRecording = false;
+        this.shouldTranscribeRecording = false;
         this.dragOffset = 0;
         console.log('[MessageInput] Voice recording cancelled');
       }
@@ -1127,17 +1419,71 @@ export struct MessageInput {
   }
 
   // Finish voice recording (send message)
-  private finishVoiceRecording(): void {
+  private finishVoiceRecording(action: VoiceRecordReleaseAction = 'send'): void {
     if (this.isVoiceRecording) {
-      AudioRecorder.getInstance().stopRecord();
+      this.voiceRecordReleaseAction = action;
+      if (action === 'cancel') {
+        AudioRecorder.getInstance().cancelRecord();
+      } else {
+        AudioRecorder.getInstance().stopRecord();
+      }
     }
   }
 
   // Cancel voice recording
   private cancelVoiceRecording(): void {
     if (this.isVoiceRecording) {
+      this.voiceRecordReleaseAction = 'cancel';
       AudioRecorder.getInstance().cancelRecord();
     }
+  }
+
+  private showVoiceTranscriptionDraftView(filePath: string, duration: number): void {
+    if (!filePath) {
+      return;
+    }
+    this.voiceTranscriptionAudioPath = filePath;
+    this.voiceTranscriptionAudioDuration = Math.max(1, Math.floor(duration));
+    this.voiceTranscriptionText = '';
+    this.voiceTranscriptionLoading = true;
+    this.showVoiceTranscriptionDraft = true;
+    this.convertLocalAudioToText(filePath);
+  }
+
+  private hideVoiceTranscriptionDraft(): void {
+    this.showVoiceTranscriptionDraft = false;
+    this.voiceTranscriptionAudioPath = '';
+    this.voiceTranscriptionAudioDuration = 0;
+    this.voiceTranscriptionText = '';
+    this.voiceTranscriptionLoading = false;
+  }
+
+  private convertLocalAudioToText(filePath: string): void {
+    this.audioTranscriber.convert(filePath, '', (code: number, desc: string) => {
+      console.error(`[MessageInput] convert local audio to text failed, code: ${code}, desc: ${desc}`);
+    }, (text?: string) => {
+      if (!this.showVoiceTranscriptionDraft) {
+        return;
+      }
+      this.voiceTranscriptionLoading = false;
+      this.voiceTranscriptionText = text?.trim() ?? '';
+    });
+  }
+
+  private sendVoiceTranscriptionText(text: string): void {
+    if (!text || text.trim().length === 0 || !this.inputState) {
+      return;
+    }
+    const option = new SendMessageOption();
+    option.needReadReceipt = this.effectiveConfig.enableReadReceipt ?? false;
+    option.offlinePushInfo = this.createOfflinePushInfoForText(text.trim());
+    const payload = new TextSendMessagePayload(text.trim());
+    this.inputState.sendMessage(payload, option, new CompletionHandlerAdapter(() => {
+      this.hideVoiceTranscriptionDraft();
+    }, (code: number, desc: string) => {
+      const localizedMessage = IMErrorCode.getErrorMessage(code ?? -1, '' + code + desc);
+      Toast.error(localizedMessage, this.getUIContext());
+    }));
   }
 
   private async sendVoiceMessage(duration: number, voiceFilePath?: string) {
@@ -1149,29 +1495,18 @@ export struct MessageInput {
       if (!filePath) {
         return;
       }
-      const messageBody = new MessageBody();
-      messageBody.soundPath = filePath;
-      messageBody.soundDuration = duration;
-      const message = new MessageInfo();
-      message.messageType = MessageType.Sound;
-      message.messageBody = messageBody;
-      message.isSelf = true;
-      message.timestamp = new Date().getTime();
-      message.ID = '';
-      message.needReadReceipt = this.effectiveConfig.enableReadReceipt;
+      const payload = new AudioSendMessagePayload(filePath, duration);
+      const option = new SendMessageOption();
+      option.needReadReceipt = this.effectiveConfig.enableReadReceipt ?? false;
+      option.offlinePushInfo = this.createOfflinePushInfoForDescription(
+        getContext().resourceManager.getStringSync($r('app.string.message_type_voice').id));
+      option.quotedMessage = this.quotedMessage;
+      this.clearQuotedMessage();
 
-      // Create offline push info
-      message.offlinePushInfo = this.createOfflinePushInfo(message);
-
-      // Send message
-      this.inputState.sendMessage(message)
-        .then(() => {
-
-        })
-        .catch((error: ErrorInfo) => {
-          const localizedMessage = IMErrorCode.getErrorMessage(error.code ??-1,""+error.code +error.message);
-          Toast.error(localizedMessage, this.getUIContext());
-        });
+      this.inputState.sendMessage(payload, option, new CompletionHandlerAdapter(undefined, (code: number, desc: string) => {
+        const localizedMessage = IMErrorCode.getErrorMessage(code ?? -1, '' + code + desc);
+        Toast.error(localizedMessage, this.getUIContext());
+      }));
 
     } catch (error) {
     }
@@ -1195,7 +1530,7 @@ export struct MessageInput {
     }
 
     const user_file_uri = filePath;
-    const tempDir = this.context.getApplicationContext().cacheDir + "/media/";
+    const tempDir = this.context.cacheDir + "/media/";
     const fileName = user_file_uri.split("/").pop() || `temp_file_${Date.now()}`;
     const app_file_path = tempDir + fileName;
 
@@ -1235,32 +1570,20 @@ export struct MessageInput {
         return;
       }
 
-      const messageBody = new MessageBody();
-      messageBody.filePath = app_file_path;
-      messageBody.fileName = app_file_path.substring(app_file_path.lastIndexOf('/') + 1);
-      messageBody.fileSize = stat.size;
+      const fileName = app_file_path.substring(app_file_path.lastIndexOf('/') + 1);
+      const payload = new FileSendMessagePayload(app_file_path, fileName, stat.size);
 
+      const option = new SendMessageOption();
+      option.needReadReceipt = this.effectiveConfig.enableReadReceipt ?? false;
+      option.offlinePushInfo = this.createOfflinePushInfoForDescription(
+        getContext().resourceManager.getStringSync($r('app.string.message_type_file').id));
+      option.quotedMessage = this.quotedMessage;
+      this.clearQuotedMessage();
 
-      const message = new MessageInfo();
-      message.messageType = MessageType.File;
-      message.messageBody = messageBody;
-      message.isSelf = true;
-      message.timestamp = new Date().getTime();
-      message.ID = '';
-      message.needReadReceipt = this.effectiveConfig.enableReadReceipt;
-
-      // Create offline push info
-      message.offlinePushInfo = this.createOfflinePushInfo(message);
-
-      // Send message
-      this.inputState.sendMessage(message)
-        .then(() => {
-          //success
-        })
-        .catch((error: ErrorInfo) => {
-          const localizedMessage = IMErrorCode.getErrorMessage(error.code ??-1,""+error.code +error.message);
-          Toast.error(localizedMessage, this.getUIContext());
-        });
+      this.inputState.sendMessage(payload, option, new CompletionHandlerAdapter(undefined, (code: number, desc: string) => {
+        const localizedMessage = IMErrorCode.getErrorMessage(code ?? -1, '' + code + desc);
+        Toast.error(localizedMessage, this.getUIContext());
+      }));
 
     } catch (error) {
 
@@ -1278,32 +1601,19 @@ export struct MessageInput {
     }
 
     this.isLoadingDraft = true;
-    this.conversationStore.fetchConversationInfo(this.conversationID)
-      .then(() => {
-        const conversations = this.conversationStore.state.conversationDataSource;
-        const conversationCount = conversations.totalCount();
-        
-        for (let i = 0; i < conversationCount; i++) {
-          const conversation = conversations.getData(i);
-          if (conversation && conversation.ID === this.conversationID) {
-            const draft = conversation.draft;
-            if (draft && draft.length > 0) {
-              this.setDraftToEditor(draft);
-              console.log(`[MessageInput] Draft loaded: ${draft}`);
-            }
-            break;
-          }
-        }
-        
-        // Reset loading flag after a short delay to allow UI update
-        setTimeout(() => {
-          this.isLoadingDraft = false;
-        }, 200);
-      })
-      .catch((error: ErrorInfo) => {
-        console.error(`[MessageInput] Failed to load draft: ${error.message}`);
+    this.conversationStore.getConversationInfo(this.conversationID, new GetConversationInfoCompletionHandlerAdapter((info: ConversationInfo) => {
+      const draft = info.draft;
+      if (draft && draft.length > 0) {
+        this.setDraftToEditor(draft);
+        console.log(`[MessageInput] Draft loaded: ${draft}`);
+      }
+      setTimeout(() => {
         this.isLoadingDraft = false;
-      });
+      }, 200);
+    }, (_code: number, desc: string) => {
+      console.error(`[MessageInput] Failed to load draft: ${desc}`);
+      this.isLoadingDraft = false;
+    }));
   }
 
   /**
@@ -1367,22 +1677,13 @@ export struct MessageInput {
     if (!this.conversationID) {
       return;
     }
-    
+
     const draftText = await this.getMessageText();
-    
-    if (draftText.trim().length === 0) {
-      // Clear draft if input is empty
-      this.conversationStore.setConversationDraft(this.conversationID, '')
-        .catch((error: ErrorInfo) => {
-          console.error(`[MessageInput] Failed to clear draft: ${error.message}`);
-        });
-    } else {
-      // Save draft with emoji codes
-      this.conversationStore.setConversationDraft(this.conversationID, draftText)
-        .catch((error: ErrorInfo) => {
-          console.error(`[MessageInput] Failed to save draft: ${error.message}`);
-        });
-    }
+
+    const draftValue = draftText.trim().length === 0 ? '' : draftText;
+    this.conversationStore.setConversationDraft(this.conversationID, draftValue, new CompletionHandlerAdapter(undefined, (_code: number, desc: string) => {
+      console.error(`[MessageInput] Failed to save draft: ${desc}`);
+    }));
   }
 
   /**
@@ -1394,15 +1695,14 @@ export struct MessageInput {
       clearTimeout(this.draftSaveTimer);
       this.draftSaveTimer = undefined;
     }
-    
+
     if (!this.conversationID) {
       return;
     }
-    
-    this.conversationStore.setConversationDraft(this.conversationID, '')
-      .catch((error: ErrorInfo) => {
-        console.error(`[MessageInput] Failed to clear draft: ${error.message}`);
-      });
+
+    this.conversationStore.setConversationDraft(this.conversationID, '', new CompletionHandlerAdapter(undefined, (_code: number, desc: string) => {
+      console.error(`[MessageInput] Failed to clear draft: ${desc}`);
+    }));
   }
 
   // MARK: - @ Mention Management
@@ -1555,33 +1855,33 @@ export struct MessageInput {
   // MARK: - Offline Push Info Creation
 
   /**
-   * Create offline push info for message
-   * Reference: Android Compose & iOS SwiftUI implementation
+   * Create offline push info for a text message
    */
-  private createOfflinePushInfo(message: MessageInfo): OfflinePushInfo {
-    const loginUserInfo = LoginStore.shared().state?.loginUserInfo;
+  private createOfflinePushInfoForText(text: string): OfflinePushInfo {
+    return this.createOfflinePushInfoForDescription(text);
+  }
+
+  private createOfflinePushInfoForDescription(description: string): OfflinePushInfo {
+    const loginUserInfo = LoginStore.shared().state.loginUserInfo;
     const selfUserId = loginUserInfo?.userID ?? '';
     const selfName = loginUserInfo?.nickname ?? selfUserId;
 
     const isGroup = this.conversationID.startsWith('group_');
     const groupId = isGroup ? this.conversationID.substring(6) : '';
 
-    // Get conversation title from store
     let chatName: string | undefined = undefined;
-    const conversations = this.conversationStore.state.conversationDataSource;
+    const conversations = this.conversationStore.state.conversationList;
     const conversationCount = conversations.totalCount();
     for (let i = 0; i < conversationCount; i++) {
       const conversation = conversations.getData(i);
-      if (conversation && conversation.ID === this.conversationID && conversation.title) {
+      if (conversation && conversation.conversationID === this.conversationID && conversation.title) {
         chatName = conversation.title;
         break;
       }
     }
 
     const title = isGroup ? (chatName || groupId) : selfName;
-    const description = this.getMessageTypeAbstract(message);
 
-    // Create ext JSON
     const ext = this.createOfflinePushExtJson(
       isGroup,
       description,
@@ -1590,45 +1890,19 @@ export struct MessageInput {
       loginUserInfo?.avatarURL
     );
 
-    const extensionInfo = new Map<string, Object>();
-    extensionInfo.set('ext', ext);
-    extensionInfo.set('AndroidOPPOChannelID', 'tuikit');
-    extensionInfo.set('AndroidHuaWeiCategory', 'IM');
-    extensionInfo.set('AndroidVIVOCategory', 'IM');
-    extensionInfo.set('AndroidHonorImportance', 'NORMAL');
-    extensionInfo.set('AndroidMeizuNotifyType', 1);
-    extensionInfo.set('iOSInterruptionLevel', 'time-sensitive');
-    extensionInfo.set('enableIOSBackgroundNotification', false);
-
-    const pushInfo: OfflinePushInfo = {
-      title: title,
-      description: this.trimPushDescription(description),
-      extensionInfo: extensionInfo
-    };
-
+    const pushInfo = new OfflinePushInfo();
+    pushInfo.title = title;
+    pushInfo.description = this.trimPushDescription(description);
+    pushInfo.extensionInfo = new Map<string, Object>();
+    pushInfo.extensionInfo.set('ext', ext);
+    pushInfo.extensionInfo.set('AndroidOPPOChannelID', 'tuikit');
+    pushInfo.extensionInfo.set('AndroidHuaWeiCategory', 'IM');
+    pushInfo.extensionInfo.set('AndroidVIVOCategory', 'IM');
+    pushInfo.extensionInfo.set('AndroidHonorImportance', 'NORMAL');
+    pushInfo.extensionInfo.set('AndroidMeizuNotifyType', 1);
+    pushInfo.extensionInfo.set('iOSInterruptionLevel', 'time-sensitive');
+    pushInfo.extensionInfo.set('enableIOSBackgroundNotification', false);
     return pushInfo;
-  }
-
-  /**
-   * Get message type abstract for offline push
-   */
-  private getMessageTypeAbstract(message: MessageInfo): string {
-    switch (message.messageType) {
-      case MessageType.Text:
-        return message.messageBody?.text ?? '';
-      case MessageType.Image:
-        return getContext().resourceManager.getStringSync($r('app.string.message_type_image').id);
-      case MessageType.Video:
-        return getContext().resourceManager.getStringSync($r('app.string.message_type_video').id);
-      case MessageType.File:
-        return getContext().resourceManager.getStringSync($r('app.string.message_type_file').id);
-      case MessageType.Sound:
-        return getContext().resourceManager.getStringSync($r('app.string.message_type_voice').id);
-      case MessageType.Face:
-        return getContext().resourceManager.getStringSync($r('app.string.message_type_animate_emoji').id);
-      default:
-        return '';
-    }
   }
 
   /**

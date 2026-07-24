@@ -1,5 +1,7 @@
 import { IMErrorCode, TextUtils, ThemeState, Toast, ToastType } from '../../../basecomponent/Index';
-import { ErrorInfo, ContactInfo, ContactListStore } from '@tencentcloud/atomicxcore';
+import { ContactInfo } from '@tencentcloud/atomicxcore';
+import { GroupStore } from '@tencentcloud/atomicxcore';
+import { CompletionHandlerAdapter } from '../../../basecomponent/utils/CompletionHandlers';
 import router from '@ohos.router';
 
 @Entry({ routeName: 'GroupDetailPage' })
@@ -24,7 +26,7 @@ export struct GroupDetailPage {
   @State overlayOpacity: number = 0;
   @State popupTranslateY: number = 1000;
   @State private internalGroupInfo: ContactInfo | null = null;
-  private contactListStore: ContactListStore = ContactListStore.create();
+  private groupStore: GroupStore = GroupStore.shared;
 
   aboutToAppear() {
     console.info('[GroupDetailPage] Page about to appear');
@@ -86,7 +88,7 @@ export struct GroupDetailPage {
             .height(GroupDetailPage.GROUP_AVATAR_SIZE)
             .fill(this.themeState.colors.textColorLink)
 
-          Text(TextUtils.getAvatarLetter(this.internalGroupInfo.title || this.internalGroupInfo.contactID || ''))
+          Text(TextUtils.getAvatarLetter(this.internalGroupInfo.nickname || this.internalGroupInfo.userID || ''))
             .fontSize(32)
             .fontColor(Color.White)
             .fontWeight(FontWeight.Bold)
@@ -107,7 +109,7 @@ export struct GroupDetailPage {
 
         Column() {
 
-          Text(this.internalGroupInfo.title || this.internalGroupInfo.contactID || '')
+          Text(this.internalGroupInfo.nickname || this.internalGroupInfo.userID || '')
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
             .fontColor(this.themeState.colors.textColorPrimary)
@@ -115,7 +117,7 @@ export struct GroupDetailPage {
             .alignSelf(ItemAlign.Start)
 
 
-          Text(`ID：${this.internalGroupInfo.contactID}`)
+          Text(`ID：${this.internalGroupInfo.userID}`)
             .fontSize(12)
             .fontColor(this.themeState.colors.textColorSecondary)
             .fontFamily('PingFang SC')
@@ -356,20 +358,16 @@ export struct GroupDetailPage {
     this.isJoiningGroup = true;
 
 
-    if (this.internalGroupInfo.contactID) {
-      this.contactListStore.joinGroup(this.internalGroupInfo.contactID, this.verificationMessage || '')
-        .then(() => {
-
-          this.isJoiningGroup = false;
-          Toast.show($r('app.string.group_request_sent'), ToastType.Success, this.getUIContext(), 3000);
-          this.handleClose();
-
-        })
-        .catch((error: ErrorInfo) => {
-          const localizedMessage = IMErrorCode.getErrorMessage(error.code ??-1,""+error.code +error.message);
-          Toast.error(localizedMessage, this.getUIContext());
-          this.handleClose();
-        });
+    if (this.internalGroupInfo.userID) {
+      this.groupStore.joinGroup(this.internalGroupInfo.userID, this.verificationMessage || '', new CompletionHandlerAdapter(() => {
+        this.isJoiningGroup = false;
+        Toast.show($r('app.string.group_request_sent'), ToastType.Success, this.getUIContext(), 3000);
+        this.handleClose();
+      }, (code: number, desc: string) => {
+        const localizedMessage = IMErrorCode.getErrorMessage(code, '' + code + desc);
+        Toast.error(localizedMessage, this.getUIContext());
+        this.handleClose();
+      }));
     }
   }
-} 
+}

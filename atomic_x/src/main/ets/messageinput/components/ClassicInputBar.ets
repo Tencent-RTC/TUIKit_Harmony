@@ -4,14 +4,16 @@ import { EmojiItem, EmojiPicker, EmojiDataManager } from '../../emojipicker/Inde
 import { MessageInputConfigProtocol, ExpandPanelType } from '../config/MessageInputConfig';
 import { MenuItem } from './MessageInputMoreDialog';
 
+type VoiceRecordReleaseAction = 'send' | 'cancel' | 'transcribe';
+
 /**
  * Callbacks interface for ClassicInputBar
  */
 export interface ClassicInputBarCallbacks {
   onSend?: () => void;
   onVoiceRecordStart?: () => void;
-  onVoiceRecordEnd?: (cancelled: boolean) => void;
-  onVoiceRecordDragUpdate?: (dragOffset: number, shouldCancel: boolean) => void;
+  onVoiceRecordEnd?: (action: VoiceRecordReleaseAction) => void;
+  onVoiceRecordDragUpdate?: (dragOffset: number, shouldCancel: boolean, shouldTranscribe?: boolean) => void;
   onEmojiSelected?: (emoji: EmojiItem) => void;
   onDeleteClick?: () => void;
   onInputFocusChange?: (focused: boolean) => void;
@@ -61,7 +63,9 @@ export struct ClassicInputBar {
   
   private hiddenButtonId: string = 'classicHiddenFocusButton';
   private richEditorId: string = 'classic_rich_editor';
+  private initialTouchX: number = 0;
   private initialTouchY: number = 0;
+  private shouldTranscribeRecording: boolean = false;
   private readonly cancelThreshold: number = -50;
   
   // Classic style dimensions (based on Figma: 750px design width)
@@ -258,7 +262,11 @@ export struct ClassicInputBar {
             this.expandPanelType = 'none';
           }
         })
-        .onSubmit(() => {
+        .onSubmit((enterKey: EnterKeyType, event: SubmitEvent) => {
+          try {
+            event.keepEditableState();
+          } catch (_e) {
+          }
           if (this.callbacks.onSend) {
             this.callbacks.onSend();
           }
@@ -338,14 +346,17 @@ export struct ClassicInputBar {
     .onTouch((event: TouchEvent) => {
       if (event.type === TouchType.Down) {
         console.log('[ClassicInputBar] Press to speak - touch down');
+        this.initialTouchX = event.touches[0].x;
         this.initialTouchY = event.touches[0].y;
         this.startVoiceRecording();
       } else if (event.type === TouchType.Move) {
         if (this.isVoiceRecording) {
           this.dragOffset = event.touches[0].y - this.initialTouchY;
-          this.shouldCancelRecording = this.dragOffset < this.cancelThreshold;
+          const dragOffsetX = event.touches[0].x - this.initialTouchX;
+          this.shouldCancelRecording = this.dragOffset < this.cancelThreshold && dragOffsetX < -72;
+          this.shouldTranscribeRecording = this.dragOffset < this.cancelThreshold && dragOffsetX > 72;
           if (this.callbacks.onVoiceRecordDragUpdate) {
-            this.callbacks.onVoiceRecordDragUpdate(this.dragOffset, this.shouldCancelRecording);
+            this.callbacks.onVoiceRecordDragUpdate(this.dragOffset, this.shouldCancelRecording, this.shouldTranscribeRecording);
           }
         }
       } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
@@ -356,13 +367,14 @@ export struct ClassicInputBar {
       }
     })
     .gesture(
-      PanGesture({ fingers: 1, direction: PanDirection.Vertical, distance: 1 })
+      PanGesture({ fingers: 1, direction: PanDirection.All, distance: 1 })
         .onActionUpdate((event: GestureEvent) => {
           if (this.isVoiceRecording) {
             this.dragOffset = event.offsetY;
-            this.shouldCancelRecording = this.dragOffset < this.cancelThreshold;
+            this.shouldCancelRecording = this.dragOffset < this.cancelThreshold && event.offsetX < -72;
+            this.shouldTranscribeRecording = this.dragOffset < this.cancelThreshold && event.offsetX > 72;
             if (this.callbacks.onVoiceRecordDragUpdate) {
-              this.callbacks.onVoiceRecordDragUpdate(this.dragOffset, this.shouldCancelRecording);
+              this.callbacks.onVoiceRecordDragUpdate(this.dragOffset, this.shouldCancelRecording, this.shouldTranscribeRecording);
             }
           }
         })
@@ -538,6 +550,7 @@ export struct ClassicInputBar {
   private startVoiceRecording(): void {
     // Don't set isVoiceRecording here - let MessageInput manage it through AudioRecorder callbacks
     this.shouldCancelRecording = false;
+    this.shouldTranscribeRecording = false;
     this.dragOffset = 0;
     if (this.callbacks.onVoiceRecordStart) {
       this.callbacks.onVoiceRecordStart();
@@ -547,12 +560,13 @@ export struct ClassicInputBar {
   private finishVoiceRecording(): void {
     // Only proceed if we're actually recording (managed by MessageInput)
     if (this.isVoiceRecording) {
-      const cancelled = this.shouldCancelRecording;
+      const action: VoiceRecordReleaseAction = this.shouldCancelRecording ? 'cancel' : (this.shouldTranscribeRecording ? 'transcribe' : 'send');
       // Don't set isVoiceRecording here - let MessageInput manage it through AudioRecorder callbacks
       this.shouldCancelRecording = false;
+      this.shouldTranscribeRecording = false;
       this.dragOffset = 0;
       if (this.callbacks.onVoiceRecordEnd) {
-        this.callbacks.onVoiceRecordEnd(cancelled);
+        this.callbacks.onVoiceRecordEnd(action);
       }
     }
   }

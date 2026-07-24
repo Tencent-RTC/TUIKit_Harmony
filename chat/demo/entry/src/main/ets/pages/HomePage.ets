@@ -1,16 +1,54 @@
 import { SettingsPage } from './SettingsPage'
 import { ContactsPage, ChatDialog } from 'chatuikit'
-import { ImageSizeUtil,ThemeState, BadgeControl, BadgeType, UserInteractionHelper, GroupSettingDialog } from '@tencentcloud/atomicx';
-import { CallMediaType as UIKitCallMediaType } from '@tencentcloud/atomicx';
+import { ImageSizeUtil,ThemeState, BadgeControl, BadgeType } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index';
+import { UserInteractionHelper, GroupSettingDialog } from '@tencentcloud/atomicx/src/main/ets/chatsetting/Index';
 import { ConversationsPage } from 'chatuikit'
-import { LoginStore, ContactListStore, ContactListState, ConversationListStore, ConversationListState, ConversationInfo, MessageInfo, ContactInfo, LoginEvent } from '@tencentcloud/atomicxcore'
+import {
+  ContactInfo,
+  ContactState,
+  ContactStore
+} from '@tencentcloud/atomicxcore'
+import {
+  ConversationInfo,
+  ConversationListStore,
+  ConversationListState
+} from '@tencentcloud/atomicxcore'
+import {
+  GroupState,
+  GroupStore
+} from '@tencentcloud/atomicxcore'
+import {
+  LoginEvent,
+  LoginStore
+} from '@tencentcloud/atomicxcore'
+import { MessageInfo } from '@tencentcloud/atomicxcore'
 import { ImmersiveMode, LevelMode } from '@kit.ArkUI'
 import { promptAction, router } from '@kit.ArkUI'
-import { TUICallKit } from '@tencentcloud/tuicallkit';
-import { CallMediaType, CallParams } from '@tencentcloud/atomicxcore'
+import { setNotificationClickCallback, clearNotificationClickCallback } from '../push/TIMPushInterfaces';
+import { TUICallKit, CallMediaType as CallKitMediaType, CallParams as CallKitParams } from '@tencentcloud/tuicallkit';
+import { TUIEventBus, TUIObserver, NotifyParams } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index'
+import { CallMediaType } from '@tencentcloud/atomicx/src/main/ets/call/common/CallStore'
 
-function toCoreMediaType(uiType: UIKitCallMediaType): CallMediaType {
-  return uiType === UIKitCallMediaType.video ? CallMediaType.video : CallMediaType.audio;
+class CallStartObserver implements TUIObserver {
+  onNotify(event: string, _key: string | null, params: NotifyParams | null): void {
+    if (event === 'call.startCall' && params?.data) {
+      const data = params.data;
+      const participantIds: string[] = (data['participantIds'] as string[]) ?? [];
+      const mediaType: CallMediaType = (data['mediaType'] as CallMediaType) ?? CallMediaType.audio;
+      if (participantIds.length === 0) {
+        return;
+      }
+      const callKitMediaType: CallKitMediaType =
+        mediaType === CallMediaType.video ? CallKitMediaType.video : CallKitMediaType.audio;
+      const chatGroupId: string = (data['chatGroupId'] as string) ?? '';
+      const timeout: number = (data['timeout'] as number) ?? 30;
+      let callParams: CallKitParams | undefined = undefined;
+      if (chatGroupId.length > 0) {
+        callParams = new CallKitParams('', timeout, '', chatGroupId);
+      }
+      TUICallKit.createInstance(getContext()).calls(participantIds, callKitMediaType, callParams);
+    }
+  }
 }
 
 @Observed
@@ -44,16 +82,20 @@ struct HomePage {
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   @State tabItems: TabItem[] = [];
   private tabsController: TabsController = new TabsController();
-  @State private contactListStore: ContactListStore = ContactListStore.create();
+  @State private contactStore: ContactStore = ContactStore.shared;
   @Watch('onApplicationUnreadCountChanged')
-  @State private contactListState: ContactListState = this.contactListStore.state;
+  @State private contactState: ContactState = this.contactStore.state as ContactState;
+  @State private groupStore: GroupStore = GroupStore.shared;
+  @Watch('onApplicationUnreadCountChanged')
+  @State private groupState: GroupState = this.groupStore.state as GroupState;
   @State private conversationListStore: ConversationListStore = ConversationListStore.create();
   @Watch('onConversationUnreadCountChanged')
   @State private conversationListState: ConversationListState = this.conversationListStore.state;
   private chatDialogController?: CustomDialogController;
   private groupSettingDialogController?: CustomDialogController;
   private userInteractionHelper: UserInteractionHelper = new UserInteractionHelper();
-  private loginEventUnsubscribe?: () => void;
+  private unsubscribeLoginEvent?: () => void;
+  private callEventObserver?: TUIObserver;
 
   aboutToAppear() {
     this.tabItems = [
@@ -83,46 +125,39 @@ struct HomePage {
     this.initCallKit();
     this.initContactBadge();
     this.subscribeLoginEvent();
+    this.registerPushNotificationCallback();
   }
 
   aboutToDisappear() {
-    this.loginEventUnsubscribe?.();
+    if (this.unsubscribeLoginEvent) {
+      this.unsubscribeLoginEvent();
+      this.unsubscribeLoginEvent = undefined;
+    }
+    clearNotificationClickCallback();
+    if (this.callEventObserver) {
+      TUIEventBus.getInstance().unsubscribe('call.startCall', null, this.callEventObserver);
+    }
   }
 
   private initCallKit(): void {
-    TUICallKit.createInstance(getContext());
+    TUICallKit.createInstance(getContext())
+    this.callEventObserver = new CallStartObserver();
+    TUIEventBus.getInstance().subscribe('call.startCall', null, this.callEventObserver);
   }
 
-  private handleCallStart(participantIds: string[], uiMediaType: UIKitCallMediaType,
-                          chatGroupId: string, timeout: number): void {
-    if (!participantIds || participantIds.length === 0) {
-      console.warn('[HomePage] handleCallStart: empty participants, abort');
-      return;
-    }
-    const mediaType: CallMediaType = toCoreMediaType(uiMediaType);
-    let callParams: CallParams | undefined;
-    if (chatGroupId.length > 0) {
-      callParams = new CallParams(undefined, timeout, undefined, chatGroupId);
-    } else if (timeout && timeout !== 30) {
-      callParams = new CallParams(undefined, timeout);
-    }
-    console.info(`[HomePage] start call -> users=${JSON.stringify(participantIds)} type=${mediaType} group=${chatGroupId}`);
-    TUICallKit.createInstance(getContext()).calls(participantIds, mediaType, callParams);
+  private registerPushNotificationCallback() {
+    setNotificationClickCallback((conversationID: string, title: string, avatarUrl: string) => {
+      console.info(`[HomePage] Push notification clicked, navigating to: ${conversationID}`);
+      this.showChatDialog(conversationID, title, avatarUrl);
+    });
   }
 
-
-  /**
-   * Subscribe to LoginStore events for kicked offline and user sig expired
-   */
-  private subscribeLoginEvent() {
-    this.loginEventUnsubscribe = LoginStore.shared().loginEventEmitter.subscribe(this, (event: LoginEvent) => {
-      switch (event) {
-        case LoginEvent.KICKED_OFFLINE:
-          this.handleKickedOffline();
-          break;
-        case LoginEvent.LOGIN_EXPIRED:
-          this.handleUserSigExpired();
-          break;
+  private subscribeLoginEvent(): void {
+    this.unsubscribeLoginEvent = LoginStore.shared().loginEventEmitter.subscribe(this, (event: LoginEvent) => {
+      if (event === LoginEvent.KICKED_OFFLINE) {
+        this.handleKickedOffline();
+      } else if (event === LoginEvent.LOGIN_EXPIRED) {
+        this.handleUserSigExpired();
       }
     });
     console.info('[HomePage] ✅ LoginEvent subscribed');
@@ -130,7 +165,7 @@ struct HomePage {
 
   private handleKickedOffline() {
     console.warn('[HomePage] 🚫 Kicked offline - User logged in from another device');
-
+    
     // Close all dialogs
     if (this.groupSettingDialogController) {
       this.groupSettingDialogController.close();
@@ -158,7 +193,7 @@ struct HomePage {
 
   private handleUserSigExpired() {
     console.warn('[HomePage] ⏰ UserSig expired - Need to re-login');
-
+    
     // Close all dialogs
     if (this.groupSettingDialogController) {
       this.groupSettingDialogController.close();
@@ -185,9 +220,9 @@ struct HomePage {
   }
 
   onApplicationUnreadCountChanged() {
-    console.info(`HomePage.TAB_CONTACT: ${this.contactListState.friendApplicationUnreadCount + this.contactListState.groupApplicationUnreadCount}，friendApplicationUnreadCount：${this.contactListState.friendApplicationUnreadCount} groupApplicationUnreadCount：${this.contactListState.groupApplicationUnreadCount}`);
+    console.info(`HomePage.TAB_CONTACT: ${this.contactState.friendApplicationUnreadCount + this.groupState.unreadApplicationCount}，friendApplicationUnreadCount：${this.contactState.friendApplicationUnreadCount} groupApplicationUnreadCount：${this.groupState.unreadApplicationCount}`);
     this.updateTabBadge(HomePage.TAB_CONTACT,
-      this.contactListState.friendApplicationUnreadCount + this.contactListState.groupApplicationUnreadCount);
+      this.contactState.friendApplicationUnreadCount + this.groupState.unreadApplicationCount);
   }
 
   onConversationUnreadCountChanged() {
@@ -281,14 +316,15 @@ struct HomePage {
               this.handleConversationClick(item);
             },
             onConversationClickWithMessage: (item: ConversationInfo, locateMessage?: MessageInfo) => {
-              this.showChatDialog(item.ID, item.title || 'Chat', item.avatarURL, locateMessage);
+              this.showChatDialog(item.conversationID, item.title || 'Chat', item.avatarURL, locateMessage);
             }
           })
         }.tabBar(this.TabBuilder(HomePage.TAB_MESSAGE))
 
         TabContent() {
           ContactsPage({
-            contactListStore: this.contactListStore,
+            contactStore: this.contactStore,
+            groupStore: this.groupStore,
             onContactClick: (contact: ContactInfo) => {
               this.handleContactClick(contact);
             },
@@ -327,16 +363,10 @@ struct HomePage {
   }
 
   private initContactBadge() {
-    this.contactListStore.fetchFriendApplicationList()
-      .then(() => {
-        this.contactListStore.fetchGroupApplicationList().then(() => {
-          this.updateTabBadge(HomePage.TAB_CONTACT,
-            this.contactListState.friendApplicationUnreadCount + this.contactListState.groupApplicationUnreadCount);
-        })
-      })
-      .catch((error: Error) => {
-
-      });
+    this.contactStore.loadFriendApplications();
+    this.groupStore.loadApplications();
+    this.updateTabBadge(HomePage.TAB_CONTACT,
+      this.contactState.friendApplicationUnreadCount + this.groupState.unreadApplicationCount);
   }
 
   private getTabItem(index: number): TabItem {
@@ -349,27 +379,27 @@ struct HomePage {
   }
 
   private handleConversationClick(item: ConversationInfo): void {
-    console.info(`[HomePage] Conversation clicked: ${item.ID}`);
-    this.showChatDialog(item.ID, item.title || 'Chat', item.avatarURL);
+    console.info(`[HomePage] Conversation clicked: ${item.conversationID}`);
+    this.showChatDialog(item.conversationID, item.title || 'Chat', item.avatarURL);
   }
 
   private handleContactClick(contact: ContactInfo): void {
-    console.info(`[HomePage] Contact clicked: ${contact.contactID}`);
-    if (contact.contactID) {
+    console.info(`[HomePage] Contact clicked: ${contact.userID}`);
+    if (contact.userID) {
       this.showChatDialog(
-        `c2c_${contact.contactID}`,
-        contact.title || contact.contactID,
+        `c2c_${contact.userID}`,
+        contact.friendRemark || contact.nickname || contact.userID,
         contact.avatarURL
       );
     }
   }
 
   private handleGroupClick(group: ContactInfo): void {
-    console.info(`[HomePage] Group clicked: ${group.contactID}`);
-    if (group.contactID) {
+    console.info(`[HomePage] Group clicked: ${group.userID}`);
+    if (group.userID) {
       this.showChatDialog(
-        `group_${group.contactID}`,
-        group.title || group.contactID,
+        `group_${group.userID}`,
+        group.nickname || group.userID,
         group.avatarURL
       );
     }
@@ -399,10 +429,6 @@ struct HomePage {
           onChatHeaderClick: (clickedConversationID: string) => {
             console.log('[HomePage] Chat header clicked:', clickedConversationID);
             this.handleChatHeaderClick(clickedConversationID);
-          },
-          onCallStart: (participantIds: string[], mediaType: UIKitCallMediaType,
-                        chatGroupId: string, timeout: number) => {
-            this.handleCallStart(participantIds, mediaType, chatGroupId, timeout);
           },
 
         }),
@@ -464,7 +490,7 @@ struct HomePage {
   private handleChatHeaderClick(conversationID: string): void {
     console.info(`[HomePage] Handle chat header click: ${conversationID}`);
     const isGroupChat = conversationID.startsWith('group_');
-
+    
     if (isGroupChat) {
       // Show group setting dialog
       const groupID = conversationID.replace('group_', '');

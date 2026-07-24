@@ -1,12 +1,11 @@
 import {
   ContactList,
-  ContactInfo,
   AddContactDialog,
-  SearchResultType,
-  AppBuilderConfig
-} from '@tencentcloud/atomicx'
-import { ThemeState } from '@tencentcloud/atomicx'
-import { ContactListStore } from '@tencentcloud/atomicxcore'
+  SearchResultType
+} from '@tencentcloud/atomicx/src/main/ets/contactlist/Index'
+import { AppBuilderConfig, ThemeState } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index'
+import { ContactInfo, ContactStore } from '@tencentcloud/atomicxcore'
+import { GroupStore } from '@tencentcloud/atomicxcore'
 
 
 @Component
@@ -16,7 +15,8 @@ export struct ContactsPage {
   private static readonly SEARCH_HEIGHT: number = 36;
   private static readonly SEARCH_BAR_HEIGHT: number = 36;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
-  @ObjectLink contactListStore: ContactListStore;
+  @ObjectLink contactStore: ContactStore;
+  @ObjectLink groupStore: GroupStore;
   @State showAddMenu: boolean = false;
   private addContactDialogController: CustomDialogController | null = null;
   onContactClick?: (contact: ContactInfo) => void;
@@ -132,7 +132,8 @@ export struct ContactsPage {
 
         this.LargeTitleBuilder()
         ContactList({
-          contactListStore: this.contactListStore,
+          contactStore: this.contactStore,
+          groupStore: this.groupStore,
           onContactClick: (contact: ContactInfo) => {
             if (this.onContactClick) {
               this.onContactClick(contact);

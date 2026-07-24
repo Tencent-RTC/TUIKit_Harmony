@@ -28,27 +28,12 @@ export struct CallView {
   @ObjectLink callState_allParticipants: CallParticipantInfo[];
   @ObjectLink deviceState: DeviceState;
 
-  private smartCellularUnsubscribe: (() => void) | null = null;
-
   aboutToAppear(): void {
     this.applyControllerResources();
     this.applyControllerLayout();
-
-    this.smartCellularUnsubscribe = DeviceStore.shared().deviceEventEmitter.subscribe(
-      this,
-      (event: DeviceEvent): void => {
-        if (event === DeviceEvent.onSmartCellularSwitchRecommended) {
-          this.smartCellularVisible = true;
-        }
-      },
-    );
   }
 
   aboutToDisappear(): void {
-    if (this.smartCellularUnsubscribe !== null) {
-      this.smartCellularUnsubscribe();
-      this.smartCellularUnsubscribe = null;
-    }
   }
 
   build() {

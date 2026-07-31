@@ -101,10 +101,6 @@
       "value": "会话"
     },
     {
-      "name": "conversationlist_copyright",
-      "value": "© 2025 AtomicX. 版权所有"
-    },
-    {
       "name": "conversation_list_message_count_unit",
       "value": "条"
     },

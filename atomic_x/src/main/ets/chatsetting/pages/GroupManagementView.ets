@@ -15,10 +15,12 @@ import { GroupType } from '@tencentcloud/atomicxcore';
 import { GroupSettingState, GroupSettingStore } from '../viewmodel/GroupChatSettingViewModel';
 import { UserPicker, UserPickerData } from '../../userpicker/Index';
 import { ImmersiveMode, LevelMode } from '@ohos.promptAction';
+import { GroupPermission, GroupPermissionManager } from '../manager/GroupPermissionManager';
 
 
 @CustomDialog
 struct UserPickerDialogInManagement {
+  @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   controller: CustomDialogController;
   title: string | Resource = $r('app.string.chatsetting_select_user');
   dataSource: UserPickerData<GroupMember>[] = [];
@@ -29,25 +31,31 @@ struct UserPickerDialogInManagement {
   onConfirm?: (selectedMembers: GroupMember[], action: string) => void;
 
   build() {
-    UserPicker({
-      dataSource: this.dataSource,
-      defaultSelectedItems: this.preSelectedUsers,
-      lockedItems: [], // No locked items for now
-      maxCount: this.maxSelectCount > 0 ? this.maxSelectCount : undefined,
-      showNavigationBar: true,
-      title: this.title,
-      confirmButtonText: this.confirmButtonText,
-      onCancel: () => {
-        this.controller.close();
-      },
-      onSelectedChanged: (selectedItems: UserPickerData<GroupMember>[]) => {
-        if (this.onConfirm) {
-          const selectedMembers: GroupMember[] = selectedItems.map((item: UserPickerData<GroupMember>): GroupMember => item.extraData as GroupMember);
-          this.onConfirm(selectedMembers, this.action);
+    Column() {
+      UserPicker({
+        dataSource: this.dataSource,
+        defaultSelectedItems: this.preSelectedUsers,
+        lockedItems: [], // No locked items for now
+        maxCount: this.maxSelectCount > 0 ? this.maxSelectCount : undefined,
+        showNavigationBar: true,
+        title: this.title,
+        confirmButtonText: this.confirmButtonText,
+        onCancel: () => {
+          this.controller.close();
+        },
+        onSelectedChanged: (selectedItems: UserPickerData<GroupMember>[]) => {
+          if (this.onConfirm) {
+            const selectedMembers: GroupMember[] = selectedItems.map((item: UserPickerData<GroupMember>): GroupMember => item.extraData as GroupMember);
+            this.onConfirm(selectedMembers, this.action);
+          }
+          this.controller.close();
         }
-        this.controller.close();
-      }
-    })
+      })
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor(this.themeState.colors.bgColorOperate)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 }
 
@@ -108,17 +116,23 @@ export struct GroupManagementView {
   NavigationBarBuilder() {
     Row() {
       // Back button
-      Image($rawfile('basecomponent/common_back_icon.svg'))
-        .width(16)
-        .height(16)
-        .fillColor(this.themeState.colors.textColorLink)
-        .scale({
-          x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
-          y: 1
-        })
-        .onClick(() => {
-          this.closeDialog();
-        })
+      Row() {
+        Image($rawfile('basecomponent/common_back_icon.svg'))
+          .width(16)
+          .height(16)
+          .fillColor(this.themeState.colors.textColorLink)
+          .scale({
+            x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
+            y: 1
+          })
+      }
+      .width(44)
+      .height(44)
+      .justifyContent(FlexAlign.Center)
+      .alignItems(VerticalAlign.Center)
+      .onClick(() => {
+        this.closeDialog();
+      })
 
       Blank()
 
@@ -166,12 +180,15 @@ export struct GroupManagementView {
 
   @Builder
   GroupManagementSectionBuilder() {
+    if (this.canManageAdmins()) {
+      this.GroupAdminSectionBuilder()
+    }
+
     Column({ space: 0 }) {
 
       this.MuteAllMembersRowBuilder()
 
       this.DividerBuilder()
-
 
       this.AddMutedMemberRowBuilder()
     }
@@ -181,8 +198,117 @@ export struct GroupManagementView {
       bottom: GroupManagementView.SECTION_MARGIN
     })
 
-
     this.MutedMembersListBuilder()
+  }
+
+  @Builder
+  GroupAdminSectionBuilder() {
+    Column({ space: 0 }) {
+      Row() {
+        Text($r('app.string.chatsetting_group_admins'))
+          .fontSize(14)
+          .fontWeight(400)
+          .fontFamily('SF Pro Text')
+          .fontColor(this.themeState.colors.textColorSecondary)
+
+        Blank()
+      }
+      .width('100%')
+      .padding({
+        left: GroupManagementView.HORIZONTAL_PADDING,
+        right: GroupManagementView.HORIZONTAL_PADDING,
+        top: 16,
+        bottom: 8
+      })
+
+      Scroll() {
+        Row({ space: 8 }) {
+          ForEach(this.getAdminMembers(), (member: GroupMember) => {
+            this.AdminMemberItemBuilder(member)
+          }, (member: GroupMember) => member.userID)
+
+          this.AdminActionItemBuilder(true)
+
+          if (this.getAdminMembers().length > 0) {
+            this.AdminActionItemBuilder(false)
+          }
+        }
+        .padding({
+          left: GroupManagementView.HORIZONTAL_PADDING,
+          right: GroupManagementView.HORIZONTAL_PADDING,
+          top: 12,
+          bottom: 12
+        })
+      }
+      .align(Alignment.Start)
+      .scrollable(ScrollDirection.Horizontal)
+      .scrollBar(BarState.Off)
+      .width('100%')
+    }
+    .width('100%')
+    .backgroundColor(this.themeState.colors.bgColorTopBar)
+    .borderRadius(GroupManagementView.BORDER_RADIUS)
+    .margin({
+      bottom: GroupManagementView.SECTION_MARGIN
+    })
+  }
+
+  @Builder
+  AdminMemberItemBuilder(member: GroupMember) {
+    Column({ space: 6 }) {
+      Avatar({
+        content: {
+          type: AvatarContentType.Image,
+          url: member.avatarURL,
+          name: TextUtils.getAvatarLetter(member.nameCard || member.nickname || member.userID) || '',
+        },
+        avatarSize: AvatarSize.M,
+      })
+
+      Text(member.nameCard || member.nickname || member.userID)
+        .fontSize(12)
+        .fontWeight(400)
+        .fontFamily('SF Pro Text')
+        .fontColor(this.themeState.colors.textColorPrimary)
+        .textAlign(TextAlign.Center)
+        .maxLines(1)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
+        .width(56)
+    }
+    .width(56)
+    .alignItems(HorizontalAlign.Center)
+    .onClick(() => {
+      this.showRevokeAdminConfirmDialog(member);
+    })
+  }
+
+  @Builder
+  AdminActionItemBuilder(isAdd: boolean) {
+    Column({ space: 6 }) {
+      Stack() {
+        Text(isAdd ? '+' : '−')
+          .fontSize(22)
+          .fontWeight(400)
+          .fontColor(this.themeState.colors.textColorSecondary)
+      }
+      .width(40)
+      .height(40)
+      .borderRadius(8)
+      .backgroundColor(this.themeState.colors.bgColorInput)
+
+      Row()
+        .width(56)
+        .height(18)
+    }
+    .width(56)
+    .alignItems(HorizontalAlign.Center)
+    .onClick(() => {
+      if (isAdd) {
+        this.navigateToSetAdminPicker();
+      } else {
+        this.navigateToRevokeAdminPicker();
+      }
+    })
   }
 
   @Builder
@@ -420,6 +546,113 @@ export struct GroupManagementView {
     ) ?? [];
   }
 
+  private getAdminMembers(): GroupMember[] {
+    return (this.groupState?.allMembers ?? []).filter((member: GroupMember) =>
+    member.role === GroupMemberRole.ADMIN
+    );
+  }
+
+  private canManageAdmins(): boolean {
+    if (!this.groupState) {
+      return false;
+    }
+    return GroupPermissionManager.canPerformAction(
+      this.groupState.groupType,
+      this.groupState.currentUserRole,
+      GroupPermission.SET_GROUP_MEMBER_ROLE
+    );
+  }
+
+  private navigateToSetAdminPicker(): void {
+    if (!this.groupStore) {
+      Toast.info($r('app.string.chatsetting_group_info_unavailable'), this.getUIContext());
+      return;
+    }
+
+    const candidates: GroupMember[] = (this.groupState?.allMembers ?? []).filter((member: GroupMember): boolean => {
+      if (member.userID === LoginStore.shared().state.loginUserInfo?.userID) {
+        return false;
+      }
+      return member.role === GroupMemberRole.MEMBER;
+    });
+
+    if (candidates.length === 0) {
+      Toast.info($r('app.string.chatsetting_no_members_to_set_admin'), this.getUIContext());
+      return;
+    }
+
+    const pickerData: UserPickerData<GroupMember>[] = candidates.map((member: GroupMember): UserPickerData<GroupMember> =>
+    this.convertMemberToUserPickerData(member)
+    );
+
+    this.showUserPickerDialog(
+      pickerData,
+      'setAdmin',
+      $r('app.string.chatsetting_set_admin')
+    );
+  }
+
+  private navigateToRevokeAdminPicker(): void {
+    if (!this.groupStore) {
+      Toast.info($r('app.string.chatsetting_group_info_unavailable'), this.getUIContext());
+      return;
+    }
+
+    const admins: GroupMember[] = this.getAdminMembers();
+    if (admins.length === 0) {
+      return;
+    }
+
+    const pickerData: UserPickerData<GroupMember>[] = admins.map((member: GroupMember): UserPickerData<GroupMember> =>
+    this.convertMemberToUserPickerData(member)
+    );
+
+    this.showUserPickerDialog(
+      pickerData,
+      'revokeAdmin',
+      $r('app.string.chatsetting_remove_admin')
+    );
+  }
+
+  private showRevokeAdminConfirmDialog(member: GroupMember): void {
+    if (!this.canManageAdmins()) {
+      return;
+    }
+    AlertDialog.show({
+      title: $r('app.string.chatsetting_remove_admin'),
+      message: member.nameCard || member.nickname || member.userID,
+      primaryButton: {
+        value: $r('app.string.chatsetting_confirm'),
+        action: () => {
+          this.applyMemberRoleChange([member], GroupMemberRole.MEMBER);
+        }
+      },
+      secondaryButton: {
+        value: $r('app.string.chatsetting_cancel'),
+        action: () => {
+        }
+      }
+    });
+  }
+
+  private async applyMemberRoleChange(members: GroupMember[], role: GroupMemberRole): Promise<void> {
+    if (!this.groupStore || members.length === 0) {
+      return;
+    }
+    try {
+      const tasks: Promise<void>[] = members.map((member: GroupMember): Promise<void> =>
+      this.groupStore!.setGroupMemberRole(member.userID, role)
+      );
+      await Promise.all(tasks);
+      await this.loadGroupData();
+    } catch (error) {
+      const err = error as Error;
+      const desc: string = err?.message ?? '';
+      Toast.info($r('app.string.chatsetting_admin_operation_failed', desc), this.getUIContext());
+      console.error('[GroupManagementPage] applyMemberRoleChange failed:', err);
+    }
+  }
+
   private handleMuteAllMembersChange(isOn: boolean): void {
     if (!this.groupStore) {
       Toast.info($r('app.string.chatsetting_group_info_unavailable'), this.getUIContext());
@@ -469,8 +702,9 @@ export struct GroupManagementView {
       console.log('[GroupManagementPage] Navigate to user picker for muted members');
 
 
+      const nowSeconds = Date.now() / 1000;
       const mutedMemberIds: string[] = (this.groupState?.allMembers ?? [])
-        .filter((member: GroupMember) => member.muteUntil > Date.now() / 1000)
+        .filter((member: GroupMember) => member.muteUntil > nowSeconds)
         .map((member: GroupMember): string => member.userID);
 
 
@@ -484,6 +718,9 @@ export struct GroupManagementView {
           return false;
         }
 
+        if (mutedMemberIds.includes(member.userID)) {
+          return false;
+        }
 
         if (currentUserRole === 300) { // GroupMemberRole.ADMIN
           return member.role === 200;
@@ -679,10 +916,11 @@ export struct GroupManagementView {
           }
         }),
         alignment: DialogAlignment.Default,
-        levelMode: LevelMode.EMBEDDED,
-        immersiveMode: ImmersiveMode.EXTEND,
         customStyle: true,
         autoCancel: true,
+        keyboardAvoidMode: KeyboardAvoidMode.NONE,
+        levelMode: LevelMode.EMBEDDED,
+        immersiveMode: ImmersiveMode.EXTEND,
         cancel: () => {
           this.userPickerDialogController = undefined;
         }
@@ -700,6 +938,12 @@ export struct GroupManagementView {
     switch (action) {
       case 'muteMember':
         this.handleSelectedMembersForMute(selectedMembers);
+        break;
+      case 'setAdmin':
+        this.applyMemberRoleChange(selectedMembers, GroupMemberRole.ADMIN);
+        break;
+      case 'revokeAdmin':
+        this.applyMemberRoleChange(selectedMembers, GroupMemberRole.MEMBER);
         break;
       default:
         console.warn('[GroupManagementPage] unknown action:', action);

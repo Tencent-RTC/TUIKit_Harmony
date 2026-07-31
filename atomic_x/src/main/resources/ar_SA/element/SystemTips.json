@@ -319,6 +319,10 @@
     {
       "name": "message_type_message",
       "value": "[رسالة]"
+    },
+    {
+      "name": "cloud_media_download_failed",
+      "value": "الملف فارغ أو فشل تنزيل المورد السحابي، يرجى إعادة المحاولة"
     }
   ]
 }

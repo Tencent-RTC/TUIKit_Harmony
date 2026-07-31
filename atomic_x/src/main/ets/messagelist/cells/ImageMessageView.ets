@@ -31,9 +31,9 @@ function resolveDisplayImageSource(payload?: ImageMessagePayload): string {
   }
   return takeNonBlank(payload.originalImagePath)
     || takeNonBlank(payload.largeImagePath)
-    || takeNonBlank(payload.thumbImagePath)
-    || takeNonBlank(payload.originalImageURL)
     || takeNonBlank(payload.largeImageURL)
+    || takeNonBlank(payload.originalImageURL)
+    || takeNonBlank(payload.thumbImagePath)
     || takeNonBlank(payload.thumbImageURL);
 }
 
@@ -65,7 +65,7 @@ export struct ImageMessageViewContent {
     Stack({ alignContent: Alignment.BottomEnd }) {
       if (resolveDisplayImageSource(this.messagePayload).length > 0) {
         Image(toLocalUri(resolveDisplayImageSource(this.messagePayload)))
-          .interpolation(ImageInterpolation.Low)
+          .interpolation(ImageInterpolation.High)
           .objectFit(ImageFit.Cover)
           .size({ width: `${this.getImageSize().width}vp`, height: `${this.getImageSize().height}vp` })
           .draggable(false)
@@ -101,7 +101,7 @@ export struct ImageMessageViewContent {
     actionStore.downloadMedia(MediaQuality.ORIGINAL);
   }
 
-  private collectImageElements(): ImageElement[] {
+  private collectImageElements(msgIdOut?: string[]): ImageElement[] {
     const imageElements: ImageElement[] = [];
     const messageListState: MessageListState | undefined = this.messageListStore?.state;
     const messageList: MessageInfo[] = messageListState?.messageList ?? [];
@@ -109,37 +109,62 @@ export struct ImageMessageViewContent {
       const msg = messageList[i];
       if (msg && msg.messageType === MessageType.IMAGE && msg.messagePayload) {
         const body = msg.messagePayload as ImageMessagePayload;
-        const localPath = takeNonBlank(body.originalImagePath)
-          || takeNonBlank(body.largeImagePath)
-          || takeNonBlank(body.thumbImagePath);
-        if (localPath.length > 0) {
+        const localOriginPath = takeNonBlank(body.originalImagePath);
+        const originUrl = takeNonBlank(body.originalImageURL);
+        let pushed = false;
+        if (localOriginPath.length > 0) {
           imageElements.push({
-            data: toLocalUri(localPath),
+            data: toLocalUri(localOriginPath),
             type: ImageSourceType.LOCAL,
             width: body.originalImageWidth || 0,
             height: body.originalImageHeight || 0
           });
-          continue;
-        }
-        const remoteUrl = takeNonBlank(body.originalImageURL)
-          || takeNonBlank(body.largeImageURL)
-          || takeNonBlank(body.thumbImageURL);
-        if (remoteUrl.length > 0) {
+          pushed = true;
+        } else if (originUrl.length > 0) {
           imageElements.push({
-            data: remoteUrl,
+            data: originUrl,
             type: ImageSourceType.URL,
             width: body.originalImageWidth || 0,
             height: body.originalImageHeight || 0
           });
+          pushed = true;
+        } else {
+          const fallbackLocal = takeNonBlank(body.largeImagePath) || takeNonBlank(body.thumbImagePath);
+          if (fallbackLocal.length > 0) {
+            imageElements.push({
+              data: toLocalUri(fallbackLocal),
+              type: ImageSourceType.LOCAL,
+              width: body.originalImageWidth || 0,
+              height: body.originalImageHeight || 0
+            });
+            pushed = true;
+          } else {
+            const fallbackRemote = takeNonBlank(body.largeImageURL) || takeNonBlank(body.thumbImageURL);
+            if (fallbackRemote.length > 0) {
+              imageElements.push({
+                data: fallbackRemote,
+                type: ImageSourceType.URL,
+                width: body.originalImageWidth || 0,
+                height: body.originalImageHeight || 0
+              });
+              pushed = true;
+            }
+          }
+        }
+        if (pushed && msgIdOut) {
+          msgIdOut.push(msg.msgID ?? '');
         }
       }
     }
     return imageElements;
   }
 
-  private findCurrentIndex(imageElements: ImageElement[], currentImagePath: string): number {
-    for (let i = 0; i < imageElements.length; i++) {
-      if (imageElements[i].data === currentImagePath) {
+  private findIndexByMsgID(msgIDs: string[], targetMsgID: string): number {
+    if (!targetMsgID) {
+      return 0;
+    }
+    for (let i = 0; i < msgIDs.length; i++) {
+      if (msgIDs[i] === targetMsgID) {
         return i;
       }
     }
@@ -147,7 +172,8 @@ export struct ImageMessageViewContent {
   }
 
   private openImageViewer(imageType: ImageSourceType, imagePath: string) {
-    const imageElements = this.collectImageElements();
+    const msgIDs: string[] = [];
+    const imageElements = this.collectImageElements(msgIDs);
     if (imageElements.length === 0) {
       imageElements.push({
         data: imagePath,
@@ -155,8 +181,9 @@ export struct ImageMessageViewContent {
         width: this.messagePayload?.originalImageWidth || 0,
         height: this.messagePayload?.originalImageHeight || 0
       });
+      msgIDs.push(this.message?.msgID ?? '');
     }
-    const initialIndex = this.findCurrentIndex(imageElements, imagePath);
+    const initialIndex = this.findIndexByMsgID(msgIDs, this.message?.msgID ?? '');
 
     try {
       if (this.imageViewerDialogController) {

@@ -406,7 +406,21 @@ export struct MessageInput {
       // Quote preview bar above the input
       this.QuotePreviewBar()
       if (this.showVoiceTranscriptionDraft) {
-        this.VoiceTranscriptionDraftBuilder()
+        VoiceTranscriptionDraftView({
+          audioDuration: this.voiceTranscriptionAudioDuration,
+          text: $voiceTranscriptionText,
+          isLoading: $voiceTranscriptionLoading,
+          onCancel: () => {
+            this.hideVoiceTranscriptionDraft();
+          },
+          onSendAudio: () => {
+            this.sendVoiceMessage(this.voiceTranscriptionAudioDuration, this.voiceTranscriptionAudioPath);
+            this.hideVoiceTranscriptionDraft();
+          },
+          onSendText: (text: string) => {
+            this.sendVoiceTranscriptionText(text);
+          }
+        })
       } else {
         // Route to different input bar styles based on configuration
         if (this.effectiveConfig.inputStyle === 'classic') {
@@ -420,25 +434,6 @@ export struct MessageInput {
     .justifyContent(FlexAlign.End)
     .alignItems(HorizontalAlign.Center)
     .expandSafeArea([SafeAreaType.SYSTEM, SafeAreaType.KEYBOARD], [SafeAreaEdge.BOTTOM])
-  }
-
-  @Builder
-  private VoiceTranscriptionDraftBuilder() {
-    VoiceTranscriptionDraftView({
-      audioDuration: this.voiceTranscriptionAudioDuration,
-      text: this.voiceTranscriptionText,
-      isLoading: this.voiceTranscriptionLoading,
-      onCancel: () => {
-        this.hideVoiceTranscriptionDraft();
-      },
-      onSendAudio: () => {
-        this.sendVoiceMessage(this.voiceTranscriptionAudioDuration, this.voiceTranscriptionAudioPath);
-        this.hideVoiceTranscriptionDraft();
-      },
-      onSendText: (text: string) => {
-        this.sendVoiceTranscriptionText(text);
-      }
-    })
   }
 
   @Builder
@@ -1036,12 +1031,12 @@ export struct MessageInput {
     try {
       const results: AlbumPickerResult[] = await AlbumPicker.pickMedia();
       if (results.length > 0) {
-        const result = results[0]; 
+        const result = results[0];
         if (result.filePath) {
           if (result.type === PickMode.IMAGE) {
-            this.handleSelectedMedia(result.filePath, MessageType.IMAGE);
+            this.handleSelectedMedia(result.filePath, MessageType.IMAGE, result.sourceUri);
           } else if (result.type === PickMode.VIDEO) {
-            this.handleSelectedMedia(result.filePath, MessageType.VIDEO);
+            this.handleSelectedMedia(result.filePath, MessageType.VIDEO, result.sourceUri);
           }
         }
       } else {
@@ -1094,7 +1089,7 @@ export struct MessageInput {
     }
   }
 
-  private async handleSelectedMedia(mediaPath: string, messageType: MessageType) {
+  private async handleSelectedMedia(mediaPath: string, messageType: MessageType, sourceUri?: string) {
     if (!this.inputState) {
 
       return;
@@ -1111,11 +1106,54 @@ export struct MessageInput {
       // Directory might already exist, ignore error
     }
 
-    let user_file = await fs.open(user_file_uri, fs.OpenMode.READ_ONLY);
-    let app_file = await fs.open(app_file_path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
-    await fs.copyFile(user_file.fd, app_file.fd, 0);
-    await fs.close(user_file);
-    await fs.close(app_file);
+    try {
+      const srcStat = await fs.stat(user_file_uri);
+      if (srcStat.size <= 0) {
+        console.error(`[MessageInput] Source media is empty, abort: ${user_file_uri}`);
+        const emptyTip = getContext().resourceManager.getStringSync($r('app.string.cloud_media_download_failed').id);
+        Toast.error(emptyTip, this.getUIContext());
+        return;
+      }
+    } catch (statErr) {
+      console.error(`[MessageInput] Stat source media failed: ${JSON.stringify(statErr)}`);
+      const failTip = getContext().resourceManager.getStringSync($r('app.string.cloud_media_download_failed').id);
+      Toast.error(failTip, this.getUIContext());
+      return;
+    }
+
+    let userFileOpened: fs.File | undefined;
+    let appFileOpened: fs.File | undefined;
+    try {
+      userFileOpened = await fs.open(user_file_uri, fs.OpenMode.READ_ONLY);
+      appFileOpened = await fs.open(app_file_path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE | fs.OpenMode.TRUNC);
+      await fs.copyFile(userFileOpened.fd, appFileOpened.fd, 0);
+    } catch (copyErr) {
+      console.error(`[MessageInput] copyFile failed: ${JSON.stringify(copyErr)}`);
+      const failTip = getContext().resourceManager.getStringSync($r('app.string.cloud_media_download_failed').id);
+      Toast.error(failTip, this.getUIContext());
+      try { await fs.unlink(app_file_path); } catch (_) { /* ignore */ }
+      return;
+    } finally {
+      if (userFileOpened) {
+        try { await fs.close(userFileOpened); } catch (_) { /* ignore */ }
+      }
+      if (appFileOpened) {
+        try { await fs.close(appFileOpened); } catch (_) { /* ignore */ }
+      }
+    }
+
+    try {
+      const dstStat = await fs.stat(app_file_path);
+      if (dstStat.size <= 0) {
+        console.error(`[MessageInput] Copied media is empty, abort: ${app_file_path}`);
+        try { await fs.unlink(app_file_path); } catch (_) { /* ignore */ }
+        const emptyTip = getContext().resourceManager.getStringSync($r('app.string.cloud_media_download_failed').id);
+        Toast.error(emptyTip, this.getUIContext());
+        return;
+      }
+    } catch (statErr) {
+      console.error(`[MessageInput] Stat copied media failed: ${JSON.stringify(statErr)}`);
+    }
 
     try {
       let payload: SendMessagePayload | undefined = undefined;
@@ -1148,8 +1186,10 @@ export struct MessageInput {
         let snapshotPath = '';
 
         try {
+          // 优先使用相册的原始 uri 查 asset（本地拷贝路径查不到）
+          const queryUri = sourceUri && sourceUri.length > 0 ? sourceUri : user_file_uri;
           let predicates = new dataSharePredicates.DataSharePredicates();
-          predicates.equalTo('uri', user_file_uri);
+          predicates.equalTo('uri', queryUri);
           let fetchResult = await photoAccessHelper.getPhotoAccessHelper(getContext()).getAssets({
             fetchColumns: [photoAccessHelper.PhotoKeys.DURATION],
             predicates: predicates,
@@ -1167,13 +1207,19 @@ export struct MessageInput {
           console.log(`[MessageInput] Video thumbnail dimensions: ${snapshotWidth}x${snapshotHeight}`);
 
           const imagePackerApi = image.createImagePacker();
-          const thumbnail_file = await fs.open(thumbnail_file_path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
-          await imagePackerApi.packToFile(thumbnail, thumbnail_file.fd, {
-            format: 'image/jpeg',
-            quality: 100,
-          });
-          await fs.close(thumbnail_file);
-          snapshotPath = thumbnail_file_path;
+          let thumbnail_file: fs.File | undefined;
+          try {
+            thumbnail_file = await fs.open(thumbnail_file_path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE | fs.OpenMode.TRUNC);
+            await imagePackerApi.packToFile(thumbnail, thumbnail_file.fd, {
+              format: 'image/jpeg',
+              quality: 100,
+            });
+            snapshotPath = thumbnail_file_path;
+          } finally {
+            if (thumbnail_file) {
+              try { await fs.close(thumbnail_file); } catch (_) { /* ignore */ }
+            }
+          }
         } catch (error) {
           console.error('[MessageInput] Failed to get video info or generate thumbnail:', error);
         }
@@ -1543,11 +1589,20 @@ export struct MessageInput {
 
     try {
 
-      let user_file = await fs.open(user_file_uri, fs.OpenMode.READ_ONLY);
-      let app_file = await fs.open(app_file_path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);
-      await fs.copyFile(user_file.fd, app_file.fd, 0);
-      await fs.close(user_file);
-      await fs.close(app_file);
+      let userFileOpened: fs.File | undefined;
+      let appFileOpened: fs.File | undefined;
+      try {
+        userFileOpened = await fs.open(user_file_uri, fs.OpenMode.READ_ONLY);
+        appFileOpened = await fs.open(app_file_path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE | fs.OpenMode.TRUNC);
+        await fs.copyFile(userFileOpened.fd, appFileOpened.fd, 0);
+      } finally {
+        if (userFileOpened) {
+          try { await fs.close(userFileOpened); } catch (_) { /* ignore */ }
+        }
+        if (appFileOpened) {
+          try { await fs.close(appFileOpened); } catch (_) { /* ignore */ }
+        }
+      }
 
 
       const stat = await fs.stat(app_file_path);

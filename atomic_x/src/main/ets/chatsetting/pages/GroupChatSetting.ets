@@ -370,21 +370,27 @@ export struct GroupChatSetting {
   NavigationBarBuilder() {
     Row() {
       // Back button
-      Image($rawfile('basecomponent/common_back_icon.svg'))
-        .width(16)
-        .height(16)
-        .fillColor(this.themeState.colors.textColorLink)
-        .scale({
-          x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
-          y: 1
-        })
-        .onClick(() => {
-          if (this.dialogController) {
-            this.dialogController.close();
-          } else {
-            console.warn('[GroupSettingPage] dialogController not available');
-          }
-        })
+      Row() {
+        Image($rawfile('basecomponent/common_back_icon.svg'))
+          .width(16)
+          .height(16)
+          .fillColor(this.themeState.colors.textColorLink)
+          .scale({
+            x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
+            y: 1
+          })
+      }
+      .width(44)
+      .height(44)
+      .justifyContent(FlexAlign.Center)
+      .alignItems(VerticalAlign.Center)
+      .onClick(() => {
+        if (this.dialogController) {
+          this.dialogController.close();
+        } else {
+          console.warn('[GroupSettingPage] dialogController not available');
+        }
+      })
 
       Blank()
 

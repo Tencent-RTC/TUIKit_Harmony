@@ -137,6 +137,10 @@
       "value": "No members to mute"
     },
     {
+      "name": "chatsetting_no_members_to_set_admin",
+      "value": "No members available to be set as admin"
+    },
+    {
       "name": "chatsetting_select_members_to_mute",
       "value": "Select Members to Mute"
     },
@@ -899,6 +903,22 @@
     {
       "name": "chatsetting_invite_method_anyone_can_invite",
       "value": "Anyone Can Invite"
+    },
+    {
+      "name": "chatsetting_group_admins",
+      "value": "Group Admins"
+    },
+    {
+      "name": "chatsetting_set_admin",
+      "value": "Set as Admin"
+    },
+    {
+      "name": "chatsetting_remove_admin",
+      "value": "Remove Admin"
+    },
+    {
+      "name": "chatsetting_admin_operation_failed",
+      "value": "Admin change failed: %s"
     }
   ]
 }

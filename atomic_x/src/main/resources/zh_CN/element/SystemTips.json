@@ -275,6 +275,10 @@
     {
       "name": "message_type_message",
       "value": "[消息]"
+    },
+    {
+      "name": "cloud_media_download_failed",
+      "value": "文件为空或云端资源下载失败，请重试"
     }
   ]
 }

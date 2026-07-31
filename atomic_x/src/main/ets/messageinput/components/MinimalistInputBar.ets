@@ -1,4 +1,4 @@
-import { ThemeState } from '../../basecomponent/Index';
+import { ThemeState, EventBus } from '../../basecomponent/Index';
 import { EmojiItem, EmojiDataManager } from '../../emojipicker/Index';
 import { MessageInputConfigProtocol } from '../config/MessageInputConfig';
 
@@ -134,6 +134,10 @@ export struct MinimalistInputBar {
               if (this.callbacks.onInputFocusChange) {
                 this.callbacks.onInputFocusChange(true);
               }
+              const focusEventData: Record<string, Object> = {};
+              focusEventData['source'] = 'MinimalistInputBar';
+              focusEventData['event'] = 'onInputFocus';
+              EventBus.getInstance().post('onInputFocus', focusEventData);
             })
             .onBlur(() => {
               console.log('[MinimalistInputBar] RichEditor onBlur triggered');

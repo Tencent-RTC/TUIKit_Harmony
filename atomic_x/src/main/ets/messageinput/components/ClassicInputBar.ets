@@ -72,7 +72,9 @@ export struct ClassicInputBar {
   private readonly buttonSize: number = 40; // 56/750 * 375 ≈ 28, but 40 for touch area
   private readonly inputHeight: number = 40;
   private readonly inputBorderRadius: number = 8;
-  private readonly panelHeight: number = 280; // Original height for panels
+  private readonly panelHeight: number = 280; // Original height for panels (used by keyboard placeholder)
+  private readonly emojiPanelHeight: number = 240; // Height for emoji panel (more compact)
+  private readonly actionPanelHeight: number = 240; // Height for action panel (more compact)
   private readonly itemsPerPage: number = 8; // 4 columns x 2 rows
 
   aboutToAppear() {
@@ -209,7 +211,6 @@ export struct ClassicInputBar {
         .borderRadius(this.inputBorderRadius)
         .layoutWeight(1)
         .constraintSize({
-          minHeight: this.inputHeight,
           maxHeight: 120
         })
         .padding({
@@ -246,6 +247,10 @@ export struct ClassicInputBar {
           if (this.callbacks.onInputFocusChange) {
             this.callbacks.onInputFocusChange(true);
           }
+          const focusEventData: Record<string, Object> = {};
+          focusEventData['source'] = 'ClassicInputBar';
+          focusEventData['event'] = 'onInputFocus';
+          EventBus.getInstance().post('onInputFocus', focusEventData);
         })
         .onBlur(() => {
           console.log('[ClassicInputBar] RichEditor onBlur triggered');
@@ -319,6 +324,7 @@ export struct ClassicInputBar {
       minHeight: this.inputHeight,
       maxHeight: 120
     })
+    .alignItems(VerticalAlign.Center)
     .backgroundColor(this.themeState.colors.bgColorInput)
     .borderRadius(this.inputBorderRadius)
   }
@@ -385,6 +391,8 @@ export struct ClassicInputBar {
   private buildEmojiPanel() {
     Column() {
       EmojiPicker({
+        showTypeSelector: false,
+        panelHeight: this.emojiPanelHeight,
         onEmojiClick: (emoji: EmojiItem) => {
           if (this.callbacks.onEmojiSelected) {
             this.callbacks.onEmojiSelected(emoji);
@@ -405,7 +413,7 @@ export struct ClassicInputBar {
       })
     }
     .width('100%')
-    .height(this.panelHeight)
+    .height(this.emojiPanelHeight)
     .backgroundColor(this.themeState.colors.bgColorOperate)
     .transition({
       type: TransitionType.Insert,
@@ -415,7 +423,7 @@ export struct ClassicInputBar {
     .transition({
       type: TransitionType.Delete,
       opacity: 0,
-      translate: { y: this.panelHeight }
+      translate: { y: this.emojiPanelHeight }
     })
   }
 
@@ -425,47 +433,54 @@ export struct ClassicInputBar {
       // Swiper for paginated action items
       Swiper() {
         ForEach(this.getActionPages(), (pageItems: MenuItem[], pageIndex: number) => {
-          // Each page is a 4x2 grid
-          Grid() {
-            ForEach(pageItems, (item: MenuItem) => {
-              GridItem() {
-                Column({ space: 4 }) {
-                  Row() {
-                    Image(item.icon)
-                      .width(21)
-                      .height(16)
-                  }
-                  .width(52)
-                  .height(52)
-                  .backgroundColor(this.themeState.colors.bgColorInput)
-                  .borderRadius(12)
-                  .justifyContent(FlexAlign.Center)
-                  .alignItems(VerticalAlign.Center)
+          Column() {
+            // Each page is a 4x2 grid
+            Grid() {
+              ForEach(pageItems, (item: MenuItem) => {
+                GridItem() {
+                  Column({ space: 4 }) {
+                    Row() {
+                      Image(item.icon)
+                        .width(21)
+                        .height(16)
+                    }
+                    .width(52)
+                    .height(52)
+                    .backgroundColor(this.themeState.colors.bgColorInput)
+                    .borderRadius(12)
+                    .justifyContent(FlexAlign.Center)
+                    .alignItems(VerticalAlign.Center)
 
-                  Text(item.text)
-                    .fontSize(11)
-                    .fontColor(this.themeState.colors.textColorSecondary)
-                    .maxLines(1)
-                    .textOverflow({ overflow: TextOverflow.Ellipsis })
-                }
-                .width('100%')
-                .onClick(() => {
-                  if (this.callbacks.onActionItemClick) {
-                    this.callbacks.onActionItemClick(item);
+                    Text(item.text)
+                      .fontSize(11)
+                      .fontColor(this.themeState.colors.textColorSecondary)
+                      .maxLines(1)
+                      .textOverflow({ overflow: TextOverflow.Ellipsis })
                   }
-                  // Close panel after action
-                  this.expandPanelType = 'none';
-                })
-              }
-            })
-          }
+                  .width('100%')
+                  .onClick(() => {
+                    if (this.callbacks.onActionItemClick) {
+                      this.callbacks.onActionItemClick(item);
+                    }
+                    // Close panel after action
+                    this.expandPanelType = 'none';
+                  })
+                }
+                .height(80)
+              })
+            }
           .columnsTemplate('1fr 1fr 1fr 1fr')
-          .rowsTemplate('1fr 1fr')
-          .rowsGap(8)
-          .columnsGap(8)
+            .rowsTemplate('auto auto')
+            .rowsGap(12)
+            .columnsGap(8)
+            .width('100%')
+            .height(80 * 2 + 12)
+            .padding({ left: 12, right: 12 })
+          }
           .width('100%')
           .height('100%')
-          .padding({ left: 12, right: 12, top: 8, bottom: 8 })
+          .justifyContent(FlexAlign.Start)
+          .padding({ top: 24, bottom: 12 })
         })
       }
       .indicator(
@@ -479,10 +494,10 @@ export struct ClassicInputBar {
       )
       .loop(false)
       .width('100%')
-      .height(this.panelHeight - 20) // Leave space for indicator
+      .height(this.actionPanelHeight) // Full height so indicator sits at the bottom of the panel
     }
     .width('100%')
-    .height(this.panelHeight)
+    .height(this.actionPanelHeight)
     .backgroundColor(this.themeState.colors.bgColorOperate)
     .transition({
       type: TransitionType.Insert,
@@ -492,7 +507,7 @@ export struct ClassicInputBar {
     .transition({
       type: TransitionType.Delete,
       opacity: 0,
-      translate: { y: this.panelHeight }
+      translate: { y: this.actionPanelHeight }
     })
   }
 
@@ -522,6 +537,10 @@ export struct ClassicInputBar {
       this.hideKeyboard();
       this.expandPanelType = 'emoji';
       this.isVoiceMode = false;
+      const focusEventData: Record<string, Object> = {};
+      focusEventData['source'] = 'ClassicInputBar';
+      focusEventData['event'] = 'onInputFocus';
+      EventBus.getInstance().post('onInputFocus', focusEventData);
     }
   }
 
@@ -538,6 +557,10 @@ export struct ClassicInputBar {
       this.hideKeyboard();
       this.expandPanelType = 'action';
       this.isVoiceMode = false;
+      const focusEventData: Record<string, Object> = {};
+      focusEventData['source'] = 'ClassicInputBar';
+      focusEventData['event'] = 'onInputFocus';
+      EventBus.getInstance().post('onInputFocus', focusEventData);
     }
   }
 

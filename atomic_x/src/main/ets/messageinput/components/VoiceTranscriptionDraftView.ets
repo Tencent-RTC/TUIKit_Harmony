@@ -1,28 +1,29 @@
 import { ThemeState } from '../../basecomponent/Index';
 
-type VoiceTranscriptionDraftState = 'loading' | 'empty' | 'text';
-
 @Component
 export struct VoiceTranscriptionDraftView {
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
 
   @Prop audioDuration: number = 0;
-  @Prop text: string = '';
-  @Prop isLoading: boolean = false;
+  @Link text: string;
+  @Link isLoading: boolean;
 
   onCancel?: () => void;
   onSendAudio?: () => void;
   onSendText?: (text: string) => void;
 
   @State private draftText: string = '';
+  @State private userEdited: boolean = false;
   private controller: TextAreaController = new TextAreaController();
 
   aboutToAppear(): void {
     this.draftText = this.text;
+    this.userEdited = false;
   }
 
   aboutToDisappear(): void {
     this.draftText = '';
+    this.userEdited = false;
   }
 
   build() {
@@ -37,11 +38,24 @@ export struct VoiceTranscriptionDraftView {
           this.onSendAudio?.();
         })
         Blank()
-        this.ActionButtonBuilder($r('app.string.send_button'), this.canSendText() ? this.themeState.colors.buttonColorPrimaryDefault : this.themeState.colors.buttonColorPrimaryDisabled, this.themeState.colors.textColorButton, 80, 56, () => {
-          if (this.canSendText()) {
-            this.onSendText?.(this.currentDraftText().trim());
-          }
-        })
+        Text($r('app.string.send_button'))
+          .fontSize(14)
+          .fontColor(this.themeState.colors.textColorButton)
+          .textAlign(TextAlign.Center)
+          .width(80)
+          .height(56)
+          .borderRadius(28)
+          .backgroundColor(
+            (!this.isLoading && ((this.userEdited ? this.draftText : this.text) || '').trim().length > 0)
+              ? this.themeState.colors.buttonColorPrimaryDefault
+              : this.themeState.colors.buttonColorPrimaryDisabled
+          )
+          .onClick(() => {
+            const effective = (this.userEdited ? this.draftText : this.text) || '';
+            if (!this.isLoading && effective.trim().length > 0) {
+              this.onSendText?.(effective.trim());
+            }
+          })
       }
       .width('100%')
       .padding({ left: 28, right: 28 })
@@ -92,7 +106,7 @@ export struct VoiceTranscriptionDraftView {
   @Builder
   private BubbleBuilder() {
     Stack() {
-      if (this.currentState() === 'loading') {
+      if (this.isLoading) {
         Row({ space: 8 }) {
           Circle().width(6).height(6).fill(this.themeState.colors.textColorButton).opacity(0.45)
           Circle().width(6).height(6).fill(this.themeState.colors.textColorButton).opacity(0.7)
@@ -103,7 +117,7 @@ export struct VoiceTranscriptionDraftView {
         .justifyContent(FlexAlign.Start)
         .alignItems(VerticalAlign.Center)
         .padding({ left: 18 })
-      } else if (this.currentState() === 'empty') {
+      } else if (((this.userEdited ? this.draftText : this.text) || '').trim().length === 0) {
         Text($r('app.string.voice_transcription_empty'))
           .fontSize(16)
           .fontColor(this.themeState.colors.textColorButton)
@@ -112,7 +126,7 @@ export struct VoiceTranscriptionDraftView {
           .padding({ left: 16, right: 16 })
           .textAlign(TextAlign.Start)
       } else {
-        TextArea({ text: this.currentDraftText(), controller: this.controller })
+        TextArea({ text: this.userEdited ? this.draftText : this.text, controller: this.controller })
           .fontSize(16)
           .fontColor(this.themeState.colors.textColorButton)
           .backgroundColor(Color.Transparent)
@@ -122,12 +136,13 @@ export struct VoiceTranscriptionDraftView {
           .maxLines(4)
           .onChange((value: string) => {
             this.draftText = value;
+            this.userEdited = true;
           })
       }
     }
     .width('84%')
-    .height(this.currentState() === 'text' && this.draftText.length > 24 ? 104 : 68)
-    .backgroundColor(this.currentState() === 'empty' ? this.themeState.colors.buttonColorHangupDefault : this.themeState.colors.buttonColorPrimaryDefault)
+    .height(!this.isLoading && ((this.userEdited ? this.draftText : this.text) || '').trim().length > 0 && (this.userEdited ? this.draftText : this.text).length > 24 ? 104 : 68)
+    .backgroundColor(!this.isLoading && ((this.userEdited ? this.draftText : this.text) || '').trim().length === 0 ? this.themeState.colors.buttonColorHangupDefault : this.themeState.colors.buttonColorPrimaryDefault)
     .borderRadius(8)
   }
 
@@ -142,24 +157,6 @@ export struct VoiceTranscriptionDraftView {
       .borderRadius(height / 2)
       .backgroundColor(backgroundColor)
       .onClick(action)
-  }
-
-  private currentState(): VoiceTranscriptionDraftState {
-    if (this.isLoading) {
-      return 'loading';
-    }
-    if (!this.currentDraftText() || this.currentDraftText().trim().length === 0) {
-      return 'empty';
-    }
-    return 'text';
-  }
-
-  private canSendText(): boolean {
-    return !this.isLoading && this.currentDraftText().trim().length > 0;
-  }
-
-  private currentDraftText(): string {
-    return this.draftText.length > 0 ? this.draftText : this.text;
   }
 
   private formatDuration(seconds: number): string {

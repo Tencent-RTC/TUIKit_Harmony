@@ -137,6 +137,10 @@
       "value": "لا يوجد أعضاء للكتم"
     },
     {
+      "name": "chatsetting_no_members_to_set_admin",
+      "value": "لا يوجد أعضاء يمكن تعيينهم مسؤولين"
+    },
+    {
       "name": "chatsetting_select_members_to_mute",
       "value": "اختر الأعضاء للكتم"
     },
@@ -899,6 +903,22 @@
     {
       "name": "chatsetting_invite_method_anyone_can_invite",
       "value": "يمكن لأي شخص الدعوة"
+    },
+    {
+      "name": "chatsetting_group_admins",
+      "value": "مشرفو المجموعة"
+    },
+    {
+      "name": "chatsetting_set_admin",
+      "value": "تعيين كمشرف"
+    },
+    {
+      "name": "chatsetting_remove_admin",
+      "value": "إزالة المشرف"
+    },
+    {
+      "name": "chatsetting_admin_operation_failed",
+      "value": "فشل تغيير المشرف: %s"
     }
   ]
 }

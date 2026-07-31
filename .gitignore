@@ -10,3 +10,5 @@
 .codebuddy
 build.sh
 local.properties
+.clang-tidy
+.clangd

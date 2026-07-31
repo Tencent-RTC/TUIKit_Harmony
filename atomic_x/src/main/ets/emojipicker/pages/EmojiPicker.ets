@@ -8,6 +8,8 @@ export struct EmojiPicker {
   @State recentEmojis: EmojiItem[] = [];
   
   maxRecentEmojis: number = 8;
+  showTypeSelector: boolean = true;
+  panelHeight: number = 280;
   
   onEmojiClick?: (emoji: EmojiItem) => void;
 
@@ -24,7 +26,9 @@ export struct EmojiPicker {
     
     Column() {
       
-      this.buildEmojiTypeSelector()
+      if (this.showTypeSelector) {
+        this.buildEmojiTypeSelector()
+      }
 
       
       Stack({ alignContent: Alignment.BottomEnd }) {
@@ -39,7 +43,7 @@ export struct EmojiPicker {
       .layoutWeight(1)
     }
     .width('100%')
-    .height(280)
+    .height(this.panelHeight)
     .backgroundColor(this.themeState.colors.bgColorOperate)
     .borderRadius({ topLeft: 12, topRight: 12 })
     .padding({

@@ -53,6 +53,8 @@ export struct AvatarSelector {
             y: 1
           })
       }
+      .width(44)
+      .height(44)
       .backgroundColor('transparent')
       .onClick(() => {
         if (this.onBack) {

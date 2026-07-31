@@ -172,11 +172,6 @@ export struct ConversationList {
           .width(120)
           .height(20)
           .objectFit(ImageFit.Contain)
-
-        Text($r('app.string.conversationlist_copyright'))
-          .fontSize(10)
-          .fontColor(this.themeState.colors.textColorTertiary)
-          .margin({ top: 4 })
       }
     }
     .width('100%')

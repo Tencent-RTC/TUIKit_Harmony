@@ -319,6 +319,10 @@
     {
       "name": "message_type_message",
       "value": "[Message]"
+    },
+    {
+      "name": "cloud_media_download_failed",
+      "value": "File is empty or failed to download from cloud, please try again"
     }
   ]
 }

@@ -53,10 +53,10 @@ export class AppBuilderConfig {
   public translateTargetLanguage: string = '';
   /**
    * Use classic UI style for the entire app
-   * When true: classic floating popup for message actions, classic input bar, etc.
-   * When false: modern full-screen dialog style (default)
+   * When true: classic floating popup for message actions, classic input bar, etc. (default)
+   * When false: modern full-screen dialog style
    */
-  public useClassicUI: boolean = false;
+  public useClassicUI: boolean = true;
 
   private constructor() {
   }
@@ -175,7 +175,7 @@ export class AppBuilderConfig {
           this.enableReadReceipt = pref.getSync('EnableReadReceipt', false) as boolean;
         }
         if (pref.hasSync('UseClassicUI')) {
-          this.useClassicUI = pref.getSync('UseClassicUI', false) as boolean;
+          this.useClassicUI = pref.getSync('UseClassicUI', true) as boolean;
           console.log(`[AppBuilderConfig] Loaded useClassicUI: ${this.useClassicUI}`);
         }
         if (pref.hasSync('TranslateTargetLanguage')) {

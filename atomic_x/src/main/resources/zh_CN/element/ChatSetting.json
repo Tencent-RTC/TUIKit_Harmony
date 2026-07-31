@@ -137,6 +137,10 @@
       "value": "没有可禁言的成员"
     },
     {
+      "name": "chatsetting_no_members_to_set_admin",
+      "value": "没有可设为管理员的成员"
+    },
+    {
       "name": "chatsetting_select_members_to_mute",
       "value": "选择要禁言的成员"
     },
@@ -899,6 +903,22 @@
     {
       "name": "chatsetting_invite_method_anyone_can_invite",
       "value": "自动审批"
+    },
+    {
+      "name": "chatsetting_group_admins",
+      "value": "群管理员"
+    },
+    {
+      "name": "chatsetting_set_admin",
+      "value": "设为管理员"
+    },
+    {
+      "name": "chatsetting_remove_admin",
+      "value": "撤销管理员"
+    },
+    {
+      "name": "chatsetting_admin_operation_failed",
+      "value": "管理员变更失败：%s"
     }
   ]
 }

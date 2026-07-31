@@ -399,6 +399,14 @@ export struct MessageItem {
     }
   }
 
+  private handleItemTapForDismiss() {
+    const eventData: Record<string, Object> = {};
+    eventData['source'] = 'MessageItem';
+    eventData['event'] = 'onBlankAreaClick';
+    eventData['reason'] = 'tapMessageRow';
+    EventBus.getInstance().post('onBlankAreaClick', eventData);
+  }
+
   /**
    * Classic Action Popup Builder for bindPopup
    */
@@ -1040,7 +1048,6 @@ export struct MessageItem {
   messageAlignmentLeftStyle() {
     Column() {
       if (this.message.messageType === MessageType.TIPS) {
-        // Only show system messages if configured
         if (this.effectiveConfig.isShowSystemMessage) {
           Row() {
             GetMessageView(this.createRenderContext());
@@ -1048,6 +1055,9 @@ export struct MessageItem {
           .width('100%')
           .justifyContent(FlexAlign.Center)
           .margin({ bottom: 8 })
+          .onClick(() => {
+            this.handleItemTapForDismiss();
+          })
         }
       } else if (this.message.messageType === MessageType.CUSTOM && !isCallingC2C(this.message) && !isBusinessCustomMessage(this.message)) {
         if (!shouldHideCallingMessage(this.message)) {
@@ -1057,6 +1067,9 @@ export struct MessageItem {
           .width('100%')
           .justifyContent(FlexAlign.Center)
           .margin({ bottom: 8 })
+          .onClick(() => {
+            this.handleItemTapForDismiss();
+          })
         }
       } else {
         Row() {
@@ -1162,6 +1175,9 @@ export struct MessageItem {
         }
         .width('90%')
         .justifyContent(FlexAlign.Start)
+        .onClick(() => {
+          this.handleItemTapForDismiss();
+        })
         .gesture(
           LongPressGesture({ repeat: false })
             .onAction((event: GestureEvent) => {
@@ -1195,7 +1211,6 @@ export struct MessageItem {
   messageAlignmentRightStyle() {
     Column() {
       if (this.message.messageType === MessageType.TIPS) {
-        // Only show system messages if configured
         if (this.effectiveConfig.isShowSystemMessage) {
           Row() {
             GetMessageView(this.createRenderContext());
@@ -1203,6 +1218,9 @@ export struct MessageItem {
           .width('100%')
           .justifyContent(FlexAlign.Center)
           .margin({ bottom: 8 })
+          .onClick(() => {
+            this.handleItemTapForDismiss();
+          })
         }
       } else if (this.message.messageType === MessageType.CUSTOM && !isCallingC2C(this.message) && !isBusinessCustomMessage(this.message)) {
         if (!shouldHideCallingMessage(this.message)) {
@@ -1212,6 +1230,9 @@ export struct MessageItem {
           .width('100%')
           .justifyContent(FlexAlign.Center)
           .margin({ bottom: 8 })
+          .onClick(() => {
+            this.handleItemTapForDismiss();
+          })
         }
       } else {
         Row() {
@@ -1297,6 +1318,9 @@ export struct MessageItem {
         }
         .width('90%')
         .justifyContent(FlexAlign.End)
+        .onClick(() => {
+          this.handleItemTapForDismiss();
+        })
         .gesture(
           LongPressGesture({ repeat: false })
             .onAction((event: GestureEvent) => {
@@ -1330,7 +1354,6 @@ export struct MessageItem {
   messageAlignmentTwosideStyle() {
     Column() {
       if (this.message.messageType === MessageType.TIPS) {
-        // Only show system messages if configured
         if (this.effectiveConfig.isShowSystemMessage) {
           Row() {
             GetMessageView(this.createRenderContext());
@@ -1338,6 +1361,9 @@ export struct MessageItem {
           .width('100%')
           .justifyContent(FlexAlign.Center)
           .margin({ bottom: 8 })
+          .onClick(() => {
+            this.handleItemTapForDismiss();
+          })
         }
       } else if (this.message.messageType === MessageType.CUSTOM && !isCallingC2C(this.message) && !isBusinessCustomMessage(this.message)) {
         if (!shouldHideCallingMessage(this.message)) {
@@ -1347,6 +1373,9 @@ export struct MessageItem {
           .width('100%')
           .justifyContent(FlexAlign.Center)
           .margin({ bottom: 8 })
+          .onClick(() => {
+            this.handleItemTapForDismiss();
+          })
         }
       } else {
         Row() {
@@ -1487,6 +1516,9 @@ export struct MessageItem {
         }
         .width('100%')
         .justifyContent(this.getEffectiveIsSelf() ? FlexAlign.End : FlexAlign.Start)
+        .onClick(() => {
+          this.handleItemTapForDismiss();
+        })
         .gesture(
           LongPressGesture({ repeat: false })
             .onAction((event: GestureEvent) => {

@@ -173,6 +173,7 @@ export struct MessageList {
     this.floatingEntry = undefined;
 
     EventBus.getInstance().off(MessageQuoteEvent.LOCATE_QUOTED_MESSAGE);
+    EventBus.getInstance().off('onInputFocus');
   }
 
   aboutToAppear() {
@@ -192,6 +193,10 @@ export struct MessageList {
 
     EventBus.getInstance().on(MessageQuoteEvent.LOCATE_QUOTED_MESSAGE, (eventData: emitter.EventData) => {
       this.handleLocateQuotedMessage(eventData);
+    });
+
+    EventBus.getInstance().on('onInputFocus', (_eventData: emitter.EventData) => {
+      this.scrollToBottom();
     });
   }
 
@@ -710,7 +715,11 @@ export struct MessageList {
         .onScrollStart(() => {
 
           this.userScrolling = true;
-          console.info('[MessageList] User scroll started');
+          const scrollEventData: Record<string, Object> = {};
+          scrollEventData['source'] = 'MessageList';
+          scrollEventData['event'] = 'onBlankAreaClick';
+          scrollEventData['reason'] = 'scrollStart';
+          EventBus.getInstance().post('onBlankAreaClick', scrollEventData);
         })
         .onScrollStop(() => {
 

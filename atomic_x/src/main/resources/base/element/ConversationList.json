@@ -89,10 +89,6 @@
       "value": "conversation"
     },
     {
-      "name": "conversationlist_copyright",
-      "value": "© 2025 AtomicX. All Rights Reserved."
-    },
-    {
       "name": "conversation_list_message_count_unit",
       "value": " messages"
     },

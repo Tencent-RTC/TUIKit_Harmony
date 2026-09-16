@@ -265,6 +265,10 @@
       "value": "الاستماع من هنا"
     },
     {
+      "name": "message_list_chatbot_forward_not_supported",
+      "value": "لا يمكن إعادة توجيه الرسائل إلى محادثة الذكاء الاصطناعي."
+    },
+    {
       "name": "listen_speaker_self",
       "value": "أنا"
     },

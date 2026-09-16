@@ -7,6 +7,7 @@ import { ReactionEmojiPicker } from './ReactionEmojiPicker';
 import { EmojiItem } from '../../emojipicker/data/EmojiData';
 import { AsrDisplayManager } from '../utils/AsrDisplayManager';
 import { TranslationDisplayManager } from '../utils/TranslationDisplayManager';
+import { ChatbotMessageActionPolicy } from '../../chatbot/ChatbotMessageActionPolicy';
 
 export const CLASSIC_MESSAGE_ACTION_POPUP_WIDTH: number = 228;
 const ACTION_ICON_SIZE: number = 16;
@@ -83,6 +84,11 @@ export struct ClassicMessageActionPopup {
 
   private initializeActions() {
     const items: ClassicMessageActionItem[] = [];
+
+    if (ChatbotMessageActionPolicy.isChatbotVisualMessage(this.message)) {
+      this.actionItems = this.buildChatbotActions();
+      return;
+    }
 
     if (this.effectiveConfig.isSupportCopy && this.shouldShowCopy()) {
       items.push({
@@ -178,6 +184,40 @@ export struct ClassicMessageActionPopup {
     }
 
     this.actionItems = items;
+  }
+
+  /**
+   * Chatbot streaming answers only expose copy / forward / delete, and only once
+   * the answer has completed. Mirrors the Android buildActionCapability() branch.
+   */
+  private buildChatbotActions(): ClassicMessageActionItem[] {
+    const items: ClassicMessageActionItem[] = [];
+    if (!ChatbotMessageActionPolicy.isComplete(this.message)) {
+      return items;
+    }
+    if (this.effectiveConfig.isSupportCopy) {
+      items.push({
+        text: $r('app.string.action_copy'),
+        icon: $rawfile('messagelist/icon_extion_copy.svg'),
+        action: 'copy'
+      });
+    }
+    if (this.effectiveConfig.isSupportForward && this.message.status === MessageStatus.SEND_SUCCESS) {
+      items.push({
+        text: $r('app.string.action_forward'),
+        icon: $rawfile('messagelist/icon_extion_forward.svg'),
+        action: 'forward',
+        strokeIcon: true
+      });
+    }
+    if (this.effectiveConfig.isSupportDelete) {
+      items.push({
+        text: $r('app.string.action_delete'),
+        icon: $rawfile('messagelist/icon_extion_delete.svg'),
+        action: 'delete'
+      });
+    }
+    return items;
   }
 
   private shouldShowCopy(): boolean {

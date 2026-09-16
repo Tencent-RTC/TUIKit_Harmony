@@ -39,6 +39,11 @@ import { GroupMemberPickerDialog } from '../../chatsetting/pages/GroupMemberPick
 import { GroupMember } from '@tencentcloud/atomicxcore';
 import { CallMediaType } from '../../call/common/CallStore';
 import { UserPickerData } from '../../userpicker/Index';
+import { ChatbotConversationPolicy } from '../../chatbot/ChatbotConversationPolicy';
+import { ChatbotConversationControllers } from '../../chatbot/ChatbotConversationControllerRegistry';
+import { ChatbotConversationController, ChatbotStateListener } from '../../chatbot/ChatbotConversationController';
+import { createChatbotMessageInputConfig } from '../../chatbot/ChatbotMessageInputConfig';
+import { TypingIndicatorController, TypingStateListener } from '../../messagelist/typing/TypingIndicatorController';
 
 interface VoiceActionTargetArea {
   x: number;
@@ -58,6 +63,9 @@ export struct MessageInput {
   onVoiceCallClick?: () => void;
   onVideoCallClick?: () => void;
   private effectiveConfig: MessageInputConfigProtocol = new ChatMessageInputConfig();
+  private typingController?: TypingIndicatorController;
+  private typingStateListener?: TypingStateListener;
+  private typingNotifyTimer?: number;
   dialogController?: CustomDialogController = undefined;
   private richEditorController: RichEditorController = new RichEditorController();
   @State private inputState: MessageInputStore | null = null;
@@ -87,6 +95,7 @@ export struct MessageInput {
   private draftSaveTimer?: number;
   private isLoadingDraft: boolean = false;
   private static readonly DRAFT_SAVE_DELAY: number = 800; // 800ms debounce
+  private static readonly TYPING_NOTIFY_DELAY: number = 300;
   // @ mention related properties
   @State private mentionList: MentionInfo[] = [];
   private mentionDialogController?: CustomDialogController;
@@ -103,6 +112,9 @@ export struct MessageInput {
   @State private quotedSummary: string = '';
   @State private quotedSenderPrefix: string = '';
   @State private quotedContentText: string = '';
+  @State private isChatbotActive: boolean = false;
+  private chatbotController?: ChatbotConversationController;
+  private chatbotStateListener?: ChatbotStateListener;
 
   aboutToAppear() {
     if (this.conversationID) {
@@ -117,6 +129,13 @@ export struct MessageInput {
     if (this.config) {
       this.effectiveConfig = this.config;
     }
+
+    // Must run after effectiveConfig is assigned, since it downgrades the config.
+    if (this.conversationID) {
+      this.attachChatbotControllerIfNeeded();
+    }
+
+    this.attachTypingControllerIfNeeded();
 
     AudioRecorder.getInstance().setContext(this.context);
     
@@ -309,10 +328,96 @@ export struct MessageInput {
       clearTimeout(this.draftSaveTimer);
       this.draftSaveTimer = undefined;
     }
-    
+
+    this.detachChatbotController();
+    this.detachTypingController();
+
     // Unsubscribe from EventBus
     EventBus.getInstance().off('onUserLongPress');
     EventBus.getInstance().off(MessageQuoteEvent.QUOTE_MESSAGE);
+  }
+
+  private attachChatbotControllerIfNeeded(): void {
+    if (!ChatbotConversationPolicy.isChatbotConversation(this.conversationID)) {
+      return;
+    }
+    this.effectiveConfig = createChatbotMessageInputConfig(this.effectiveConfig);
+    const controller = ChatbotConversationControllers.acquire(this.conversationID);
+    this.chatbotController = controller;
+    this.isChatbotActive = controller.isActive;
+    const listener: ChatbotStateListener = () => {
+      this.isChatbotActive = controller.isActive;
+    };
+    this.chatbotStateListener = listener;
+    controller.addStateListener(listener);
+  }
+
+  private attachTypingControllerIfNeeded(): void {
+    if (!this.effectiveConfig.enableTyping) {
+      return;
+    }
+    if (!TypingIndicatorController.isTypingConversation(this.conversationID)) {
+      return;
+    }
+    const controller = TypingIndicatorController.obtain(this.conversationID);
+    this.typingController = controller;
+    const listener: TypingStateListener = (isTyping: boolean) => {
+      this.effectiveConfig.onTypingStatusChanged?.(isTyping);
+    };
+    this.typingStateListener = listener;
+    controller.addStateListener(listener);
+  }
+
+  private detachTypingController(): void {
+    const controller = this.typingController;
+    if (!controller) {
+      return;
+    }
+    if (this.typingStateListener) {
+      controller.removeStateListener(this.typingStateListener);
+      this.typingStateListener = undefined;
+    }
+    TypingIndicatorController.release(controller);
+    this.typingController = undefined;
+    if (this.typingNotifyTimer) {
+      clearTimeout(this.typingNotifyTimer);
+      this.typingNotifyTimer = undefined;
+    }
+  }
+
+  private notifyTypingStatus(): void {
+    if (!this.typingController) {
+      return;
+    }
+    if (this.typingNotifyTimer) {
+      clearTimeout(this.typingNotifyTimer);
+    }
+    this.typingNotifyTimer = setTimeout(() => {
+      this.typingNotifyTimer = undefined;
+      this.getMessageText().then((text: string) => {
+        this.typingController?.sendTypingStatus(text.trim().length > 0);
+      });
+    }, MessageInput.TYPING_NOTIFY_DELAY);
+  }
+
+  private detachChatbotController(): void {
+    const controller = this.chatbotController;
+    if (!controller) {
+      return;
+    }
+    if (this.chatbotStateListener) {
+      controller.removeStateListener(this.chatbotStateListener);
+      this.chatbotStateListener = undefined;
+    }
+    ChatbotConversationControllers.release(this.conversationID, controller);
+    this.chatbotController = undefined;
+  }
+
+  private handleChatbotStop(): void {
+    this.chatbotController?.sendInterrupt(undefined, (code: number, desc: string) => {
+      const localizedMessage = IMErrorCode.getErrorMessage(code, desc);
+      Toast.error(localizedMessage, this.getUIContext());
+    });
   }
 
   // Initialize dialog controller with menu items based on style
@@ -630,9 +735,13 @@ export struct MessageInput {
         effectiveConfig: this.effectiveConfig,
         richEditorController: this.richEditorController,
         actionMenuItems: this.getActionMenuItems(),
+        isChatbotActive: this.isChatbotActive,
         callbacks: {
           onSend: () => {
             this.sendTextMessage();
+          },
+          onChatbotStop: () => {
+            this.handleChatbotStop();
           },
           onVoiceRecordStart: (fromTextInput?: boolean) => {
             this.isTextInputVoiceRecording = fromTextInput ?? false;
@@ -665,6 +774,7 @@ export struct MessageInput {
             if (!this.isLoadingDraft) {
               this.saveDraftWithDebounce();
             }
+            this.notifyTypingStatus();
           },
           onAtTrigger: (cursorPosition: number) => {
             if (this.shouldEnableMention()) {
@@ -772,6 +882,7 @@ export struct MessageInput {
             if (!this.isLoadingDraft) {
               this.saveDraftWithDebounce();
             }
+            this.notifyTypingStatus();
           },
           onAtTrigger: (cursorPosition: number) => {
             if (this.shouldEnableMention()) {
@@ -993,6 +1104,11 @@ export struct MessageInput {
       return;
     }
 
+    if (this.chatbotController?.isActive === true) {
+      Toast.info($r('app.string.message_input_chatbot_waiting_tips'), this.getUIContext());
+      return;
+    }
+
     // Build atUserList from mentionList
     const atUserList: string[] = this.mentionList.map((mention: MentionInfo): string => mention.userID);
     console.log(`[MessageInput] atUserList: [${atUserList.join(', ')}]`);
@@ -1021,6 +1137,7 @@ export struct MessageInput {
 
       this.inputState.sendMessage(payload, option, new CompletionHandlerAdapter(() => {
         console.log(`[MessageInput] Message sent successfully`);
+        this.chatbotController?.onTextMessageSent();
       }, (code: number, desc: string) => {
         console.error(`[MessageInput] Send failed: code=${code}, message=${desc}`);
         const localizedMessage = IMErrorCode.getErrorMessage(code ?? -1, '' + code + desc);

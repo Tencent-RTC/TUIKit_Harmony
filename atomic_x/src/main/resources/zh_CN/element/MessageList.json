@@ -113,6 +113,7 @@
     { "name": "messagelist_reaction_removed", "value": "表情已移除" },
     { "name": "action_convert_to_text", "value": "转文字" },
     { "name": "action_listen_from_here", "value": "从当前听" },
+    { "name": "message_list_chatbot_forward_not_supported", "value": "不能转发消息到 AI 聊天" },
     { "name": "listen_speaker_self", "value": "我" },
     { "name": "listen_says", "value": "%1$s说：" },
     { "name": "listen_sent_image", "value": "%1$s发送了图片" },

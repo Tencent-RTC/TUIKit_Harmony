@@ -53,6 +53,10 @@
       "value": "消息"
     },
     {
+      "name": "chat_typing_indicator",
+      "value": "对方正在输入…"
+    },
+    {
       "name": "search_placeholder",
       "value": "搜索"
     },

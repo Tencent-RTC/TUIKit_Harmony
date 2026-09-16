@@ -11,6 +11,7 @@ import { ReactionEmojiPickerSheet } from './ReactionEmojiPickerSheet';
 import { EmojiItem } from '../../emojipicker/data/EmojiData';
 import { AsrDisplayManager } from '../utils/AsrDisplayManager';
 import { TranslationDisplayManager } from '../utils/TranslationDisplayManager';
+import { ChatbotMessageActionPolicy } from '../../chatbot/ChatbotMessageActionPolicy';
 import { MessageRenderContext } from '../context/MessageRenderContext';
 
 interface ActionButtonConfig {
@@ -310,6 +311,12 @@ export struct MessageActionDialog {
   private initializeActions() {
     const configuredActions: ActionButtonConfig[] = [];
 
+    if (ChatbotMessageActionPolicy.isChatbotVisualMessage(this.message)) {
+      this.primaryActions = this.buildChatbotActions();
+      this.secondaryActions = [];
+      return;
+    }
+
 
 
     // Check which actions are supported based on style configuration
@@ -424,6 +431,36 @@ export struct MessageActionDialog {
       this.primaryActions = configuredActions.slice(0, maxPrimaryActions - 1).concat([moreItem]);
       this.secondaryActions = configuredActions.slice(maxPrimaryActions - 1).concat([backItem]);
     }
+  }
+
+  /**
+   * Chatbot streaming answers only expose copy / forward / delete, and only once
+   * the answer has completed. Mirrors the Android buildActionCapability() branch.
+   */
+  private buildChatbotActions(): ActionButtonConfig[] {
+    const actions: ActionButtonConfig[] = [];
+    if (!ChatbotMessageActionPolicy.isComplete(this.message)) {
+      return actions;
+    }
+    if (this.effectiveConfig.isSupportCopy) {
+      const actionConfig = this.getActionConfig(MessageAction.COPY);
+      if (actionConfig) {
+        actions.push(actionConfig);
+      }
+    }
+    if (this.effectiveConfig.isSupportForward && this.message.status === MessageStatus.SEND_SUCCESS) {
+      const actionConfig = this.getActionConfig(MessageAction.FORWARD);
+      if (actionConfig) {
+        actions.push(actionConfig);
+      }
+    }
+    if (this.effectiveConfig.isSupportDelete) {
+      const actionConfig = this.getActionConfig(MessageAction.DELETE);
+      if (actionConfig) {
+        actions.push(actionConfig);
+      }
+    }
+    return actions;
   }
 
   /**
@@ -720,8 +757,11 @@ export struct MessageActionDialog {
 
     let messageContent = '';
     const textPayload = this.message.messagePayload as TextMessagePayload | undefined;
+    const chatbotText = ChatbotMessageActionPolicy.displayText(this.message);
     if (textPayload?.text) {
       messageContent = textPayload.text;
+    } else if (chatbotText.length > 0) {
+      messageContent = chatbotText;
     } else {
       Toast.info($r('app.string.messagelist_copy_unsupported'), this.getUIContext());
       return;

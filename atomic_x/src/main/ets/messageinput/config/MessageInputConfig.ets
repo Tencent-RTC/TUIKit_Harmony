@@ -33,6 +33,10 @@ export interface MessageInputConfigProtocol {
   /** Enable @ mention feature for group conversations (default: true) */
   enableMention?: boolean;
   enableReadReceipt?: boolean;
+  /** Enable "peer is typing" indicator for C2C conversations (default: false) */
+  enableTyping?: boolean;
+  /** Notified whenever the peer typing state changes; requires enableTyping */
+  onTypingStatusChanged?: (isTyping: boolean) => void;
 }
 
 /**
@@ -49,6 +53,8 @@ export class ChatMessageInputConfig implements MessageInputConfigProtocol {
   private userIsShowSendButton?: boolean;
   private userEnableMention?: boolean;
   private userEnableReadReceipt?: boolean;
+  private userEnableTyping?: boolean;
+  private userOnTypingStatusChanged?: (isTyping: boolean) => void;
 
   constructor(config?: Partial<MessageInputConfigProtocol>) {
     if (config) {
@@ -61,6 +67,8 @@ export class ChatMessageInputConfig implements MessageInputConfigProtocol {
       this.userIsShowSendButton = config.isShowSendButton;
       this.userEnableMention = config.enableMention;
       this.userEnableReadReceipt = config.enableReadReceipt;
+      this.userEnableTyping = config.enableTyping;
+      this.userOnTypingStatusChanged = config.onTypingStatusChanged;
     }
   }
 
@@ -107,5 +115,13 @@ export class ChatMessageInputConfig implements MessageInputConfigProtocol {
       return this.userEnableReadReceipt;
     }
     return AppBuilderConfig.getInstance().enableReadReceipt;
+  }
+
+  get enableTyping(): boolean {
+    return this.userEnableTyping ?? false;
+  }
+
+  get onTypingStatusChanged(): ((isTyping: boolean) => void) | undefined {
+    return this.userOnTypingStatusChanged;
   }
 }

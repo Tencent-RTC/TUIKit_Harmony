@@ -53,6 +53,10 @@
       "value": "المحادثة"
     },
     {
+      "name": "chat_typing_indicator",
+      "value": "يكتب الآن…"
+    },
+    {
       "name": "search_placeholder",
       "value": "البحث"
     },

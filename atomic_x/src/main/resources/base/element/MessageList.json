@@ -113,6 +113,7 @@
     { "name": "messagelist_reaction_removed", "value": "Reaction removed" },
     { "name": "action_convert_to_text", "value": "Convert to Text" },
     { "name": "action_listen_from_here", "value": "Listen" },
+    { "name": "message_list_chatbot_forward_not_supported", "value": "Messages cannot be forwarded to an AI chat." },
     { "name": "listen_speaker_self", "value": "I" },
     { "name": "listen_says", "value": "%1$s said: " },
     { "name": "listen_sent_image", "value": "%1$s sent an image" },

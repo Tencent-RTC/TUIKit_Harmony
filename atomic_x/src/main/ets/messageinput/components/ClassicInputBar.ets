@@ -24,6 +24,7 @@ export interface ClassicInputBarCallbacks {
   onAtTrigger?: (cursorPosition: number) => void;
   onActionItemClick?: (menuItem: MenuItem) => void;
   onDidChange?: (rangeBefore: TextRange, rangeAfter: TextRange) => boolean;
+  onChatbotStop?: () => void;
 }
 
 /**
@@ -56,6 +57,9 @@ export struct ClassicInputBar {
   
   // Action menu items for expand panel
   actionMenuItems: MenuItem[] = [];
+
+  // Chatbot streaming state: replaces the plus button with a stop-answer button
+  @Prop isChatbotActive: boolean = false;
   
   // Internal state
   @State private isVoiceMode: boolean = false; // Voice input mode vs text input mode
@@ -143,20 +147,39 @@ export struct ClassicInputBar {
           this.toggleEmojiPanel();
         })
 
-        // Plus button (always shows +, send via keyboard)
-        Button() {
-          Image($rawfile('messageinput/classic/plus_icon.svg'))
-            .width(this.buttonSize)
-            .height(this.buttonSize)
+        // Plus button (always shows +, send via keyboard).
+        // Replaced by the stop-answer button while the chatbot is responding.
+        if (this.isChatbotActive) {
+          Button() {
+            Column()
+              .width(10)
+              .height(10)
+              .backgroundColor(this.themeState.colors.textColorButton)
+          }
+          .width(this.buttonSize)
+          .height(this.buttonSize)
+          .backgroundColor(this.themeState.colors.buttonColorPrimaryDefault)
+          .borderRadius(this.buttonSize / 2)
+          .onClick(() => {
+            if (this.callbacks.onChatbotStop) {
+              this.callbacks.onChatbotStop();
+            }
+          })
+        } else {
+          Button() {
+            Image($rawfile('messageinput/classic/plus_icon.svg'))
+              .width(this.buttonSize)
+              .height(this.buttonSize)
+          }
+          .width(this.buttonSize)
+          .height(this.buttonSize)
+          .backgroundColor(Color.Transparent)
+          .borderRadius(this.buttonSize / 2)
+          .onClick(() => {
+            // Toggle action panel
+            this.toggleActionPanel();
+          })
         }
-        .width(this.buttonSize)
-        .height(this.buttonSize)
-        .backgroundColor(Color.Transparent)
-        .borderRadius(this.buttonSize / 2)
-        .onClick(() => {
-          // Toggle action panel
-          this.toggleActionPanel();
-        })
       }
       .width('100%')
       .constraintSize({ minHeight: 56 })

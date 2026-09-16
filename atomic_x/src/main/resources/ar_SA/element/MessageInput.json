@@ -5,6 +5,14 @@
       "value": "اكتب رسالة..."
     },
     {
+      "name": "message_input_chatbot_stop",
+      "value": "إيقاف الإجابة"
+    },
+    {
+      "name": "message_input_chatbot_waiting_tips",
+      "value": "يرجى انتظار الإجابة الحالية أو إيقافها أولاً."
+    },
+    {
       "name": "send_button",
       "value": "إرسال"
     },

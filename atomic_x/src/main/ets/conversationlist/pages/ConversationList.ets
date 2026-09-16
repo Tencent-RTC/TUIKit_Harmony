@@ -75,24 +75,65 @@ class StableConversationListDataSource implements IDataSource {
   }
 
   syncFromCore(coreItems: ConversationInfo[]): void {
+    const previousItems = this.items;
     const nextItems: ConversationInfo[] = [];
     const nextMap: Map<string, ConversationInfo> = new Map();
-    for (const coreItem of coreItems) {
+    const changedIndexes: number[] = [];
+
+    for (let index = 0; index < coreItems.length; index++) {
+      const coreItem = coreItems[index];
       let stableItem = this.itemMap.get(coreItem.conversationID);
       if (!stableItem) {
         stableItem = coreItem;
-      } else {
-        this.copyFields(stableItem, coreItem);
+      } else if (stableItem !== coreItem && this.copyFields(stableItem, coreItem)) {
+        changedIndexes.push(index);
       }
       nextItems.push(stableItem);
       nextMap.set(coreItem.conversationID, stableItem);
     }
+
+    const identityOrderUnchanged = this.hasSameIdentityOrder(previousItems, nextItems);
     this.items = nextItems;
     this.itemMap = nextMap;
-    this.notifyDataReload();
+    if (!identityOrderUnchanged) {
+      this.notifyDataReload();
+      return;
+    }
+    changedIndexes.forEach((index: number) => {
+      this.listeners.forEach((listener: DataChangeListener) => listener.onDataChange(index));
+    });
   }
 
-  private copyFields(target: ConversationInfo, source: ConversationInfo): void {
+  private hasSameIdentityOrder(previousItems: ConversationInfo[], nextItems: ConversationInfo[]): boolean {
+    if (previousItems.length !== nextItems.length) {
+      return false;
+    }
+    for (let index = 0; index < previousItems.length; index++) {
+      if (previousItems[index].conversationID !== nextItems[index].conversationID) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private copyFields(target: ConversationInfo, source: ConversationInfo): boolean {
+    const changed = target.type !== source.type ||
+      target.groupType !== source.groupType ||
+      target.avatarURL !== source.avatarURL ||
+      target.title !== source.title ||
+      target.lastMessage !== source.lastMessage ||
+      target.draft !== source.draft ||
+      target.unreadCount !== source.unreadCount ||
+      target.isPinned !== source.isPinned ||
+      target.receiveOption !== source.receiveOption ||
+      target.groupAtInfoList !== source.groupAtInfoList ||
+      target.conversationMarkList !== source.conversationMarkList ||
+      target.conversationGroupList !== source.conversationGroupList ||
+      target.rawConversation !== source.rawConversation;
+    if (!changed) {
+      return false;
+    }
+
     target.type = source.type;
     target.groupType = source.groupType;
     target.avatarURL = source.avatarURL;
@@ -106,6 +147,7 @@ class StableConversationListDataSource implements IDataSource {
     target.conversationMarkList = source.conversationMarkList;
     target.conversationGroupList = source.conversationGroupList;
     target.rawConversation = source.rawConversation;
+    return true;
   }
 
   private notifyDataReload(): void {
@@ -488,6 +530,7 @@ export struct ConversationList {
       }
     }
     this.stableDataSource.syncFromCore(coreItems);
+    this.syncConversationCount();
   };
 
   aboutToAppear() {

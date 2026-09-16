@@ -8,6 +8,8 @@ import { MessageListStyleProtocol } from '../config/MessageListConfig';
 import { MessageUtils } from '../utils/MessageUtils';
 import { MessageRenderContext } from '../context/MessageRenderContext';
 
+const IMAGE_BUBBLE_CORNER_RADIUS: number = 12;
+
 function toLocalUri(path?: string): string {
   if (!path) {
     return '';
@@ -56,9 +58,9 @@ export struct ImageMessageViewContent {
   private imageViewerDialogController?: CustomDialogController;
 
   getImageSize(): SizeOptions {
-    const originalWidth = ImageSizeUtil.getSquareSize().width * 0.6;
-    const originalHeight = ImageSizeUtil.getSquareSize().height;
-    return ImageSizeUtil.calculateOptimalSize(originalWidth, originalHeight);
+    const originalWidth = this.messagePayload.originalImageWidth > 0 ? this.messagePayload.originalImageWidth : 100;
+    const originalHeight = this.messagePayload.originalImageHeight > 0 ? this.messagePayload.originalImageHeight : 100;
+    return ImageSizeUtil.calculateOptimalSize(originalWidth, originalHeight, 200, 80, 0.4, 2.5);
   }
 
   build() {
@@ -78,7 +80,6 @@ export struct ImageMessageViewContent {
         Image($rawfile('basecomponent/common_image_replace_icon.png'))
           .size({ width: `${this.getImageSize().width}vp`, height: `${this.getImageSize().height}vp` })
           .backgroundColor('#F2F2F2')
-          .borderRadius(5)
       }
 
       if (MessageUtils.shouldShowReadReceipt(this.message,
@@ -91,6 +92,8 @@ export struct ImageMessageViewContent {
       }
     }
     .size({ width: `${this.getImageSize().width}vp`, height: `${this.getImageSize().height}vp` })
+    .borderRadius(IMAGE_BUBBLE_CORNER_RADIUS)
+    .clip(true)
   }
 
   public requestImageDownload() {

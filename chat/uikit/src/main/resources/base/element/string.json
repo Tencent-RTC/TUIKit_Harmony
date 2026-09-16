@@ -53,6 +53,10 @@
       "value": "Chat"
     },
     {
+      "name": "chat_typing_indicator",
+      "value": "Typing…"
+    },
+    {
       "name": "search_placeholder",
       "value": "Search"
     },

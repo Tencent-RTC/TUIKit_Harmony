@@ -125,13 +125,6 @@ export struct GroupDetailPage {
             .alignSelf(ItemAlign.Start)
             .margin({ top: 4 })
 
-
-          Text(`Type：Work`)
-            .fontSize(12)
-            .fontColor(this.themeState.colors.textColorSecondary)
-            .fontFamily('PingFang SC')
-            .alignSelf(ItemAlign.Start)
-            .margin({ top: 4 })
         }
         .alignItems(HorizontalAlign.Start)
         .layoutWeight(1)

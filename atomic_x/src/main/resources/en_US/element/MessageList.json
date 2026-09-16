@@ -289,6 +289,10 @@
       "value": "Listen"
     },
     {
+      "name": "message_list_chatbot_forward_not_supported",
+      "value": "Messages cannot be forwarded to an AI chat."
+    },
+    {
       "name": "listen_speaker_self",
       "value": "I"
     },

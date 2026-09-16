@@ -3,6 +3,7 @@ import { ConversationType } from '@tencentcloud/atomicxcore';
 import { GroupJoinOption, GroupInviteOption } from '@tencentcloud/atomicxcore';
 import { GroupMember } from '@tencentcloud/atomicxcore';
 import { CallingMessageDataProvider } from './CallingMessageDataProvider';
+import { TypingMessageProtocol } from '../typing/TypingIndicatorController';
 
 interface GroupTipsLike {
   opUser?: GroupMember;
@@ -37,6 +38,13 @@ export class ReadReceiptLabelInfo {
 }
 
 export class MessageUtils {
+  static shouldDisplayInMessageList(message: MessageInfo): boolean {
+    if (MessageUtils.isMentionMirrorMessage(message)) {
+      return false;
+    }
+    return !TypingMessageProtocol.isTypingMessage(message);
+  }
+
   // TODO(harmony): IM SDK Harmony 版会把群 @ 系统镜像消息(sender 以 @TIM#SYSTEM 结尾)
   // 透传到 onRecvNewMessage,Android SDK 在 native 层已消化。SDK 修复后可移除此方法及调用方。
   static isMentionMirrorMessage(message: MessageInfo): boolean {
@@ -426,6 +434,15 @@ export class MessageUtils {
       getContext().resourceManager.getStringSync($r('app.string.read_receipt_delivered_to').id), true);
   }
 
+  private static getStringHash(value: string): string {
+    let hash = 0;
+    for (let index = 0; index < value.length; index++) {
+      hash = ((hash << 5) - hash) + value.charCodeAt(index);
+      hash |= 0;
+    }
+    return hash.toString();
+  }
+
   static getMessageStateHash(message: MessageInfo): string {
     try {
       const stateObj: Map<string, Object | undefined> = new Map();
@@ -464,6 +481,10 @@ export class MessageUtils {
       } else if (message.messageType === MessageType.AUDIO) {
         const audioPayload = message.messagePayload as AudioMessagePayload | undefined;
         stateObj.set('asrTextLength', audioPayload?.asrText?.length);
+      } else if (message.messageType === MessageType.CUSTOM) {
+        const customPayload = message.messagePayload as CustomMessagePayload | undefined;
+        const customData = customPayload?.customData ?? '';
+        stateObj.set('customDataHash', MessageUtils.getStringHash(customData));
       }
 
       const entries: Array<[string, Object | undefined]> = [];

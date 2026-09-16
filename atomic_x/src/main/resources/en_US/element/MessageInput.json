@@ -5,6 +5,14 @@
       "value": "Type or hold to talk..."
     },
     {
+      "name": "message_input_chatbot_stop",
+      "value": "Stop answer"
+    },
+    {
+      "name": "message_input_chatbot_waiting_tips",
+      "value": "Please wait for the current answer or stop it first."
+    },
+    {
       "name": "send_button",
       "value": "Send"
     },

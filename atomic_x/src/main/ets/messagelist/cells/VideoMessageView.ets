@@ -40,7 +40,7 @@ function resolveDisplayVideoSnapshot(payload?: VideoMessagePayload): string {
   return takeNonBlank(payload.videoSnapshotURL);
 }
 
-const DEFAULT_IMAGE_MAX_SIZE = 180;
+const VIDEO_BUBBLE_CORNER_RADIUS: number = 12;
 
 @Component
 export struct VideoMessageViewContent {
@@ -68,7 +68,6 @@ export struct VideoMessageViewContent {
       Image(resolveDisplayVideoSnapshot(this.messagePayload))
         .width('100%')
         .height('100%')
-        .borderRadius(8)
         .interpolation(ImageInterpolation.Medium)
         .objectFit(ImageFit.Cover)
         .size({ width: `${this.getImageSize().width}vp`, height: `${this.getImageSize().height}vp` })
@@ -111,6 +110,8 @@ export struct VideoMessageViewContent {
       }
     }
     .size({ width: `${this.getImageSize().width}vp`, height: `${this.getImageSize().height}vp` })
+    .borderRadius(VIDEO_BUBBLE_CORNER_RADIUS)
+    .clip(true)
     .onClick(() => {
       if (resolveDisplayVideoSnapshot(this.messagePayload).length === 0) {
         return;
@@ -154,9 +155,9 @@ export struct VideoMessageViewContent {
   }
 
   private getImageSize(): SizeOptions {
-    const originalWidth = ImageSizeUtil.getSquareSize().width * 0.6;
-    const originalHeight = ImageSizeUtil.getSquareSize().height;
-    return ImageSizeUtil.calculateOptimalSize(originalWidth, originalHeight);
+    const originalWidth = this.messagePayload.videoSnapshotWidth > 0 ? this.messagePayload.videoSnapshotWidth : 100;
+    const originalHeight = this.messagePayload.videoSnapshotHeight > 0 ? this.messagePayload.videoSnapshotHeight : 100;
+    return ImageSizeUtil.calculateOptimalSize(originalWidth, originalHeight, 200, 80, 0.4, 2.5);
   }
 
   private togglePlay() {

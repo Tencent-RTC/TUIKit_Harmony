@@ -6,7 +6,7 @@ import {
   GetContactInfoCompletionHandlerAdapter,
   GetConversationInfoCompletionHandlerAdapter
 } from '../../basecomponent/utils/CompletionHandlers'
-import { ChatBackgroundStore } from '../utils/ChatBackgroundStore'
+import { ChatBackgroundStore } from '../../messagelist/background/ChatBackgroundStore'
 
 @Observed
 export class C2CChatSettingViewModel {

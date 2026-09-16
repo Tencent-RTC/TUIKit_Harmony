@@ -5,6 +5,14 @@
       "value": "發訊息或按住說話..."
     },
     {
+      "name": "message_input_chatbot_stop",
+      "value": "停止回答"
+    },
+    {
+      "name": "message_input_chatbot_waiting_tips",
+      "value": "請等待回答完成或點擊停止回答"
+    },
+    {
       "name": "send_button",
       "value": "發送"
     },

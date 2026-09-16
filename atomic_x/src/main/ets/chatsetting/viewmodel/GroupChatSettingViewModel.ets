@@ -6,7 +6,7 @@ import { LoginStore } from '@tencentcloud/atomicxcore'
 import { CompletionHandler } from '@tencentcloud/atomicxcore'
 import { GroupInfo } from '@tencentcloud/atomicxcore'
 import { PublishParams, TUIEventBus } from '../../basecomponent/utils/TUIEventBus'
-import { ChatBackgroundStore } from '../utils/ChatBackgroundStore'
+import { ChatBackgroundStore } from '../../messagelist/background/ChatBackgroundStore'
 import {
   CompletionHandlerAdapter,
   GetConversationInfoCompletionHandlerAdapter,

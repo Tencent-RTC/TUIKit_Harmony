@@ -297,6 +297,10 @@
       "value": "從目前開始聽"
     },
     {
+      "name": "message_list_chatbot_forward_not_supported",
+      "value": "不能轉發訊息到 AI 聊天"
+    },
+    {
       "name": "listen_speaker_self",
       "value": "我"
     },

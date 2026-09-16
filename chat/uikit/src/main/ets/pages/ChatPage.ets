@@ -1,7 +1,7 @@
 import { MessageInfo, ConversationListStore } from '@tencentcloud/atomicxcore';
 import { LanguageState, NotifyParams, ThemeState, TUIEventBus, TUIObserver } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index';
 import { MessageList, MultiSelectBottomBar, MultiSelectActions } from '@tencentcloud/atomicx/src/main/ets/messagelist/Index';
-import { MessageInput } from '@tencentcloud/atomicx/src/main/ets/messageinput/Index';
+import { MessageInput, ChatMessageInputConfig } from '@tencentcloud/atomicx/src/main/ets/messageinput/Index';
 
 // NOTE: Call-related event publishing (AtomicCallEventPublisher, TUICallKit
 // invocation reporting) has been moved into the atomic_x MessageInput /
@@ -67,6 +67,7 @@ export struct ChatPage {
   @State avatarUrl: string = '';
   @State locateMessage?: MessageInfo = undefined;
   @State isMultiSelectMode: boolean = false;
+  @State isPeerTyping: boolean = false;
   @State selectedCount: number = 0;
   @State unreadCount: number = 0;
   @State showSecurityBar: boolean = true;
@@ -187,6 +188,12 @@ export struct ChatPage {
       } else {
         MessageInput({
           conversationID: this.conversationID,
+          config: new ChatMessageInputConfig({
+            enableTyping: true,
+            onTypingStatusChanged: (isTyping: boolean): void => {
+              this.isPeerTyping = isTyping;
+            }
+          })
         })
       }
     }
@@ -248,7 +255,7 @@ export struct ChatPage {
         .alignItems(VerticalAlign.Center)
         .justifyContent(FlexAlign.Start)
 
-        Text(this.title)
+        Text(this.isPeerTyping ? $r('app.string.chat_typing_indicator') : this.title)
           .fontSize(17)
           .fontColor(this.themeState.colors.textColorPrimary)
           .fontWeight(FontWeight.Bold)

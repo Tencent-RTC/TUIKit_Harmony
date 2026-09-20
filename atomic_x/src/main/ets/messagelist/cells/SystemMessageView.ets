@@ -5,7 +5,7 @@ import { MessageRenderContext } from '../context/MessageRenderContext';
 
 @Component
 export struct SystemMessageViewContent {
-  @State message?: MessageInfo = undefined;
+  @ObjectLink message: MessageInfo;
   @State messagePayload?: TipsMessagePayload = undefined;
   @StorageLink('themeState') themeState: ThemeState = ThemeState.getInstance();
 

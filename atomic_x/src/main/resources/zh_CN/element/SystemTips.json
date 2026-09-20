@@ -46,11 +46,11 @@
     },
     {
       "name": "community_create_tips_format",
-      "value": "%s创建社群"
+      "value": "\"%s\" 创建社群"
     },
     {
       "name": "group_create_tips_format",
-      "value": "%s创建群组"
+      "value": "\"%s\" 创建群组"
     },
     {
       "name": "message_tips_you_recall",

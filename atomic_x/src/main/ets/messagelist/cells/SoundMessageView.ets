@@ -181,15 +181,6 @@ export struct SoundMessageViewContent {
       if (this.asrDisplayManager && this.message.msgID) {
         this.asrDisplayManager.setConverting(this.message.msgID, false);
       }
-
-      const asrText = this.messagePayload?.asrText ?? '';
-      if (asrText.length === 0) {
-        Toast.info($r('app.string.messagelist_convert_to_text_failed'), this.getUIContext());
-        this.isAsrExpanded = false;
-        if (this.asrDisplayManager && this.message.msgID) {
-          this.asrDisplayManager.collapse(this.message.msgID);
-        }
-      }
     }, (code: number, desc: string) => {
       console.error('[SoundMessageView] convertVoiceToText failed:', code, desc);
       this.isConverting = false;

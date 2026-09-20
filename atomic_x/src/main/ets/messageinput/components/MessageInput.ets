@@ -1073,12 +1073,13 @@ export struct MessageInput {
       return;
     }
     try {
+      const contentText = '欢迎加入腾讯云 IM 大家庭！';
       const customData = JSON.stringify({
         'businessID': 'text_link',
-        'text': '欢迎加入腾讯云 IM 大家庭！',
+        'text': contentText,
         'link': 'https://cloud.tencent.com/document/product/269/3794'
       } as Record<string, string>);
-      const payload = new CustomSendMessagePayload(customData, 'CustomTextLinkMessage', '');
+      const payload = new CustomSendMessagePayload(customData, contentText, '');
       const option = new SendMessageOption();
       option.needReadReceipt = this.effectiveConfig.enableReadReceipt ?? false;
 

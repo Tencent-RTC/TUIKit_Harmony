@@ -58,9 +58,8 @@ export struct ImageMessageViewContent {
   private imageViewerDialogController?: CustomDialogController;
 
   getImageSize(): SizeOptions {
-    const originalWidth = this.messagePayload.originalImageWidth > 0 ? this.messagePayload.originalImageWidth : 100;
-    const originalHeight = this.messagePayload.originalImageHeight > 0 ? this.messagePayload.originalImageHeight : 100;
-    return ImageSizeUtil.calculateOptimalSize(originalWidth, originalHeight, 200, 80, 0.4, 2.5);
+    return ImageSizeUtil.calculateMediaBubbleSize(this.messagePayload.originalImageWidth,
+      this.messagePayload.originalImageHeight);
   }
 
   build() {

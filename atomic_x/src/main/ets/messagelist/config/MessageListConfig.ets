@@ -273,7 +273,7 @@ export class MergedMessageListConfig implements MessageListStyleProtocol {
   }
 
   get isShowLeftNickname(): boolean {
-    return false;
+    return true;
   }
 
   get isShowRightAvatar(): boolean {
@@ -281,7 +281,7 @@ export class MergedMessageListConfig implements MessageListStyleProtocol {
   }
 
   get isShowRightNickname(): boolean {
-    return false;
+    return true;
   }
 
   get isShowTimeInBubble(): boolean {

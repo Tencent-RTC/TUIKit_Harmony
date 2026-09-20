@@ -4,6 +4,7 @@ import { GroupJoinOption, GroupInviteOption } from '@tencentcloud/atomicxcore';
 import { GroupMember } from '@tencentcloud/atomicxcore';
 import { CallingMessageDataProvider } from './CallingMessageDataProvider';
 import { TypingMessageProtocol } from '../typing/TypingIndicatorController';
+import TextUtils from '../../basecomponent/utils/TextUtils';
 
 interface GroupTipsLike {
   opUser?: GroupMember;
@@ -162,6 +163,39 @@ export class MessageUtils {
     }
   }
 
+  static isCommunityCreateGroup(customInfo?: Record<string, string | number | boolean | object>): boolean {
+    const rawGroupType = customInfo?.['groupType'];
+    if (typeof rawGroupType === 'string' && rawGroupType.toLowerCase() === 'community') {
+      return true;
+    }
+    const rawCmd = customInfo?.['cmd'];
+    const cmd: number = typeof rawCmd === 'number' ? rawCmd : (typeof rawCmd === 'string' ? Number(rawCmd) : 0);
+    return cmd === 1;
+  }
+
+  static getCreateGroupDisplayString(message?: MessageInfo): string | Resource {
+    const customPayload = message?.messagePayload as CustomMessagePayload | undefined;
+    const customData = customPayload?.customData;
+    let customInfo: Record<string, string | number | boolean | object> | undefined = undefined;
+    if (customData) {
+      try {
+        customInfo = JSON.parse(customData) as Record<string, string | number | boolean | object>;
+      } catch (error) {
+        customInfo = undefined;
+      }
+    }
+    const isCommunity = MessageUtils.isCommunityCreateGroup(customInfo);
+    const creatorName = message && message.isSentBySelf !== true ? MessageUtils.senderDisplayName(message) : '';
+    if (creatorName.length === 0) {
+      return isCommunity ?
+        $r('app.string.community_create_tips_message') :
+        $r('app.string.group_create_tips_message');
+    }
+    return isCommunity ?
+      $r('app.string.community_create_tips_format', creatorName) :
+      $r('app.string.group_create_tips_format', creatorName);
+  }
+
   static getMessageAbstract(messageInfo?: MessageInfo): string | Resource {
     if (!messageInfo) {
       return '';
@@ -197,12 +231,7 @@ export class MessageUtils {
             return callingProvider.content;
           }
           if (customInfo && customInfo['businessID'] === 'group_create') {
-            const sender = customInfo['opUser'] as string || '';
-            const cmd = customInfo['cmd'] as number || 0;
-            if (cmd === 1) {
-              return $r('app.string.community_create_tips_format', sender);
-            }
-            return $r('app.string.group_create_tips_format', sender);
+            return MessageUtils.getCreateGroupDisplayString(messageInfo);
           }
           if (customInfo && customInfo['businessID'] === 'text_link') {
             const text = customInfo['text'];
@@ -361,7 +390,7 @@ export class MessageUtils {
       return abstract;
     }
     try {
-      return getContext().resourceManager.getStringSync(abstract.id);
+      return TextUtils.getResourceString(abstract);
     } catch (e) {
       return '';
     }

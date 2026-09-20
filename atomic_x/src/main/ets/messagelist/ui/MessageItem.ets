@@ -42,6 +42,7 @@ import { ChatbotMessageActionPolicy } from '../../chatbot/ChatbotMessageActionPo
 import { MessageItemDisplayPolicy } from '../adapter/MessageItemDisplayPolicy';
 import { MessageBubbleBackgroundFactory } from '../adapter/MessageBubbleBackgroundFactory';
 import { MessageResendPayloadFactory } from '../adapter/MessageResendPayloadFactory';
+import { MessageListTimeGroupingPolicy } from '../viewmodel/MessageListTimeGroupingPolicy';
 
 /**
  * Display mode for MessageItem
@@ -307,6 +308,14 @@ export struct MessageItem {
       .margin({ bottom: 4 })
   }
 
+  private shouldShowNickname(isLeftSide: boolean): boolean {
+    const configAllows: boolean = (isLeftSide
+      ? this.effectiveConfig.isShowLeftNickname
+      : this.effectiveConfig.isShowRightNickname) ?? false;
+    return MessageItemDisplayPolicy.shouldShowNickname(configAllows, this.getEffectiveIsSelf(),
+      this.message.conversationType === ConversationType.GROUP);
+  }
+
   @Builder
   TimeInBubbleView() {
     if (this.shouldShowTimeInBubble(this.message) && this.message.timestamp) {
@@ -330,6 +339,14 @@ export struct MessageItem {
 
   private shouldShowTimeInBubble(message: MessageInfo): boolean {
     return (this.effectiveConfig.isShowTimeInBubble ?? false) && message.messageType === MessageType.TEXT;
+  }
+
+  private shouldShowInlineTime(): boolean {
+    return this.displayMode === MessageDisplayMode.Merged && !!this.message.timestamp;
+  }
+
+  private resolveInlineTimeText(): string {
+    return MessageListTimeGroupingPolicy.formatTimestamp(this.message.timestamp) ?? '';
   }
 
   private shouldHideBubbleBackground(): boolean {
@@ -1135,7 +1152,7 @@ export struct MessageItem {
           }
 
           Column() {
-            if (isLeftSide ? this.effectiveConfig.isShowLeftNickname : this.effectiveConfig.isShowRightNickname) {
+            if (this.shouldShowNickname(isLeftSide)) {
               this.NicknameView()
             }
 
@@ -1166,7 +1183,16 @@ export struct MessageItem {
             }
           }
           .flexShrink(1)
+          .layoutWeight(this.shouldShowInlineTime() ? 1 : 0)
           .alignItems(isLeftSide ? HorizontalAlign.Start : HorizontalAlign.End)
+
+          if (this.shouldShowInlineTime()) {
+            Text(this.resolveInlineTimeText())
+              .fontSize(12)
+              .fontColor(this.themeState.colors.textColorSecondary)
+              .maxLines(1)
+              .margin({ left: 8 })
+          }
 
           if (!isLeftSide) {
             this.RightAvatarSlot()

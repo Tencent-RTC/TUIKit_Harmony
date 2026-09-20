@@ -12,7 +12,7 @@ import { MessageRenderContext } from '../context/MessageRenderContext';
 
 @Component
 export struct FileMessageViewContent {
-  @State message?: MessageInfo = undefined;
+  @ObjectLink message: MessageInfo;
   @ObjectLink messagePayload: FileMessagePayload;
   @ObjectLink messageListStore: MessageListStore;
   @Prop config?: MessageListStyleProtocol = undefined;

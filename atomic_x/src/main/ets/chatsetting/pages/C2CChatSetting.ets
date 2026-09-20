@@ -8,7 +8,9 @@ import {
   TextUtils,
   ThemeState,
   Toast,
-  LanguageState
+  LanguageState,
+  TUIEventBus,
+  PublishParams
 } from '../../basecomponent/Index';
 import { ConversationInfo, ConversationListStore, ConversationListState } from '@tencentcloud/atomicxcore';
 import { C2CSettingState, C2CSettingStore } from '../viewmodel/C2CChatSettingViewModel';
@@ -660,6 +662,10 @@ export struct C2CChatSetting {
     if (this.conversationID && this.conversationStore) {
       clearConversationMessagesCompat(this.conversationStore, this.conversationID).then(() => {
         Toast.success($r('app.string.chatsetting_clear_chat_success'), this.getUIContext());
+        const data: Record<string, Object> = {
+          'conversationID': this.conversationID as Object,
+        };
+        TUIEventBus.getInstance().publish('chat.messageList.chatHistoryCleared', null, new PublishParams(false, data));
       }).catch((error: Error) => {
         Toast.error($r('app.string.chatsetting_clear_chat_fail'), this.getUIContext());
         console.error('Clear history failed:', error);

@@ -212,7 +212,7 @@ export struct StartConversationDialog {
     customContent['version'] = 1;
     customContent['businessID'] = 'group_create';
     customContent['opUser'] = currentUser?.userID || '';
-    customContent['content'] = $r('app.string.create_group_chat');
+    customContent['content'] = getContext(this).resourceManager.getStringSync($r('app.string.create_group_chat').id);
     customContent['cmd'] = groupType === GroupType.COMMUNITY ? 1 : 0;
 
     const messageInputStore = MessageInputStore.create(conversationID);

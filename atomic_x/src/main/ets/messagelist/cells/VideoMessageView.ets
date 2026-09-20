@@ -44,7 +44,7 @@ const VIDEO_BUBBLE_CORNER_RADIUS: number = 12;
 
 @Component
 export struct VideoMessageViewContent {
-  @State message?: MessageInfo = undefined;
+  @ObjectLink message: MessageInfo;
   @ObjectLink messagePayload: VideoMessagePayload;
   @Prop config?: MessageListStyleProtocol = undefined;
   @Prop isInMergedDetailView: boolean = false;
@@ -155,9 +155,8 @@ export struct VideoMessageViewContent {
   }
 
   private getImageSize(): SizeOptions {
-    const originalWidth = this.messagePayload.videoSnapshotWidth > 0 ? this.messagePayload.videoSnapshotWidth : 100;
-    const originalHeight = this.messagePayload.videoSnapshotHeight > 0 ? this.messagePayload.videoSnapshotHeight : 100;
-    return ImageSizeUtil.calculateOptimalSize(originalWidth, originalHeight, 200, 80, 0.4, 2.5);
+    return ImageSizeUtil.calculateMediaBubbleSize(this.messagePayload.videoSnapshotWidth,
+      this.messagePayload.videoSnapshotHeight);
   }
 
   private togglePlay() {

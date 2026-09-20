@@ -351,12 +351,12 @@ struct ConversationListRow {
       return this.conversation.draft ?? '';
     }
     const abstract = MessageUtils.getMessageAbstract(this.conversation.lastMessage);
-    if (this.conversation.receiveOption !== ReceiveMessageOption.RECEIVE && (this.conversation.unreadCount ?? 0) >= 2) {
-      if (typeof abstract === 'string') {
-        const messageCount = `[${this.conversation.unreadCount}${getContext().resourceManager.getStringSync($r('app.string.conversation_list_message_count_unit').id)}] `;
-        return messageCount + abstract;
-      }
-      return abstract;
+    if (this.conversation.receiveOption !== ReceiveMessageOption.RECEIVE && (this.conversation.unreadCount ?? 0) > 0) {
+      const abstractText = typeof abstract === 'string'
+        ? abstract
+        : MessageUtils.getMessageAbstractString(this.conversation.lastMessage);
+      const messageCount = `[${this.conversation.unreadCount}${getContext().resourceManager.getStringSync($r('app.string.conversation_list_message_count_unit').id)}] `;
+      return messageCount + abstractText;
     }
     return abstract;
   }
@@ -408,7 +408,7 @@ struct ConversationListRow {
     if (typeof this.getDisplaySubTitle() === 'string') {
       if (this.hasDraft()) {
         Text() {
-          if (this.conversation.receiveOption !== ReceiveMessageOption.RECEIVE && (this.conversation.unreadCount ?? 0) >= 2) {
+          if (this.conversation.receiveOption !== ReceiveMessageOption.RECEIVE && (this.conversation.unreadCount ?? 0) > 0) {
             Span(`[${this.conversation.unreadCount}${getContext().resourceManager.getStringSync($r('app.string.conversation_list_message_count_unit').id)}]`)
               .fontColor(this.themeState.colors.textColorSecondary)
           }

@@ -46,11 +46,11 @@
     },
     {
       "name": "community_create_tips_format",
-      "value": "%s إنشاء مجتمع"
+      "value": "أنشأ \"%s\" المجتمع"
     },
     {
       "name": "group_create_tips_format",
-      "value": "%s إنشاء مجموعة"
+      "value": "أنشأ \"%s\" المجموعة"
     },
     {
       "name": "message_tips_you_recall",

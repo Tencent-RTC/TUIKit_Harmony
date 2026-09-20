@@ -99,6 +99,7 @@ export class MessageListFloatingEntryPolicy {
 export class MessageListFloatingEntryStateController {
   private firstNewMessageId: string = '';
   private newMessageCount: number = 0;
+  private newMessageIds: string[] = [];
   private mentionTarget?: MessageListMentionTarget = undefined;
   private mentionTargetVisibility: MessageListMentionTargetVisibility = MessageListMentionTargetVisibility.UNKNOWN;
   private shouldShowBackToLatest: boolean = false;
@@ -110,6 +111,7 @@ export class MessageListFloatingEntryStateController {
   reset(): void {
     this.firstNewMessageId = '';
     this.newMessageCount = 0;
+    this.newMessageIds = [];
     this.mentionTarget = undefined;
     this.mentionTargetVisibility = MessageListMentionTargetVisibility.UNKNOWN;
     this.shouldShowBackToLatest = false;
@@ -186,10 +188,22 @@ export class MessageListFloatingEntryStateController {
       this.clearNewMessages();
       return;
     }
-    if (!this.firstNewMessageId) {
-      this.firstNewMessageId = messageId;
+    this.newMessageIds.push(messageId);
+    this.firstNewMessageId = this.newMessageIds[0];
+    this.newMessageCount = this.newMessageIds.length;
+  }
+
+  onMessageRevoked(messageId: string): void {
+    if (!messageId || this.newMessageIds.length === 0) {
+      return;
     }
-    this.newMessageCount += 1;
+    const index = this.newMessageIds.indexOf(messageId);
+    if (index < 0) {
+      return;
+    }
+    this.newMessageIds.splice(index, 1);
+    this.firstNewMessageId = this.newMessageIds.length > 0 ? this.newMessageIds[0] : '';
+    this.newMessageCount = this.newMessageIds.length;
   }
 
   onScroll(distanceFromLatestItems: number, visibleItemCount: number, isLatestVisible: boolean): void {
@@ -209,7 +223,7 @@ export class MessageListFloatingEntryStateController {
     if (this.backToQuoteMessageId && !this.returnMessageVisible) {
       return MessageListFloatingEntry.backToQuote(this.backToQuoteMessageId);
     }
-    if (this.isBeyondDisplayThreshold && this.newMessageCount > 0 && this.firstNewMessageId.length > 0) {
+    if (this.newMessageCount > 0 && this.firstNewMessageId.length > 0) {
       return MessageListFloatingEntry.newMessages(this.newMessageCount, this.firstNewMessageId);
     }
     if (this.mentionTarget) {
@@ -234,5 +248,6 @@ export class MessageListFloatingEntryStateController {
   private clearNewMessages(): void {
     this.firstNewMessageId = '';
     this.newMessageCount = 0;
+    this.newMessageIds = [];
   }
 }

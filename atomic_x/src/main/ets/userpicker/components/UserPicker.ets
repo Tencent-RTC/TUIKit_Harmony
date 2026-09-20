@@ -262,20 +262,18 @@ export struct UserPicker {
   @Builder
   CustomUserItemBuilder(userData: UserPickerData<ESObject>) {
     Row() {
-      if (this.maxCount !== 1) {
-        Checkbox({
-          name: `checkbox_${userData.key}`,
-          group: 'userSelection'
-        })
-          .select(this.selectedKeys.has(userData.key))
-          .selectedColor(this.themeState.colors.textColorLink)
-          .unselectedColor(this.themeState.colors.strokeColorSecondary)
-          .width(16)
-          .height(16)
-          .margin({ right: 10 })
-          .enabled(!this.lockedItems.includes(userData.key))
-          .hitTestBehavior(HitTestMode.None)
-      }
+      Checkbox({
+        name: `checkbox_${userData.key}`,
+        group: 'userSelection'
+      })
+        .select(this.selectedKeys.has(userData.key))
+        .selectedColor(this.themeState.colors.textColorLink)
+        .unselectedColor(this.themeState.colors.strokeColorSecondary)
+        .width(16)
+        .height(16)
+        .margin({ right: 10 })
+        .enabled(!this.lockedItems.includes(userData.key))
+        .hitTestBehavior(HitTestMode.None)
 
       Avatar({
         content: {
@@ -326,10 +324,6 @@ export struct UserPicker {
     this.selectedKeysOrder = [item.key];
     
     this.updateStateSelectedItems();
-    
-    if (this.onSelectedChanged) {
-      this.onSelectedChanged([item]);
-    }
   }
   
   private handleItemToggle(item: UserPickerData<ESObject>, isSelected: boolean): void {
@@ -543,7 +537,7 @@ export struct UserPicker {
 
         Blank()
 
-        if (this.maxCount !== 1 && this.showHeaderConfirm) {
+        if (this.showHeaderConfirm) {
           Text(this.confirmButtonText)
             .fontSize(16)
             .fontWeight(400)

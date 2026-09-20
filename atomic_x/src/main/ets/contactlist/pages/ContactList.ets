@@ -9,6 +9,12 @@ import { GroupApplicationListView } from './manager/GroupApplicationListView';
 import { ImmersiveMode, LevelMode } from '@kit.ArkUI';
 
 
+enum ManagementBadgeKind {
+  NONE = 0,
+  FRIEND_APPLICATION = 1,
+  GROUP_APPLICATION = 2
+}
+
 @Component
 export struct ContactList {
   private static readonly AVATAR_SIZE: number = 40;
@@ -49,7 +55,7 @@ export struct ContactList {
 
 
   @Builder
-  ManagementItemBuilder(iconRes: string, title: Resource, badgeCount: number, onTap: () => void, showDivider: boolean) {
+  ManagementItemBuilder(iconRes: string, title: Resource, badgeKind: ManagementBadgeKind, onTap: () => void, showDivider: boolean) {
     Column() {
       Row() {
         Image($rawfile(iconRes))
@@ -63,9 +69,9 @@ export struct ContactList {
           .fontFamily('PingFang SC')
           .layoutWeight(1)
 
-        if (badgeCount > 0) {
+        if (this.resolveBadgeCount(badgeKind) > 0) {
           BadgeControl({
-            text: badgeCount.toString(),
+            text: this.resolveBadgeCount(badgeKind).toString(),
             type: BadgeType.Text
           })
         }
@@ -84,13 +90,23 @@ export struct ContactList {
     }
   }
 
+  private resolveBadgeCount(kind: ManagementBadgeKind): number {
+    if (kind === ManagementBadgeKind.FRIEND_APPLICATION) {
+      return this.contactState.friendApplicationUnreadCount;
+    }
+    if (kind === ManagementBadgeKind.GROUP_APPLICATION) {
+      return this.groupState.unreadApplicationCount;
+    }
+    return 0;
+  }
+
   @Builder
   ManagementSectionBuilder() {
     Column() {
       this.ManagementItemBuilder(
         'contactlist/ic_new_contacts.svg',
         $r('app.string.new_contacts'),
-        this.contactState.friendApplicationUnreadCount,
+        ManagementBadgeKind.FRIEND_APPLICATION,
         () => {
           console.info('Navigate to new contacts page');
           this.showFriendApplicationDialogInternal();
@@ -101,7 +117,7 @@ export struct ContactList {
       this.ManagementItemBuilder(
         'contactlist/ic_group_notification.svg',
         $r('app.string.new_group_requests'),
-        this.groupState.unreadApplicationCount,
+        ManagementBadgeKind.GROUP_APPLICATION,
         () => {
           console.info('Navigate to new group requests page');
           this.showGroupApplicationDialogInternal();
@@ -112,7 +128,7 @@ export struct ContactList {
       this.ManagementItemBuilder(
         'contactlist/ic_my_group.svg',
         $r('app.string.my_group'),
-        0,
+        ManagementBadgeKind.NONE,
         () => {
           console.info('Navigate to my groups');
           this.showGroupListDialogInternal();
@@ -123,7 +139,7 @@ export struct ContactList {
       this.ManagementItemBuilder(
         'contactlist/ic_blacklist.svg',
         $r('app.string.the_blacklist'),
-        0,
+        ManagementBadgeKind.NONE,
         () => {
           console.info('Navigate to blacklist management');
           this.showBlackListDialogInternal();

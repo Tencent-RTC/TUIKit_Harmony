@@ -1,4 +1,4 @@
-import { MessageInfo, MessageActionStore, MessageType, AudioMessagePayload } from '@tencentcloud/atomicxcore';
+import { MessageInfo, MessageActionStore, MessageType } from '@tencentcloud/atomicxcore';
 import { CompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 import { AsrDisplayManager } from '../utils/AsrDisplayManager';
 
@@ -6,6 +6,8 @@ export interface MessageListAsrHost {
   showInfoToast(resource: Resource): void;
 
   scrollToBottomIfLastMessage(message: MessageInfo): void;
+
+  refreshMessages(): void;
 }
 
 export class MessageListAsrCoordinator {
@@ -26,15 +28,8 @@ export class MessageListAsrCoordinator {
     const messageActionStore = MessageActionStore.create(message);
     messageActionStore.convertVoiceToText('', new CompletionHandlerAdapter(() => {
       displayManager.setConverting(message.msgID, false);
-
-      const audioPayload = message.messagePayload as AudioMessagePayload | undefined;
-      const asrText = audioPayload?.asrText ?? '';
-      if (asrText.length === 0) {
-        this.host?.showInfoToast($r('app.string.messagelist_convert_to_text_failed'));
-        displayManager.collapse(message.msgID);
-      } else {
-        this.host?.scrollToBottomIfLastMessage(message);
-      }
+      this.host?.refreshMessages();
+      this.host?.scrollToBottomIfLastMessage(message);
     }, (code: number, desc: string) => {
       console.error(`[MessageListAsrCoordinator] voice to text failed:`, code, desc);
       displayManager.setConverting(message.msgID, false);

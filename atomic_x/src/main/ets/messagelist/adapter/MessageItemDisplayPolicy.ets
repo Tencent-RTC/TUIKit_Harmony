@@ -63,6 +63,16 @@ export class MessageItemDisplayPolicy {
     return provider.isCallingSignal && provider.participantType === CallParticipantType.group;
   }
 
+  static shouldShowNickname(configAllows: boolean, isSelf: boolean, isGroupChat: boolean): boolean {
+    if (!configAllows) {
+      return false;
+    }
+    if (isSelf) {
+      return true;
+    }
+    return isGroupChat;
+  }
+
   private static isGroupCreated(customPayload: CustomMessagePayload): boolean {
     const dataStr = customPayload.customData;
     if (!dataStr) {

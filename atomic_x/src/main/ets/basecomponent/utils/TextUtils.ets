@@ -36,6 +36,10 @@ export default class TextUtils {
   }
 
   static getResourceString(resource: Resource): string {
+    const args = resource.params as (string | number)[] | undefined;
+    if (args && args.length > 0) {
+      return getContext().resourceManager.getStringSync(resource.id, ...args);
+    }
     return getContext().resourceManager.getStringSync(resource.id);
   }
 

@@ -2,6 +2,17 @@ import { MessageInfo, MessageListStore, MessageStatus, MessageType } from '@tenc
 import { CompletionHandlerAdapter } from '../../../basecomponent/utils/CompletionHandlers';
 
 const RECEIPT_DEBOUNCE_MS: number = 1000;
+const RECEIPT_REFRESH_INTERVAL_MS: number = 1000;
+
+export interface MessageListReadReceiptHost {
+  getMessages(): MessageInfo[] | undefined;
+
+  shouldShowReadReceipt(message: MessageInfo): boolean;
+
+  getMessageIndex(msgID: string): number;
+
+  forceRefresh(index: number): void;
+}
 
 /**
  * Batches "message became visible" signals into debounced read-receipt reports.
@@ -11,6 +22,9 @@ export class MessageListReadReceiptController {
   private pendingMessageIDs: Set<string> = new Set();
   private sentMessageIDs: Set<string> = new Set();
   private debounceTimer?: number;
+  private indicatorSnapshots: Map<string, string> = new Map();
+  private refreshTimer?: number;
+  private host?: MessageListReadReceiptHost;
 
   /**
    * Records a message that just became visible. Returns false when the message
@@ -101,5 +115,66 @@ export class MessageListReadReceiptController {
       clearTimeout(this.debounceTimer);
       this.debounceTimer = undefined;
     }
+  }
+
+  attachHost(host: MessageListReadReceiptHost): void {
+    this.host = host;
+    this.stopAutoRefresh();
+    this.refreshTimer = setInterval(() => {
+      this.syncReadReceiptIndicators();
+    }, RECEIPT_REFRESH_INTERVAL_MS);
+  }
+
+  detachHost(): void {
+    this.stopAutoRefresh();
+    this.indicatorSnapshots.clear();
+    this.host = undefined;
+  }
+
+  syncReadReceiptIndicators(): void {
+    this.scanIndicators(true);
+  }
+
+  markIndicatorsRendered(): void {
+    this.scanIndicators(false);
+  }
+
+  private scanIndicators(refreshOnChange: boolean): void {
+    const host = this.host;
+    if (!host) {
+      return;
+    }
+    const messages = host.getMessages();
+    if (!messages) {
+      return;
+    }
+    for (const message of messages) {
+      const receipt = message.readReceiptInfo;
+      if (!receipt || !host.shouldShowReadReceipt(message)) {
+        continue;
+      }
+      const snapshot = MessageListReadReceiptController.buildIndicatorSnapshot(message);
+      const previous = this.indicatorSnapshots.get(message.msgID);
+      this.indicatorSnapshots.set(message.msgID, snapshot);
+      if (!refreshOnChange || previous === undefined || previous === snapshot) {
+        continue;
+      }
+      const index = host.getMessageIndex(message.msgID);
+      if (index >= 0) {
+        host.forceRefresh(index);
+      }
+    }
+  }
+
+  private stopAutoRefresh(): void {
+    if (this.refreshTimer !== undefined) {
+      clearInterval(this.refreshTimer);
+      this.refreshTimer = undefined;
+    }
+  }
+
+  private static buildIndicatorSnapshot(message: MessageInfo): string {
+    const receipt = message.readReceiptInfo;
+    return `${message.status}#${receipt?.isPeerRead ?? false}#${receipt?.readCount ?? 0}#${receipt?.unreadCount ?? 0}`;
   }
 }

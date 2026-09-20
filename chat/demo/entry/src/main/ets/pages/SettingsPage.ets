@@ -672,20 +672,9 @@ struct SettingItemView {
   }
 
   private updateAllowType(allowType: AllowType) {
-    // Get current user info
-    const currentUserInfo = this.loginState.loginUserInfo;
-    if (currentUserInfo) {
+    if (this.loginState.loginUserInfo) {
       const updatedUserInfo = new UserProfile();
-      updatedUserInfo.userID = currentUserInfo.userID;
-      updatedUserInfo.nickname = currentUserInfo.nickname;
-      updatedUserInfo.avatarURL = currentUserInfo.avatarURL;
-      updatedUserInfo.selfSignature = currentUserInfo.selfSignature;
-      updatedUserInfo.gender = currentUserInfo.gender;
-      updatedUserInfo.role = currentUserInfo.role;
-      updatedUserInfo.level = currentUserInfo.level;
-      updatedUserInfo.birthday = currentUserInfo.birthday;
       updatedUserInfo.allowType = allowType;
-      updatedUserInfo.customInfo = currentUserInfo.customInfo;
 
       LoginStore.shared().setSelfInfo(updatedUserInfo)
         .then(() => {

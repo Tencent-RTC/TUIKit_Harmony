@@ -7,7 +7,9 @@ import {
   SwitchType,
   ThemeState,
   Toast,
-  LanguageState
+  LanguageState,
+  TUIEventBus,
+  PublishParams
 } from '../../basecomponent/Index';
 import { ContactInfo, ContactState, ContactStore, ContactOnlineStatus } from '@tencentcloud/atomicxcore';
 import { ConversationListStore } from '@tencentcloud/atomicxcore';
@@ -128,6 +130,7 @@ struct GroupMemberListDialog {
 
 @CustomDialog
 struct UserPickerDialog {
+  @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   controller: CustomDialogController;
   title: string | Resource = $r('app.string.chatsetting_select_user');
   dataSource: UserPickerData<UserPickerDataType>[] = [];
@@ -138,25 +141,31 @@ struct UserPickerDialog {
   onConfirm?: (selectedItems: UserPickerDataType[], action: string) => void;
 
   build() {
-    UserPicker({
-      dataSource: this.dataSource,
-      defaultSelectedItems: this.preSelectedUsers,
-      lockedItems: [], // No locked items for now
-      maxCount: this.maxSelectCount > 0 ? this.maxSelectCount : undefined,
-      showNavigationBar: true,
-      title: this.title,
-      confirmButtonText: this.confirmButtonText,
-      onCancel: () => {
-        this.controller.close();
-      },
-      onSelectedChanged: (selectedItems: UserPickerData<UserPickerDataType>[]) => {
-        if (this.onConfirm) {
-          const selectedData: UserPickerDataType[] = selectedItems.map((item: UserPickerData<UserPickerDataType>): UserPickerDataType => item.extraData);
-          this.onConfirm(selectedData, this.action);
+    Column() {
+      UserPicker({
+        dataSource: this.dataSource,
+        defaultSelectedItems: this.preSelectedUsers,
+        lockedItems: [], // No locked items for now
+        maxCount: this.maxSelectCount > 0 ? this.maxSelectCount : undefined,
+        showNavigationBar: true,
+        title: this.title,
+        confirmButtonText: this.confirmButtonText,
+        onCancel: () => {
+          this.controller.close();
+        },
+        onSelectedChanged: (selectedItems: UserPickerData<UserPickerDataType>[]) => {
+          if (this.onConfirm) {
+            const selectedData: UserPickerDataType[] = selectedItems.map((item: UserPickerData<UserPickerDataType>): UserPickerDataType => item.extraData);
+            this.onConfirm(selectedData, this.action);
+          }
+          this.controller.close();
         }
-        this.controller.close();
-      }
-    })
+      })
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor(this.themeState.colors.bgColorOperate)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 }
 
@@ -1881,7 +1890,8 @@ export struct GroupChatSetting {
       this.showUserPickerDialog(
         memberUserPickerData,
         'transferOwnership',
-        $r('app.string.chatsetting_select_new_owner')
+        $r('app.string.chatsetting_select_new_owner'),
+        1
       );
 
     } catch (error) {
@@ -2058,11 +2068,6 @@ export struct GroupChatSetting {
 
       await this.loadGroupData();
 
-
-      setTimeout(() => {
-        this.closeDialog();
-      }, 1000);
-
     } catch (error) {
       console.error('[GroupSettingPage] Failed to transfer ownership:', error);
       Toast.error($r('app.string.chatsetting_transfer_ownership_failed'), this.getUIContext());
@@ -2202,6 +2207,10 @@ export struct GroupChatSetting {
       clearConversationMessagesCompat(this.conversationStore, this.conversationID).then(() => {
         Toast.success($r('app.string.chatsetting_clear_chat_history_successful'), this.getUIContext());
         console.log('[GroupSettingPage] Chat history cleared successfully');
+        const data: Record<string, Object> = {
+          'conversationID': this.conversationID as Object,
+        };
+        TUIEventBus.getInstance().publish('chat.messageList.chatHistoryCleared', null, new PublishParams(false, data));
       }).catch((error: Error) => {
         console.error('[GroupSettingPage] Failed to clear history:', error);
         Toast.error($r('app.string.chatsetting_clear_chat_history_failed'), this.getUIContext());
@@ -2393,7 +2402,7 @@ export struct GroupChatSetting {
     }
   }
 
-  private showUserPickerDialog(dataSource: UserPickerData<UserPickerDataType>[], action: string, title?: string | Resource): void {
+  private showUserPickerDialog(dataSource: UserPickerData<UserPickerDataType>[], action: string, title?: string | Resource, maxSelectCount?: number): void {
     try {
       if (this.userPickerDialogController) {
         this.userPickerDialogController.close();
@@ -2405,7 +2414,7 @@ export struct GroupChatSetting {
           title: title || $r('app.string.chatsetting_select_user'),
           dataSource: dataSource,
           preSelectedUsers: [],
-          maxSelectCount: -1,
+          maxSelectCount: maxSelectCount ?? -1,
           confirmButtonText: $r('app.string.chatsetting_complete'),
           action: action,
           onConfirm: (selectedItems: UserPickerDataType[], actionType: string) => {

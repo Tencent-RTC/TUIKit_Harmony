@@ -1,9 +1,9 @@
 import { LoginStore } from '@tencentcloud/atomicxcore';
-import { MessageListStore, MessageInfo, MessageType, MessageLoadDirection, MessageEvent, OnReceiveNewMessage, OnMessageReactionUpdated, OnMessageRevoked, OnMessageDeleted, MessageStatus, MessageListState, MessageForwardType, ForwardMessageOption, MergedForwardInfo, TextMessagePayload, AudioMessagePayload, CustomMessagePayload, OfflinePushInfo } from '@tencentcloud/atomicxcore';
+import { MessageListStore, MessageInfo, MessageType, MessageLoadDirection, MessageEvent, OnReceiveNewMessage, OnMessageReactionUpdated, OnMessageRevoked, OnMessageDeleted, MessageStatus, MessageListState, MessageForwardType, ForwardMessageOption, MergedForwardInfo, TextMessagePayload, AudioMessagePayload, CustomMessagePayload, TipsMessagePayload, OfflinePushInfo } from '@tencentcloud/atomicxcore';
 import { MessageActionStore } from '@tencentcloud/atomicxcore';
 import { ConversationListStore, ConversationListState, ConversationInfo, ConversationMarkType, ConversationType } from '@tencentcloud/atomicxcore';
 import { MessageInputStore, TextSendMessagePayload, SendMessageOption } from '@tencentcloud/atomicxcore';
-import { AlertDialog, AppBuilderConfig, ThemeState, TextUtils, ActionItem, Toast, EventBus } from '../../basecomponent/Index';
+import { AlertDialog, AppBuilderConfig, ThemeState, TextUtils, ActionItem, Toast, EventBus, TUIEventBus, TUIObserver, NotifyParams } from '../../basecomponent/Index';
 import { MessageItem } from '../ui/MessageItem';
 import { MessageActionDialog } from '../ui/MessageActionPanel';
 import { MessageQuoteEvent } from '../ui/MessageQuoteEvent';
@@ -20,6 +20,8 @@ import { MessageAlignment } from '../../basecomponent/utils/AppBuilderHelper';
 import { util } from '@kit.ArkTS';
 import { MessageListStyleProtocol, ChatMessageListConfig } from '../config/MessageListConfig';
 import { MessageUtils } from '../utils/MessageUtils';
+import { MessageItemDisplayPolicy } from '../adapter/MessageItemDisplayPolicy';
+import { shouldHideCallingMessage } from '../cells/CallMessageView';
 import { CallingMessageDataProvider, CallParticipantType } from '../utils/CallingMessageDataProvider';
 import { AsrDisplayManager } from '../utils/AsrDisplayManager';
 import { TranslationDisplayManager } from '../utils/TranslationDisplayManager';
@@ -45,7 +47,7 @@ import { TypingMessageProtocol } from '../typing/TypingIndicatorController';
 import { MessageListTimeGroupingPolicy } from '../viewmodel/MessageListTimeGroupingPolicy';
 import { MessageOfflinePushInfoFactory } from '../utils/MessageOfflinePushInfoFactory';
 import { MessageForwardCoordinator } from '../viewmodel/MessageForwardCoordinator';
-import { MessageListReadReceiptController } from '../ui/readreceipts/MessageListReadReceiptController';
+import { MessageListReadReceiptController, MessageListReadReceiptHost } from '../ui/readreceipts/MessageListReadReceiptController';
 import { MessageInfoDataSource } from '../adapter/MessageListAdapter';
 import { MessageListPagingController, MessageListPagingHost,
   MessageListPagingState } from '../viewmodel/MessageListPagingController';
@@ -157,6 +159,21 @@ class TranslateHostAdapter implements MessageListTranslateHost {
   }
 }
 
+class ReadReceiptHostAdapter implements MessageListReadReceiptHost {
+  getMessages: () => MessageInfo[] | undefined;
+  shouldShowReadReceipt: (message: MessageInfo) => boolean;
+  getMessageIndex: (msgID: string) => number;
+  forceRefresh: (index: number) => void;
+
+  constructor(getMessages: () => MessageInfo[] | undefined, shouldShowReadReceipt: (message: MessageInfo) => boolean,
+    getMessageIndex: (msgID: string) => number, forceRefresh: (index: number) => void) {
+    this.getMessages = getMessages;
+    this.shouldShowReadReceipt = shouldShowReadReceipt;
+    this.getMessageIndex = getMessageIndex;
+    this.forceRefresh = forceRefresh;
+  }
+}
+
 class ChatbotHostAdapter implements MessageListChatbotHost {
   getRawMessages: () => MessageInfo[] | undefined;
   getConversationInfo: (conversationID: string) => ConversationInfo | undefined;
@@ -179,11 +196,14 @@ class ChatbotHostAdapter implements MessageListChatbotHost {
 class AsrHostAdapter implements MessageListAsrHost {
   showInfoToast: (resource: Resource) => void;
   scrollToBottomIfLastMessage: (message: MessageInfo) => void;
+  refreshMessages: () => void;
 
   constructor(showInfoToast: (resource: Resource) => void,
-    scrollToBottomIfLastMessage: (message: MessageInfo) => void) {
+    scrollToBottomIfLastMessage: (message: MessageInfo) => void,
+    refreshMessages: () => void) {
     this.showInfoToast = showInfoToast;
     this.scrollToBottomIfLastMessage = scrollToBottomIfLastMessage;
+    this.refreshMessages = refreshMessages;
   }
 }
 
@@ -276,12 +296,15 @@ export struct MessageList {
   @State private translationDisplayManager: TranslationDisplayManager = new TranslationDisplayManager();
 
   private readReceiptController: MessageListReadReceiptController = new MessageListReadReceiptController();
+  private chatHistoryClearedObserver?: TUIObserver;
+  private static readonly EVENT_CHAT_HISTORY_CLEARED: string = 'chat.messageList.chatHistoryCleared';
 
   aboutToDisappear(): void {
     this.listenController.stop();
     this.locateCoordinator.cancelPendingTimers();
     this.detachChatbotController();
     this.readReceiptController.cancelPendingFlush();
+    this.readReceiptController.detachHost();
 
     // Auxiliary text (ASR / Translation) state is session-only.
     // Clear here to ensure it does not leak across leaving/re-entering the message list.
@@ -299,6 +322,10 @@ export struct MessageList {
     EventBus.getInstance().off('onInputFocus');
     if (this.conversationID) {
       EventBus.getInstance().off(ChatBackgroundStore.eventName(this.conversationID));
+    }
+    if (this.chatHistoryClearedObserver) {
+      TUIEventBus.getInstance().unsubscribe(MessageList.EVENT_CHAT_HISTORY_CLEARED, null, this.chatHistoryClearedObserver);
+      this.chatHistoryClearedObserver = undefined;
     }
   }
 
@@ -332,6 +359,9 @@ export struct MessageList {
         this.chatBackgroundImageUri = ChatBackgroundStore.getImageUri(this.conversationID);
       });
     }
+
+    this.chatHistoryClearedObserver = new MessageListChatHistoryClearedObserver(this);
+    TUIEventBus.getInstance().subscribe(MessageList.EVENT_CHAT_HISTORY_CLEARED, null, this.chatHistoryClearedObserver);
   }
 
   private attachControllers(): void {
@@ -396,7 +426,8 @@ export struct MessageList {
 
     this.asrCoordinator.attach(new AsrHostAdapter(
       (resource: Resource): void => Toast.info(resource, this.getUIContext()),
-      (message: MessageInfo): void => this.scrollToBottomIfLastMessage(message)
+      (message: MessageInfo): void => this.scrollToBottomIfLastMessage(message),
+      (): void => this.refreshDataSource()
     ));
 
     this.forwardFlow.attach(new ForwardFlowHostAdapter(
@@ -410,6 +441,14 @@ export struct MessageList {
       (resource: Resource): void => Toast.warning(resource, this.getUIContext()),
       (resource: Resource): void => Toast.success(resource, this.getUIContext()),
       (resource: Resource): void => Toast.info(resource, this.getUIContext())
+    ));
+
+    this.readReceiptController.attachHost(new ReadReceiptHostAdapter(
+      (): MessageInfo[] | undefined => this.messageListState?.messageList,
+      (message: MessageInfo): boolean => MessageUtils.shouldShowReadReceipt(message,
+        this.effectiveConfig.enableReadReceipt ?? AppBuilderConfig.getInstance().enableReadReceipt),
+      (msgID: string): number => this.messageDataSource.getIndex(msgID),
+      (index: number): void => this.messageDataSource.forceRefresh(index)
     ));
   }
 
@@ -442,6 +481,17 @@ export struct MessageList {
     );
     this.chatbotCoordinator.activeController?.onMessagesChanged(filtered);
     this.messageDataSource.setMessages(this.chatbotCoordinator.buildDisplayMessages(this.conversationID, filtered));
+    this.readReceiptController.markIndicatorsRendered();
+  }
+
+  onChatHistoryClearedNotification(conversationID: string): void {
+    if (!conversationID || conversationID !== this.conversationID) {
+      return;
+    }
+    console.info(`[MessageList] onChatHistoryClearedNotification. conversationID=${conversationID}`);
+    this.refreshDataSource();
+    this.floatingEntryStateController.reset();
+    this.floatingEntry = this.floatingEntryStateController.currentEntry();
   }
 
   private rebuildChatbotDisplay(): void {
@@ -642,8 +692,10 @@ export struct MessageList {
   @Builder
   NormalMessageItemBuilder(message: MessageInfo, index: number) {
     Column() {
-      if (message.messageType !== MessageType.TIPS &&
+      if (this.shouldRenderMessageRow(message) &&
+        message.messageType !== MessageType.TIPS &&
         !isGroupCallingMessage(message) &&
+        !MessageItemDisplayPolicy.isGroupCreatedMessage(message) &&
         this.effectiveConfig.isShowTimeMessage && this.getMessageTimeString(index)) {
         Row() {
           Text(this.getMessageTimeString(index))
@@ -779,8 +831,10 @@ export struct MessageList {
       })
     }
     .padding({
-      top: this.getMessageVerticalSpacing(this.checkPreviousMessageIsAggregation(index)),
-      bottom: this.getMessageVerticalSpacing(this.checkNextMessageIsAggregation(index))
+      top: this.shouldRenderMessageRow(message)
+        ? this.getMessageVerticalSpacing(this.checkPreviousMessageIsAggregation(index)) : 0,
+      bottom: this.shouldRenderMessageRow(message)
+        ? this.getMessageVerticalSpacing(this.checkNextMessageIsAggregation(index)) : 0
     })
   }
 
@@ -789,12 +843,41 @@ export struct MessageList {
     return isAggregated ? baseSpacing : baseSpacing * 5;
   }
 
-  /**
-   * Generate stable key for LazyForEach
-   * Computes a safe state hash that excludes non-serializable SDK objects
-   */
+  private shouldRenderMessageRow(message: MessageInfo): boolean {
+    if (message.messageType === MessageType.TIPS) {
+      return this.shouldRenderTipsRow(message);
+    }
+    if (shouldHideCallingMessage(message)) {
+      return false;
+    }
+    const isCentered = message.messageType === MessageType.CUSTOM &&
+      !MessageItemDisplayPolicy.isCallingC2C(message) &&
+      !MessageItemDisplayPolicy.isBusinessCustomMessage(message);
+    if (!isCentered) {
+      return true;
+    }
+    return !MessageItemDisplayPolicy.shouldHideMessageEntirely(message);
+  }
+
+  private shouldRenderTipsRow(message: MessageInfo): boolean {
+    if (this.effectiveConfig.isShowSystemMessage !== true) {
+      return false;
+    }
+    if (message.status === MessageStatus.REVOKED) {
+      return true;
+    }
+    if (message.messagePayload === undefined) {
+      return false;
+    }
+    const tips = (message.messagePayload as TipsMessagePayload).groupTips;
+    if (tips === undefined || tips.length === 0) {
+      return true;
+    }
+    return MessageUtils.getSystemInfoDisplayString(tips[0]) !== '';
+  }
+
   private getMessageKey(message: MessageInfo, index: number): string {
-    return message.msgID.length > 0 ? message.msgID : `message-${index}`;
+    return `${message.msgID}_${MessageUtils.getMessageStateHash(message)}_${index}`;
   }
 
   private shouldShowAvatar(message: MessageInfo, index: number): boolean {
@@ -893,6 +976,7 @@ export struct MessageList {
             .onAppear(() => {
               this.handleMessageAppear(message);
             })
+            .visibility(this.shouldRenderMessageRow(message) ? Visibility.Visible : Visibility.None)
           }, (message: MessageInfo, index: number) => this.getMessageKey(message, index))
         }
         .padding({
@@ -995,7 +1079,7 @@ export struct MessageList {
       .layoutWeight(1)
 
       if (this.floatingEntry) {
-        this.FloatingEntryBuilder(this.floatingEntry)
+        this.FloatingEntryBuilder()
       }
 
       if (this.listenState.isActive) {
@@ -1021,16 +1105,18 @@ export struct MessageList {
   }
 
   @Builder
-  private FloatingEntryBuilder(entry: MessageListFloatingEntry) {
+  private FloatingEntryBuilder() {
     Row({ space: 6 }) {
       Image($rawfile('messagelist/floating_entry_arrow.svg'))
         .width(12)
         .height(11)
         .fillColor(this.themeState.colors.textColorLink)
-        .rotate({ angle: entry.type === MessageListFloatingEntryType.MENTION ? 180 : 0 })
+        .rotate({
+          angle: this.floatingEntry?.type === MessageListFloatingEntryType.MENTION ? 180 : 0
+        })
         .draggable(false)
 
-      Text(this.getFloatingEntryText(entry))
+      Text(this.floatingEntryText())
         .fontSize(14)
         .fontColor(this.themeState.colors.textColorLink)
         .maxLines(1)
@@ -1043,8 +1129,18 @@ export struct MessageList {
     .shadow({ radius: 8, color: '#33000000', offsetX: 0, offsetY: 2 })
     .margin({ right: 16, bottom: 16 })
     .onClick(() => {
-      this.handleFloatingEntryClick(entry);
+      this.handleCurrentFloatingEntryClick();
     })
+  }
+
+  private floatingEntryText(): string | Resource {
+    return this.floatingEntry ? this.getFloatingEntryText(this.floatingEntry) : '';
+  }
+
+  private handleCurrentFloatingEntryClick(): void {
+    if (this.floatingEntry) {
+      this.handleFloatingEntryClick(this.floatingEntry);
+    }
   }
 
   scrollToBottom() {
@@ -1178,6 +1274,7 @@ export struct MessageList {
       }
       this.refreshFloatingEntry();
     } else if (event instanceof OnMessageRevoked) {
+      this.floatingEntryStateController.onMessageRevoked(event.messageID);
       this.refreshDataSource();
       this.refreshFloatingEntry();
     } else if (event instanceof OnMessageDeleted) {
@@ -1865,5 +1962,26 @@ export struct MessageList {
         Toast.info($r('app.string.messagelist_copied'), this.getUIContext());
       }
     });
+  }
+}
+
+class MessageListChatHistoryClearedObserver implements TUIObserver {
+  private readonly host: MessageList;
+
+  constructor(host: MessageList) {
+    this.host = host;
+  }
+
+  onNotify(event: string, key: string | null, params: NotifyParams | null): void {
+    const data: Record<string, Object> | null | undefined = params?.data;
+    if (!data) {
+      return;
+    }
+    const conversationIDValue: Object | undefined = data['conversationID'];
+    if (!conversationIDValue) {
+      return;
+    }
+    const conversationID: string = conversationIDValue as string;
+    this.host.onChatHistoryClearedNotification(conversationID);
   }
 }

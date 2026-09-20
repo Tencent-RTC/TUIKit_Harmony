@@ -46,11 +46,11 @@
     },
     {
       "name": "community_create_tips_format",
-      "value": "%s Create Community"
+      "value": "\"%s\" created the community"
     },
     {
       "name": "group_create_tips_format",
-      "value": "%s Create Group"
+      "value": "\"%s\" created the group"
     },
     {
       "name": "message_tips_you_recall",

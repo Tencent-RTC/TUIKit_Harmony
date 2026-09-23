@@ -13,6 +13,7 @@ import { RoomColors } from '../../base/resources/RoomColors';
 import { RoomImages } from '../../base/resources/RoomImages';
 import { RoomConstants } from '../../base/constants/RoomConstants';
 import { RoomMemberItemView } from './participant_list/RoomMemberItemView';
+import { RoomParticipantManagerView } from './RoomParticipantManagerView';
 
 enum ParticipantTab {
   participant = 0,
@@ -29,6 +30,9 @@ export struct RoomParticipantListView {
   @State private roomState: RoomState = RoomStore.shared().state;
   @State private participantState: RoomParticipantState | undefined = undefined;
   @State private currentTab: ParticipantTab = ParticipantTab.participant;
+  @State private isManagerSheetVisible: boolean = false;
+  @State private selectedParticipant: RoomParticipant | undefined = undefined;
+  @State private selectedAudience: RoomUser | undefined = undefined;
 
   aboutToAppear(): void {
     this.participantStore = RoomParticipantStore.create(this.roomId);
@@ -57,6 +61,12 @@ export struct RoomParticipantListView {
     .width('100%')
     .backgroundColor(RoomColors.g2)
     .borderRadius({ topLeft: RadiusScheme.superLargeRadius, topRight: RadiusScheme.superLargeRadius })
+    .bindSheet($$this.isManagerSheetVisible, this.ManagerSheetBuilder(), {
+      height: SheetSize.FIT_CONTENT,
+      dragBar: false,
+      showClose: false,
+      backgroundColor: RoomColors.g2,
+    })
   }
 
   @Builder
@@ -159,6 +169,9 @@ export struct RoomParticipantListView {
           RoomMemberItemView({
             roomId: this.roomId,
             participant: participant,
+            onParticipantTap: (p: RoomParticipant): void => {
+              this.handleParticipantTap(p);
+            },
           })
         }
       }, (participant: RoomParticipant) => participant.userID)
@@ -182,6 +195,9 @@ export struct RoomParticipantListView {
           RoomMemberItemView({
             roomId: this.roomId,
             audience: audience,
+            onAudienceTap: (a: RoomUser): void => {
+              this.handleAudienceTap(a);
+            },
           })
         }
       }, (audience: RoomUser) => audience.userID)
@@ -284,6 +300,70 @@ export struct RoomParticipantListView {
   }
 
   // --- Actions ---
+
+  private handleParticipantTap(participant: RoomParticipant): void {
+    if (!this.canControlUser(participant)) {
+      return;
+    }
+    this.selectedParticipant = participant;
+    this.selectedAudience = undefined;
+    this.isManagerSheetVisible = true;
+  }
+
+  private handleAudienceTap(audience: RoomUser): void {
+    if (!this.canControlAudience(audience)) {
+      return;
+    }
+    this.selectedAudience = audience;
+    this.selectedParticipant = undefined;
+    this.isManagerSheetVisible = true;
+  }
+
+  private canControlUser(participant: RoomParticipant): boolean {
+    const localParticipant = this.participantState?.localParticipant;
+    if (!localParticipant || localParticipant.userID === participant.userID) {
+      return false;
+    }
+    if (localParticipant.role === ParticipantRole.owner) {
+      return true;
+    }
+    if (localParticipant.role === ParticipantRole.admin && participant.role === ParticipantRole.generalUser) {
+      return true;
+    }
+    return false;
+  }
+
+  private canControlAudience(audience: RoomUser): boolean {
+    const localParticipant = this.participantState?.localParticipant;
+    if (!localParticipant || localParticipant.userID === audience.userID) {
+      return false;
+    }
+    if (localParticipant.role === ParticipantRole.owner) {
+      return true;
+    }
+    const isAdmin = this.isAudienceAdmin(audience);
+    if (localParticipant.role === ParticipantRole.admin && !isAdmin) {
+      return true;
+    }
+    return false;
+  }
+
+  private isAudienceAdmin(audience: RoomUser): boolean {
+    const adminList = this.participantState?.adminList ?? [];
+    return adminList.some((admin) => admin.userID === audience.userID);
+  }
+
+  @Builder
+  ManagerSheetBuilder() {
+    RoomParticipantManagerView({
+      roomId: this.roomId,
+      participant: this.selectedParticipant,
+      audience: this.selectedAudience,
+      onClose: () => {
+        this.isManagerSheetVisible = false;
+      },
+    })
+  }
 
   private handleAllMuteAudio(): void {
     const isCurrentlyMuted = this.isAllMicMuted();

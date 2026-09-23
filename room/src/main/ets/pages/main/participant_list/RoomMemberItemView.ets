@@ -16,23 +16,83 @@ import {
 import { RoomColors } from '../../../base/resources/RoomColors';
 import { RoomImages } from '../../../base/resources/RoomImages';
 import { RoomConstants } from '../../../base/constants/RoomConstants';
-import { RoomParticipantManagerView } from '../RoomParticipantManagerView';
 
 @Component
 export struct RoomMemberItemView {
   roomId: string = '';
   participant?: RoomParticipant;
   audience?: RoomUser;
+  onParticipantTap?: (participant: RoomParticipant) => void;
+  onAudienceTap?: (audience: RoomUser) => void;
 
   private participantStore?: RoomParticipantStore;
   @State private participantState: RoomParticipantState | undefined = undefined;
-  @State private isManagerSheetVisible: boolean = false;
-  @State private selectedParticipant: RoomParticipant | undefined = undefined;
-  @State private selectedAudience: RoomUser | undefined = undefined;
+  @State private resolvedParticipant: RoomParticipant | undefined = undefined;
+  @State private resolvedAudience: RoomUser | undefined = undefined;
+
+  private listListener: DataChangeListener = {
+    onDataReloaded: () => {
+      this.refreshFromStore();
+    },
+    onDataAdd: () => {
+      this.refreshFromStore();
+    },
+    onDataChange: () => {
+      this.refreshFromStore();
+    },
+    onDataDelete: () => {
+      this.refreshFromStore();
+    },
+    onDataMove: () => {
+      this.refreshFromStore();
+    },
+    onDataAdded: () => {
+      this.refreshFromStore();
+    },
+    onDataChanged: () => {
+      this.refreshFromStore();
+    },
+    onDataDeleted: () => {
+      this.refreshFromStore();
+    },
+    onDataMoved: () => {
+      this.refreshFromStore();
+    },
+    onDatasetChange: () => {
+      this.refreshFromStore();
+    },
+  };
 
   aboutToAppear(): void {
     this.participantStore = RoomParticipantStore.create(this.roomId);
     this.participantState = this.participantStore?.state;
+    this.refreshFromStore();
+    if (this.participant) {
+      this.participantState?.participantList.registerDataChangeListener(this.listListener);
+    } else if (this.audience) {
+      this.participantState?.audienceList.registerDataChangeListener(this.listListener);
+    }
+  }
+
+  aboutToDisappear(): void {
+    if (this.participant) {
+      this.participantState?.participantList.unregisterDataChangeListener(this.listListener);
+    } else if (this.audience) {
+      this.participantState?.audienceList.unregisterDataChangeListener(this.listListener);
+    }
+  }
+
+  private refreshFromStore(): void {
+    if (this.participant) {
+      const found = this.participantState?.participantList.find(
+        (p: RoomParticipant) => p.userID === this.participant!.userID);
+      this.resolvedParticipant = found ?? this.participant;
+    }
+    if (this.audience) {
+      const found = this.participantState?.audienceList.find(
+        (a: RoomUser) => a.userID === this.audience!.userID);
+      this.resolvedAudience = found ?? this.audience;
+    }
   }
 
   build() {
@@ -43,24 +103,6 @@ export struct RoomMemberItemView {
         this.AudienceItemBuilder();
       }
     }
-    .bindSheet($$this.isManagerSheetVisible, this.ManagerSheetBuilder(), {
-      height: SheetSize.FIT_CONTENT,
-      dragBar: false,
-      showClose: false,
-      backgroundColor: RoomColors.g2,
-    })
-  }
-
-  @Builder
-  ManagerSheetBuilder() {
-    RoomParticipantManagerView({
-      roomId: this.roomId,
-      participant: this.selectedParticipant,
-      audience: this.selectedAudience,
-      onClose: () => {
-        this.isManagerSheetVisible = false;
-      },
-    })
   }
 
   @Builder
@@ -93,7 +135,7 @@ export struct RoomMemberItemView {
     .width('100%')
     .padding({ bottom: 10 })
     .onClick(() => {
-      this.handleParticipantTap(this.getCurrentParticipant());
+      this.onParticipantTap?.(this.getCurrentParticipant());
     })
   }
 
@@ -123,7 +165,7 @@ export struct RoomMemberItemView {
     .width('100%')
     .padding({ bottom: 10 })
     .onClick(() => {
-      this.handleAudienceTap(this.getCurrentAudience());
+      this.onAudienceTap?.(this.getCurrentAudience());
     })
   }
 
@@ -232,19 +274,11 @@ export struct RoomMemberItemView {
   }
 
   private getCurrentParticipant(): RoomParticipant {
-    if (!this.participant) {
-      return new RoomParticipant();
-    }
-    const found = this.participantState?.participantList.find((p: RoomParticipant) => p.userID === this.participant!.userID);
-    return found ?? this.participant;
+    return this.resolvedParticipant ?? this.participant ?? new RoomParticipant();
   }
 
   private getCurrentAudience(): RoomUser {
-    if (!this.audience) {
-      return new RoomUser();
-    }
-    const found = this.participantState?.audienceList.find((a: RoomUser) => a.userID === this.audience!.userID);
-    return found ?? this.audience;
+    return this.resolvedAudience ?? this.audience ?? new RoomUser();
   }
 
   private isLocalParticipant(participant: RoomParticipant): boolean {
@@ -260,53 +294,6 @@ export struct RoomMemberItemView {
   private isAudienceAdmin(audience: RoomUser): boolean {
     const adminList = this.participantState?.adminList ?? [];
     return adminList.some((admin) => admin.userID === audience.userID);
-  }
-
-  private canControlUser(participant: RoomParticipant): boolean {
-    const localParticipant = this.participantState?.localParticipant;
-    if (!localParticipant || localParticipant.userID === participant.userID) {
-      return false;
-    }
-    if (localParticipant.role === ParticipantRole.owner) {
-      return true;
-    }
-    if (localParticipant.role === ParticipantRole.admin && participant.role === ParticipantRole.generalUser) {
-      return true;
-    }
-    return false;
-  }
-
-  private canControlAudience(audience: RoomUser): boolean {
-    const localParticipant = this.participantState?.localParticipant;
-    if (!localParticipant || localParticipant.userID === audience.userID) {
-      return false;
-    }
-    if (localParticipant.role === ParticipantRole.owner) {
-      return true;
-    }
-    const isAudienceAdmin = this.isAudienceAdmin(audience);
-    if (localParticipant.role === ParticipantRole.admin && !isAudienceAdmin) {
-      return true;
-    }
-    return false;
-  }
-
-  private handleParticipantTap(participant: RoomParticipant): void {
-    if (!this.canControlUser(participant)) {
-      return;
-    }
-    this.selectedParticipant = participant;
-    this.selectedAudience = undefined;
-    this.isManagerSheetVisible = true;
-  }
-
-  private handleAudienceTap(audience: RoomUser): void {
-    if (!this.canControlAudience(audience)) {
-      return;
-    }
-    this.selectedAudience = audience;
-    this.selectedParticipant = undefined;
-    this.isManagerSheetVisible = true;
   }
 
   private getParticipantDisplayName(participant: RoomParticipant): string {

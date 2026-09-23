@@ -1,5 +1,4 @@
 import {
-  RoomParticipant,
   RoomParticipantStore,
   RoomParticipantState,
 } from '@tencentcloud/atomicxcore';
@@ -136,9 +135,7 @@ export struct StandardRoomView {
   private buildPage(pageIndex: number) {
     ParticipantLayoutView({
       roomId: this.roomId,
-      participants: this.getAllParticipants(),
       startIndex: this.getPageStartIndex(pageIndex),
-      endIndex: this.getPageEndIndex(pageIndex),
       currentPageIndex: pageIndex,
       isScreenLayout: this.isScreenLayout(pageIndex),
       screenParticipant: this.participantState.participantWithScreen,
@@ -194,10 +191,6 @@ export struct StandardRoomView {
     }
   }
 
-  private getAllParticipants(): RoomParticipant[] {
-    return this.participantState.participantList.toArray();
-  }
-
   private getAdjustedPageIndex(): number {
     const currentHasScreen = this.hasScreenShare();
     if (currentHasScreen !== this.lastHasScreenShare) {
@@ -251,12 +244,5 @@ export struct StandardRoomView {
       return pageIndex === 0 ? 0 : (pageIndex - 1) * StandardRoomView.ITEMS_PER_PAGE;
     }
     return pageIndex * StandardRoomView.ITEMS_PER_PAGE;
-  }
-
-  private getPageEndIndex(pageIndex: number): number {
-    const participantCount = this.participantState.participantList.totalCount();
-    const startIndex = this.getPageStartIndex(pageIndex);
-    const endIndex = startIndex + StandardRoomView.ITEMS_PER_PAGE - 1;
-    return endIndex < participantCount ? endIndex : participantCount - 1;
   }
 }

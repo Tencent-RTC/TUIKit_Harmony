@@ -9,14 +9,15 @@ import { ParticipantVideoItemView } from './ParticipantVideoItemView';
 
 @Component
 export struct ParticipantLayoutView {
+  private static readonly ITEMS_PER_PAGE: number = 6;
+
   roomId: string = '';
-  @Prop participants: RoomParticipant[] = [];
   @Prop startIndex: number = 0;
-  @Prop endIndex: number = -1;
   @Prop currentPageIndex: number = 0;
   @Prop isScreenLayout: boolean = false;
   @Prop screenParticipant?: RoomParticipant;
 
+  @State private participants: RoomParticipant[] = [];
   @State private participantState: RoomParticipantState = new RoomParticipantState();
   @State private isPortrait: boolean = true;
   @State private screenWidthVp: number = 0;
@@ -24,13 +25,49 @@ export struct ParticipantLayoutView {
 
   private portraitListener = mediaquery.matchMediaSync('(orientation: portrait)');
 
+  private participantListListener: DataChangeListener = {
+    onDataReloaded: () => {
+      this.refreshParticipants();
+    },
+    onDataAdd: () => {
+      this.refreshParticipants();
+    },
+    onDataChange: () => {
+      this.refreshParticipants();
+    },
+    onDataDelete: () => {
+      this.refreshParticipants();
+    },
+    onDataMove: () => {
+      this.refreshParticipants();
+    },
+    onDataAdded: () => {
+      this.refreshParticipants();
+    },
+    onDataChanged: () => {
+      this.refreshParticipants();
+    },
+    onDataDeleted: () => {
+      this.refreshParticipants();
+    },
+    onDataMoved: () => {
+      this.refreshParticipants();
+    },
+    onDatasetChange: () => {
+      this.refreshParticipants();
+    },
+  };
+
   aboutToAppear(): void {
     this.participantState = RoomParticipantStore.create(this.roomId).state;
+    this.refreshParticipants();
+    this.participantState.participantList.registerDataChangeListener(this.participantListListener);
     this.portraitListener.on('change', this.onOrientationChange);
     this.initDisplayInfo();
   }
 
   aboutToDisappear(): void {
+    this.participantState.participantList.unregisterDataChangeListener(this.participantListListener);
     this.portraitListener.off('change', this.onOrientationChange);
   }
 
@@ -105,13 +142,25 @@ export struct ParticipantLayoutView {
     }
   }
 
+  private refreshParticipants(): void {
+    this.participants = this.participantState.participantList.toArray();
+  }
+
+  private getPageItemCount(): number {
+    const remaining = this.participants.length - this.startIndex;
+    if (remaining <= 0) {
+      return 0;
+    }
+    return Math.min(ParticipantLayoutView.ITEMS_PER_PAGE, remaining);
+  }
+
   private getPageParticipants(): RoomParticipant[] {
-    const itemCount = this.endIndex - this.startIndex + 1;
+    const itemCount = this.getPageItemCount();
     if (itemCount <= 0) {
       return [];
     }
     const result: RoomParticipant[] = [];
-    for (let i = this.startIndex; i <= this.endIndex && i < this.participants.length; i++) {
+    for (let i = this.startIndex; i < this.startIndex + itemCount; i++) {
       result.push(this.participants[i]);
     }
     return result;
@@ -136,7 +185,7 @@ export struct ParticipantLayoutView {
         ? FlexAlign.Start
         : FlexAlign.Center;
     } else {
-      const itemCount = this.endIndex - this.startIndex + 1;
+      const itemCount = this.getPageItemCount();
       if (itemCount === 1) {
         return FlexAlign.Center;
       }

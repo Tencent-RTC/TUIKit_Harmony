@@ -29,13 +29,53 @@ export struct ParticipantVideoItemView {
   private controllerUserId: string = '';
   private isVisible: boolean = false;
 
+  private participantListListener: DataChangeListener = {
+    onDataReloaded: () => {
+      this.onParticipantDataChanged();
+    },
+    onDataAdd: () => {
+      this.onParticipantDataChanged();
+    },
+    onDataChange: () => {
+      this.onParticipantDataChanged();
+    },
+    onDataDelete: () => {
+      this.onParticipantDataChanged();
+    },
+    onDataMove: () => {
+      this.onParticipantDataChanged();
+    },
+    onDataAdded: () => {
+      this.onParticipantDataChanged();
+    },
+    onDataChanged: () => {
+      this.onParticipantDataChanged();
+    },
+    onDataDeleted: () => {
+      this.onParticipantDataChanged();
+    },
+    onDataMoved: () => {
+      this.onParticipantDataChanged();
+    },
+    onDatasetChange: () => {
+      this.onParticipantDataChanged();
+    },
+  };
+
   aboutToAppear(): void {
     this.participantState = RoomParticipantStore.create(this.roomId).state;
+    this.participantState.participantList.registerDataChangeListener(this.participantListListener);
     this.createController();
   }
 
   aboutToDisappear(): void {
+    this.participantState.participantList.unregisterDataChangeListener(this.participantListListener);
     this.clearController();
+  }
+
+  private onParticipantDataChanged(): void {
+    this.participant = this.getCurrentParticipant();
+    this.syncControllerState();
   }
 
   onCameraStatusChanged(): void {

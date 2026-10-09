@@ -4,6 +4,8 @@ import { ThemeState } from '../../basecomponent/Index';
 import { MergedMessageListCompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 import { MessageItem, MessageDisplayMode } from './MessageItem';
 import { MergedMessageListConfig } from '../config/MessageListConfig';
+import { MergedMessageEnrichment } from '../adapter/MergedMessageEnrichment';
+import { MessageUtils } from '../utils/MessageUtils';
 import { AsrDisplayManager } from '../utils/AsrDisplayManager';
 import { TranslationDisplayManager } from '../utils/TranslationDisplayManager';
 
@@ -22,14 +24,29 @@ export struct MergedMessageDetailPage {
   depth: number = 0;
 
   private readonly HEADER_HEIGHT: number = 56;
+  private readonly ENRICHMENT_TIMEOUT_MS: number = 5000;
   private readonly config: MergedMessageListConfig = new MergedMessageListConfig();
+  private loadVersion: number = 0;
+  private enrichmentTimeoutID?: number;
 
   aboutToAppear() {
+    this.loadVersion++;
+    if (this.enrichmentTimeoutID !== undefined) {
+      clearTimeout(this.enrichmentTimeoutID);
+      this.enrichmentTimeoutID = undefined;
+    }
+    this.isLoading = true;
+    this.subMessages = [];
     this.title = this.mergedMessage?.rawMessage?.mergerElem?.title ?? '';
     this.loadSubMessages();
   }
 
   aboutToDisappear() {
+    this.loadVersion++;
+    if (this.enrichmentTimeoutID !== undefined) {
+      clearTimeout(this.enrichmentTimeoutID);
+      this.enrichmentTimeoutID = undefined;
+    }
   }
 
   private loadSubMessages() {
@@ -38,13 +55,42 @@ export struct MergedMessageDetailPage {
       return;
     }
 
+    const loadVersion = this.loadVersion;
     const actionStore = MessageActionStore.create(this.mergedMessage);
     actionStore.downloadMergedMessageList(new MergedMessageListCompletionHandlerAdapter((messageList: MessageInfo[]) => {
+      if (this.loadVersion !== loadVersion) {
+        return;
+      }
       const sortedMessages = Array.from(messageList);
       sortedMessages.sort((a: MessageInfo, b: MessageInfo) => (a.timestamp ?? 0) - (b.timestamp ?? 0));
-      this.subMessages = sortedMessages;
-      this.isLoading = false;
+      const showMessages = (): void => {
+        if (this.loadVersion !== loadVersion) {
+          return;
+        }
+        this.subMessages = Array.from(sortedMessages);
+        this.isLoading = false;
+      };
+      this.enrichmentTimeoutID = setTimeout(() => {
+        if (this.loadVersion !== loadVersion) {
+          return;
+        }
+        this.enrichmentTimeoutID = undefined;
+        showMessages();
+      }, this.ENRICHMENT_TIMEOUT_MS);
+      MergedMessageEnrichment.fill(sortedMessages).then(() => {
+        if (this.loadVersion !== loadVersion) {
+          return;
+        }
+        if (this.enrichmentTimeoutID !== undefined) {
+          clearTimeout(this.enrichmentTimeoutID);
+          this.enrichmentTimeoutID = undefined;
+        }
+        showMessages();
+      });
     }, (code: number, desc: string) => {
+      if (this.loadVersion !== loadVersion) {
+        return;
+      }
       console.error('[MergedMessageDetailPage] downloadMergedMessageList failed:', code, desc);
       this.subMessages = [];
       this.isLoading = false;
@@ -132,7 +178,8 @@ export struct MergedMessageDetailPage {
       Column({ space: 8 }) {
         ForEach(this.subMessages, (message: MessageInfo) => {
           this.buildMessageItem(message)
-        }, (message: MessageInfo) => message.msgID)
+        }, (message: MessageInfo, index: number) =>
+          `${message.msgID}_${MessageUtils.getMessageStateHash(message)}_${index}`)
       }
       .width('100%')
       .padding({ top: 8, bottom: 8 })

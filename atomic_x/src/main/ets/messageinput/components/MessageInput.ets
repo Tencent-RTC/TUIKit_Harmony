@@ -23,7 +23,7 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import photoAccessHelper from '@ohos.file.photoAccessHelper';
 import { dataSharePredicates } from '@kit.ArkData';
 import image from '@ohos.multimedia.image';
-import { MessageInputConfigProtocol, ChatMessageInputConfig, InputStyle } from '../config/MessageInputConfig';
+import { MessageInputConfigProtocol, ChatMessageInputConfig, InputStyle, MessageInputActionIDs } from '../config/MessageInputConfig';
 import { MentionInfo } from './MentionInfo';
 import { MentionMemberDialog } from './MentionMemberDialog';
 import { ClassicInputBar, ClassicInputBarCallbacks } from './ClassicInputBar';
@@ -115,6 +115,9 @@ export struct MessageInput {
   @State private isChatbotActive: boolean = false;
   private chatbotController?: ChatbotConversationController;
   private chatbotStateListener?: ChatbotStateListener;
+  // More menu entries whose red dot the user already consumed during this
+  // session, so the dot stays gone even before the host persists it.
+  @State private dismissedMoreActionRedDotIds: string[] = [];
 
   aboutToAppear() {
     if (this.conversationID) {
@@ -420,26 +423,57 @@ export struct MessageInput {
     });
   }
 
+  private isRedDotRequested(actionID: string): boolean {
+    return this.effectiveConfig.moreActionRedDotIDs?.includes(actionID) === true &&
+      !this.dismissedMoreActionRedDotIds.includes(actionID);
+  }
+
+  // Clears the dot locally and lets the host persist that it was consumed.
+  private consumeRedDot(actionID: string): void {
+    if (!this.isRedDotRequested(actionID)) {
+      return;
+    }
+    this.dismissedMoreActionRedDotIds = this.dismissedMoreActionRedDotIds.concat([actionID]);
+    const onRedDotTap = this.effectiveConfig.onMoreActionRedDotTap;
+    if (onRedDotTap !== undefined) {
+      onRedDotTap(actionID);
+    }
+  }
+
+  // Whether the plus button should carry a dot, i.e. whether any more menu entry
+  // still has an unconsumed one.
+  private hasPendingMoreActionRedDot(): boolean {
+    const requested = this.effectiveConfig.moreActionRedDotIDs;
+    if (requested === undefined || requested.length === 0) {
+      return false;
+    }
+    return this.getActionMenuItems().some((item: MenuItem) => item.showRedDot === true);
+  }
+
   // Initialize dialog controller with menu items based on style
   private initializeDialogController(): void {
     const menuItems: MenuItem[] = [];
 
     // Add default menu items based on style
       menuItems.push({
-        id: 'image',
+        id: MessageInputActionIDs.ALBUM,
         text: $r('app.string.menu_image'),
         icon: $rawfile('messageinput/image_icon.svg'),
+        showRedDot: this.isRedDotRequested(MessageInputActionIDs.ALBUM),
         action: () => {
+          this.consumeRedDot(MessageInputActionIDs.ALBUM);
           this.selectImage();
         }
       });
 
     if (this.effectiveConfig.isShowPhotoTaker) {
       menuItems.push({
-        id: 'photo',
+        id: MessageInputActionIDs.TAKE_PHOTO,
         text: $r('app.string.menu_photo'),
         icon: $rawfile('messageinput/camera_action_icon.svg'),
+        showRedDot: this.isRedDotRequested(MessageInputActionIDs.TAKE_PHOTO),
         action: () => {
+          this.consumeRedDot(MessageInputActionIDs.TAKE_PHOTO);
           this.takePhoto();
         }
       });
@@ -447,30 +481,36 @@ export struct MessageInput {
 
     if (this.effectiveConfig.isShowPhotoTaker) {
       menuItems.push({
-        id: 'video',
+        id: MessageInputActionIDs.RECORD_VIDEO,
         text: $r('app.string.menu_video'),
         icon: $rawfile('messageinput/video_icon.svg'),
+        showRedDot: this.isRedDotRequested(MessageInputActionIDs.RECORD_VIDEO),
         action: () => {
+          this.consumeRedDot(MessageInputActionIDs.RECORD_VIDEO);
           this.recordVideo();
         }
       });
     }
 
       menuItems.push({
-        id: 'file',
+        id: MessageInputActionIDs.FILE,
         text: $r('app.string.menu_file'),
         icon: $rawfile('messageinput/document_icon.svg'),
+        showRedDot: this.isRedDotRequested(MessageInputActionIDs.FILE),
         action: () => {
+          this.consumeRedDot(MessageInputActionIDs.FILE);
           this.selectFile();
         }
       });
 
     if (this.effectiveConfig.isShowAudioCall) {
       menuItems.push({
-        id: 'voiceCall',
+        id: MessageInputActionIDs.AUDIO_CALL,
         text: $r('app.string.menu_voice_call'),
         icon: $rawfile('messageinput/voice_call_icon.svg'),
+        showRedDot: this.isRedDotRequested(MessageInputActionIDs.AUDIO_CALL),
         action: () => {
+          this.consumeRedDot(MessageInputActionIDs.AUDIO_CALL);
           this.startAudioCall();
         }
       });
@@ -478,20 +518,24 @@ export struct MessageInput {
 
     if (this.effectiveConfig.isShowVideoCall) {
       menuItems.push({
-        id: 'videoCall',
+        id: MessageInputActionIDs.VIDEO_CALL,
         text: $r('app.string.menu_video_call'),
         icon: $rawfile('messageinput/video_call_icon.svg'),
+        showRedDot: this.isRedDotRequested(MessageInputActionIDs.VIDEO_CALL),
         action: () => {
+          this.consumeRedDot(MessageInputActionIDs.VIDEO_CALL);
           this.startVideoCall();
         }
       });
     }
 
     menuItems.push({
-      id: 'customMessage',
+      id: MessageInputActionIDs.CUSTOM_MESSAGE,
       text: $r('app.string.menu_custom'),
       icon: $rawfile('messageinput/custom_icon.svg'),
+      showRedDot: this.isRedDotRequested(MessageInputActionIDs.CUSTOM_MESSAGE),
       action: () => {
+        this.consumeRedDot(MessageInputActionIDs.CUSTOM_MESSAGE);
         this.sendTextLinkCustomMessage();
       }
     });
@@ -842,6 +886,7 @@ export struct MessageInput {
         isVoiceRecording: $isVoiceRecording,
         effectiveConfig: this.effectiveConfig,
         richEditorController: this.richEditorController,
+        hasMoreActionRedDot: this.hasPendingMoreActionRedDot(),
         callbacks: {
           onMoreClick: () => {
             if (this.dialogController) {
@@ -994,20 +1039,24 @@ export struct MessageInput {
     const menuItems: MenuItem[] = [];
     
     menuItems.push({
-      id: 'image',
+      id: MessageInputActionIDs.ALBUM,
       text: $r('app.string.menu_image'),
       icon: $rawfile('messageinput/classic/image_icon.svg'),
+      showRedDot: this.isRedDotRequested(MessageInputActionIDs.ALBUM),
       action: () => {
+        this.consumeRedDot(MessageInputActionIDs.ALBUM);
         this.selectImage();
       }
     });
 
     if (this.effectiveConfig.isShowPhotoTaker) {
       menuItems.push({
-        id: 'photo',
+        id: MessageInputActionIDs.TAKE_PHOTO,
         text: $r('app.string.menu_photo'),
         icon: $rawfile('messageinput/classic/camera_action_icon.svg'),
+        showRedDot: this.isRedDotRequested(MessageInputActionIDs.TAKE_PHOTO),
         action: () => {
+          this.consumeRedDot(MessageInputActionIDs.TAKE_PHOTO);
           this.takePhoto();
         }
       });
@@ -1015,30 +1064,36 @@ export struct MessageInput {
 
     if (this.effectiveConfig.isShowPhotoTaker) {
       menuItems.push({
-        id: 'video',
+        id: MessageInputActionIDs.RECORD_VIDEO,
         text: $r('app.string.menu_video'),
         icon: $rawfile('messageinput/classic/video_icon.svg'),
+        showRedDot: this.isRedDotRequested(MessageInputActionIDs.RECORD_VIDEO),
         action: () => {
+          this.consumeRedDot(MessageInputActionIDs.RECORD_VIDEO);
           this.recordVideo();
         }
       });
     }
 
     menuItems.push({
-      id: 'file',
+      id: MessageInputActionIDs.FILE,
       text: $r('app.string.menu_file'),
       icon: $rawfile('messageinput/classic/document_icon.svg'),
+      showRedDot: this.isRedDotRequested(MessageInputActionIDs.FILE),
       action: () => {
+        this.consumeRedDot(MessageInputActionIDs.FILE);
         this.selectFile();
       }
     });
 
     if (this.effectiveConfig.isShowAudioCall) {
       menuItems.push({
-        id: 'voiceCall',
+        id: MessageInputActionIDs.AUDIO_CALL,
         text: $r('app.string.menu_voice_call'),
         icon: $rawfile('messageinput/classic/voice_call_icon.svg'),
+        showRedDot: this.isRedDotRequested(MessageInputActionIDs.AUDIO_CALL),
         action: () => {
+          this.consumeRedDot(MessageInputActionIDs.AUDIO_CALL);
           this.startAudioCall();
         }
       });
@@ -1046,20 +1101,24 @@ export struct MessageInput {
 
     if (this.effectiveConfig.isShowVideoCall) {
       menuItems.push({
-        id: 'videoCall',
+        id: MessageInputActionIDs.VIDEO_CALL,
         text: $r('app.string.menu_video_call'),
         icon: $rawfile('messageinput/classic/video_call_icon.svg'),
+        showRedDot: this.isRedDotRequested(MessageInputActionIDs.VIDEO_CALL),
         action: () => {
+          this.consumeRedDot(MessageInputActionIDs.VIDEO_CALL);
           this.startVideoCall();
         }
       });
     }
 
     menuItems.push({
-      id: 'customMessage',
+      id: MessageInputActionIDs.CUSTOM_MESSAGE,
       text: $r('app.string.menu_custom'),
       icon: $rawfile('messageinput/classic/custom_icon.svg'),
+      showRedDot: this.isRedDotRequested(MessageInputActionIDs.CUSTOM_MESSAGE),
       action: () => {
+        this.consumeRedDot(MessageInputActionIDs.CUSTOM_MESSAGE);
         this.sendTextLinkCustomMessage();
       }
     });

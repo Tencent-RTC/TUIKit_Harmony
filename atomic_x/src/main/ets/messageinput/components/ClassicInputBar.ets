@@ -66,6 +66,9 @@ export struct ClassicInputBar {
   @State private expandPanelType: ExpandPanelType = 'none';
   @State private hasInputContent: boolean = false;
   @State private textInputFocusEnabled: boolean = true;
+  // Entries whose red dot the user already consumed during this session, so the
+  // dot stays gone even before the host persists it.
+  @State private dismissedRedDotIds: string[] = [];
   
   private hiddenButtonId: string = 'classicHiddenFocusButton';
   private richEditorId: string = 'classic_rich_editor';
@@ -166,19 +169,30 @@ export struct ClassicInputBar {
             }
           })
         } else {
-          Button() {
-            Image($rawfile('messageinput/classic/plus_icon.svg'))
-              .width(this.buttonSize)
-              .height(this.buttonSize)
+          Stack() {
+            Button() {
+              Image($rawfile('messageinput/classic/plus_icon.svg'))
+                .width(this.buttonSize)
+                .height(this.buttonSize)
+            }
+            .width(this.buttonSize)
+            .height(this.buttonSize)
+            .backgroundColor(Color.Transparent)
+            .borderRadius(this.buttonSize / 2)
+            .onClick(() => {
+              // Toggle action panel
+              this.toggleActionPanel();
+            })
+
+            if (this.hasPendingRedDot()) {
+              Circle()
+                .width(8)
+                .height(8)
+                .fill(this.themeState.colors.textColorError)
+                .hitTestBehavior(HitTestMode.None)
+            }
           }
-          .width(this.buttonSize)
-          .height(this.buttonSize)
-          .backgroundColor(Color.Transparent)
-          .borderRadius(this.buttonSize / 2)
-          .onClick(() => {
-            // Toggle action panel
-            this.toggleActionPanel();
-          })
+          .alignContent(Alignment.TopEnd)
         }
       }
       .width('100%')
@@ -487,18 +501,28 @@ export struct ClassicInputBar {
               ForEach(pageItems, (item: MenuItem) => {
                 GridItem() {
                   Column({ space: 4 }) {
-                    Row() {
-                      Image(item.icon)
-                        .width(28)
-                        .height(28)
-                        .fillColor(this.themeState.colors.textColorPrimary)
+                    Stack() {
+                      Row() {
+                        Image(item.icon)
+                          .width(28)
+                          .height(28)
+                          .fillColor(this.themeState.colors.textColorPrimary)
+                      }
+                      .width(56)
+                      .height(56)
+                      .backgroundColor(this.themeState.colors.bgColorInput)
+                      .borderRadius(12)
+                      .justifyContent(FlexAlign.Center)
+                      .alignItems(VerticalAlign.Center)
+
+                      if (this.shouldShowRedDot(item)) {
+                        Circle()
+                          .width(8)
+                          .height(8)
+                          .fill(this.themeState.colors.textColorError)
+                      }
                     }
-                    .width(56)
-                    .height(56)
-                    .backgroundColor(this.themeState.colors.bgColorInput)
-                    .borderRadius(12)
-                    .justifyContent(FlexAlign.Center)
-                    .alignItems(VerticalAlign.Center)
+                    .alignContent(Alignment.TopEnd)
 
                     Text(item.text)
                       .fontSize(12)
@@ -508,6 +532,9 @@ export struct ClassicInputBar {
                   }
                   .width('100%')
                   .onClick(() => {
+                    if (this.shouldShowRedDot(item)) {
+                      this.dismissedRedDotIds = this.dismissedRedDotIds.concat([item.id]);
+                    }
                     if (this.callbacks.onActionItemClick) {
                       this.callbacks.onActionItemClick(item);
                     }
@@ -566,6 +593,16 @@ export struct ClassicInputBar {
       opacity: 0,
       translate: { y: this.actionPanelHeight }
     })
+  }
+
+  private shouldShowRedDot(item: MenuItem): boolean {
+    return item.showRedDot === true && !this.dismissedRedDotIds.includes(item.id);
+  }
+
+  // Whether the plus button should carry a dot, i.e. whether any entry behind it
+  // still has an unconsumed one.
+  private hasPendingRedDot(): boolean {
+    return this.actionMenuItems.some((item: MenuItem) => this.shouldShowRedDot(item));
   }
 
   // Toggle between voice mode and text mode

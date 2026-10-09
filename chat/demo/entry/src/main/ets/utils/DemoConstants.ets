@@ -7,4 +7,5 @@ export default class DemoConstants{
   static readonly LOGIN_TOKEN = "LoginToken";
   static readonly AUTO_LOGIN = "AutoLogin";
   static readonly ENABLE_READ_RECEIPT = "EnableReadReceipt";
+  static readonly MESSAGE_INPUT_CALL_RED_DOT_CLICKED_PREFIX = "message_input_call_red_dot_clicked_";
 }

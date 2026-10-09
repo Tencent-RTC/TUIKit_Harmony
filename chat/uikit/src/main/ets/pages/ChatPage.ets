@@ -21,6 +21,8 @@ export struct ChatDialog {
   onUserClick?: (userID: string) => void;
   onChatHeaderClick?: (conversationID: string) => void;
   onSecurityReportClick?: () => void;
+  moreActionRedDotIDs?: string[];
+  onMoreActionRedDotTap?: (actionID: string) => void;
 
   build() {
     ChatPage({
@@ -29,6 +31,8 @@ export struct ChatDialog {
       status: this.status,
       avatarUrl: this.avatarUrl,
       locateMessage: this.locateMessage,
+      moreActionRedDotIDs: this.moreActionRedDotIDs,
+      onMoreActionRedDotTap: this.onMoreActionRedDotTap,
       onBack: () => {
         if (this.onBack) {
           this.onBack();
@@ -77,9 +81,14 @@ export struct ChatPage {
   onUserClick?: (userID: string) => void;
   onChatHeaderClick?: (conversationID: string) => void;
   onSecurityReportClick?: () => void;
+  // Which more-panel entries deserve a dot, and where to report a tap. The host
+  // owns both, because only it knows what counts as "already seen".
+  moreActionRedDotIDs?: string[];
+  onMoreActionRedDotTap?: (actionID: string) => void;
   dialogController?: CustomDialogController;
   private chatProfileObserver?: TUIObserver;
   private unreadTimer?: number;
+
   aboutToAppear(): void {
     this.chatProfileObserver = new ChatProfileUpdatedObserver(this);
     TUIEventBus.getInstance().subscribe('chat.conversation.profileUpdated', null, this.chatProfileObserver);
@@ -192,7 +201,9 @@ export struct ChatPage {
             enableTyping: true,
             onTypingStatusChanged: (isTyping: boolean): void => {
               this.isPeerTyping = isTyping;
-            }
+            },
+            moreActionRedDotIDs: this.moreActionRedDotIDs,
+            onMoreActionRedDotTap: this.onMoreActionRedDotTap
           })
         })
       }

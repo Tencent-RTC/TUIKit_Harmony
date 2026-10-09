@@ -16,6 +16,20 @@ export type InputStyle = 'minimalist' | 'classic';
 export type ExpandPanelType = 'none' | 'emoji' | 'action';
 
 /**
+ * Stable identifiers of the built-in more menu entries, so hosts can target one
+ * of them — for instance to ask for a red dot — without relying on its position.
+ */
+export class MessageInputActionIDs {
+  static readonly ALBUM: string = 'messageInput.album';
+  static readonly TAKE_PHOTO: string = 'messageInput.takePhoto';
+  static readonly RECORD_VIDEO: string = 'messageInput.recordVideo';
+  static readonly FILE: string = 'messageInput.file';
+  static readonly VIDEO_CALL: string = 'messageInput.videoCall';
+  static readonly AUDIO_CALL: string = 'messageInput.audioCall';
+  static readonly CUSTOM_MESSAGE: string = 'messageInput.customMessage';
+}
+
+/**
  * Message input configuration protocol
  * Defines which input features are enabled
  */
@@ -37,6 +51,17 @@ export interface MessageInputConfigProtocol {
   enableTyping?: boolean;
   /** Notified whenever the peer typing state changes; requires enableTyping */
   onTypingStatusChanged?: (isTyping: boolean) => void;
+  /**
+   * More menu entries that should carry a red dot, identified by
+   * {@link MessageInputActionIDs}. The plus button mirrors the dot while any of
+   * them is still unread, and both dots clear as soon as the entry is tapped.
+   */
+  moreActionRedDotIDs?: string[];
+  /**
+   * Called with the entry's id the first time a dotted entry is tapped, so the
+   * host can persist that the dot has been consumed.
+   */
+  onMoreActionRedDotTap?: (actionID: string) => void;
 }
 
 /**
@@ -55,6 +80,8 @@ export class ChatMessageInputConfig implements MessageInputConfigProtocol {
   private userEnableReadReceipt?: boolean;
   private userEnableTyping?: boolean;
   private userOnTypingStatusChanged?: (isTyping: boolean) => void;
+  private userMoreActionRedDotIDs?: string[];
+  private userOnMoreActionRedDotTap?: (actionID: string) => void;
 
   constructor(config?: Partial<MessageInputConfigProtocol>) {
     if (config) {
@@ -69,6 +96,8 @@ export class ChatMessageInputConfig implements MessageInputConfigProtocol {
       this.userEnableReadReceipt = config.enableReadReceipt;
       this.userEnableTyping = config.enableTyping;
       this.userOnTypingStatusChanged = config.onTypingStatusChanged;
+      this.userMoreActionRedDotIDs = config.moreActionRedDotIDs;
+      this.userOnMoreActionRedDotTap = config.onMoreActionRedDotTap;
     }
   }
 
@@ -123,5 +152,13 @@ export class ChatMessageInputConfig implements MessageInputConfigProtocol {
 
   get onTypingStatusChanged(): ((isTyping: boolean) => void) | undefined {
     return this.userOnTypingStatusChanged;
+  }
+
+  get moreActionRedDotIDs(): string[] {
+    return this.userMoreActionRedDotIDs ?? [];
+  }
+
+  get onMoreActionRedDotTap(): ((actionID: string) => void) | undefined {
+    return this.userOnMoreActionRedDotTap;
   }
 }

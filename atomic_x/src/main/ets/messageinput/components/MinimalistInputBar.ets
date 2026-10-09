@@ -48,6 +48,9 @@ export struct MinimalistInputBar {
   
   // RichEditor controller passed from parent
   richEditorController: RichEditorController = new RichEditorController();
+
+  // Set while any more menu entry still carries an unconsumed red dot
+  @Prop hasMoreActionRedDot: boolean = false;
   
   // Callbacks
   callbacks: MinimalistInputBarCallbacks = {};
@@ -75,23 +78,35 @@ export struct MinimalistInputBar {
       Row() {
         // Show more actions button if enabled
         if (this.effectiveConfig.isShowMore) {
-        Button() {
-          Image($rawfile('messageinput/plus_icon.svg'))
-            .width(20)
-            .height(20)
-            .fillColor(this.themeState.colors.buttonColorPrimaryDefault)
-        }
-        .width(36)
-        .height(36)
-        .backgroundColor(this.themeState.colors.bgColorOperate)
-        .borderRadius(18)
-        .onClick(() => {
-          this.showEmojiPicker = false;
-          this.hideKeyboard();
-          if (this.callbacks.onMoreClick) {
-            this.callbacks.onMoreClick();
+        Stack() {
+          Button() {
+            Image($rawfile('messageinput/plus_icon.svg'))
+              .width(20)
+              .height(20)
+              .fillColor(this.themeState.colors.buttonColorPrimaryDefault)
           }
-        })
+          .width(36)
+          .height(36)
+          .backgroundColor(this.themeState.colors.bgColorOperate)
+          .borderRadius(18)
+          .onClick(() => {
+            this.showEmojiPicker = false;
+            this.hideKeyboard();
+            if (this.callbacks.onMoreClick) {
+              this.callbacks.onMoreClick();
+            }
+          })
+
+          if (this.hasMoreActionRedDot) {
+            Circle()
+              .width(8)
+              .height(8)
+              .fill(this.themeState.colors.textColorError)
+              .offset({ x: -4, y: 4 })
+              .hitTestBehavior(HitTestMode.None)
+          }
+        }
+        .alignContent(Alignment.TopEnd)
       }
 
       // Input area with RichEditor and emoji button

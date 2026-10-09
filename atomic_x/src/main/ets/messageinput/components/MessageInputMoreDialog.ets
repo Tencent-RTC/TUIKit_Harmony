@@ -4,6 +4,8 @@ export interface MenuItem {
   text: string | Resource;
   icon: Resource;
   action: () => void;
+  /** Draws a dot on the entry until the user taps it. */
+  showRedDot?: boolean;
 }
 @CustomDialog
 export struct MessageInputMoreDialog {
@@ -11,6 +13,7 @@ export struct MessageInputMoreDialog {
   controller?: CustomDialogController;
   menuItems: MenuItem[] = []; 
   onCancel?: () => void; 
+  @State private dismissedRedDotIds: string[] = [];
 
   
   aboutToAppear() {
@@ -26,10 +29,21 @@ export struct MessageInputMoreDialog {
     Column() {
       Row() {
         
-        Image(item.icon)
-          .width(24)
-          .height(24)
-          .fillColor(this.themeState.colors.textColorSecondary)
+        Stack() {
+          Image(item.icon)
+            .width(24)
+            .height(24)
+            .fillColor(this.themeState.colors.textColorSecondary)
+
+          if (item.showRedDot === true && !this.dismissedRedDotIds.includes(item.id)) {
+            Circle()
+              .width(8)
+              .height(8)
+              .fill(this.themeState.colors.textColorError)
+              .offset({ x: 4, y: -4 })
+          }
+        }
+        .alignContent(Alignment.TopEnd)
 
         
         Text(item.text)
@@ -42,6 +56,9 @@ export struct MessageInputMoreDialog {
       .width('100%')
       .padding({ left: 16, right: 16 })
       .onClick(() => {
+        if (item.showRedDot === true && !this.dismissedRedDotIds.includes(item.id)) {
+          this.dismissedRedDotIds = this.dismissedRedDotIds.concat([item.id]);
+        }
         item.action();
         this.controller?.close();
       })

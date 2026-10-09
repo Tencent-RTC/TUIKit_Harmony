@@ -14,4 +14,5 @@ export {
   ExpandPanelType,
   MessageInputConfigProtocol,
   ChatMessageInputConfig,
+  MessageInputActionIDs,
 } from './config/MessageInputConfig';

@@ -29,6 +29,8 @@ import { setNotificationClickCallback, clearNotificationClickCallback } from '..
 import { TUICallKit, CallMediaType as CallKitMediaType, CallParams as CallKitParams } from '@tencentcloud/tuicallkit';
 import { TUIEventBus, TUIObserver, NotifyParams } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index'
 import { CallMediaType } from '@tencentcloud/atomicx/src/main/ets/call/common/CallStore'
+import { MessageInputActionIDs } from '@tencentcloud/atomicx/src/main/ets/messageinput/Index'
+import { MessageInputCallRedDotStore } from '../utils/MessageInputCallRedDotStore'
 
 class CallStartObserver implements TUIObserver {
   onNotify(event: string, _key: string | null, params: NotifyParams | null): void {
@@ -400,6 +402,13 @@ struct HomePage {
           avatarUrl: avatarUrl || '',
           status: '',
           locateMessage: locateMessage,
+          moreActionRedDotIDs: MessageInputCallRedDotStore.pendingActionIDs(
+            LoginStore.shared().sdkAppID,
+            [MessageInputActionIDs.VIDEO_CALL, MessageInputActionIDs.AUDIO_CALL]
+          ),
+          onMoreActionRedDotTap: (actionID: string) => {
+            MessageInputCallRedDotStore.markClicked(LoginStore.shared().sdkAppID, actionID);
+          },
           onBack: () => {
             console.log('[HomePage] Chat back button clicked');
           },

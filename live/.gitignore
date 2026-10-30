@@ -1,0 +1,16 @@
+# Installed dependencies and generated build / IDE files
+**/oh_modules/
+**/node_modules/
+**/.hvigor/
+**/.preview/
+**/.appanalyzer/
+**/build/
+**/BuildProfile.ets
+**/local.properties
+
+# Each developer owns their signing materials and credentials.
+**/signing.local.json
+**/*.p12
+**/*.p7b
+**/*.cer
+**/*.csr

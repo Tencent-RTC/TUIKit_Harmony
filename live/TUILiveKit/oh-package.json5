@@ -1,0 +1,13 @@
+{
+  "name": "tuilivekit",
+  "version": "5.2.2",
+  "description": "TUILiveKit for HarmonyOS",
+  "main": "Index.ets",
+  "author": "",
+  "license": "",
+  "dependencies": {
+    "@tencentcloud/atomicxcore": "5.3.0",
+    "@tencentcloud/liteavsdk_professional": "^13.5.9128",
+    "@tencentcloud/tcgiftplayerkit": "1.0.0"
+  }
+}

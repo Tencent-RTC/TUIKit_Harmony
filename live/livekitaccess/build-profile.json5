@@ -1,0 +1,60 @@
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "/Users/xanderzhao/.ohos/config/default_livekitaccess_EldcQPGevuguK9VVnC1jmMj-Za5TYYekIUygDcpFR6g=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001B555F364231D7DB9525FE6BCBC003991B728C0B94E3D7E3199B443FC59E84A7ADB42FA93901436D",
+          "profile": "/Users/xanderzhao/.ohos/config/default_livekitaccess_EldcQPGevuguK9VVnC1jmMj-Za5TYYekIUygDcpFR6g=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "/Users/xanderzhao/.ohos/config/default_livekitaccess_EldcQPGevuguK9VVnC1jmMj-Za5TYYekIUygDcpFR6g=.p12",
+          "storePassword": "0000001BE1AABE38DEAE492AC4F6DC965C79DCC84592462F76A9BB941E3F32921870A943B2113CC5E362ED"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "targetSdkVersion": "6.1.1(24)",
+        "compatibleSdkVersion": "6.0.0(20)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug"
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "tuilivekit",
+      "srcPath": "../TUILiveKit"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "entry",
+  "version": "1.0.0",
+  "description": "LiveKitAccess",
+  "main": "",
+  "author": "",
+  "license": "",
+  "dependencies": {
+    "tuilivekit": "file:../../TUILiveKit",
+    "@tencentcloud/atomicxcore": "5.3.0"
+  }
+}

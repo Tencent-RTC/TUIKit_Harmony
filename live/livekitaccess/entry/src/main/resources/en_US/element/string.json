@@ -1,0 +1,124 @@
+{
+  "string": [
+    {
+      "name": "livekit_access_brand",
+      "value": "Tencent Cloud Audio & Video"
+    },
+    {
+      "name": "livekit_access_user_id_placeholder",
+      "value": "Enter a user ID"
+    },
+    {
+      "name": "livekit_access_login",
+      "value": "Debug Login"
+    },
+    {
+      "name": "livekit_access_user_id_required",
+      "value": "Enter a user ID"
+    },
+    {
+      "name": "livekit_access_login_kicked_offline",
+      "value": "This account signed in on another device"
+    },
+    {
+      "name": "livekit_access_login_expired",
+      "value": "The login credential expired. Update UserSig in the code."
+    },
+    {
+      "name": "livekit_access_login_state_changed",
+      "value": "The login state changed. Check the login configuration."
+    },
+    {
+      "name": "livekit_access_login_missing_config",
+      "value": "Set SDKAPPID and SECRETKEY in GenerateTestUserSig.swift first"
+    },
+    {
+      "name": "livekit_access_login_failed",
+      "value": "Login failed: %d %s"
+    },
+    {
+      "name": "livekit_access_login_set_self_info_failed",
+      "value": "Unable to set the user profile: %d %s"
+    },
+    {
+      "name": "livekit_access_user_name_1",
+      "value": "Martijn"
+    },
+    {
+      "name": "livekit_access_user_name_2",
+      "value": "irfan"
+    },
+    {
+      "name": "livekit_access_user_name_3",
+      "value": "Rosanna"
+    },
+    {
+      "name": "livekit_access_user_name_4",
+      "value": "Franklyn"
+    },
+    {
+      "name": "livekit_access_user_name_5",
+      "value": "Maren"
+    },
+    {
+      "name": "livekit_access_title",
+      "value": "Live Streaming"
+    },
+    {
+      "name": "livekit_access_start_live",
+      "value": "Go Live"
+    },
+    {
+      "name": "livekit_access_login_user_missing",
+      "value": "No signed-in user was found. Sign in again before going live."
+    },
+    {
+      "name": "livekit_access_ok",
+      "value": "OK"
+    },
+    {
+      "name": "livekit_access_click_own_live_hint",
+      "value": "Tap the Go Live button to start your own stream"
+    },
+    {
+      "name": "livekit_access_version",
+      "value": "APP Version: %s"
+    },
+    {
+      "name": "livekit_access_logs_title",
+      "value": "Share Logs"
+    },
+    {
+      "name": "livekit_access_logs_empty",
+      "value": "No logs available to share"
+    },
+    {
+      "name": "livekit_access_logs_read_failed",
+      "value": "Unable to read logs. Close and try again."
+    },
+    {
+      "name": "livekit_access_logs_single",
+      "value": "Individual Files"
+    },
+    {
+      "name": "livekit_access_logs_scope",
+      "value": "LiteAV logs from this app, across live rooms. Tap a file to share it individually."
+    },
+    {
+      "name": "livekit_access_logs_archive",
+      "value": "Share All Logs (ZIP)"
+    },
+    {
+      "name": "livekit_access_logs_count",
+      "value": "%d files"
+    },
+    {
+      "name": "livekit_access_logs_failed",
+      "value": "Unable to share logs"
+    },
+    {
+      "name": "livekit_access_logs_retry",
+      "value": "Files may have rotated or storage may be full. Refresh and try again."
+    }
+  ]
+}

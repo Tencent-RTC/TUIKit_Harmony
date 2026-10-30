@@ -1,0 +1,1184 @@
+{
+  "string": [
+    {
+      "name": "live_loading",
+      "value": "加载中…"
+    },
+    {
+      "name": "live_empty",
+      "value": "暂无直播"
+    },
+    {
+      "name": "tuilivekit_common_cancel",
+      "value": "取消"
+    },
+    {
+      "name": "tuilivekit_common_close",
+      "value": "关闭"
+    },
+    {
+      "name": "tuilivekit_common_confirm",
+      "value": "确定"
+    },
+    {
+      "name": "tuilivekit_common_done",
+      "value": "完成"
+    },
+    {
+      "name": "tuilivekit_common_host",
+      "value": "主播"
+    },
+    {
+      "name": "tuilivekit_common_more",
+      "value": "更多"
+    },
+    {
+      "name": "tuilivekit_common_processing",
+      "value": "处理中"
+    },
+    {
+      "name": "tuilivekit_common_send",
+      "value": "发送"
+    },
+    {
+      "name": "tuilivekit_common_viewer",
+      "value": "观众"
+    },
+    {
+      "name": "tuilivekit_live_list_viewers",
+      "value": "%d人看过"
+    },
+    {
+      "name": "tuilivekit_player_follow",
+      "value": "关注"
+    },
+    {
+      "name": "tuilivekit_player_unfollow",
+      "value": "已关注"
+    },
+    {
+      "name": "tuilivekit_player_like_count",
+      "value": "本场直播%d点赞"
+    },
+    {
+      "name": "tuilivekit_player_operation_failed",
+      "value": "操作失败"
+    },
+    {
+      "name": "tuilivekit_player_close_room",
+      "value": "关闭直播间"
+    },
+    {
+      "name": "tuilivekit_player_audience_count",
+      "value": "%d 人正在观看"
+    },
+    {
+      "name": "tuilivekit_player_audience_message_disabled",
+      "value": "当前房间内，您已被禁言"
+    },
+    {
+      "name": "tuilivekit_player_audience_message_enabled",
+      "value": "当前房间内，您已被解除禁言"
+    },
+    {
+      "name": "tuilivekit_player_comment_placeholder",
+      "value": "说点什么…"
+    },
+    {
+      "name": "tuilivekit_player_comment",
+      "value": "发表评论"
+    },
+    {
+      "name": "tuilivekit_player_comment_host",
+      "value": "主播"
+    },
+    {
+      "name": "tuilivekit_comment_friendly_placeholder",
+      "value": "友善发言，文明互动"
+    },
+    {
+      "name": "tuilivekit_comment_cancel",
+      "value": "取消评论"
+    },
+    {
+      "name": "tuilivekit_comment_character_limit",
+      "value": "评论最多可输入 %d 字"
+    },
+    {
+      "name": "tuilivekit_pusher_prepare_topic_byte_limit",
+      "value": "直播主题最多可输入 %d 字节"
+    },
+    {
+      "name": "tuilivekit_comment_send_failed",
+      "value": "评论发送失败，请稍后重试"
+    },
+    {
+      "name": "tuilivekit_comment_muted",
+      "value": "你已被禁言，暂时无法发送评论"
+    },
+    {
+      "name": "tuilivekit_comment_all_muted",
+      "value": "当前直播间已开启全员禁言"
+    },
+    {
+      "name": "tuilivekit_comment_too_frequent",
+      "value": "发送太快了，请稍后再试"
+    },
+    {
+      "name": "tuilivekit_comment_content_rejected",
+      "value": "评论内容不符合规范，请修改后重试"
+    },
+    {
+      "name": "tuilivekit_comment_too_long",
+      "value": "评论内容过长，请缩短后发送"
+    },
+    {
+      "name": "tuilivekit_comment_login_expired",
+      "value": "登录已失效，请重新登录"
+    },
+    {
+      "name": "tuilivekit_comment_login_elsewhere",
+      "value": "账号已在其他设备登录，请重新登录"
+    },
+    {
+      "name": "tuilivekit_comment_not_joined",
+      "value": "尚未进入直播间，暂时无法发送评论"
+    },
+    {
+      "name": "tuilivekit_comment_room_unavailable",
+      "value": "直播间已不可用，无法发送评论"
+    },
+    {
+      "name": "tuilivekit_comment_no_permission",
+      "value": "暂时无法在当前直播间发送评论"
+    },
+    {
+      "name": "tuilivekit_comment_network_error",
+      "value": "网络连接异常，请检查网络后重试"
+    },
+    {
+      "name": "tuilivekit_comment_timeout",
+      "value": "评论发送超时，请稍后重试"
+    },
+    {
+      "name": "tuilivekit_comment_send_rejected",
+      "value": "评论未能发送，请稍后重试"
+    },
+    {
+      "name": "tuilivekit_player_comment_send",
+      "value": "发送"
+    },
+    {
+      "name": "tuilivekit_player_coguest",
+      "value": "连麦"
+    },
+    {
+      "name": "tuilivekit_player_gift",
+      "value": "送礼"
+    },
+    {
+      "name": "tuilivekit_player_more",
+      "value": "更多"
+    },
+    {
+      "name": "tuilivekit_player_like",
+      "value": "点赞"
+    },
+    {
+      "name": "tuilivekit_player_online_audience",
+      "value": "在线观众"
+    },
+    {
+      "name": "tuilivekit_player_restore_controls",
+      "value": "恢复"
+    },
+    {
+      "name": "tuilivekit_player_restore_controls_accessibility",
+      "value": "恢复直播间控件"
+    },
+    {
+      "name": "tuilivekit_player_playback_failed",
+      "value": "播放失败"
+    },
+    {
+      "name": "tuilivekit_player_enter_room_hint",
+      "value": "点击进入直播间"
+    },
+    {
+      "name": "tuilivekit_player_gift_title",
+      "value": "送礼物"
+    },
+    {
+      "name": "tuilivekit_player_gift_loading",
+      "value": "礼物加载中…"
+    },
+    {
+      "name": "tuilivekit_player_gift_empty",
+      "value": "暂无可用礼物"
+    },
+    {
+      "name": "tuilivekit_player_gift_coins",
+      "value": "%d 金币"
+    },
+    {
+      "name": "tuilivekit_player_gift_send",
+      "value": "赠送"
+    },
+    {
+      "name": "tuilivekit_player_gift_combo_hint",
+      "value": "长按连击"
+    },
+    {
+      "name": "tuilivekit_player_more_quality",
+      "value": "清晰度"
+    },
+    {
+      "name": "tuilivekit_player_more_super_resolution",
+      "value": "极致画质"
+    },
+    {
+      "name": "tuilivekit_player_more_hdr",
+      "value": "HDR"
+    },
+    {
+      "name": "tuilivekit_player_more_volume_balance",
+      "value": "音量均衡"
+    },
+    {
+      "name": "tuilivekit_player_more_sleep_timer",
+      "value": "定时关闭"
+    },
+    {
+      "name": "tuilivekit_player_coguest_voice",
+      "value": "语音连麦"
+    },
+    {
+      "name": "tuilivekit_player_coguest_video",
+      "value": "视频连麦"
+    },
+    {
+      "name": "tuilivekit_player_coguest_cancel_application",
+      "value": "取消申请"
+    },
+    {
+      "name": "tuilivekit_player_coguest_invitation",
+      "value": "主播邀请你连麦"
+    },
+    {
+      "name": "tuilivekit_player_coguest_accept",
+      "value": "接通"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_rejected",
+      "value": "主播拒绝了连麦申请"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_seat_full",
+      "value": "麦位已满"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_room_not_exist",
+      "value": "房间不存在或已被解散"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_not_room_member",
+      "value": "上麦用户非房间成员"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_seat_locked",
+      "value": "麦位已锁定，可以尝试换一个麦位"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_already_requesting",
+      "value": "已经处于排麦状态"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_already_on_seat",
+      "value": "已经处于麦上状态"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_seat_occupied",
+      "value": "已有用户在麦位上"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_not_supported",
+      "value": "该房间不支持连麦"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_apply_failed",
+      "value": "申请连麦失败"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_timeout",
+      "value": "连麦申请超时"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_already_seated",
+      "value": "当前已在麦位上"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_kicked_off",
+      "value": "已被主播移下麦位"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_ended",
+      "value": "主播已结束连麦"
+    },
+    {
+      "name": "tuilivekit_player_coguest_beauty_preparing",
+      "value": "美颜功能准备中"
+    },
+    {
+      "name": "tuilivekit_player_coguest_settings_title",
+      "value": "调整视频连麦画面"
+    },
+    {
+      "name": "tuilivekit_player_coguest_settings_subtitle",
+      "value": "观众将实时看到效果"
+    },
+    {
+      "name": "tuilivekit_player_live_ended",
+      "value": "直播已结束"
+    },
+    {
+      "name": "tuilivekit_player_summary_next_live_hint",
+      "value": "期待下次见"
+    },
+    {
+      "name": "tuilivekit_player_summary_swipe_more",
+      "value": "上滑发现更多主播"
+    },
+    {
+      "name": "tuilivekit_pusher_default_title",
+      "value": "欢迎来到我的直播间"
+    },
+    {
+      "name": "tuilivekit_pusher_beauty",
+      "value": "美颜"
+    },
+    {
+      "name": "tuilivekit_pusher_beautify",
+      "value": "美化"
+    },
+    {
+      "name": "tuilivekit_pusher_flip_camera",
+      "value": "翻转镜头"
+    },
+    {
+      "name": "tuilivekit_pusher_mirror",
+      "value": "镜像"
+    },
+    {
+      "name": "tuilivekit_pusher_audio_effects",
+      "value": "音效设置"
+    },
+    {
+      "name": "tuilivekit_pusher_beauty_close",
+      "value": "关闭"
+    },
+    {
+      "name": "tuilivekit_pusher_beauty_smooth",
+      "value": "磨皮"
+    },
+    {
+      "name": "tuilivekit_pusher_beauty_whiteness",
+      "value": "美白"
+    },
+    {
+      "name": "tuilivekit_pusher_beauty_ruddy",
+      "value": "红润"
+    },
+    {
+      "name": "tuilivekit_pusher_prepare_change_cover",
+      "value": "修改封面"
+    },
+    {
+      "name": "tuilivekit_pusher_prepare_cover_option",
+      "value": "封面 %d"
+    },
+    {
+      "name": "tuilivekit_pusher_prepare_edit_topic",
+      "value": "✎ 修改主题"
+    },
+    {
+      "name": "tuilivekit_pusher_prepare_start_live",
+      "value": "●  开始直播"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_more",
+      "value": "更多设置"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_ear_monitor",
+      "value": "耳返"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_ear_monitor_volume",
+      "value": "耳返音量"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_capture_volume",
+      "value": "人声音量"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_audio",
+      "value": "音频设置"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_voice_changer",
+      "value": "变声"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_voice_original",
+      "value": "原声"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_voice_child",
+      "value": "熊孩子"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_voice_loli",
+      "value": "萝莉"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_voice_uncle",
+      "value": "大叔"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_voice_spirit",
+      "value": "空灵"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_reverb",
+      "value": "混响"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_reverb_none",
+      "value": "无效果"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_reverb_ktv",
+      "value": "KTV"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_reverb_metal",
+      "value": "金属声"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_reverb_deep",
+      "value": "低沉"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_reverb_bright",
+      "value": "洪亮"
+    },
+    {
+      "name": "tuilivekit_pusher_living_coguest",
+      "value": "连麦"
+    },
+    {
+      "name": "tuilivekit_pusher_living_live_duration",
+      "value": "直播时长"
+    },
+    {
+      "name": "tuilivekit_pusher_living_network_poor",
+      "value": "网络较差"
+    },
+    {
+      "name": "tuilivekit_pusher_living_network_very_poor",
+      "value": "网络非常差"
+    },
+    {
+      "name": "tuilivekit_pusher_living_network_disconnected",
+      "value": "网络已断开"
+    },
+    {
+      "name": "tuilivekit_pusher_living_like_count",
+      "value": "本场直播 %d 点赞"
+    },
+    {
+      "name": "tuilivekit_pusher_living_new_messages",
+      "value": "%d 条新消息"
+    },
+    {
+      "name": "tuilivekit_pusher_living_pause",
+      "value": "暂停直播"
+    },
+    {
+      "name": "tuilivekit_pusher_living_paused",
+      "value": "画面和声音已暂停"
+    },
+    {
+      "name": "tuilivekit_pusher_living_resume",
+      "value": "继续直播"
+    },
+    {
+      "name": "tuilivekit_pusher_living_mute",
+      "value": "静音"
+    },
+    {
+      "name": "tuilivekit_pusher_living_unmute",
+      "value": "取消静音"
+    },
+    {
+      "name": "tuilivekit_pusher_living_basic_settings",
+      "value": "基础设置"
+    },
+    {
+      "name": "tuilivekit_pusher_living_interaction",
+      "value": "互动功能"
+    },
+    {
+      "name": "tuilivekit_pusher_living_music",
+      "value": "背景音乐"
+    },
+    {
+      "name": "tuilivekit_pusher_living_comment",
+      "value": "评论"
+    },
+    {
+      "name": "tuilivekit_pusher_living_audience_entered",
+      "value": "进入了直播间"
+    },
+    {
+      "name": "tuilivekit_pusher_living_audience_count_compact",
+      "value": "%d万+"
+    },
+    {
+      "name": "tuilivekit_pusher_end_confirm",
+      "value": "确定结束直播？"
+    },
+    {
+      "name": "tuilivekit_pusher_end_empty_audience",
+      "value": "许多观众正在赶来，继续直播可获得更多流量。"
+    },
+    {
+      "name": "tuilivekit_pusher_end_continue",
+      "value": "继续直播"
+    },
+    {
+      "name": "tuilivekit_pusher_end_end",
+      "value": "结束"
+    },
+    {
+      "name": "tuilivekit_pusher_end_audience_count",
+      "value": "有 %d 人正在观看你的直播"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_connected",
+      "value": "连麦观众"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_empty",
+      "value": "暂无观众参与"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_applicants",
+      "value": "申请连麦"
+    },
+    {
+      "name": "tuilivekit_player_coguest_apply",
+      "value": "申请连麦"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_candidates",
+      "value": "邀请观众"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_end",
+      "value": "结束"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_accept",
+      "value": "接通"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_cancel_invitation",
+      "value": "取消邀请"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_invite",
+      "value": "邀请"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_settings",
+      "value": "连麦设置"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_end_all",
+      "value": "结束连麦"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_layout",
+      "value": "连麦布局"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_invite_to_seat",
+      "value": "邀请连麦"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_layout_floating",
+      "value": "浮动小窗"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_layout_grid2",
+      "value": "动态宫格"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_layout_fixed",
+      "value": "固定小窗"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_layout_grid9",
+      "value": "九宫格"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_capacity",
+      "value": "当前连麦人数超过该布局容量"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_too_frequent",
+      "value": "操作过于频繁，请稍后重试"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_unavailable",
+      "value": "当前无法切换到该布局"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_failed",
+      "value": "布局切换失败，请稍后重试"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_not_ready",
+      "value": "服务尚未就绪，请稍后重试"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_unsupported",
+      "value": "当前暂不支持切换布局"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_room_unsupported",
+      "value": "当前直播间不支持切换布局"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_login_required",
+      "value": "登录状态已失效，请重新登录"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_network",
+      "value": "网络连接异常，请检查网络后重试"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_timeout",
+      "value": "请求超时，请稍后重试"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_room_missing",
+      "value": "直播间不存在或已结束"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_permission_denied",
+      "value": "你没有权限切换直播布局"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_max_capacity",
+      "value": "当前布局最多支持 %d 位连麦观众"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_gifts_received",
+      "value": "收到礼物"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_gift_value",
+      "value": "礼物收益"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_viewers",
+      "value": "观众人数"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_comments",
+      "value": "评论数"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_gift_senders",
+      "value": "送礼人数"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_likes",
+      "value": "点赞次数"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_unit_items",
+      "value": "件"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_unit_people",
+      "value": "人"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_unit_times",
+      "value": "次"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_unit_coins",
+      "value": "币"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_unit_messages",
+      "value": "条"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_session_data",
+      "value": "本场数据"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_statistics",
+      "value": "直播统计"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_ended",
+      "value": "直播已结束"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_duration",
+      "value": "本场直播时长"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_paused_duration",
+      "value": "暂停时长"
+    },
+    {
+      "name": "tuilivekit_pusher_status_title",
+      "value": "直播状态"
+    },
+    {
+      "name": "tuilivekit_pusher_status_realtime",
+      "value": "实时数据"
+    },
+    {
+      "name": "tuilivekit_pusher_status_device",
+      "value": "设备状态"
+    },
+    {
+      "name": "tuilivekit_pusher_status_cumulative",
+      "value": "本场累计"
+    },
+    {
+      "name": "tuilivekit_pusher_status_metric_gift_score",
+      "value": "礼物分"
+    },
+    {
+      "name": "tuilivekit_pusher_status_metric_gift_senders",
+      "value": "送礼人数"
+    },
+    {
+      "name": "tuilivekit_pusher_status_metric_gifts",
+      "value": "礼物数"
+    },
+    {
+      "name": "tuilivekit_pusher_status_metric_online",
+      "value": "在线人数"
+    },
+    {
+      "name": "tuilivekit_pusher_status_metric_likes",
+      "value": "点赞次数"
+    },
+    {
+      "name": "tuilivekit_pusher_status_metric_messages",
+      "value": "评论数"
+    },
+    {
+      "name": "tuilivekit_pusher_status_unit_points",
+      "value": "分"
+    },
+    {
+      "name": "tuilivekit_pusher_status_unit_people",
+      "value": "人"
+    },
+    {
+      "name": "tuilivekit_pusher_status_unit_times",
+      "value": "次"
+    },
+    {
+      "name": "tuilivekit_pusher_status_unit_count",
+      "value": "个"
+    },
+    {
+      "name": "tuilivekit_pusher_status_unit_messages",
+      "value": "条"
+    },
+    {
+      "name": "tuilivekit_pusher_status_updating",
+      "value": "数据实时更新"
+    },
+    {
+      "name": "tuilivekit_pusher_status_update_detail",
+      "value": "互动数据会随本场直播持续累计"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_info",
+      "value": "视频信息"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_info",
+      "value": "音频信息"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_fields",
+      "value": "清晰度\n码率\n帧率"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_fields",
+      "value": "采样率\n码率"
+    },
+    {
+      "name": "tuilivekit_pusher_status_rtt",
+      "value": "往返延时"
+    },
+    {
+      "name": "tuilivekit_pusher_status_down_loss",
+      "value": "下行丢包率"
+    },
+    {
+      "name": "tuilivekit_pusher_status_up_loss",
+      "value": "上行丢包率"
+    },
+    {
+      "name": "tuilivekit_pusher_status_voice_volume",
+      "value": "人声音量"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_normal_title",
+      "value": "视频状态正常"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_off_title",
+      "value": "视频已关闭"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_error_title",
+      "value": "视频状态异常"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_normal_detail",
+      "value": "开播画面流畅"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_off_detail",
+      "value": "摄像头未开启或权限未授权"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_device_error_detail",
+      "value": "请检查摄像头权限或占用状态"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_stream_error_detail",
+      "value": "推流帧率或网络状态异常"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_normal_title",
+      "value": "音频状态正常"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_off_title",
+      "value": "音频已关闭"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_error_title",
+      "value": "音频状态异常"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_normal_detail",
+      "value": "音量适中，收音清晰"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_off_detail",
+      "value": "麦克风已关闭、静音或采集音量为 0"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_device_error_detail",
+      "value": "请检查麦克风权限或占用状态"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_stream_error_detail",
+      "value": "音频采集数据异常"
+    },
+    {
+      "name": "tuilivekit_pusher_status_temperature_normal_title",
+      "value": "设备温度正常"
+    },
+    {
+      "name": "tuilivekit_pusher_status_temperature_fair_title",
+      "value": "设备轻微发热"
+    },
+    {
+      "name": "tuilivekit_pusher_status_temperature_serious_title",
+      "value": "设备严重发热"
+    },
+    {
+      "name": "tuilivekit_pusher_status_temperature_normal_detail",
+      "value": "设备运行状态稳定"
+    },
+    {
+      "name": "tuilivekit_pusher_status_temperature_fair_detail",
+      "value": "设备温度升高，请留意运行状态"
+    },
+    {
+      "name": "tuilivekit_pusher_status_temperature_serious_detail",
+      "value": "建议暂停直播并让设备降温"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_wifi",
+      "value": "Wi-Fi"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_cellular",
+      "value": "移动网络"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_unknown",
+      "value": "当前网络"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_title",
+      "value": "%s · %s"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_excellent",
+      "value": "优秀"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_good",
+      "value": "良好"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_poor",
+      "value": "较差"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_bad",
+      "value": "差"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_very_bad",
+      "value": "很差"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_disconnected",
+      "value": "已断开"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_checking",
+      "value": "检测中"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_keep",
+      "value": "建议直播期间保持当前网络"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_fluctuating",
+      "value": "当前网络波动，请留意直播画面"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_switch",
+      "value": "当前网络较差，建议切换网络"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_disconnected_detail",
+      "value": "网络连接已断开"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_checking_detail",
+      "value": "正在检测当前网络状态"
+    },
+    {
+      "name": "tuilivekit_pusher_music_happy",
+      "value": "欢快"
+    },
+    {
+      "name": "tuilivekit_pusher_music_sad",
+      "value": "忧郁"
+    },
+    {
+      "name": "tuilivekit_pusher_music_wonder_world",
+      "value": "神奇世界"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_manage_user",
+      "value": "管理 · %s"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_mute_user",
+      "value": "静音"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_unmute_user",
+      "value": "取消静音"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_disconnect_user",
+      "value": "断开连麦"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_follow",
+      "value": "关注"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_following",
+      "value": "已关注"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_gift_value",
+      "value": "礼物值 %d"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_room_management",
+      "value": "直播间管理"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_mute",
+      "value": "禁言"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_unmute",
+      "value": "解除禁言"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_mute_description",
+      "value": "禁止发送直播评论"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_unmute_description",
+      "value": "允许发送直播评论"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_remove",
+      "value": "拉黑"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_remove_description",
+      "value": "移出当前直播间"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_muted_toast",
+      "value": "已禁言 %s"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_unmuted_toast",
+      "value": "已解除禁言 %s"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_removed_toast",
+      "value": "已踢出 %s"
+    },
+    {
+      "name": "tuilivekit_pusher_gift_sent",
+      "value": "送出 %s"
+    },
+    {
+      "name": "tuilivekit_common_gift_sent",
+      "value": "送出"
+    },
+    {
+      "name": "tuilivekit_pusher_gift_fallback",
+      "value": "礼"
+    },
+    {
+      "name": "tuilivekit_player_coguest_microphone_locked",
+      "value": "已被主播禁麦"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_microphone_manual_open",
+      "value": "观众已主动静音，需观众手动开启麦克风"
+    },
+    {
+      "name": "tuilivekit_player_coguest_camera_locked",
+      "value": "摄像头已被主播禁用"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_microphone_closed",
+      "value": "已关闭“%s”的麦克风"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_microphone_unlocked",
+      "value": "已解除“%s”的禁麦"
+    },
+    {
+      "name": "tuilivekit_player_coguest_microphone_unlocked",
+      "value": "主播已解除禁麦"
+    },
+    {
+      "name": "tuilivekit_pusher_error_start_failed",
+      "value": "开播失败"
+    },
+    {
+      "name": "tuilivekit_pusher_error_content_rejected",
+      "value": "直播信息未通过审核，请修改后重试"
+    },
+    {
+      "name": "tuilivekit_pusher_error_update_failed",
+      "value": "直播信息更新失败，请稍后重试"
+    },
+    {
+      "name": "tuilivekit_pusher_error_operation_failed",
+      "value": "操作失败，请稍后重试"
+    },
+    {
+      "name": "tuilivekit_pusher_interruption_ended",
+      "value": "直播已结束"
+    },
+    {
+      "name": "tuilivekit_pusher_interruption_server",
+      "value": "直播已被服务端关闭"
+    },
+    {
+      "name": "tuilivekit_pusher_interruption_admin",
+      "value": "你已被管理员移出直播"
+    },
+    {
+      "name": "tuilivekit_pusher_interruption_other_device",
+      "value": "账号已在其他设备登录"
+    },
+    {
+      "name": "tuilivekit_pusher_interruption_network",
+      "value": "网络断开，直播已结束"
+    },
+    {
+      "name": "tuilivekit_pusher_interruption_expired",
+      "value": "直播间已过期"
+    },
+    {
+      "name": "tuilivekit_pusher_interruption_account",
+      "value": "账号已下线，直播已结束"
+    },
+    {
+      "name": "tuilivekit_player_interruption_removed",
+      "value": "您已被移出当前直播间"
+    },
+    {
+      "name": "tuilivekit_player_interruption_other_device",
+      "value": "您的账号已在其他设备登录"
+    },
+    {
+      "name": "tuilivekit_player_interruption_server",
+      "value": "您已被服务器移出直播间"
+    },
+    {
+      "name": "tuilivekit_player_interruption_network",
+      "value": "网络断开，已退出直播间"
+    },
+    {
+      "name": "tuilivekit_player_interruption_expired",
+      "value": "直播间会话已过期"
+    },
+    {
+      "name": "tuilivekit_pusher_ending",
+      "value": "正在结束直播…"
+    },
+    {
+      "name": "tuilivekit_pusher_error_mute_switch_failed",
+      "value": "切换失败，请重试"
+    }
+  ]
+}

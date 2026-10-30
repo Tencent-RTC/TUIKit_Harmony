@@ -1,0 +1,1184 @@
+{
+  "string": [
+    {
+      "name": "live_loading",
+      "value": "Loading…"
+    },
+    {
+      "name": "live_empty",
+      "value": "No live streams"
+    },
+    {
+      "name": "tuilivekit_common_cancel",
+      "value": "Cancel"
+    },
+    {
+      "name": "tuilivekit_common_close",
+      "value": "Close"
+    },
+    {
+      "name": "tuilivekit_common_confirm",
+      "value": "Confirm"
+    },
+    {
+      "name": "tuilivekit_common_done",
+      "value": "Done"
+    },
+    {
+      "name": "tuilivekit_common_host",
+      "value": "Host"
+    },
+    {
+      "name": "tuilivekit_common_more",
+      "value": "More"
+    },
+    {
+      "name": "tuilivekit_common_processing",
+      "value": "Processing"
+    },
+    {
+      "name": "tuilivekit_common_send",
+      "value": "Send"
+    },
+    {
+      "name": "tuilivekit_common_viewer",
+      "value": "Viewer"
+    },
+    {
+      "name": "tuilivekit_live_list_viewers",
+      "value": "%d viewers"
+    },
+    {
+      "name": "tuilivekit_player_follow",
+      "value": "Follow"
+    },
+    {
+      "name": "tuilivekit_player_unfollow",
+      "value": "Unfollow"
+    },
+    {
+      "name": "tuilivekit_player_like_count",
+      "value": "%d likes in this live"
+    },
+    {
+      "name": "tuilivekit_player_operation_failed",
+      "value": "Operation failed"
+    },
+    {
+      "name": "tuilivekit_player_close_room",
+      "value": "Close live room"
+    },
+    {
+      "name": "tuilivekit_player_audience_count",
+      "value": "%d viewers"
+    },
+    {
+      "name": "tuilivekit_player_audience_message_disabled",
+      "value": "You have been muted in the current room"
+    },
+    {
+      "name": "tuilivekit_player_audience_message_enabled",
+      "value": "You have been unmuted in the current room"
+    },
+    {
+      "name": "tuilivekit_player_comment_placeholder",
+      "value": "Say something…"
+    },
+    {
+      "name": "tuilivekit_player_comment",
+      "value": "Post a comment"
+    },
+    {
+      "name": "tuilivekit_player_comment_host",
+      "value": "Host"
+    },
+    {
+      "name": "tuilivekit_comment_friendly_placeholder",
+      "value": "Keep the conversation friendly"
+    },
+    {
+      "name": "tuilivekit_comment_cancel",
+      "value": "Cancel comment"
+    },
+    {
+      "name": "tuilivekit_comment_character_limit",
+      "value": "Comments can contain up to %d characters"
+    },
+    {
+      "name": "tuilivekit_pusher_prepare_topic_byte_limit",
+      "value": "Live title can contain up to %d bytes"
+    },
+    {
+      "name": "tuilivekit_comment_send_failed",
+      "value": "Failed to send comment. Please try again later."
+    },
+    {
+      "name": "tuilivekit_comment_muted",
+      "value": "You are muted and cannot send comments."
+    },
+    {
+      "name": "tuilivekit_comment_all_muted",
+      "value": "Comments are disabled for everyone in this live room."
+    },
+    {
+      "name": "tuilivekit_comment_too_frequent",
+      "value": "You are sending too quickly. Please try again later."
+    },
+    {
+      "name": "tuilivekit_comment_content_rejected",
+      "value": "This comment does not meet the content guidelines. Please edit it and try again."
+    },
+    {
+      "name": "tuilivekit_comment_too_long",
+      "value": "Your comment is too long. Please shorten it and try again."
+    },
+    {
+      "name": "tuilivekit_comment_login_expired",
+      "value": "Your session has expired. Please log in again."
+    },
+    {
+      "name": "tuilivekit_comment_login_elsewhere",
+      "value": "Your account is logged in on another device. Please log in again."
+    },
+    {
+      "name": "tuilivekit_comment_not_joined",
+      "value": "Please join the live room before sending comments."
+    },
+    {
+      "name": "tuilivekit_comment_room_unavailable",
+      "value": "This live room is unavailable. Comments cannot be sent."
+    },
+    {
+      "name": "tuilivekit_comment_no_permission",
+      "value": "You do not have permission to send comments in this live room."
+    },
+    {
+      "name": "tuilivekit_comment_network_error",
+      "value": "Network connection error. Please check your connection and try again."
+    },
+    {
+      "name": "tuilivekit_comment_timeout",
+      "value": "Sending your comment timed out. Please try again later."
+    },
+    {
+      "name": "tuilivekit_comment_send_rejected",
+      "value": "Your comment could not be sent. Please try again later."
+    },
+    {
+      "name": "tuilivekit_player_comment_send",
+      "value": "Send"
+    },
+    {
+      "name": "tuilivekit_player_coguest",
+      "value": "Co-guest"
+    },
+    {
+      "name": "tuilivekit_player_gift",
+      "value": "Send a gift"
+    },
+    {
+      "name": "tuilivekit_player_more",
+      "value": "More"
+    },
+    {
+      "name": "tuilivekit_player_like",
+      "value": "Like"
+    },
+    {
+      "name": "tuilivekit_player_online_audience",
+      "value": "Online audience"
+    },
+    {
+      "name": "tuilivekit_player_restore_controls",
+      "value": "Restore"
+    },
+    {
+      "name": "tuilivekit_player_restore_controls_accessibility",
+      "value": "Restore live room controls"
+    },
+    {
+      "name": "tuilivekit_player_playback_failed",
+      "value": "Playback failed"
+    },
+    {
+      "name": "tuilivekit_player_enter_room_hint",
+      "value": "Click to enter the live room"
+    },
+    {
+      "name": "tuilivekit_player_gift_title",
+      "value": "Send a gift"
+    },
+    {
+      "name": "tuilivekit_player_gift_loading",
+      "value": "Loading gifts…"
+    },
+    {
+      "name": "tuilivekit_player_gift_empty",
+      "value": "No gifts available"
+    },
+    {
+      "name": "tuilivekit_player_gift_coins",
+      "value": "%d coins"
+    },
+    {
+      "name": "tuilivekit_player_gift_send",
+      "value": "Send"
+    },
+    {
+      "name": "tuilivekit_player_gift_combo_hint",
+      "value": "Hold to combo"
+    },
+    {
+      "name": "tuilivekit_player_more_quality",
+      "value": "Quality"
+    },
+    {
+      "name": "tuilivekit_player_more_super_resolution",
+      "value": "Premium Quality"
+    },
+    {
+      "name": "tuilivekit_player_more_hdr",
+      "value": "HDR"
+    },
+    {
+      "name": "tuilivekit_player_more_volume_balance",
+      "value": "Volume Balance"
+    },
+    {
+      "name": "tuilivekit_player_more_sleep_timer",
+      "value": "Sleep Timer"
+    },
+    {
+      "name": "tuilivekit_player_coguest_voice",
+      "value": "Audio Co-guest"
+    },
+    {
+      "name": "tuilivekit_player_coguest_video",
+      "value": "Video Co-guest"
+    },
+    {
+      "name": "tuilivekit_player_coguest_cancel_application",
+      "value": "Cancel request"
+    },
+    {
+      "name": "tuilivekit_player_coguest_invitation",
+      "value": "The host invited you to co-guest"
+    },
+    {
+      "name": "tuilivekit_player_coguest_accept",
+      "value": "Accept"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_rejected",
+      "value": "The host declined your co-guest request"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_seat_full",
+      "value": "All co-guest seats are occupied"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_room_not_exist",
+      "value": "The live room does not exist or has been dismissed"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_not_room_member",
+      "value": "You are not a member of this live room"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_seat_locked",
+      "value": "This seat is locked. Try another seat"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_already_requesting",
+      "value": "You are already in the co-guest request queue"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_already_on_seat",
+      "value": "You are already on a seat"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_seat_occupied",
+      "value": "This seat is already taken"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_not_supported",
+      "value": "This live room does not support co-guest"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_apply_failed",
+      "value": "Failed to request co-guest"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_timeout",
+      "value": "The co-guest request timed out"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_already_seated",
+      "value": "You are already on a seat"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_kicked_off",
+      "value": "Removed from seat by host"
+    },
+    {
+      "name": "tuilivekit_player_coguest_error_ended",
+      "value": "The host ended the co-guest session"
+    },
+    {
+      "name": "tuilivekit_player_coguest_beauty_preparing",
+      "value": "Beauty is preparing"
+    },
+    {
+      "name": "tuilivekit_player_coguest_settings_title",
+      "value": "Adjust Co-guest Video"
+    },
+    {
+      "name": "tuilivekit_player_coguest_settings_subtitle",
+      "value": "Viewers see changes in real time"
+    },
+    {
+      "name": "tuilivekit_player_live_ended",
+      "value": "The live stream has ended"
+    },
+    {
+      "name": "tuilivekit_player_summary_next_live_hint",
+      "value": "See you next time"
+    },
+    {
+      "name": "tuilivekit_player_summary_swipe_more",
+      "value": "Swipe up to discover more hosts"
+    },
+    {
+      "name": "tuilivekit_pusher_default_title",
+      "value": "Welcome to my live stream"
+    },
+    {
+      "name": "tuilivekit_pusher_beauty",
+      "value": "Beauty"
+    },
+    {
+      "name": "tuilivekit_pusher_beautify",
+      "value": "Beauty"
+    },
+    {
+      "name": "tuilivekit_pusher_flip_camera",
+      "value": "Flip"
+    },
+    {
+      "name": "tuilivekit_pusher_mirror",
+      "value": "Mirror"
+    },
+    {
+      "name": "tuilivekit_pusher_audio_effects",
+      "value": "Audio effects"
+    },
+    {
+      "name": "tuilivekit_pusher_beauty_close",
+      "value": "Off"
+    },
+    {
+      "name": "tuilivekit_pusher_beauty_smooth",
+      "value": "Smooth"
+    },
+    {
+      "name": "tuilivekit_pusher_beauty_whiteness",
+      "value": "Whiten"
+    },
+    {
+      "name": "tuilivekit_pusher_beauty_ruddy",
+      "value": "Rosy"
+    },
+    {
+      "name": "tuilivekit_pusher_prepare_change_cover",
+      "value": "Change cover"
+    },
+    {
+      "name": "tuilivekit_pusher_prepare_cover_option",
+      "value": "Cover %d"
+    },
+    {
+      "name": "tuilivekit_pusher_prepare_edit_topic",
+      "value": "✎ Edit topic"
+    },
+    {
+      "name": "tuilivekit_pusher_prepare_start_live",
+      "value": "●  Go Live"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_more",
+      "value": "More settings"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_ear_monitor",
+      "value": "In-ear monitor"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_ear_monitor_volume",
+      "value": "Monitor volume"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_capture_volume",
+      "value": "Voice volume"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_audio",
+      "value": "Audio settings"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_voice_changer",
+      "value": "Voice changer"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_voice_original",
+      "value": "Original"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_voice_child",
+      "value": "Child"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_voice_loli",
+      "value": "Girl"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_voice_uncle",
+      "value": "Deep"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_voice_spirit",
+      "value": "Ethereal"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_reverb",
+      "value": "Reverb"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_reverb_none",
+      "value": "None"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_reverb_ktv",
+      "value": "Karaoke"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_reverb_metal",
+      "value": "Metallic"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_reverb_deep",
+      "value": "Deep"
+    },
+    {
+      "name": "tuilivekit_pusher_settings_reverb_bright",
+      "value": "Bright"
+    },
+    {
+      "name": "tuilivekit_pusher_living_coguest",
+      "value": "Co-guest"
+    },
+    {
+      "name": "tuilivekit_pusher_living_live_duration",
+      "value": "Live duration"
+    },
+    {
+      "name": "tuilivekit_pusher_living_network_poor",
+      "value": "Poor network"
+    },
+    {
+      "name": "tuilivekit_pusher_living_network_very_poor",
+      "value": "Very poor network"
+    },
+    {
+      "name": "tuilivekit_pusher_living_network_disconnected",
+      "value": "Network disconnected"
+    },
+    {
+      "name": "tuilivekit_pusher_living_like_count",
+      "value": "%d likes"
+    },
+    {
+      "name": "tuilivekit_pusher_living_new_messages",
+      "value": "%d new messages"
+    },
+    {
+      "name": "tuilivekit_pusher_living_pause",
+      "value": "Pause live"
+    },
+    {
+      "name": "tuilivekit_pusher_living_paused",
+      "value": "Video and audio paused"
+    },
+    {
+      "name": "tuilivekit_pusher_living_resume",
+      "value": "Resume live"
+    },
+    {
+      "name": "tuilivekit_pusher_living_mute",
+      "value": "Mute"
+    },
+    {
+      "name": "tuilivekit_pusher_living_unmute",
+      "value": "Unmute"
+    },
+    {
+      "name": "tuilivekit_pusher_living_basic_settings",
+      "value": "Basic settings"
+    },
+    {
+      "name": "tuilivekit_pusher_living_interaction",
+      "value": "Interaction"
+    },
+    {
+      "name": "tuilivekit_pusher_living_music",
+      "value": "Background music"
+    },
+    {
+      "name": "tuilivekit_pusher_living_comment",
+      "value": "Comments"
+    },
+    {
+      "name": "tuilivekit_pusher_living_audience_entered",
+      "value": "joined the live room"
+    },
+    {
+      "name": "tuilivekit_pusher_living_audience_count_compact",
+      "value": "%dK+"
+    },
+    {
+      "name": "tuilivekit_pusher_end_confirm",
+      "value": "End the live stream?"
+    },
+    {
+      "name": "tuilivekit_pusher_end_empty_audience",
+      "value": "More viewers are on the way. Keep streaming to reach more people."
+    },
+    {
+      "name": "tuilivekit_pusher_end_continue",
+      "value": "Keep streaming"
+    },
+    {
+      "name": "tuilivekit_pusher_end_end",
+      "value": "End"
+    },
+    {
+      "name": "tuilivekit_pusher_end_audience_count",
+      "value": "%d people are watching your live stream"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_connected",
+      "value": "Connected viewers"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_empty",
+      "value": "No viewers are participating"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_applicants",
+      "value": "Co-guest requests"
+    },
+    {
+      "name": "tuilivekit_player_coguest_apply",
+      "value": "Apply"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_candidates",
+      "value": "Invite viewers"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_end",
+      "value": "End"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_accept",
+      "value": "Accept"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_cancel_invitation",
+      "value": "Cancel invite"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_invite",
+      "value": "Invite"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_settings",
+      "value": "Co-guest settings"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_end_all",
+      "value": "End co-guest"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_layout",
+      "value": "Co-guest layout"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_invite_to_seat",
+      "value": "Invite a co-guest"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_layout_floating",
+      "value": "Floating window"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_layout_grid2",
+      "value": "Dynamic grid"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_layout_fixed",
+      "value": "Fixed window"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_layout_grid9",
+      "value": "9-person grid"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_capacity",
+      "value": "The current co-guest count exceeds this layout's capacity"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_too_frequent",
+      "value": "Too many requests. Please try again later."
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_unavailable",
+      "value": "Cannot switch to this layout right now."
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_failed",
+      "value": "Couldn't change the layout. Please try again later."
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_not_ready",
+      "value": "The service is not ready. Please try again later."
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_unsupported",
+      "value": "Layout changes are currently unavailable."
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_room_unsupported",
+      "value": "This live room does not support layout changes."
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_login_required",
+      "value": "Your session has expired. Please log in again."
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_network",
+      "value": "Network connection error. Check your connection and try again."
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_timeout",
+      "value": "The request timed out. Please try again later."
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_room_missing",
+      "value": "The live room does not exist or has ended."
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_layout_permission_denied",
+      "value": "You do not have permission to change the live layout."
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_error_max_capacity",
+      "value": "The current layout supports up to %d co-guests"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_gifts_received",
+      "value": "Gifts received"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_gift_value",
+      "value": "Gift value"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_viewers",
+      "value": "Viewers"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_comments",
+      "value": "Comments"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_gift_senders",
+      "value": "Gift senders"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_likes",
+      "value": "Likes"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_unit_items",
+      "value": "items"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_unit_people",
+      "value": "people"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_unit_times",
+      "value": "times"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_unit_coins",
+      "value": "coins"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_unit_messages",
+      "value": "msgs"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_session_data",
+      "value": "Session data"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_statistics",
+      "value": "Live statistics"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_ended",
+      "value": "Live stream ended"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_duration",
+      "value": "Live duration"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_paused_duration",
+      "value": "Paused duration"
+    },
+    {
+      "name": "tuilivekit_pusher_status_title",
+      "value": "Live status"
+    },
+    {
+      "name": "tuilivekit_pusher_status_realtime",
+      "value": "Live data"
+    },
+    {
+      "name": "tuilivekit_pusher_status_device",
+      "value": "Device status"
+    },
+    {
+      "name": "tuilivekit_pusher_status_cumulative",
+      "value": "Session total"
+    },
+    {
+      "name": "tuilivekit_pusher_status_metric_gift_score",
+      "value": "Gift score"
+    },
+    {
+      "name": "tuilivekit_pusher_status_metric_gift_senders",
+      "value": "Gift senders"
+    },
+    {
+      "name": "tuilivekit_pusher_status_metric_gifts",
+      "value": "Gifts"
+    },
+    {
+      "name": "tuilivekit_pusher_status_metric_online",
+      "value": "Online audience"
+    },
+    {
+      "name": "tuilivekit_pusher_status_metric_likes",
+      "value": "Likes"
+    },
+    {
+      "name": "tuilivekit_pusher_status_metric_messages",
+      "value": "Comments"
+    },
+    {
+      "name": "tuilivekit_pusher_status_unit_points",
+      "value": "pts"
+    },
+    {
+      "name": "tuilivekit_pusher_status_unit_people",
+      "value": "people"
+    },
+    {
+      "name": "tuilivekit_pusher_status_unit_times",
+      "value": "times"
+    },
+    {
+      "name": "tuilivekit_pusher_status_unit_count",
+      "value": "gifts"
+    },
+    {
+      "name": "tuilivekit_pusher_status_unit_messages",
+      "value": "msgs"
+    },
+    {
+      "name": "tuilivekit_pusher_status_updating",
+      "value": "Data updates in real time"
+    },
+    {
+      "name": "tuilivekit_pusher_status_update_detail",
+      "value": "Interaction data accumulates throughout this live stream"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_info",
+      "value": "Video info"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_info",
+      "value": "Audio info"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_fields",
+      "value": "Quality\nBitrate\nFrame rate"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_fields",
+      "value": "Sample rate\nBitrate"
+    },
+    {
+      "name": "tuilivekit_pusher_status_rtt",
+      "value": "Round-trip latency"
+    },
+    {
+      "name": "tuilivekit_pusher_status_down_loss",
+      "value": "Downlink packet loss"
+    },
+    {
+      "name": "tuilivekit_pusher_status_up_loss",
+      "value": "Uplink packet loss"
+    },
+    {
+      "name": "tuilivekit_pusher_status_voice_volume",
+      "value": "Voice volume"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_normal_title",
+      "value": "Video is normal"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_off_title",
+      "value": "Video is off"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_error_title",
+      "value": "Video issue detected"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_normal_detail",
+      "value": "The live video is smooth"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_off_detail",
+      "value": "The camera is off or permission was not granted"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_device_error_detail",
+      "value": "Check camera permission or whether another app is using it"
+    },
+    {
+      "name": "tuilivekit_pusher_status_video_stream_error_detail",
+      "value": "Frame rate or network status is abnormal"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_normal_title",
+      "value": "Audio is normal"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_off_title",
+      "value": "Audio is off"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_error_title",
+      "value": "Audio issue detected"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_normal_detail",
+      "value": "The volume is clear and balanced"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_off_detail",
+      "value": "The microphone is off, muted, or its capture volume is 0"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_device_error_detail",
+      "value": "Check microphone permission or whether another app is using it"
+    },
+    {
+      "name": "tuilivekit_pusher_status_audio_stream_error_detail",
+      "value": "Audio capture data is abnormal"
+    },
+    {
+      "name": "tuilivekit_pusher_status_temperature_normal_title",
+      "value": "Device temperature is normal"
+    },
+    {
+      "name": "tuilivekit_pusher_status_temperature_fair_title",
+      "value": "Device is slightly warm"
+    },
+    {
+      "name": "tuilivekit_pusher_status_temperature_serious_title",
+      "value": "Device is overheating"
+    },
+    {
+      "name": "tuilivekit_pusher_status_temperature_normal_detail",
+      "value": "The device is running normally"
+    },
+    {
+      "name": "tuilivekit_pusher_status_temperature_fair_detail",
+      "value": "The device temperature has risen; monitor its status"
+    },
+    {
+      "name": "tuilivekit_pusher_status_temperature_serious_detail",
+      "value": "Pause the live stream and let the device cool down"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_wifi",
+      "value": "Wi-Fi"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_cellular",
+      "value": "Cellular"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_unknown",
+      "value": "Current network"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_title",
+      "value": "%s · %s"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_excellent",
+      "value": "Excellent"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_good",
+      "value": "Good"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_poor",
+      "value": "Poor"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_bad",
+      "value": "Bad"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_very_bad",
+      "value": "Very poor"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_disconnected",
+      "value": "Disconnected"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_checking",
+      "value": "Checking"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_keep",
+      "value": "Keep the current network during the live stream"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_fluctuating",
+      "value": "The network is unstable; monitor the live video"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_switch",
+      "value": "The network is poor; switch to another network"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_disconnected_detail",
+      "value": "The network connection was lost"
+    },
+    {
+      "name": "tuilivekit_pusher_status_network_checking_detail",
+      "value": "Checking the current network status"
+    },
+    {
+      "name": "tuilivekit_pusher_music_happy",
+      "value": "Upbeat"
+    },
+    {
+      "name": "tuilivekit_pusher_music_sad",
+      "value": "Melancholy"
+    },
+    {
+      "name": "tuilivekit_pusher_music_wonder_world",
+      "value": "Wonder World"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_manage_user",
+      "value": "Manage · %s"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_mute_user",
+      "value": "Mute"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_unmute_user",
+      "value": "Unmute"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_disconnect_user",
+      "value": "Disconnect"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_follow",
+      "value": "Follow"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_following",
+      "value": "Following"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_gift_value",
+      "value": "Gift score %d"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_room_management",
+      "value": "ROOM MANAGEMENT"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_mute",
+      "value": "Mute"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_unmute",
+      "value": "Unmute"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_mute_description",
+      "value": "Disable live comments"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_unmute_description",
+      "value": "Allow live comments"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_remove",
+      "value": "Remove"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_remove_description",
+      "value": "Remove from this live room"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_muted_toast",
+      "value": "%s has been muted"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_unmuted_toast",
+      "value": "%s has been unmuted"
+    },
+    {
+      "name": "tuilivekit_pusher_audience_removed_toast",
+      "value": "%s has been removed"
+    },
+    {
+      "name": "tuilivekit_pusher_gift_sent",
+      "value": "Sent %s"
+    },
+    {
+      "name": "tuilivekit_common_gift_sent",
+      "value": "sent"
+    },
+    {
+      "name": "tuilivekit_pusher_gift_fallback",
+      "value": "G"
+    },
+    {
+      "name": "tuilivekit_player_coguest_microphone_locked",
+      "value": "The host has muted your microphone"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_microphone_manual_open",
+      "value": "The viewer must unmute their microphone"
+    },
+    {
+      "name": "tuilivekit_player_coguest_camera_locked",
+      "value": "The host has disabled your camera"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_microphone_closed",
+      "value": "Muted %s’s microphone"
+    },
+    {
+      "name": "tuilivekit_pusher_coguest_microphone_unlocked",
+      "value": "Unlocked %s’s microphone"
+    },
+    {
+      "name": "tuilivekit_player_coguest_microphone_unlocked",
+      "value": "The host has unlocked your microphone"
+    },
+    {
+      "name": "tuilivekit_pusher_error_start_failed",
+      "value": "Unable to start streaming"
+    },
+    {
+      "name": "tuilivekit_pusher_error_content_rejected",
+      "value": "Live information did not pass review. Please edit it and try again."
+    },
+    {
+      "name": "tuilivekit_pusher_error_update_failed",
+      "value": "Unable to update live information. Please try again later."
+    },
+    {
+      "name": "tuilivekit_pusher_error_operation_failed",
+      "value": "Operation failed. Please try again later."
+    },
+    {
+      "name": "tuilivekit_pusher_interruption_ended",
+      "value": "Live ended"
+    },
+    {
+      "name": "tuilivekit_pusher_interruption_server",
+      "value": "Live ended by the server"
+    },
+    {
+      "name": "tuilivekit_pusher_interruption_admin",
+      "value": "Removed by an administrator"
+    },
+    {
+      "name": "tuilivekit_pusher_interruption_other_device",
+      "value": "Signed in on another device"
+    },
+    {
+      "name": "tuilivekit_pusher_interruption_network",
+      "value": "Live ended after network disconnection"
+    },
+    {
+      "name": "tuilivekit_pusher_interruption_expired",
+      "value": "Live channel expired"
+    },
+    {
+      "name": "tuilivekit_pusher_interruption_account",
+      "value": "Account signed out. Live ended"
+    },
+    {
+      "name": "tuilivekit_player_interruption_removed",
+      "value": "You have been removed from this live room"
+    },
+    {
+      "name": "tuilivekit_player_interruption_other_device",
+      "value": "Your account was signed in on another device"
+    },
+    {
+      "name": "tuilivekit_player_interruption_server",
+      "value": "You have been removed from the live room by the server"
+    },
+    {
+      "name": "tuilivekit_player_interruption_network",
+      "value": "Disconnected from the live room due to a network issue"
+    },
+    {
+      "name": "tuilivekit_player_interruption_expired",
+      "value": "Your live room session has expired"
+    },
+    {
+      "name": "tuilivekit_pusher_ending",
+      "value": "Ending live stream…"
+    },
+    {
+      "name": "tuilivekit_pusher_error_mute_switch_failed",
+      "value": "Failed to switch microphone state. Please try again."
+    }
+  ]
+}

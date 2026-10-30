@@ -1,0 +1,10 @@
+{
+  "module": {
+    "name": "tuilivekit",
+    "type": "har",
+    "deviceTypes": [
+      "phone",
+      "tablet"
+    ]
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "string": [
+    {
+      "name": "livekit_access_brand",
+      "value": "腾讯云音视频"
+    },
+    {
+      "name": "livekit_access_user_id_placeholder",
+      "value": "请输入用户ID"
+    },
+    {
+      "name": "livekit_access_login",
+      "value": "Debug 登录"
+    },
+    {
+      "name": "livekit_access_user_id_required",
+      "value": "请输入用户ID"
+    },
+    {
+      "name": "livekit_access_login_kicked_offline",
+      "value": "当前账号已在其他设备登录"
+    },
+    {
+      "name": "livekit_access_login_expired",
+      "value": "登录票据已过期，请更新代码中的 UserSig"
+    },
+    {
+      "name": "livekit_access_login_state_changed",
+      "value": "登录状态发生变化，请检查登录配置"
+    },
+    {
+      "name": "livekit_access_login_missing_config",
+      "value": "请先填写 GenerateTestUserSig.swift 中的 SDKAPPID 和 SECRETKEY"
+    },
+    {
+      "name": "livekit_access_login_failed",
+      "value": "登录失败：%d %s"
+    },
+    {
+      "name": "livekit_access_login_set_self_info_failed",
+      "value": "设置用户资料失败：%d %s"
+    },
+    {
+      "name": "livekit_access_user_name_1",
+      "value": "马丁"
+    },
+    {
+      "name": "livekit_access_user_name_2",
+      "value": "伊尔凡"
+    },
+    {
+      "name": "livekit_access_user_name_3",
+      "value": "罗莎娜"
+    },
+    {
+      "name": "livekit_access_user_name_4",
+      "value": "富兰克林"
+    },
+    {
+      "name": "livekit_access_user_name_5",
+      "value": "玛琳"
+    },
+    {
+      "name": "livekit_access_title",
+      "value": "在线直播"
+    },
+    {
+      "name": "livekit_access_start_live",
+      "value": "开直播"
+    },
+    {
+      "name": "livekit_access_login_user_missing",
+      "value": "未获取到登录用户，请重新登录后开播"
+    },
+    {
+      "name": "livekit_access_ok",
+      "value": "好"
+    },
+    {
+      "name": "livekit_access_click_own_live_hint",
+      "value": "请点击开直播按钮去开播"
+    },
+    {
+      "name": "livekit_access_version",
+      "value": "APP 版本：%s"
+    },
+    {
+      "name": "livekit_access_logs_title",
+      "value": "分享日志"
+    },
+    {
+      "name": "livekit_access_logs_empty",
+      "value": "暂无可分享日志"
+    },
+    {
+      "name": "livekit_access_logs_read_failed",
+      "value": "读取日志失败，请关闭后重试"
+    },
+    {
+      "name": "livekit_access_logs_single",
+      "value": "单个文件"
+    },
+    {
+      "name": "livekit_access_logs_scope",
+      "value": "包含此 App 的 LiteAV 日志，不按直播间区分。点击文件可单独分享。"
+    },
+    {
+      "name": "livekit_access_logs_archive",
+      "value": "打包全部日志（ZIP）"
+    },
+    {
+      "name": "livekit_access_logs_count",
+      "value": "共 %d 个文件"
+    },
+    {
+      "name": "livekit_access_logs_failed",
+      "value": "日志分享失败"
+    },
+    {
+      "name": "livekit_access_logs_retry",
+      "value": "文件可能已轮转或存储空间不足，请刷新后重试。"
+    }
+  ]
+}

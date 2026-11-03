@@ -1,6 +1,7 @@
 import { abilityAccessCtrl, ApplicationStateChangeCallback, common, Permissions } from '@kit.AbilityKit'
 import { util } from '@kit.ArkTS'
 import { thermal } from '@kit.BasicServicesKit'
+import { window } from '@kit.ArkUI'
 import {
   AtomicPusher,
   CoGuestLayoutTemplate,
@@ -140,6 +141,10 @@ export struct PusherView {
   private isPreviewStarting: boolean = false
   private backgroundDevices?: BackgroundDevices
   private needsDeviceCleanup: boolean = false
+  private keepScreenRequested: boolean = false
+  private keepScreenWindow?: window.Window
+  private previousKeepScreenOn?: boolean
+  private keepScreenQueue: Promise<void> = Promise.resolve()
   private didReleaseSession: boolean = false
   private didRequestExit: boolean = false
   private isApplicationActive: boolean = true
@@ -201,6 +206,7 @@ export struct PusherView {
     living.onFlipCamera = () => this.switchCamera()
     living.settingsActionHandler = this.settingsActionHandler
     living.coGuestActionHandler = this.coGuestStore
+    living.coGuestGridRegions = () => this.videoController.coGuestGridRegions()
     living.coGuestSmallWindowRegions = () => this.videoController.coGuestSmallWindowRegions()
     this.videoController.onCoGuestGeometryChanged = () => living.updateCommentWidth()
     living.onCoGuestStageTap = (x: number, y: number) => {
@@ -240,6 +246,7 @@ export struct PusherView {
   }
 
   private render(): void {
+    this.updateKeepScreenOn()
     this.isBeautyPresented = false
     this.updateCoGuestPresentation()
     if (this.phase !== Phase.living) {
@@ -590,6 +597,7 @@ export struct PusherView {
     }
     if (state.networkState === PusherConnectState.CONNECTED && !this.hasConnected) {
       this.hasConnected = true
+      this.livingController.showSystemAnnouncement()
       const sessionID = this.pushSessionID
       this.seatStore?.setSeatMode(SeatMode.APPLY).catch((error: Error) => {
         if (this.pushSessionID === sessionID && this.phase === Phase.living && !this.isEndingLive &&
@@ -802,6 +810,7 @@ export struct PusherView {
       return
     }
     this.didReleaseSession = true
+    this.updateKeepScreenOn()
     this.backgroundDevices = undefined
     this.previewOperationID = undefined
     this.unmuteOperationID = undefined
@@ -896,14 +905,45 @@ export struct PusherView {
     }))
   }
 
+  private updateKeepScreenOn(): void {
+    this.keepScreenRequested = this.phase === Phase.living && this.isApplicationActive && !this.didReleaseSession
+    const context = getContext(this) as common.UIAbilityContext
+    // Serialize window writes and read the latest intent after each asynchronous lookup.
+    this.keepScreenQueue = this.keepScreenQueue.then(async () => {
+      if (this.keepScreenRequested) {
+        const target = this.keepScreenWindow ?? await window.getLastWindow(context)
+        if (!this.keepScreenRequested) {
+          return
+        }
+        if (this.previousKeepScreenOn === undefined) {
+          this.previousKeepScreenOn = target.getWindowProperties().isKeepScreenOn
+          this.keepScreenWindow = target
+        }
+        await target.setWindowKeepScreenOn(true)
+      } else {
+        const target = this.keepScreenWindow
+        const previous = this.previousKeepScreenOn
+        if (target !== undefined && previous !== undefined) {
+          await target.setWindowKeepScreenOn(previous)
+          this.keepScreenWindow = undefined
+          this.previousKeepScreenOn = undefined
+        }
+      }
+    }).catch((error: Error) => {
+      LiveKitLog.warn(`[PusherView] keep screen on failed: ${error.message}`)
+    })
+  }
+
   private subscribeCaptureLifecycle(): void {
     const callback: ApplicationStateChangeCallback = {
       onApplicationForeground: () => {
         this.isApplicationActive = true
+        this.updateKeepScreenOn()
         this.startPreviewIfNeeded()
       },
       onApplicationBackground: () => {
         this.isApplicationActive = false
+        this.updateKeepScreenOn()
         this.prepareDeactivateToken++
         this.suspendCapture()
       },

@@ -1,3 +1,4 @@
+import { RectShape } from '@kit.ArkUI'
 import { BusinessError } from '@kit.BasicServicesKit'
 import { image } from '@kit.ImageKit'
 import { LevelBadgeView } from '../theme/LevelBadgeView'
@@ -12,6 +13,23 @@ const maximumMessageCount: number = 100
 const bottomThreshold: number = 8
 const topFadeHeight: number = 22
 
+export class LiveInteractionLayout {
+  commentHeight: number
+  visibleCommentHeight: number
+  welcomeTop: number
+  giftNoticeBottom: number
+  constructor(topBoundary: number | undefined, bottom: number, contentHeight: number,
+    isWelcomeVisible: boolean, giftNoticeHeight: number, safeBottom: number) {
+    this.commentHeight = topBoundary === undefined ? 184 : Math.max(0, bottom - topBoundary)
+    const welcomeReservation = isWelcomeVisible ? 32 : 0
+    const giftReservation = giftNoticeHeight > 0 ? giftNoticeHeight + 4 : 0
+    this.visibleCommentHeight = topBoundary === undefined ? -1 : Math.max(0, bottom - topBoundary - welcomeReservation - giftReservation)
+    const used = Math.min(contentHeight, this.visibleCommentHeight < 0 ? this.commentHeight : this.visibleCommentHeight)
+    this.welcomeTop = bottom - used - 4 - 28
+    this.giftNoticeBottom = Math.min(safeBottom, bottom - 4) - used - welcomeReservation
+  }
+}
+
 export class Message {
   id: string
   userName: string
@@ -19,15 +37,17 @@ export class Message {
   level: number
   isHost: boolean
   gift?: LiveGiftBarrage
+  isSystemAnnouncement: boolean
 
   constructor(id: string, userName: string, content: string, level: number, isHost: boolean = false,
-    gift?: LiveGiftBarrage) {
+    gift?: LiveGiftBarrage, isSystemAnnouncement: boolean = false) {
     this.id = id
     this.userName = userName
     this.content = content
     this.level = level
     this.isHost = isHost
     this.gift = gift
+    this.isSystemAnnouncement = isSystemAnnouncement
   }
 }
 
@@ -35,7 +55,7 @@ export class LiveCommentRowStyle {
   static readonly background: string = LiveTheme.Color.control(0.34)
   static readonly fontSize: number = 13
   static readonly cornerRadius: number = 9
-  static readonly horizontalInset: number = 8
+  static readonly horizontalInset: number = 6
 
   static displayUserName(raw: string): string {
     const name = raw.split(/\r?\n/).join(' ')
@@ -99,7 +119,7 @@ class CommentBadgeCache {
 
 @Component
 struct CommentContentView {
-  message: Message = new Message('', '', '', 0)
+  @Prop @Watch('onMessageChanged') message: Message = new Message('', '', '', 0)
   cache: CommentBadgeCache = new CommentBadgeCache()
   @State private levelImage: image.PixelMap | undefined = undefined
   @State private hostImage: image.PixelMap | undefined = undefined
@@ -111,7 +131,7 @@ struct CommentContentView {
   levelBadgeSpan(width: number) {
     ImageSpan(this.levelImage ?? '')
       .width(width)
-      .height(15)
+      .height(18)
       .objectFit(ImageFit.Contain)
       .margin({ right: 4 })
       .verticalAlign(ImageSpanAlignment.CENTER)
@@ -120,31 +140,27 @@ struct CommentContentView {
   @Builder
   messageRow(message: Message, badgeWidth: number) {
     Text() {
-      this.levelBadgeSpan(badgeWidth)
-      if (message.isHost) {
-        ImageSpan(this.hostImage ?? '')
-          .width(29)
-          .height(15)
-          .objectFit(ImageFit.Contain)
-          .margin({ right: 4 })
-          .verticalAlign(ImageSpanAlignment.CENTER)
+      if (message.isSystemAnnouncement) {
+        Span(message.content).fontColor(LiveTheme.Color.nickname)
+      } else {
+        this.levelBadgeSpan(badgeWidth)
+        if (message.isHost) {
+          ImageSpan(this.hostImage ?? '').width(35).height(18).objectFit(ImageFit.Contain)
+            .margin({ right: 4 }).verticalAlign(ImageSpanAlignment.CENTER)
+        }
+        Span(`${LiveCommentRowStyle.displayUserName(message.userName)}：`).fontColor(LiveTheme.Color.nickname)
+        Span(displayContent(message.content)).fontColor(white(0.94))
       }
-      Span(`${LiveCommentRowStyle.displayUserName(message.userName)}：`)
-        .fontColor(LiveTheme.Color.nickname)
-      Span(displayContent(message.content))
-        .fontColor(white(0.94))
     }
     .fontSize(LiveCommentRowStyle.fontSize)
     .fontWeight(600)
-    .lineHeight(17)
     .wordBreak(WordBreak.BREAK_ALL)
     .padding({
-      left: 8,
-      right: 8,
-      top: 2,
-      bottom: 2
+      left: 6,
+      right: 6,
+      top: 3,
+      bottom: 3
     })
-    .constraintSize({ minHeight: 21 })
     .backgroundColor(LiveCommentRowStyle.background)
     .borderRadius(LiveCommentRowStyle.cornerRadius)
     .accessibilityText(`${message.userName}：${displayContent(message.content)}`)
@@ -174,15 +190,13 @@ struct CommentContentView {
     }
     .fontSize(LiveCommentRowStyle.fontSize)
     .fontWeight(600)
-    .lineHeight(22)
     .wordBreak(WordBreak.BREAK_ALL)
     .padding({
-      left: 8,
-      right: 8,
+      left: 6,
+      right: 6,
       top: 3,
       bottom: 3
     })
-    .constraintSize({ minHeight: 28 })
     .backgroundColor(LiveCommentRowStyle.background)
     .borderRadius(LiveCommentRowStyle.cornerRadius)
     .clip(true)
@@ -192,28 +206,37 @@ struct CommentContentView {
 
   @Builder
   levelBadgeImage(level: number) {
-    LevelBadgeView({ level: level, isInline: true })
-      .clip(true)
+    Stack() {
+      LevelBadgeView({ level: level, isInline: true }).scale({ x: 1.2, y: 1.2 })
+    }.width(LevelBadgeTier.width(level, this.getUIContext()) * 1.2).height(18)
   }
 
   @Builder
   hostBadgeImage() {
     Text(LiveKitResources.localizedString('tuilivekit.common.host'))
-      .fontSize(8.5)
+      .fontSize(10)
       .fontWeight(FontWeight.Bold)
       .fontColor(Color.White)
       .textAlign(TextAlign.Center)
-      .width(29)
-      .height(15)
-      .padding({ top: 2, bottom: 2 })
-      .borderRadius(7.5)
-      .borderWidth(0.5)
+      .width(35)
+      .height(18)
+      .borderRadius(9)
+      .borderWidth(this.getUIContext().px2vp(1))
       .borderColor(rgba(0.61, 0.93, 1, 0.49))
       .backgroundColor(rgba(0.196, 0.4, 0.643))
   }
 
+  private onMessageChanged(): void {
+    if (this.isMounted) this.loadBadges()
+  }
+
   aboutToAppear(): void {
     this.isMounted = true
+    this.loadBadges()
+  }
+
+  private loadBadges(): void {
+    if (this.message.isSystemAnnouncement) return
     const request = ++this.badgeRequest
     const level = this.message.gift?.senderLevel ?? this.message.level
     this.loadBadge(`level:${level}`, () => this.levelBadgeImage(level), false, request)
@@ -259,10 +282,10 @@ struct CommentContentView {
   build() {
     if (this.message.gift !== undefined) {
       this.giftBarrageRow(this.message.gift,
-        LevelBadgeTier.width(this.message.gift.senderLevel, this.getUIContext()))
+        LevelBadgeTier.width(this.message.gift.senderLevel, this.getUIContext()) * 1.2)
     } else {
       this.messageRow(this.message,
-        LevelBadgeTier.width(this.message.level, this.getUIContext()))
+        LevelBadgeTier.width(this.message.level, this.getUIContext()) * 1.2)
     }
   }
 }
@@ -271,11 +294,23 @@ struct CommentContentView {
 export struct BarrageStreamView {
   @Prop @Watch('onMessagesChanged') messages: Message[] = []
   onVisibleContentHeightChanged?: (height: number) => void
+  onContentHeightChanged?: (height: number) => void
+  @Prop @Watch('onViewportChanged') maximumVisibleHeight: number = -1
+  @State private viewportWidth: number = 0
+  private rowAreas: Map<string, Area> = new Map()
+  private readingID?: string
+  private readingDistance: number = 0
+  private layoutClipTop: number = 0
+  private layoutViewportHeight: number = 0
+  private lastContentHeight: number = -1
+  private pendingAnimation: boolean = false
+
   @State private rows: Message[] = []
   @State private unreadCount: number = 0
   @State private viewportHeight: number = 0
   private isFollowingLatest: boolean = true
   private isUserScrolling: boolean = false
+  private didUserScroll: boolean = false
   private scrollRequest: number = 0
   private scrollTasks: number[] = []
   private contentHeight: number = 0
@@ -307,7 +342,11 @@ export struct BarrageStreamView {
     }
     const wasEmpty = this.rows.length === 0
     const addedCount = this.numberOfNewMessages(this.rows, next)
-    const latestIsHost = next.length > 0 && next[next.length - 1].isHost
+    const latestIsHost = next.length > 0 && next[next.length - 1].isHost &&
+      !this.rows.some((m: Message) => m.id === next[next.length - 1].id)
+    this.captureReadingAnchor(next)
+    const ids = new Set(next.map((m: Message) => m.id))
+    this.rowAreas.forEach((_: Area, id: string) => { if (!ids.has(id)) this.rowAreas.delete(id) })
     this.rows = next
     if (wasEmpty || this.isFollowingLatest || latestIsHost) {
       this.isFollowingLatest = true
@@ -315,12 +354,18 @@ export struct BarrageStreamView {
       this.scheduleScrollToLatest(!wasEmpty)
     } else if (addedCount > 0) {
       this.unreadCount += addedCount
+      this.scheduleLayoutCommit()
+    } else {
+      this.scheduleLayoutCommit()
     }
   }
 
   prepareForReuse(): void {
     this.cancelScrollTasks()
     this.rows = []
+    this.rowAreas.clear()
+    this.readingID = undefined
+    this.lastContentHeight = -1
     this.unreadCount = 0
     this.isFollowingLatest = true
     this.isUserScrolling = false
@@ -329,36 +374,58 @@ export struct BarrageStreamView {
   }
 
   private numberOfNewMessages(previous: Message[], next: Message[]): number {
-    if (previous.length === 0) {
-      return 0
-    }
-    for (let overlap = Math.min(previous.length, next.length); overlap >= 1; overlap--) {
-      const tail = previous.slice(previous.length - overlap)
-      if (tail.every((message: Message, index: number) => message.id === next[index].id)) {
-        return next.length - overlap
-      }
-    }
-    return 0
+    const ids = new Set(previous.map((m: Message) => m.id))
+    return next.filter((m: Message) => !ids.has(m.id)).length
   }
 
+  private visibleHeight(): number {
+    return Math.min(this.viewportHeight, this.maximumVisibleHeight < 0 ? this.viewportHeight : this.maximumVisibleHeight)
+  }
+  private clipTop(): number { return Math.max(0, this.viewportHeight - this.visibleHeight()) }
+  private onViewportChanged(): void {
+    this.captureReadingAnchor(this.rows)
+    this.scheduleLayoutCommit()
+  }
+  private captureReadingAnchor(retained: Message[]): void {
+    if (this.isFollowingLatest) return
+    const offset = this.scroller.currentOffset().yOffset
+    const ids = new Set(retained.map((m: Message) => m.id))
+    const anchor = this.rows.find((m: Message) => {
+      const area = this.rowAreas.get(m.id)
+      return ids.has(m.id) && area !== undefined &&
+        (area.position.y as number) + (area.height as number) + topFadeHeight >= offset
+    })
+    this.readingID = anchor?.id
+    const area = anchor === undefined ? undefined : this.rowAreas.get(anchor.id)
+    this.readingDistance = area === undefined ? 0 :
+      this.layoutViewportHeight - ((area.position.y as number) + topFadeHeight + this.layoutClipTop - offset)
+  }
   private scheduleScrollToLatest(animated: boolean): void {
-    this.isUserScrolling = false
-    this.cancelScrollTasks()
+    this.pendingAnimation = animated
+    this.scheduleLayoutCommit()
+  }
+  private scheduleLayoutCommit(): void {
+    if (this.scrollTasks.length > 0) return
     const request = this.scrollRequest
     this.scrollTasks.push(setTimeout(() => {
-      if (this.scrollRequest === request && this.isFollowingLatest) {
-        this.scroller.scrollEdge(Edge.Bottom, { velocity: animated ? 1200 : 0 })
+      this.scrollTasks = []
+      if (request !== this.scrollRequest || this.isUserScrolling) return
+      if (this.isFollowingLatest) {
+        this.scroller.scrollEdge(Edge.Bottom, { velocity: this.pendingAnimation ? 1200 : 0 })
+      } else {
+        const area = this.readingID === undefined ? undefined : this.rowAreas.get(this.readingID)
+        const offset = area === undefined ? 0 :
+          (area.position.y as number) + topFadeHeight + this.clipTop() - this.viewportHeight + this.readingDistance
+        this.scroller.scrollTo({ xOffset: 0, yOffset: Math.max(0, offset) })
       }
+      this.layoutClipTop = this.clipTop()
+      this.layoutViewportHeight = this.viewportHeight
+      this.pendingAnimation = false
     }, 0))
-    this.scrollTasks.push(setTimeout(() => {
-      if (this.scrollRequest === request && this.isFollowingLatest) {
-        this.scroller.scrollEdge(Edge.Bottom)
-      }
-    }, 320))
   }
 
   private isNearBottom(): boolean {
-    return this.contentHeight - this.scroller.currentOffset().yOffset - this.viewportHeight <= bottomThreshold
+    return this.contentHeight + this.clipTop() - this.scroller.currentOffset().yOffset - this.viewportHeight <= bottomThreshold
   }
 
   private updateFollowingState(): void {
@@ -369,7 +436,12 @@ export struct BarrageStreamView {
   }
 
   private notifyVisibleContentHeightIfNeeded(): void {
-    const visibleContentHeight = Math.min(this.viewportHeight, Math.max(0, this.contentHeight - topFadeHeight))
+    const rawHeight = Math.max(0, this.contentHeight - topFadeHeight)
+    if (Math.abs(rawHeight - this.lastContentHeight) > 0.5) {
+      this.lastContentHeight = rawHeight
+      this.onContentHeightChanged?.(rawHeight)
+    }
+    const visibleContentHeight = Math.min(this.visibleHeight(), rawHeight)
     if (Math.abs(visibleContentHeight - this.lastVisibleContentHeight) <= 0.5) {
       return
     }
@@ -385,48 +457,53 @@ export struct BarrageStreamView {
             Column({ space: 2 }) {
               ForEach(this.rows, (message: Message) => {
                 CommentContentView({ message: message, cache: this.badgeCache })
-              }, (message: Message) => JSON.stringify(message))
+                  .onAreaChange((_: Area, area: Area) => { this.rowAreas.set(message.id, area); this.scheduleLayoutCommit() })
+              }, (message: Message) => message.id)
             }
             .width('100%')
             .alignItems(HorizontalAlign.Start)
             .onAreaChange((_: Area, area: Area) => {
               this.contentHeight = (area.height as number) + topFadeHeight
               this.notifyVisibleContentHeightIfNeeded()
-              if (this.isFollowingLatest && this.rows.length > 0) {
-                this.scheduleScrollToLatest(false)
-              }
+              this.scheduleLayoutCommit()
             })
           }
           .width('100%')
           .justifyContent(FlexAlign.End)
-          .padding({ top: topFadeHeight })
+          .padding({ top: topFadeHeight + this.clipTop() })
           .constraintSize({ minHeight: this.viewportHeight })
         }
         .scrollBar(BarState.Off)
-        .edgeEffect(EdgeEffect.Spring)
+        .edgeEffect(EdgeEffect.None)
         .width('100%')
         .height('100%')
-        .onScrollStart(() => {
-          this.scrollRequest += 1
-          this.isUserScrolling = true
+        .onTouch((event: TouchEvent) => {
+          if (event.type === TouchType.Down) { this.cancelScrollTasks(); this.isUserScrolling = true; this.didUserScroll = false }
+          if ((event.type === TouchType.Up || event.type === TouchType.Cancel) && !this.didUserScroll) {
+            this.isUserScrolling = false
+            this.scheduleLayoutCommit()
+          }
         })
         .onDidScroll(() => {
           if (this.isUserScrolling) {
+            this.didUserScroll = true
             this.updateFollowingState()
           }
         })
         .onScrollStop(() => {
-          this.updateFollowingState()
+          if (this.isUserScrolling) this.updateFollowingState()
           this.isUserScrolling = false
+          this.captureReadingAnchor(this.rows)
         })
 
         Column()
           .width('100%')
-          .height('100%')
+          .height(this.visibleHeight())
+          .position({ bottom: 0 })
           .linearGradient({
             angle: 180,
             colors: [['rgba(0,0,0,0)', 0],
-              ['rgba(0,0,0,1)', Math.min(0.5, topFadeHeight / Math.max(1, this.viewportHeight))],
+              ['rgba(0,0,0,1)', Math.min(0.5, topFadeHeight / Math.max(1, this.visibleHeight()))],
               ['rgba(0,0,0,1)', 1]],
           })
           .blendMode(BlendMode.DST_IN, BlendApplyType.OFFSCREEN)
@@ -435,7 +512,10 @@ export struct BarrageStreamView {
       .width('100%')
       .height('100%')
       .blendMode(BlendMode.SRC_OVER, BlendApplyType.OFFSCREEN)
+      .clipShape(new RectShape({ width: this.viewportWidth, height: this.visibleHeight() }).offset({ x: 0, y: this.clipTop() }))
       .onAreaChange((_: Area, area: Area) => {
+        this.captureReadingAnchor(this.rows)
+        this.viewportWidth = area.width as number
         this.viewportHeight = area.height as number
         this.notifyVisibleContentHeightIfNeeded()
         if (this.isFollowingLatest && this.rows.length > 0) {

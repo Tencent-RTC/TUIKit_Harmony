@@ -398,7 +398,7 @@
     },
     {
       "name": "tuilivekit_pusher_prepare_edit_topic",
-      "value": "✎ 修改主题"
+      "value": "修改主题"
     },
     {
       "name": "tuilivekit_pusher_prepare_start_live",
@@ -1179,6 +1179,58 @@
     {
       "name": "tuilivekit_pusher_error_mute_switch_failed",
       "value": "切换失败，请重试"
+    },
+    {
+      "name": "tuilivekit_pusher_system_announcement",
+      "value": "本平台提倡绿色健康直播，请主播自觉规范直播内容与互动行为。严禁在平台内外诱导未成年人送礼打赏，严禁诈骗、赌博、非法转移财产、低俗色情、吸烟酗酒、人身伤害等不当行为。请尊重他人合法权益，保护个人隐私，共同维护文明、健康、有序的直播环境。"
+    },
+    {
+      "name": "tuilivekit_player_system_announcement",
+      "value": "欢迎来到直播间！请文明互动、理性消费，未成年人请勿开播或参与礼物消费。严禁违法违规、低俗色情、吸烟酗酒、人身伤害等直播内容。请量力送礼，谨慎辨别消费引导，不轻信夸大承诺。切勿私下交易、泄露个人隐私或向陌生人转账，谨防网络诈骗，共同维护健康、有序的直播环境。"
+    },
+    {
+      "name": "tuilivekit_pusher_living_pk",
+      "value": "PK"
+    },
+    {
+      "name": "tuilivekit_pusher_living_pk_developing",
+      "value": "PK功能正在开发中"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_back",
+      "value": "返回"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_interaction_data",
+      "value": "互动数据"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_time_details",
+      "value": "%1$s – %2$s  ·  %3$s"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_total_duration",
+      "value": "共%1$s"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_pause_details",
+      "value": "累计暂停 %1$s"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_metric_with_unit",
+      "value": "%1$s（%2$s）"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_duration_hours",
+      "value": "%1$d小时"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_duration_minutes",
+      "value": "%1$d分"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_duration_seconds",
+      "value": "%1$d秒"
     }
   ]
 }

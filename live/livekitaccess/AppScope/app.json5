@@ -1,6 +1,6 @@
 {
   "app": {
-    "bundleName": "com.livekit.demo",
+    "bundleName": "com.trtc.uikit.example.db",
     "vendor": "example",
     "versionCode": 1000000,
     "versionName": "1.0.0",

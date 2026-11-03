@@ -57,6 +57,7 @@ export class PlayerViewImplController {
   isPreviewEnabled: boolean = true
   private entranceEnabled: boolean = true
   private readonly player: AtomicPlayer = new AtomicPlayer()
+  private readonly playerListener: PlayerListener = new PlayerListener()
   private readonly statusListeners: Set<(status: PlayerStatus) => void> = new Set()
   private activeToast?: LiveToast
   private isJoinedChannel: boolean = false
@@ -75,17 +76,6 @@ export class PlayerViewImplController {
   private isAttached: boolean = false
   private isAppActive: boolean = true
   private applicationStateCallback?: ApplicationStateChangeCallback
-
-  constructor() {
-    this.overlayView.onToast = (message: string) => {
-      if (this.isJoinedChannel) {
-        this.showToast(message)
-      }
-    }
-    this.overlayView.onCoGuestUiStateChanged = (state: CoGuestStatus) => this.handleCoGuestUiState(state)
-    this.player.addListener(new PlayerListener(undefined, undefined, (reason: EndedReason) => this.handleLiveEnded(),
-      (reason: KickedOutReason, message: string) => this.handleKickedOut(reason)))
-  }
 
   get joinLiveEntranceEnabled(): boolean {
     return this.entranceEnabled
@@ -106,7 +96,21 @@ export class PlayerViewImplController {
   }
 
   attach(): void {
+    this.overlayView.videoSeatRegions = () => this.videoView.unitAdapter.seatRegions()
+    this.videoView.unitAdapter.onGeometryChanged = () => this.overlayView.updateInteractionLayout()
+    if (this.isAttached) {
+      return
+    }
     this.isAttached = true
+    this.overlayView.onToast = (message: string) => {
+      if (this.isJoinedChannel) {
+        this.showToast(message)
+      }
+    }
+    this.overlayView.onCoGuestUiStateChanged = (state: CoGuestStatus) => this.handleCoGuestUiState(state)
+    this.playerListener.liveEnded = (reason: EndedReason) => this.handleLiveEnded()
+    this.playerListener.kickedOut = (reason: KickedOutReason, message: string) => this.handleKickedOut(reason)
+    this.player.addListener(this.playerListener)
     const callback: ApplicationStateChangeCallback = {
       onApplicationForeground: () => {
         this.isAppActive = true
@@ -125,7 +129,15 @@ export class PlayerViewImplController {
   }
 
   detach(): void {
+    this.overlayView.videoSeatRegions = undefined
+    this.videoView.unitAdapter.onGeometryChanged = undefined
+    this.videoView.unitAdapter.clearGeometry()
     this.isAttached = false
+    this.player.removeListener(this.playerListener)
+    this.playerListener.liveEnded = undefined
+    this.playerListener.kickedOut = undefined
+    this.overlayView.onToast = undefined
+    this.overlayView.onCoGuestUiStateChanged = undefined
     if (this.applicationStateCallback !== undefined) {
       getContext().getApplicationContext().off('applicationStateChange', this.applicationStateCallback)
       this.applicationStateCallback = undefined

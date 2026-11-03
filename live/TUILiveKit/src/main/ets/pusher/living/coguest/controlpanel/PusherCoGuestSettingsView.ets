@@ -63,7 +63,10 @@ export struct PusherCoGuestSettingsView {
   }
 
   private sheetHeight(): number {
-    const sections: UserRow[][] = [this.connectedRows()]
+    const sections: UserRow[][] = []
+    if (this.state.connected.length > 0) {
+      sections.push(this.connectedRows())
+    }
     if (this.applicantRows().length > 0) {
       sections.push(this.applicantRows())
     }
@@ -78,6 +81,9 @@ export struct PusherCoGuestSettingsView {
   }
 
   private titleInset(): number {
+    if (this.state.connected.length === 0) {
+      return 16
+    }
     const width = measure.measureText({
       textContent: LiveKitResources.localizedString('tuilivekit.pusher.coguest.end_all'),
       fontSize: LiveTheme.Typography.size(LiveTheme.TextRole.action)
@@ -175,13 +181,15 @@ export struct PusherCoGuestSettingsView {
                   .overlay(this.groupHighlight(), { align: Alignment.Top })
               }
 
-              PusherCoGuestUserSectionView({
-                sectionTitle: LiveKitResources.localizedString('tuilivekit.pusher.coguest.connected'),
-                emptyText: LiveKitResources.localizedString('tuilivekit.pusher.coguest.empty'),
-                showsCount: true,
-                rows: this.connectedRows(),
-                onAction: (userID: string) => this.actionHandler?.disconnect(userID),
-              })
+              if (this.state.connected.length > 0) {
+                PusherCoGuestUserSectionView({
+                  sectionTitle: LiveKitResources.localizedString('tuilivekit.pusher.coguest.connected'),
+                  emptyText: LiveKitResources.localizedString('tuilivekit.pusher.coguest.empty'),
+                  showsCount: true,
+                  rows: this.connectedRows(),
+                  onAction: (userID: string) => this.actionHandler?.disconnect(userID),
+                })
+              }
               if (this.applicantRows().length > 0) {
                 PusherCoGuestUserSectionView({
                   sectionTitle: LiveKitResources.localizedString('tuilivekit.pusher.coguest.applicants'),

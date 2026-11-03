@@ -4,6 +4,8 @@ import { LiveTheme, rgba, white } from '../../theme/LiveTheme'
 import { GiftDisplayItem } from './GiftDisplayView'
 
 const maximumChannelCount: number = 2
+const displayDuration: number = 2000
+const leavingDuration: number = 320
 let entrySeed: number = 0
 
 @Observed
@@ -19,6 +21,7 @@ class Entry {
   countHighlighted: boolean = false
   expiration: number = -1
   startTask: number = -1
+  finishTask: number = -1
 
   constructor(gift: GiftDisplayItem, count: number) {
     this.key = gift.comboKey
@@ -42,6 +45,7 @@ class PendingEntry {
 @Observed
 export class GiftNoticeController {
   activeEntries: Entry[] = []
+  onContentHeightChanged?: () => void
   uiContext?: UIContext
   width: number = 0
   private queue: PendingEntry[] = []
@@ -82,8 +86,10 @@ export class GiftNoticeController {
     this.activeEntries.forEach((entry: Entry) => {
       clearTimeout(entry.expiration)
       clearTimeout(entry.startTask)
+      clearTimeout(entry.finishTask)
     })
     this.activeEntries = []
+    this.onContentHeightChanged?.()
     this.queue = []
   }
 
@@ -100,6 +106,9 @@ export class GiftNoticeController {
     const entry = new Entry(pending.gift, pending.count)
     entry.offsetX = -(this.width + 12)
     this.activeEntries = this.activeEntries.concat([entry])
+    // Channel lifetime belongs to the queue, independent of layout and animation callbacks.
+    this.scheduleExpiration(entry)
+    this.onContentHeightChanged?.()
   }
 
   start(entry: Entry): void {
@@ -107,13 +116,12 @@ export class GiftNoticeController {
       return
     }
     entry.startTask = setTimeout(() => {
-      if (!this.activeEntries.includes(entry)) {
+      if (!this.activeEntries.includes(entry) || entry.isLeaving) {
         return
       }
       this.animate(260, Curve.EaseOut, () => entry.opacity = 1)
       this.animate(520, curves.cubicBezierCurve(0.16, 0.82, 0.22, 1), () => entry.offsetX = 0)
     }, 0)
-    this.scheduleExpiration(entry)
   }
 
   private bumpCount(entry: Entry): void {
@@ -137,7 +145,7 @@ export class GiftNoticeController {
       if (this.generation === generation) {
         this.dismiss(entry)
       }
-    }, 2000)
+    }, displayDuration)
   }
 
   private dismiss(entry: Entry): void {
@@ -146,10 +154,12 @@ export class GiftNoticeController {
     }
     entry.isLeaving = true
     entry.expiration = -1
-    this.animate(320, Curve.EaseIn, () => {
+    clearTimeout(entry.startTask)
+    this.animate(leavingDuration, Curve.EaseIn, () => {
       entry.opacity = 0
       entry.offsetX = -24
-    }, () => this.finish(entry))
+    })
+    entry.finishTask = setTimeout(() => this.finish(entry), leavingDuration)
   }
 
   private finish(entry: Entry): void {
@@ -158,7 +168,9 @@ export class GiftNoticeController {
     }
     clearTimeout(entry.expiration)
     clearTimeout(entry.startTask)
+    clearTimeout(entry.finishTask)
     this.activeEntries = this.activeEntries.filter((item: Entry) => item !== entry)
+    this.onContentHeightChanged?.()
     const next = this.queue.shift()
     if (next !== undefined) {
       this.activate(next)
@@ -255,7 +267,7 @@ struct GiftNoticeItemView {
     .height(44)
     .opacity(this.entry.opacity)
     .translate({ x: this.entry.offsetX })
-    .onAreaChange(() => this.onReady?.())
+    .onAppear(() => this.onReady?.())
   }
 }
 

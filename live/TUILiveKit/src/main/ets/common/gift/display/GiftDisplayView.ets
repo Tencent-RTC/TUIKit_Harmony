@@ -1,3 +1,4 @@
+import { RectShape } from '@kit.ArkUI'
 import { ApplicationStateChangeCallback } from '@kit.AbilityKit'
 import { util } from '@kit.ArkTS'
 import { Gift, GiftListener, GiftStore, LiveUserInfo } from '@tencentcloud/atomicxcore'
@@ -8,7 +9,6 @@ import { GiftNoticeController, GiftNoticeView } from './GiftNoticeView'
 const channelHeight: number = 44
 const channelSpacing: number = 4
 const defaultToolbarAndMessageOffset: number = 86
-const welcomeReservedHeight: number = 32
 
 export class GiftDisplayItem {
   giftID: string
@@ -66,13 +66,14 @@ class LocalGiftReservation {
 
 @Observed
 export class GiftDisplayController {
-  noticeBottomOffset: number = defaultToolbarAndMessageOffset
+  onNoticeContentHeightChanged?: () => void
+  get noticeContentHeight(): number {
+    const count = this.noticeController.activeEntries.length
+    return count === 0 ? 0 : count * 44 + (count - 1) * 4
+  }
   readonly noticeController: GiftNoticeController = new GiftNoticeController()
   readonly animationController: GiftAnimationController = new GiftAnimationController()
   private liveID: string
-  private messageContentHeight: number = 0
-  private toolbarAndMessageOffset: number = defaultToolbarAndMessageOffset
-  private isAudienceWelcomeVisible: boolean = false
   private giftStore?: GiftStore
   private giftListener?: GiftListener
   private activatedLiveID?: string
@@ -81,12 +82,12 @@ export class GiftDisplayController {
   private isInBackground: boolean = false
   private isActive: boolean = true
   private isAttached: boolean = false
-  private giftPanelHeightAboveSafeArea?: number
   private localGiftReservations: LocalGiftReservation[] = []
   private applicationStateCallback?: ApplicationStateChangeCallback
 
   constructor(liveID: string) {
     this.liveID = liveID
+    this.noticeController.onContentHeightChanged = () => this.onNoticeContentHeightChanged?.()
   }
 
   attach(): void {
@@ -169,29 +170,6 @@ export class GiftDisplayController {
     this.localGiftReservations = this.localGiftReservations.filter((item: LocalGiftReservation) => item.id !== id)
   }
 
-  updateMessageContentHeight(height: number): void {
-    this.messageContentHeight = Math.max(0, height)
-    this.updateNoticeBottomConstraint()
-  }
-
-  updateToolbarAndMessageOffset(offset: number): void {
-    this.toolbarAndMessageOffset = Math.max(0, offset)
-    this.updateNoticeBottomConstraint()
-  }
-
-  updateAudienceWelcomeVisible(isVisible: boolean): void {
-    if (this.isAudienceWelcomeVisible === isVisible) {
-      return
-    }
-    this.isAudienceWelcomeVisible = isVisible
-    this.updateNoticeBottomConstraint()
-  }
-
-  updateGiftPanelHeightAboveSafeArea(height: number | undefined): void {
-    this.giftPanelHeightAboveSafeArea = height === undefined ? undefined : Math.max(0, height)
-    this.updateNoticeBottomConstraint()
-  }
-
   resetNotices(): void {
     this.noticeController.reset()
   }
@@ -245,15 +223,6 @@ export class GiftDisplayController {
     visibleCounts.forEach((visibleCount: number) => this.show(receivedGift.copy(visibleCount)))
   }
 
-  private updateNoticeBottomConstraint(): void {
-    if (this.giftPanelHeightAboveSafeArea !== undefined) {
-      this.noticeBottomOffset = this.giftPanelHeightAboveSafeArea
-      return
-    }
-    this.noticeBottomOffset = this.toolbarAndMessageOffset + this.messageContentHeight +
-      (this.isAudienceWelcomeVisible ? welcomeReservedHeight : 0)
-  }
-
   private consumeLocalGiftReservations(comboKey: string, count: number): number[] {
     let unconsumedCount = count
     const visibleCounts: number[] = []
@@ -287,6 +256,16 @@ export class GiftDisplayController {
 export struct GiftDisplayView {
   @ObjectLink controller: GiftDisplayController
   @Prop safeAreaBottom: number = 0
+  @Prop noticeBottom: number = -1
+  @Prop noticeTopBoundary: number = -1
+  @State private hostHeight: number = 0
+  @State private hostWidth: number = 0
+  private clipTop(): number {
+    return this.noticeTopBoundary < 0 ? 0 : Math.max(0, this.noticeTopBoundary - (this.hostHeight - this.resolvedBottom() - 92))
+  }
+  private resolvedBottom(): number {
+    return this.noticeBottom < 0 ? this.safeAreaBottom + defaultToolbarAndMessageOffset : this.noticeBottom
+  }
 
   aboutToAppear(): void {
     this.controller.attach()
@@ -301,11 +280,13 @@ export struct GiftDisplayView {
       GiftNoticeView({ controller: this.controller.noticeController })
         .height(channelHeight * 2 + channelSpacing)
         .padding({ left: 12, right: 12 })
-        .margin({ bottom: this.safeAreaBottom + this.controller.noticeBottomOffset })
+        .clipShape(new RectShape({ width: this.hostWidth, height: Math.max(0, 92 - this.clipTop()) }).offset({ x: 0, y: this.clipTop() }))
+        .margin({ bottom: this.resolvedBottom() })
       GiftAnimationView({ controller: this.controller.animationController })
     }
     .width('100%')
     .height('100%')
     .hitTestBehavior(HitTestMode.None)
+    .onAreaChange((_: Area, area: Area) => { this.hostHeight = area.height as number; this.hostWidth = area.width as number })
   }
 }

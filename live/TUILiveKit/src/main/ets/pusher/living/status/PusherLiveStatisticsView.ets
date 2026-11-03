@@ -101,31 +101,30 @@ export struct PusherLiveStatisticsView {
       .borderColor(PusherLiveStatusContentStyle.cardBorder)
       .backgroundColor(PusherLiveStatusContentStyle.cardBackground)
 
-      Row({ space: 12 }) {
-        Image(LiveKitResources.image('livekit_status_realtime')).width(34).height(34).objectFit(ImageFit.Contain)
+      Stack({ alignContent: Alignment.Start }) {
+        Image(LiveKitResources.image('livekit_status_realtime'))
+          .width(34).height(34).objectFit(ImageFit.Contain)
+          .margin({ left: 15 })
         Column({ space: 5 }) {
           Text(LiveKitResources.localizedString('tuilivekit.pusher.status.updating'))
-            .attributeModifier(new LiveText(LiveTheme.TextRole.action, LiveTheme.TextTone.secondary))
-            .height(18)
+            .fontSize(13).fontWeight(600).fontColor(white(0.82))
+            .constraintSize({ minHeight: 18 })
+            .width('100%').padding({ right: 83 })
           Text(LiveKitResources.localizedString('tuilivekit.pusher.status.update_detail'))
-            .attributeModifier(new LiveText(LiveTheme.TextRole.control, LiveTheme.TextTone.disabled))
+            .fontSize(11).fontColor(white(0.38))
+            .constraintSize({ minHeight: 15 })
+            .width('100%').padding({ right: 43 })
         }
         .alignItems(HorizontalAlign.Start)
-        .layoutWeight(1)
+        .width('100%')
+        .padding({ left: 61, top: 13, bottom: 13 })
       }
-      .alignItems(VerticalAlign.Center)
       .width('100%')
       .constraintSize({ minHeight: 64 })
-      .padding({
-        left: 15,
-        right: 15,
-        top: 13,
-        bottom: 13
-      })
       .borderRadius(15)
       .borderWidth(1)
-      .borderColor(PusherLiveStatusContentStyle.cardBorder)
-      .backgroundColor(PusherLiveStatusContentStyle.cardBackground)
+      .borderColor(white(0.07))
+      .backgroundColor(Color.Transparent)
     }
     .width('100%')
     .padding({ left: 18, right: 18 })

@@ -5,6 +5,9 @@ import { PlayerStatus } from '../PlayerView'
 
 @Observed
 export class UnitViewState extends LiveSeatState {
+  frame?: Area
+  get liveID(): string { return this.currentUnitInfo.liveID }
+  get index(): number { return this.currentUnitInfo.index }
   private liveInfo?: LiveInfo
   private currentUnitInfo: UnitInfo
   private currentStatus: PlayerStatus

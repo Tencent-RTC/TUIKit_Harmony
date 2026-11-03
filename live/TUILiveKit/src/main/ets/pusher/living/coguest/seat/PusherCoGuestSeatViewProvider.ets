@@ -164,6 +164,12 @@ export class PusherCoGuestSeatViewProvider extends AtomicLiveViewChangeAdapter {
       !unit.isHidden && this.contains(unit.frame, x, y))?.unitInfo.userID
   }
 
+  gridRegions(): Area[] {
+    if (!this.isLiving || this.usesSmallWindows) return []
+    return Array.from(this.units.values()).filter((unit: PusherCoGuestUnitState) => !unit.isHidden && unit.frame !== undefined)
+      .map((unit: PusherCoGuestUnitState) => unit.frame!)
+  }
+
   smallWindowRegions(): Area[] {
     if (!this.isLiving || !this.usesSmallWindows) {
       return []

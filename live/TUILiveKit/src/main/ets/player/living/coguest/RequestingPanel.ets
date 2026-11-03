@@ -26,7 +26,7 @@ export function applyForSeat(controller: CoGuestIconController, requestVideo: bo
   controller.openCameraAfterAccept = requestVideo
   const extraInfo = requestVideo ? '{"mediaType":"video"}' : '{"mediaType":"audio"}'
   CoGuestStore.create(liveID).applyForSeat(-1, 0, extraInfo).catch((error: Error) => {
-    controller.openCameraAfterAccept = true
+    controller.openCameraAfterAccept = false
     const code = LiveKitErrorText.code(error)
     LiveKitLog.error(`[PlayerCoGuest] applyForSeat failed: code=${code}, message=${error.message}`)
     LiveToast.show(LiveKitResources.localizedString(applyErrorMessageKeys.get(code) ??
@@ -55,7 +55,7 @@ export struct RequestingPanel {
     if (this.controller.uiState !== CoGuestStatus.requesting || liveID.length === 0) {
       return
     }
-    CoGuestStore.create(liveID).cancelApplication().then(() => this.controller.openCameraAfterAccept = true).catch(() => {
+    CoGuestStore.create(liveID).cancelApplication().then(() => this.controller.openCameraAfterAccept = false).catch(() => {
     })
     this.controller.updateUiState(CoGuestStatus.idle)
   }

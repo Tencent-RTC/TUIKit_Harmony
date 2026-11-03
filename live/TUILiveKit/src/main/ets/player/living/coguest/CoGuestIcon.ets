@@ -24,7 +24,7 @@ export enum CoGuestStatus {
 @Observed
 export class CoGuestIconController {
   uiState: CoGuestStatus = CoGuestStatus.idle
-  openCameraAfterAccept: boolean = true
+  openCameraAfterAccept: boolean = false
   onUiStateChanged?: (state: CoGuestStatus) => void
   liveInfo?: LiveInfo
   isApplyPanelPresented: boolean = false
@@ -81,7 +81,7 @@ export class CoGuestIconController {
     this.connected = []
     this.liveInfo = undefined
     this.updateUiState(CoGuestStatus.idle)
-    this.openCameraAfterAccept = true
+    this.openCameraAfterAccept = false
     dismissAllBottomSheets()
     DeviceStore.shared().closeLocalMicrophone()
     DeviceStore.shared().closeLocalCamera()
@@ -122,7 +122,7 @@ export class CoGuestIconController {
     listener.onGuestApplicationNoResponse = (reason: NoResponseReason) => {
       LiveToast.show(LiveKitResources.localizedString(reason === NoResponseReason.ALREADY_SEATED ?
         'tuilivekit.player.coguest.error.already_seated' : 'tuilivekit.player.coguest.error.timeout'))
-      this.openCameraAfterAccept = true
+      this.openCameraAfterAccept = false
       this.updateUiState(CoGuestStatus.idle)
     }
     listener.onKickedOffSeat = (seatIndex: number, hostUser: LiveUserInfo) => {
@@ -161,7 +161,7 @@ export class CoGuestIconController {
   private handleApplicationResponded(isAccept: boolean): void {
     if (!isAccept) {
       LiveToast.show(LiveKitResources.localizedString('tuilivekit.player.coguest.error.rejected'))
-      this.openCameraAfterAccept = true
+      this.openCameraAfterAccept = false
       this.updateUiState(CoGuestStatus.idle)
       return
     }
@@ -193,7 +193,7 @@ export class CoGuestIconController {
 
   private applyUiState(state: CoGuestStatus): void {
     if (state === CoGuestStatus.idle) {
-      this.openCameraAfterAccept = true
+      this.openCameraAfterAccept = false
     }
     if (state !== CoGuestStatus.coGuesting) {
       this.isConnectedPanelPresented = false

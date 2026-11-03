@@ -398,7 +398,7 @@
     },
     {
       "name": "tuilivekit_pusher_prepare_edit_topic",
-      "value": "✎ Edit topic"
+      "value": "Edit topic"
     },
     {
       "name": "tuilivekit_pusher_prepare_start_live",
@@ -1179,6 +1179,58 @@
     {
       "name": "tuilivekit_pusher_error_mute_switch_failed",
       "value": "Failed to switch microphone state. Please try again."
+    },
+    {
+      "name": "tuilivekit_pusher_system_announcement",
+      "value": "This platform promotes safe, healthy live streaming. Hosts are expected to maintain appropriate content and interactions. Inducing minors to send gifts or tips, fraud, gambling, illegal asset transfers, vulgar or pornographic content, smoking, excessive drinking, acts that cause physical harm, and other inappropriate conduct are strictly prohibited on and off the platform. Please respect the rights of others, protect personal privacy, and help maintain a respectful, safe, and orderly live streaming community."
+    },
+    {
+      "name": "tuilivekit_player_system_announcement",
+      "value": "Welcome to the live stream! Please interact respectfully and spend responsibly. Minors should not host live streams or spend money on gifts. Illegal or prohibited content, vulgar or pornographic content, smoking, excessive drinking, and acts that cause physical harm are strictly prohibited. Send gifts within your means, carefully consider any encouragement to spend, and do not trust exaggerated promises. Avoid private transactions, sharing personal information, or transferring money to strangers. Stay alert to online scams and help keep the live streaming community safe and orderly."
+    },
+    {
+      "name": "tuilivekit_pusher_living_pk",
+      "value": "PK"
+    },
+    {
+      "name": "tuilivekit_pusher_living_pk_developing",
+      "value": "The PK feature is under development"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_back",
+      "value": "Back"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_interaction_data",
+      "value": "Interactions"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_time_details",
+      "value": "%1$s – %2$s  ·  %3$s"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_total_duration",
+      "value": "Total %1$s"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_pause_details",
+      "value": "Paused %1$s"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_metric_with_unit",
+      "value": "%1$s (%2$s)"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_duration_hours",
+      "value": "%1$dh"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_duration_minutes",
+      "value": "%1$dm"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_duration_seconds",
+      "value": "%1$ds"
     }
   ]
 }

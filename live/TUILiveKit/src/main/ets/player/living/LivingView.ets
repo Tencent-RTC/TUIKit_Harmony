@@ -1,8 +1,9 @@
+import { RectShape } from '@kit.ArkUI'
 import { LiveInfo, LoginStore, UserProfile } from '@tencentcloud/atomicxcore'
 import { AudienceWelcome, AudienceWelcomeView } from '../../common/audience/AudienceWelcomeView'
 import { BarrageInputView } from '../../common/barrage/BarrageInputView'
 import { BarrageUIState, BarrageUIStore, Comment } from '../../common/barrage/BarrageStore'
-import { BarrageStreamView, defaultWidthRatio, Message } from '../../common/barrage/BarrageStreamView'
+import { BarrageStreamView, defaultWidthRatio, LiveInteractionLayout, Message } from '../../common/barrage/BarrageStreamView'
 import { GiftDisplayController, GiftDisplayItem, GiftDisplayView } from '../../common/gift/display/GiftDisplayView'
 import { GiftBarrageStore, LiveGiftBarrage } from '../../common/gift/GiftBarrageStore'
 import { GiftSendComboButton } from '../../common/gift/send/GiftSendComboButton'
@@ -24,9 +25,7 @@ import { HostInfoView } from './hostinfo/HostInfoView'
 const bottomBarBottomInset: number = 3
 const bottomBarHeight: number = 39
 const toolbarHorizontalInset: number = 12
-const messageBottomSpacing: number = 12
-const giftMessageSpacing: number = 4
-const giftOverlayBaseOffset: number = bottomBarBottomInset + bottomBarHeight + messageBottomSpacing + giftMessageSpacing
+const messageBottomSpacing: number = 14
 
 @Observed
 export class LivingViewController {
@@ -39,6 +38,18 @@ export class LivingViewController {
   isCleanScreen: boolean = false
   cleanScreenProgress: number = 0
   messages: Message[] = []
+  videoSeatRegions?: () => Area[]
+  interactionLayout: LiveInteractionLayout = new LiveInteractionLayout(undefined, 0, 0, false, 0, 0)
+  interactionTop: number = -1
+  normalMessageBottom: number = 56
+  composerCommentHeight: number = 184
+  private composerNormalContentHeight: number = 0
+  private giftPanelHeight?: number
+  private isWelcomeVisible: boolean = false
+  private hostHeight: number = 0
+  private hostOriginY: number = 0
+  private safeBottom: number = 0
+
   messageContentHeight: number = 0
   isCommentComposerPresented: boolean = false
   commentResetToken: number = 0
@@ -71,8 +82,10 @@ export class LivingViewController {
     }
     this.commentStore.onStateChanged = (state: BarrageUIState) => {
       if (this.liveInfo?.liveID === state.liveID) {
-        this.messages = state.comments.map((comment: Comment) => new Message(comment.id, comment.senderName,
-          comment.text, comment.level, comment.isHost, comment.gift))
+        this.messages = [new Message(`player-system-${state.liveID}`, '',
+          LiveKitResources.localizedString('tuilivekit.player.system_announcement'), 0, false, undefined, true)]
+          .concat(state.comments.map((comment: Comment) => new Message(comment.id, comment.senderName,
+          comment.text, comment.level, comment.isHost, comment.gift)))
       }
     }
     this.giftBarrageStore.onGiftBarrageSettled = (gift: LiveGiftBarrage) => this.commentStore.appendGiftBarrage(gift)
@@ -106,6 +119,7 @@ export class LivingViewController {
       return
     }
     this.isJoinedChannel = joined
+    this.updateInteractionLayout()
     if (!joined) {
       this.dismissInteractionOverlays(true)
       if (this.isCleanScreen) {
@@ -133,8 +147,7 @@ export class LivingViewController {
     this.deactivateRoomFeatures()
     this.commentStore.activate(liveID, hostUserID)
     this.giftDisplay = new GiftDisplayController(liveID)
-    this.giftDisplay.updateMessageContentHeight(this.messageContentHeight)
-    this.giftDisplay.updateToolbarAndMessageOffset(giftOverlayBaseOffset)
+    this.giftDisplay.onNoticeContentHeightChanged = () => this.updateInteractionLayout()
     this.giftSendStore.activate(liveID)
     this.giftBarrageStore.activate(liveID)
     this.audienceListLiveID = liveID
@@ -151,6 +164,7 @@ export class LivingViewController {
     this.commentStore.deactivate()
     this.giftBarrageStore.deactivate()
     this.giftSendStore.deactivate()
+    if (this.giftDisplay !== undefined) this.giftDisplay.onNoticeContentHeightChanged = undefined
     this.giftDisplay = undefined
     this.audienceListLiveID = ''
     this.isAudienceListPresented = false
@@ -163,7 +177,10 @@ export class LivingViewController {
   prepareForReuse(): void {
     this.messages = []
     this.messageContentHeight = 0
-    this.isCommentComposerPresented = false
+    this.composerNormalContentHeight = 0
+    this.giftPanelHeight = undefined
+    this.isWelcomeVisible = false
+    this.dismissCommentComposer()
     this.setCleanScreen(false, false)
     this.dismissInteractionOverlays(true)
     this.likeAnimation.removeAllAnimations()
@@ -188,9 +205,14 @@ export class LivingViewController {
     if (resetCommentDraft) {
       this.commentResetToken++
     }
-    this.isCommentComposerPresented = false
+    this.dismissCommentComposer()
     this.isGiftPanelPresented = false
     this.isAudienceListPresented = false
+  }
+
+  dismissCommentComposer(): void {
+    this.isCommentComposerPresented = false
+    this.updateInteractionLayout()
   }
 
   presentCommentComposer(): void {
@@ -200,6 +222,11 @@ export class LivingViewController {
     }
     this.isAudienceListPresented = false
     this.isGiftPanelPresented = false
+    if (this.isCommentComposerPresented) return
+    const layout = this.interactionLayout
+    this.composerCommentHeight = Math.min(layout.commentHeight,
+      layout.visibleCommentHeight < 0 ? layout.commentHeight : layout.visibleCommentHeight)
+    this.composerNormalContentHeight = this.messageContentHeight
     this.isCommentComposerPresented = true
   }
 
@@ -209,24 +236,53 @@ export class LivingViewController {
 
   presentGiftSendPanel(): void {
     this.isAudienceListPresented = false
-    this.isCommentComposerPresented = false
+    this.dismissCommentComposer()
     this.isGiftPanelPresented = true
   }
 
   presentAudienceList(): void {
-    this.isCommentComposerPresented = false
+    this.dismissCommentComposer()
     this.isGiftPanelPresented = false
     this.isAudienceListPresented = true
   }
 
   updateGiftPanelPresentation(isPresented: boolean, heightAboveSafeArea: number): void {
-    this.giftDisplay?.updateGiftPanelHeightAboveSafeArea(isPresented ? heightAboveSafeArea + giftMessageSpacing : undefined)
+    this.giftPanelHeight = isPresented ? heightAboveSafeArea : undefined
+    this.updateInteractionLayout()
     this.isGiftPanelAbove = isPresented
   }
 
   updateMessageContentHeight(height: number): void {
     this.messageContentHeight = height
-    this.giftDisplay?.updateMessageContentHeight(height)
+    this.updateInteractionLayout()
+  }
+
+  updateSafeBottom(value: number): void { this.safeBottom = value; this.updateInteractionLayout() }
+  updateInteractionBounds(area: Area, safeBottom: number): void {
+    this.hostHeight = area.height as number
+    this.hostOriginY = area.globalPosition.y as number
+    this.safeBottom = safeBottom
+    this.updateInteractionLayout()
+  }
+  setWelcomeVisible(visible: boolean): void { this.isWelcomeVisible = visible; this.updateInteractionLayout() }
+  updateInteractionLayout(): void {
+    const normalBottom = this.hostHeight - this.safeBottom - bottomBarBottomInset - bottomBarHeight - messageBottomSpacing
+    const bottoms = (this.isJoinedChannel ? (this.videoSeatRegions?.() ?? []) : []).filter((area: Area) =>
+      (area.height as number) > 0 && (area.globalPosition.y as number) < this.hostOriginY + this.hostHeight &&
+      (area.globalPosition.y as number) + (area.height as number) > this.hostOriginY)
+      .map((area: Area) => (area.globalPosition.y as number) + (area.height as number) - this.hostOriginY)
+    const candidate = bottoms.length === 0 ? undefined : Math.min(this.hostHeight, Math.max(...bottoms) + 8)
+    const top = candidate !== undefined && normalBottom - candidate >= 184 ? candidate : undefined
+    this.interactionTop = top ?? -1
+    const bottom = this.giftPanelHeight === undefined ? normalBottom :
+      Math.min(normalBottom, this.hostHeight - this.safeBottom - this.giftPanelHeight - 4)
+    this.normalMessageBottom = this.hostHeight - bottom
+    const layout = new LiveInteractionLayout(top, bottom,
+      this.isCommentComposerPresented ? this.composerNormalContentHeight : this.messageContentHeight,
+      this.isWelcomeVisible, this.giftDisplay?.noticeContentHeight ?? 0, this.hostHeight - this.safeBottom)
+    const previous = this.interactionLayout
+    if (layout.commentHeight !== previous.commentHeight || layout.visibleCommentHeight !== previous.visibleCommentHeight ||
+      layout.welcomeTop !== previous.welcomeTop || layout.giftNoticeBottom !== previous.giftNoticeBottom) this.interactionLayout = layout
   }
 
   enqueueWelcome(welcome: AudienceWelcome): void {
@@ -326,6 +382,7 @@ export struct LivingView {
   @StorageProp(LiveKitSafeArea.bottomKey) @Watch('updateLikeButtonCenter') safeBottom: number = 0
   @StorageProp(LiveKitSafeArea.keyboardKey) keyboardHeight: number = 0
   @State private viewHeight: number = 0
+  @State private composerHeight: number = 36
   @State private commentScale: number = 1
   @State private giftScale: number = 1
   @State private likeScale: number = 1
@@ -365,9 +422,15 @@ export struct LivingView {
     return this.safeBottom + bottomBarBottomInset
   }
 
+  private welcomeClipTop(): number {
+    return this.controller.interactionTop < 0 ? 0 :
+      Math.max(0, this.controller.interactionTop - this.controller.interactionLayout.welcomeTop)
+  }
+
+  private onSafeBottomChanged(): void { this.controller.updateSafeBottom(this.safeBottom) }
   private messageListBottom(): number {
-    return this.controller.isCommentComposerPresented ? Math.max(this.keyboardHeight, this.safeBottom) + 4 + 36 + 6 :
-      this.bottomBarBottom() + bottomBarHeight + messageBottomSpacing
+    return this.controller.isCommentComposerPresented ? Math.max(this.keyboardHeight, this.safeBottom) + 4 + this.composerHeight + 6 :
+      this.controller.normalMessageBottom
   }
 
   @Builder
@@ -436,21 +499,23 @@ export struct LivingView {
             .position({ x: 20, y: this.safeTop + 10 })
           BarrageStreamView({
             messages: this.controller.messages,
-            onVisibleContentHeightChanged: (height: number) => this.getUIContext().animateTo({ duration: 180, curve: Curve.EaseOut },
-              () => this.controller.updateMessageContentHeight(height)),
+            maximumVisibleHeight: this.controller.isCommentComposerPresented ? -1 : this.controller.interactionLayout.visibleCommentHeight,
+            onContentHeightChanged: (height: number) => this.controller.updateMessageContentHeight(height),
           })
             .width(`${defaultWidthRatio * 100}%`)
-            .height(this.controller.isCommentComposerPresented ? 132 : 152)
+            .height(this.controller.isCommentComposerPresented ? this.controller.composerCommentHeight :
+          this.controller.interactionLayout.commentHeight)
             .position({ left: 12, bottom: this.messageListBottom() })
-            .animation({ duration: 250, curve: Curve.EaseInOut })
           AudienceWelcomeView({
             welcome: this.controller.welcome,
             resetToken: this.controller.welcomeResetToken,
-            onVisibilityChanged: (isVisible: boolean) => this.controller.giftDisplay?.updateAudienceWelcomeVisible(isVisible),
+            onVisibilityChanged: (isVisible: boolean) => this.controller.setWelcomeVisible(isVisible),
           })
             .width('100%')
             .height(28)
-            .position({ left: 0, bottom: this.bottomBarBottom() + bottomBarHeight + 18 + this.controller.messageContentHeight })
+            .clipShape(new RectShape({ width: this.controller.viewWidth, height: Math.max(0, 28 - this.welcomeClipTop()) })
+          .offset({ x: 0, y: this.welcomeClipTop() }))
+            .position({ left: 0, top: this.controller.interactionLayout.welcomeTop })
           Row() {
             this.bottomBar()
           }
@@ -497,7 +562,9 @@ export struct LivingView {
           .onClick(() => this.controller.setCleanScreen(false, true, this.getUIContext()))
       }
       if (this.controller.giftDisplay !== undefined && !this.controller.isCleanScreen) {
-        GiftDisplayView({ controller: this.controller.giftDisplay, safeAreaBottom: this.safeBottom })
+        GiftDisplayView({ controller: this.controller.giftDisplay, safeAreaBottom: this.safeBottom,
+          noticeBottom: this.viewHeight - this.controller.interactionLayout.giftNoticeBottom,
+          noticeTopBoundary: this.controller.interactionTop })
           .zIndex(this.controller.isGiftPanelAbove ? 2 : 0)
           .hitTestBehavior(HitTestMode.None)
       }
@@ -518,7 +585,8 @@ export struct LivingView {
         isPresented: this.controller.isCommentComposerPresented,
         resetToken: this.controller.commentResetToken,
         onSend: (text: string) => this.controller.sendComment(text),
-        onDismiss: () => this.controller.isCommentComposerPresented = false,
+        onHeightChanged: (height: number) => this.composerHeight = height,
+        onDismiss: () => this.controller.dismissCommentComposer(),
       })
         .zIndex(1)
         .hitTestBehavior(HitTestMode.None)
@@ -584,6 +652,7 @@ export struct LivingView {
     .onAreaChange((_: Area, area: Area) => {
       this.controller.viewWidth = Math.max(area.width as number, 1)
       this.viewHeight = area.height as number
+      this.controller.updateInteractionBounds(area, this.safeBottom)
     })
     .gesture(GestureGroup(GestureMode.Parallel,
       TapGesture().onAction((event: GestureEvent) => {

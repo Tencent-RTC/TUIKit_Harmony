@@ -179,6 +179,8 @@ export struct PusherPrepareView {
         }
         .width('100%')
         .height('100%')
+        // Normal keeps child controls and TextArea gestures ahead of the background tap.
+        .gesture(TapGesture().onAction(() => this.getUIContext().getFocusController().clearFocus()), GestureMask.Normal)
       } else {
         CountdownView({
           number: this.countdownValue,

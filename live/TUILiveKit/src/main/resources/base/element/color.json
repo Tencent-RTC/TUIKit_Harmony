@@ -1,0 +1,44 @@
+{
+  "color": [
+    {
+      "name": "tuilivekit_pusher_summary_primary",
+      "value": "#F5F7FA"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_secondary",
+      "value": "#A9B7CB"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_income",
+      "value": "#F9D497"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_background",
+      "value": "#12161F"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_interaction_background",
+      "value": "#1A2230"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_divider",
+      "value": "#354255"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_income_start",
+      "value": "#26364D"
+    },
+    {
+      "name": "tuilivekit_pusher_summary_income_end",
+      "value": "#1A263B"
+    },
+    {
+      "name": "tuilivekit_pusher_prepare_hint",
+      "value": "#BFBFBF"
+    },
+    {
+      "name": "tuilivekit_pusher_prepare_caption_background",
+      "value": "#66000000"
+    }
+  ]
+}

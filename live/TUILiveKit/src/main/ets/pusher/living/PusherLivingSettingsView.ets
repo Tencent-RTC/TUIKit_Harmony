@@ -31,8 +31,6 @@ export struct PusherLivingSettingsView {
   onPause?: () => void
   onShowBeauty?: () => void
   onShowComment?: () => void
-  onShowBackgroundMusic?: () => void
-  onFlipCamera?: () => void
   @State private showsAudio: boolean = false
   private pendingDismissAction?: () => void
 
@@ -75,15 +73,11 @@ export struct PusherLivingSettingsView {
           () => this.animateDismiss(this.onShowBeauty)),
         new SettingItem('tuilivekit.pusher.mirror', this.settings.isMirrorEnabled ? 'livekit_settings_mirror_on' :
           'livekit_settings_mirror_off', 21, 22, () => this.settingsActionHandler?.toggleMirror()),
-        new SettingItem('tuilivekit.pusher.flip_camera', 'livekit_living_setting_flip', 21, 18.5,
-          () => this.onFlipCamera?.()),
         new SettingItem('tuilivekit.pusher.audio_effects', 'livekit_living_setting_audio', 18.1, 18.6,
           () => this.showsAudio = true),
       ]
     }
     return [
-      new SettingItem('tuilivekit.pusher.living.music', 'livekit_living_setting_music', 14.93, 17.63,
-        () => this.animateDismiss(this.onShowBackgroundMusic)),
       new SettingItem('tuilivekit.pusher.living.comment', 'livekit_living_setting_comment', 19, 16,
         () => this.animateDismiss(this.onShowComment)),
     ]

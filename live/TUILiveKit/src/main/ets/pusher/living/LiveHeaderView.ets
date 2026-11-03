@@ -14,7 +14,7 @@ class NetworkStatusPresentation {
   iconWidth: number = 13
   labelLeading: number = 8.8
   chevronTrailing: number = 9.7
-  chevronWidth: number = 3.5
+  chevronWidth: number = 5.080645
 
   constructor(quality: number) {
     if (quality === 3) {
@@ -25,7 +25,7 @@ class NetworkStatusPresentation {
       this.minimumWidth = 82
       this.labelLeading = 25
       this.chevronTrailing = 10.1
-      this.chevronWidth = 3.89
+      this.chevronWidth = 5.646774
     } else if (quality === 4 || quality === 5 || quality === 6) {
       const isDisconnected = quality === 6
       this.titleKey = isDisconnected ? 'tuilivekit.pusher.living.network_disconnected' :
@@ -38,7 +38,7 @@ class NetworkStatusPresentation {
       this.iconWidth = 17
       this.labelLeading = 29
       this.chevronTrailing = 8.08
-      this.chevronWidth = 3.92
+      this.chevronWidth = 5.690323
     }
   }
 }
@@ -138,24 +138,26 @@ export struct LiveHeaderView {
             .width(this.presentation().iconWidth)
             .height(13)
             .objectFit(ImageFit.Contain)
-            .position({ x: 7, y: 3 })
+            .position({ x: 7, y: 5.5 })
         }
         Text(LiveKitResources.localizedString(this.presentation().titleKey))
-          .attributeModifier(new LiveText(LiveTheme.TextRole.metadata, LiveTheme.TextTone.primary, TextAlign.End))
+          .fontSize(13)
+          .fontWeight(FontWeight.Normal)
+          .textAlign(TextAlign.End)
           .fontColor(this.presentation().tintColor)
           .maxLines(1)
-          .height(12)
           .margin({ left: this.presentation().labelLeading, right: 3 })
         Image(LiveKitResources.image(this.presentation().chevronName))
           .width(this.presentation().chevronWidth)
-          .height(6.2)
+          .height(9)
           .objectFit(ImageFit.Contain)
           .margin({ right: this.presentation().chevronTrailing })
       }
-      .height(19)
+      .height(24)
+      .alignItems(VerticalAlign.Center)
       .constraintSize({ minWidth: this.presentation().minimumWidth })
       .justifyContent(FlexAlign.End)
-      .borderRadius({ topLeft: 9.5, bottomLeft: 9.5 })
+      .borderRadius({ topLeft: 12, bottomLeft: 12 })
       .backgroundColor(LiveVideoOverlayStyle.capsuleBackground)
       .position({ right: -12, top: 42 })
       .accessibilityText(LiveKitResources.localizedString(this.presentation().titleKey))
@@ -163,7 +165,7 @@ export struct LiveHeaderView {
       .onClick(() => this.onStatus?.())
     }
     .width('100%')
-    .height(61)
+    .height(67)
     .onAreaChange((_: Area, area: Area) => this.availableWidth = area.width as number)
   }
 }

@@ -51,7 +51,7 @@ export class CoGuestingPanelController {
 export struct CoGuestingPanel {
   @Prop @Watch('onPresentedChanged') isPresented: boolean = false
   @Prop @Watch('onLiveIDChanged') liveID: string = ''
-  @Prop openCameraAfterAccept: boolean = true
+  @Prop openCameraAfterAccept: boolean = false
   @ObjectLink controller: CoGuestingPanelController
   onDismiss?: () => void
   onShowSettings?: () => void

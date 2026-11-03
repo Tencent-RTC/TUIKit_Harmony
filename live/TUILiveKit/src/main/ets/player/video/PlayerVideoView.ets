@@ -11,49 +11,67 @@ import { LiveKitResources } from '../../common/LiveKitResources'
 import { PlayerStatus } from '../PlayerView'
 import { UnitView, UnitViewState } from './UnitView'
 
-const unitStates: Map<string, UnitViewState> = new Map()
+function unitKey(unitInfo: UnitInfo): string { return `${unitInfo.liveID}_${unitInfo.index}` }
 
-function unitKey(unitInfo: UnitInfo): string {
-  return `${unitInfo.liveID}_${unitInfo.index}`
+@Component
+struct PlayerUnitHost {
+  @Prop @Watch('updateInfo') unitInfo: UnitInfo = new UnitInfo()
+  @Consume('playerUnitAdapter') adapter: LiveVideoViewAdapter
+  @State private unit: UnitViewState = new UnitViewState(new UnitInfo())
+  aboutToAppear(): void { this.unit = this.adapter.attach(this.unitInfo) }
+  aboutToDisappear(): void { this.adapter.detach(this.unit) }
+  private updateInfo(): void { this.unit.setUnitInfo(this.unitInfo); this.adapter.notifyGeometryChanged() }
+  build() {
+    UnitView({ unit: this.unit }).onAreaChange((_: Area, area: Area) => {
+      this.unit.frame = area
+      this.adapter.notifyGeometryChanged()
+    })
+  }
 }
 
 @Builder
-function unitViewBuilder(unitInfo: UnitInfo) {
-  if (unitStates.has(unitKey(unitInfo))) {
-    UnitView({ unit: unitStates.get(unitKey(unitInfo))! })
-  }
-}
+function unitViewBuilder(unitInfo: UnitInfo) { PlayerUnitHost({ unitInfo: unitInfo }) }
 
 class LiveVideoViewAdapter extends AtomicLiveViewChangeAdapter {
   liveInfo: LiveInfo = new LiveInfo()
+  onGeometryChanged?: () => void
   private currentStatus: PlayerStatus = PlayerStatus.idle
-  private activeUnits: Set<string> = new Set()
-
+  private readonly units: Map<string, UnitViewState> = new Map()
+  private geometryTask: number = -1
   setStatus(status: PlayerStatus): void {
-    if (this.currentStatus === status) {
-      return
-    }
+    if (this.currentStatus === status) return
     this.currentStatus = status
-    this.activeUnits.forEach((key: string) => unitStates.get(key)?.setPlayerStatus(status))
+    this.units.forEach((unit: UnitViewState) => unit.setPlayerStatus(status))
+    this.notifyGeometryChanged()
   }
-
-  onCreateUnitView(unitInfo: UnitInfo): WrappedBuilder<[UnitInfo]> | undefined {
-    const key = unitKey(unitInfo)
-    unitStates.set(key, new UnitViewState(unitInfo, this.liveInfo, this.currentStatus))
-    this.activeUnits.add(key)
-    return wrapBuilder(unitViewBuilder)
+  attach(info: UnitInfo): UnitViewState {
+    const unit = new UnitViewState(info, this.liveInfo, this.currentStatus)
+    this.units.set(unitKey(info), unit)
+    this.notifyGeometryChanged()
+    return unit
   }
-
-  onUpdateUnitView(unitInfo: UnitInfo): void {
-    unitStates.get(unitKey(unitInfo))?.setUnitInfo(unitInfo)
+  detach(unit: UnitViewState): void {
+    const key = `${unit.liveID}_${unit.index}`
+    if (this.units.get(key) === unit) this.units.delete(key)
+    unit.frame = undefined
+    this.notifyGeometryChanged()
   }
-
-  onVolumeChanged(unitInfo: UnitInfo, volume: number): void {
-    unitStates.get(unitKey(unitInfo))?.updateVolume(volume)
+  seatRegions(): Area[] {
+    return Array.from(this.units.values()).filter((unit: UnitViewState) => unit.liveID === this.liveInfo.liveID && unit.frame !== undefined)
+      .map((unit: UnitViewState) => unit.frame!)
   }
-
-  onVideoViewFrameChanged(left: number, top: number, right: number, bottom: number): void {
+  clearGeometry(): void {
+    this.units.forEach((unit: UnitViewState) => unit.frame = undefined)
+    this.notifyGeometryChanged()
   }
+  notifyGeometryChanged(): void {
+    if (this.geometryTask >= 0) return
+    this.geometryTask = setTimeout(() => { this.geometryTask = -1; this.onGeometryChanged?.() }, 0)
+  }
+  onCreateUnitView(unitInfo: UnitInfo): WrappedBuilder<[UnitInfo]> | undefined { return wrapBuilder(unitViewBuilder) }
+  onUpdateUnitView(unitInfo: UnitInfo): void { this.units.get(unitKey(unitInfo))?.setUnitInfo(unitInfo); this.notifyGeometryChanged() }
+  onVolumeChanged(unitInfo: UnitInfo, volume: number): void { this.units.get(unitKey(unitInfo))?.updateVolume(volume) }
+  onVideoViewFrameChanged(left: number, top: number, right: number, bottom: number): void { this.notifyGeometryChanged() }
 }
 
 @Observed
@@ -62,13 +80,14 @@ export class PlayerVideoViewController {
   backgroundURL: string = LiveKitResources.defaultBackgroundURL
   isHidden: boolean = false
   private liveInfo: LiveInfo = new LiveInfo()
-  private readonly unitAdapter: LiveVideoViewAdapter = new LiveVideoViewAdapter()
+  readonly unitAdapter: LiveVideoViewAdapter = new LiveVideoViewAdapter()
 
   constructor() {
     this.coreView.controller.setViewChangeAdapter(this.unitAdapter)
   }
 
   setLiveInfo(liveInfo: LiveInfo): void {
+    if (this.liveInfo.liveID !== liveInfo.liveID) this.unitAdapter.clearGeometry()
     this.liveInfo = liveInfo
     this.unitAdapter.liveInfo = liveInfo
     this.backgroundURL = liveInfo.backgroundURL.length > 0 ? liveInfo.backgroundURL
@@ -83,6 +102,8 @@ export class PlayerVideoViewController {
 @Component
 export struct PlayerVideoView {
   @ObjectLink controller: PlayerVideoViewController
+  @Provide('playerUnitAdapter') adapter: LiveVideoViewAdapter = new LiveVideoViewAdapter()
+  aboutToAppear(): void { this.adapter = this.controller.unitAdapter }
 
   build() {
     Stack() {

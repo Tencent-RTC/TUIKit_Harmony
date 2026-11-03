@@ -53,7 +53,7 @@ export struct AudienceWelcomeView {
   private isActive: boolean = false
   private isWelcomeVisible: boolean = false
   private animationTasks: number[] = []
-  private bannerLaidOut: boolean = false
+  private isBannerMounted: boolean = false
   private isMounted: boolean = false
 
   aboutToAppear(): void {
@@ -63,6 +63,7 @@ export struct AudienceWelcomeView {
 
   aboutToDisappear(): void {
     this.isMounted = false
+    this.isBannerMounted = false
     this.reset()
   }
 
@@ -85,7 +86,6 @@ export struct AudienceWelcomeView {
     this.activeToken++
     this.animationTasks.forEach((task: number) => clearTimeout(task))
     this.animationTasks = []
-    this.bannerLaidOut = false
     this.isActive = false
     this.queue = []
     this.bannerOpacity = 0
@@ -102,10 +102,9 @@ export struct AudienceWelcomeView {
     ++this.activeToken
     this.isActive = true
     this.current = welcome
-    this.updateWelcomeVisibility(true)
     this.bannerOpacity = 0
     this.bannerOffsetX = -(228 + 24)
-    if (this.bannerLaidOut) {
+    if (this.isBannerMounted) {
       this.scheduleAnimation()
     }
   }
@@ -121,6 +120,7 @@ export struct AudienceWelcomeView {
 
   private startAnimation(token: number): void {
     this.animationTasks = []
+    this.updateWelcomeVisibility(true)
     this.getUIContext().animateTo({ duration: 420, curve: Curve.EaseOut }, () => this.bannerOpacity = 1)
     this.getUIContext().animateTo({ duration: 680, curve: curves.cubicBezierCurve(0.18, 0.78, 0.22, 1) },
       () => this.bannerOffsetX = 0)
@@ -140,7 +140,6 @@ export struct AudienceWelcomeView {
         this.bannerOffsetX = 0
         if (this.queue.length === 0) {
           this.current = undefined
-          this.bannerLaidOut = false
           this.updateWelcomeVisibility(false)
         } else {
           this.showNextIfNeeded()
@@ -194,12 +193,11 @@ export struct AudienceWelcomeView {
         })
         .opacity(this.bannerOpacity)
         .translate({ x: this.bannerOffsetX })
-        .onAreaChange(() => {
-          if (!this.bannerLaidOut) {
-            this.bannerLaidOut = true
-            this.scheduleAnimation()
-          }
+        .onAppear(() => {
+          this.isBannerMounted = true
+          this.scheduleAnimation()
         })
+        .onDisAppear(() => this.isBannerMounted = false)
       }
     }
     .width('100%')

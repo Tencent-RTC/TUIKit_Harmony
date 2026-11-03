@@ -1,3 +1,4 @@
+import { RectShape } from '@kit.ArkUI'
 import { ApplicationStateChangeCallback } from '@kit.AbilityKit'
 import {
   CoGuestLayoutTemplate, LikeListener, LikeStore, LiveAudienceState, LiveUserInfo, LoginStore
@@ -5,7 +6,7 @@ import {
 import { AudienceWelcome, AudienceWelcomeView } from '../../common/audience/AudienceWelcomeView'
 import { BarrageInputView } from '../../common/barrage/BarrageInputView'
 import { BarrageUIState, BarrageUIStore, Comment } from '../../common/barrage/BarrageStore'
-import { BarrageStreamView, defaultWidthRatio, Message } from '../../common/barrage/BarrageStreamView'
+import { BarrageStreamView, defaultWidthRatio, LiveInteractionLayout, Message } from '../../common/barrage/BarrageStreamView'
 import { GiftDisplayController, GiftDisplayView } from '../../common/gift/display/GiftDisplayView'
 import { GiftBarrageStore, LiveGiftBarrage } from '../../common/gift/GiftBarrageStore'
 import { LikeAnimationController, LikeAnimationView } from '../../common/like/LikeAnimationView'
@@ -45,6 +46,18 @@ export class PusherLivingViewController {
   @Track coGuestActionHandler?: PusherCoGuestActionHandling
   @Track onCoGuestStageTap?: (x: number, y: number) => boolean
   @Track coGuestSmallWindowRegions?: () => Area[]
+  @Track coGuestGridRegions?: () => Area[]
+  @Track interactionLayout: LiveInteractionLayout = new LiveInteractionLayout(undefined, 0, 0, false, 0, 0)
+  @Track interactionTop: number = -1
+  @Track composerCommentHeight: number = 184
+  // Welcome @Watch callbacks can calculate layout during UI dependency collection.
+  @Track private composerNormalContentHeight: number = 0
+  @Track private isWelcomeVisible: boolean = false
+  @Track private viewHeight: number = 0
+  @Track private viewOriginY: number = 0
+  @Track private safeBottom: number = 0
+  private hasAnnouncement: boolean = false
+
   @Track readonly liveID: string
   @Track readonly giftDisplay: GiftDisplayController
   @Track readonly likeAnimation: LikeAnimationController = new LikeAnimationController()
@@ -108,9 +121,24 @@ export class PusherLivingViewController {
     if (liveID.length > 0) {
       this.audienceStore = new PusherAudienceStore(liveID)
       this.likeStore = LikeStore.create(liveID)
-      this.bindAudienceStore()
     }
     this.giftDisplay.setActive(false)
+  }
+
+  bindPresentationCallbacks(): void {
+    // Called through @ObjectLink after construction so callbacks retain the observed proxy.
+    this.giftDisplay.onNoticeContentHeightChanged = () => this.updateInteractionLayout()
+    this.bindAudienceStore()
+    this.updateInteractionLayout()
+  }
+
+  unbindPresentationCallbacks(): void {
+    this.giftDisplay.onNoticeContentHeightChanged = undefined
+    if (this.audienceStore !== undefined) {
+      this.audienceStore.onStateChanged = undefined
+      this.audienceStore.onAudienceEntered = undefined
+      this.audienceStore.onActionCompleted = undefined
+    }
   }
 
   get viewerCount(): number {
@@ -246,6 +274,7 @@ export class PusherLivingViewController {
 
   deactivateComments(resetState: boolean): void {
     this.isCommentActive = false
+    if (resetState) this.hasAnnouncement = false
     this.giftDisplay.setActive(false)
     this.commentResetToken++
     this.commentStore.deactivate()
@@ -283,7 +312,7 @@ export class PusherLivingViewController {
   }
 
   resetAfterStartFailure(): void {
-    this.isCommentComposerPresented = false
+    this.dismissCommentComposer()
     this.lastStageTapTime = 0
     this.deactivateAudience(true)
     this.deactivateLikes(true, true)
@@ -347,10 +376,11 @@ export class PusherLivingViewController {
 
   updateMessageContentHeight(height: number): void {
     this.messageContentHeight = height
-    this.giftDisplay.updateMessageContentHeight(height)
+    this.updateInteractionLayout()
   }
 
   updateCommentWidth(commentTop?: number, commentBottom?: number): void {
+    this.updateInteractionLayout()
     if (commentTop !== undefined && commentBottom !== undefined && commentBottom > commentTop) {
       this.commentTop = commentTop
       this.commentBottom = commentBottom
@@ -407,6 +437,59 @@ export class PusherLivingViewController {
     this.likeCount = Math.max(0, count)
   }
 
+  showSystemAnnouncement(): void {
+    if (this.hasAnnouncement) return
+    this.hasAnnouncement = true
+    this.messages = [new Message(`pusher-system-${this.liveID}`, '',
+      LiveKitResources.localizedString('tuilivekit.pusher.system_announcement'), 0, false, undefined, true)]
+      .concat(this.messages)
+  }
+
+  updateSafeBottom(value: number): void { this.safeBottom = value; this.updateInteractionLayout() }
+  updateInteractionBounds(area: Area, safeBottom: number): void {
+    this.viewHeight = area.height as number
+    this.viewOriginY = area.globalPosition.y as number
+    this.safeBottom = safeBottom
+    this.updateInteractionLayout()
+  }
+  setWelcomeVisible(visible: boolean): void {
+    this.isWelcomeVisible = visible
+    this.updateInteractionLayout()
+  }
+  dismissCommentComposer(): void {
+    this.isCommentComposerPresented = false
+    this.updateInteractionLayout()
+  }
+
+  presentCommentComposer(): void {
+    if (this.isCommentComposerPresented) return
+    const layout = this.interactionLayout
+    this.composerCommentHeight = Math.min(layout.commentHeight,
+      layout.visibleCommentHeight < 0 ? layout.commentHeight : layout.visibleCommentHeight)
+    this.composerNormalContentHeight = this.messageContentHeight
+    this.isCommentComposerPresented = true
+  }
+  private updateInteractionLayout(): void {
+    const template = this.coGuestState.layout.templateId
+    const grid = template === CoGuestLayoutTemplate.gridLayout.templateId ||
+      (template === CoGuestLayoutTemplate.dynamicLayout.templateId && this.coGuestState.connected.length > 0)
+    let top: number | undefined = undefined
+    if (grid) {
+      const bottoms = (this.coGuestGridRegions?.() ?? []).filter((area: Area) =>
+        (area.height as number) > 0 && (area.globalPosition.y as number) < this.viewOriginY + this.viewHeight &&
+        (area.globalPosition.y as number) + (area.height as number) > this.viewOriginY)
+        .map((area: Area) => (area.globalPosition.y as number) + (area.height as number) - this.viewOriginY)
+      top = bottoms.length === 0 ? this.viewHeight : Math.min(this.viewHeight, Math.max(...bottoms) + 8)
+    }
+    this.interactionTop = top ?? -1
+    const layout = new LiveInteractionLayout(top, this.viewHeight - this.safeBottom - 68 - 14,
+      this.isCommentComposerPresented ? this.composerNormalContentHeight : this.messageContentHeight,
+      this.isWelcomeVisible, this.giftDisplay.noticeContentHeight, this.viewHeight - this.safeBottom)
+    const previous = this.interactionLayout
+    if (layout.commentHeight !== previous.commentHeight || layout.visibleCommentHeight !== previous.visibleCommentHeight ||
+      layout.welcomeTop !== previous.welcomeTop || layout.giftNoticeBottom !== previous.giftNoticeBottom) this.interactionLayout = layout
+  }
+
   private renderComments(comments: Comment[]): void {
     const previous = new Map<string, Message>()
     this.messages.forEach((message: Message) => previous.set(message.id, message))
@@ -422,6 +505,11 @@ export class PusherLivingViewController {
         gift.giftIconURL, gift.count, gift.senderID, gift.senderName, gift.senderLevel, gift.id)
       return new Message(comment.id, comment.senderName, comment.text, comment.level, comment.isHost, snapshot)
     })
+    if (this.hasAnnouncement) {
+      messages.unshift(previous.get(`pusher-system-${this.liveID}`) ??
+        new Message(`pusher-system-${this.liveID}`, '',
+          LiveKitResources.localizedString('tuilivekit.pusher.system_announcement'), 0, false, undefined, true))
+    }
     if (messages.length !== this.messages.length ||
       messages.some((message: Message, index: number) => message !== this.messages[index])) {
       this.messages = messages
@@ -488,17 +576,27 @@ export class PusherLivingViewController {
 export struct PusherLivingView {
   @ObjectLink controller: PusherLivingViewController
   @StorageProp(LiveKitSafeArea.topKey) safeTop: number = 0
-  @StorageProp(LiveKitSafeArea.bottomKey) safeBottom: number = 0
+  @StorageProp(LiveKitSafeArea.bottomKey) @Watch('onSafeBottomChanged') safeBottom: number = 0
   @StorageProp(LiveKitSafeArea.keyboardKey) keyboardHeight: number = 0
   @State @Watch('onAudienceCountChanged') private audienceSDKState: LiveAudienceState = new LiveAudienceState()
   private commentTop: number = 0
   private commentBottom: number = 0
+  @State private hostHeight: number = 0
+  private welcomeClipTop(): number {
+    return this.controller.interactionTop < 0 ? 0 :
+      Math.max(0, this.controller.interactionTop - this.controller.interactionLayout.welcomeTop)
+  }
 
   aboutToAppear(): void {
+    this.controller.bindPresentationCallbacks()
     const store = this.controller.audienceSDKStore
     if (store !== undefined) {
       this.audienceSDKState = store.sdkState
     }
+  }
+
+  aboutToDisappear(): void {
+    this.controller.unbindPresentationCallbacks()
   }
 
   private onAudienceCountChanged(): void {
@@ -511,6 +609,7 @@ export struct PusherLivingView {
 
   @State private composerHeight: number = 36
 
+  private onSafeBottomChanged(): void { this.controller.updateSafeBottom(this.safeBottom) }
   private messageListBottom(): number {
     return this.controller.isCommentComposerPresented ?
       Math.max(this.keyboardHeight, this.safeBottom) + 4 + this.composerHeight + 6 :
@@ -554,15 +653,13 @@ export struct PusherLivingView {
         .position({ x: 12, y: this.safeTop - 1 })
       BarrageStreamView({
         messages: this.controller.messages,
-        onVisibleContentHeightChanged: (height: number) => this.getUIContext().animateTo({
-          duration: 180,
-          curve: Curve.EaseOut
-        }, () => this.controller.updateMessageContentHeight(height)),
+        maximumVisibleHeight: this.controller.isCommentComposerPresented ? -1 : this.controller.interactionLayout.visibleCommentHeight,
+        onContentHeightChanged: (height: number) => this.controller.updateMessageContentHeight(height),
       })
         .width(this.controller.messageListWidth > 0 ? this.controller.messageListWidth : `${defaultWidthRatio * 100}%`)
-        .height(this.controller.isCommentComposerPresented ? 132 : 184)
+        .height(this.controller.isCommentComposerPresented ? this.controller.composerCommentHeight :
+          this.controller.interactionLayout.commentHeight)
         .position({ left: 12, bottom: this.messageListBottom() })
-        .animation({ duration: 250, curve: Curve.EaseInOut })
         .onAreaChange((_: Area, area: Area) => {
           this.commentTop = area.globalPosition.y as number
           this.commentBottom = this.commentTop + (area.height as number)
@@ -571,16 +668,19 @@ export struct PusherLivingView {
       AudienceWelcomeView({
         welcome: this.controller.welcome,
         resetToken: this.controller.welcomeResetToken,
-        onVisibilityChanged: (isVisible: boolean) => this.controller.giftDisplay.updateAudienceWelcomeVisible(
-          isVisible),
+        onVisibilityChanged: (isVisible: boolean) => this.controller.setWelcomeVisible(isVisible),
       })
         .width('100%')
         .height(28)
-        .position({ left: 0, bottom: this.toolbarHeight() + 18 + this.controller.messageContentHeight })
-        .animation({ duration: 120, curve: Curve.EaseOut })
+        .clipShape(new RectShape({ width: this.controller.viewWidth, height: Math.max(0, 28 - this.welcomeClipTop()) })
+          .offset({ x: 0, y: this.welcomeClipTop() }))
+        .position({ left: 0, top: this.controller.interactionLayout.welcomeTop })
       LiveBottomToolbarView({
         isCoGuestStageActive: this.controller.isCoGuestStageActive,
         hasCoGuestUnread: this.controller.hasCoGuestUnread,
+        onPK: () => LiveToast.show(LiveKitResources.localizedString('tuilivekit.pusher.living.pk_developing')),
+        onFlipCamera: () => this.controller.onFlipCamera?.(),
+        onShowBackgroundMusic: () => this.controller.isMusicPresented = true,
         onCoGuest: () => this.controller.showCoGuestSettings(),
         onMore: () => this.controller.isSettingsPresented = true,
         onLikeAnimationOrigin: (origin: Position) => this.controller.likeAnimationOrigin = origin,
@@ -590,7 +690,9 @@ export struct PusherLivingView {
         .position({ left: 0, bottom: 0 })
       LikeAnimationView({ controller: this.controller.likeAnimation })
         .hitTestBehavior(HitTestMode.None)
-      GiftDisplayView({ controller: this.controller.giftDisplay, safeAreaBottom: this.safeBottom })
+      GiftDisplayView({ controller: this.controller.giftDisplay, safeAreaBottom: this.safeBottom,
+        noticeBottom: this.hostHeight - this.controller.interactionLayout.giftNoticeBottom,
+        noticeTopBoundary: this.controller.interactionTop })
         .hitTestBehavior(HitTestMode.None)
       PusherLivingSettingsView({
         isPresented: this.controller.isSettingsPresented,
@@ -599,17 +701,15 @@ export struct PusherLivingView {
         onDismiss: () => this.controller.isSettingsPresented = false,
         onToggleMute: () => this.controller.onToggleMute?.(),
         onPause: () => this.controller.onPause?.(),
-        onFlipCamera: () => this.controller.onFlipCamera?.(),
         onShowBeauty: () => this.controller.onShowBeauty?.(),
-        onShowComment: () => this.controller.isCommentComposerPresented = true,
-        onShowBackgroundMusic: () => this.controller.isMusicPresented = true,
+        onShowComment: () => this.controller.presentCommentComposer(),
       })
       BarrageInputView({
         isPresented: this.controller.isCommentComposerPresented,
         resetToken: this.controller.commentResetToken,
         onSend: (text: string) => this.controller.sendComment(text),
         onHeightChanged: (height: number) => this.composerHeight = height,
-        onDismiss: () => this.controller.isCommentComposerPresented = false,
+        onDismiss: () => this.controller.dismissCommentComposer(),
       })
       PusherMusicView({
         isPresented: this.controller.isMusicPresented,
@@ -679,6 +779,8 @@ export struct PusherLivingView {
       .width('100%')
       .height('100%')
       .onAreaChange((_: Area, area: Area) => {
+        this.hostHeight = area.height as number
+        this.controller.updateInteractionBounds(area, this.safeBottom)
         this.controller.viewWidth = area.width as number
         this.controller.updateCommentWidth(this.commentTop, this.commentBottom)
       })

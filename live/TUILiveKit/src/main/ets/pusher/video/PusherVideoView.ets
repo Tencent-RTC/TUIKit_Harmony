@@ -41,6 +41,8 @@ export class PusherVideoViewController {
     return this.coGuestSeatViewProvider.onGeometryChanged
   }
 
+  coGuestGridRegions(): Area[] { return this.coGuestSeatViewProvider.gridRegions() }
+
   coGuestSmallWindowRegions(): Area[] {
     return this.coGuestSeatViewProvider.smallWindowRegions()
   }

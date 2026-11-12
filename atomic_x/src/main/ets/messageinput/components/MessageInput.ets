@@ -7,11 +7,11 @@ import {
 } from '../../messagelist/cells/MessageQuoteDisplayPolicy';
 import emitter from '@ohos.events.emitter';
 import { MessageInfo, MessageQuoteInfo, MessageType, OfflinePushInfo, TextMessagePayload } from '@tencentcloud/atomicxcore';
-import { MessageInputStore, SendMessagePayload, SendMessageOption, TextSendMessagePayload, ImageSendMessagePayload, VideoSendMessagePayload, AudioSendMessagePayload, FileSendMessagePayload, CustomSendMessagePayload } from '@tencentcloud/atomicxcore';
+import { MessageInputStore, SendMessagePayload, SendMessageOption, TextSendMessagePayload, ImageSendMessagePayload, VideoSendMessagePayload, AudioSendMessagePayload, FileSendMessagePayload, CustomSendMessagePayload, FaceSendMessagePayload } from '@tencentcloud/atomicxcore';
 import { ConversationListStore, ConversationInfo, ConversationType } from '@tencentcloud/atomicxcore';
 import { LoginStore } from '@tencentcloud/atomicxcore';
 import { MessageInputMoreDialog, MenuItem } from './MessageInputMoreDialog';
-import { EmojiDataManager, EmojiItem, EmojiPicker, EmojiTextSegment } from '../../emojipicker/Index';
+import { EmojiDataManager, EmojiItem, EmojiPicker, EmojiTextSegment, EmojiManager, EmojiGroup, Emoji } from '../../emojipicker/Index';
 import { AudioRecorder } from '../../audiorecorder/Index';
 import { AudioRecorderView, VoiceRecordReleaseAction } from './AudioRecorderView';
 import { FilePicker } from '../../filepicker/Index';
@@ -800,6 +800,9 @@ export struct MessageInput {
           onEmojiSelected: (emoji: EmojiItem) => {
             this.handleEmojiSelected(emoji);
           },
+          onCustomEmojiSelected: (group: EmojiGroup, emoji: Emoji) => {
+            this.handleCustomEmojiSelected(group, emoji);
+          },
           onDeleteClick: () => {
             this.handleDeleteLastCharacter();
           },
@@ -993,6 +996,9 @@ export struct MessageInput {
       EmojiPicker({
         onEmojiClick: (emoji: EmojiItem) => {
           this.handleEmojiSelected(emoji);
+        },
+        onCustomEmojiClick: (group: EmojiGroup, emoji: Emoji) => {
+          this.handleCustomEmojiSelected(group, emoji);
         },
         onDeleteClick: () => {
           this.handleDeleteLastCharacter();
@@ -1435,6 +1441,32 @@ export struct MessageInput {
   private handleEmojiSelected(emoji: EmojiItem) {
     this.insertEmojiToEditor(emoji);
     this.inputFocused = false;
+  }
+
+  private handleCustomEmojiSelected(group: EmojiGroup, emoji: Emoji) {
+    const groupIndex = EmojiManager.getInstance().emojiGroupList
+      .findIndex((item: EmojiGroup) => item.id === group.id);
+    if (groupIndex < 0 || !emoji.key) {
+      return;
+    }
+    this.sendFaceMessage(groupIndex, emoji.key);
+  }
+
+  private sendFaceMessage(faceIndex: number, faceData: string) {
+    if (!this.inputState || !faceData) {
+      return;
+    }
+    const payload = new FaceSendMessagePayload(faceIndex, faceData);
+    const option = new SendMessageOption();
+    option.needReadReceipt = this.effectiveConfig.enableReadReceipt ?? false;
+    option.offlinePushInfo = this.createOfflinePushInfoForDescription(
+      getContext().resourceManager.getStringSync($r('app.string.message_type_animate_emoji').id));
+    option.quotedMessage = this.quotedMessage;
+    this.clearQuotedMessage();
+    this.inputState.sendMessage(payload, option, new CompletionHandlerAdapter(undefined, (code: number, desc: string) => {
+      const localizedMessage = IMErrorCode.getErrorMessage(code ?? -1, '' + code + desc);
+      Toast.error(localizedMessage, this.getUIContext());
+    }));
   }
 
   private handleDeleteLastCharacter() {

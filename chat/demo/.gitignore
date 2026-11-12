@@ -5,3 +5,5 @@
 /.cxx
 /.test
 /.hvigor
+/.clang-tidy
+/.clangd

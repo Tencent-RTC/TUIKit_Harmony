@@ -1,19 +1,25 @@
 import { ThemeState } from '../../basecomponent/Index';
 import { EmojiDataManager, EmojiItem, EmojiCategory } from '../data/EmojiData';
+import { EmojiManager } from '../EmojiManager';
+import { Emoji, EmojiGroup } from '../model/EmojiGroup';
 import dataPreferences from '@ohos.data.preferences';
 import window from '@ohos.window';
 @Component
 export struct EmojiPicker {
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
-  @State selectedEmojiType: string = 'normal'; 
+  @StorageLink('EmojiGroupState') emojiGroups: EmojiGroup[] = EmojiManager.getInstance().emojiGroupList;
+  @State selectedGroupIndex: number = 0;
   @State recentEmojis: EmojiItem[] = [];
   @State bottomSafeHeight: number = 0;
+  @State previewEmojiUrl?: ResourceStr = undefined;
+  @State previewEmojiId: string = '';
   
   maxRecentEmojis: number = 8;
-  showTypeSelector: boolean = true;
   panelHeight: number = 280;
   
   onEmojiClick?: (emoji: EmojiItem) => void;
+
+  onCustomEmojiClick?: (group: EmojiGroup, emoji: Emoji) => void;
 
   onDeleteClick?: () => void;
   
@@ -44,8 +50,8 @@ export struct EmojiPicker {
     
     Column() {
       
-      if (this.showTypeSelector) {
-        this.buildEmojiTypeSelector()
+      if (this.emojiGroups.length > 1) {
+        this.buildEmojiGroupTabs()
       }
 
       
@@ -54,7 +60,7 @@ export struct EmojiPicker {
         this.buildEmojiGrid()
 
         
-        if (this.selectedEmojiType === 'normal') {
+        if (this.isLittleEmojiGroup()) {
           this.buildBottomCategoryBar()
         }
       }
@@ -84,43 +90,30 @@ export struct EmojiPicker {
 
   
   @Builder
-  buildEmojiTypeSelector() {
-    Row() {
-      
-      Button() {
-        Text(EmojiDataManager.getEmojiTypeDisplayName('normal'))
-          .fontSize(12)
-          .fontColor(this.selectedEmojiType === 'normal' ?
-          this.themeState.colors.textColorPrimary :
-          this.themeState.colors.textColorSecondary)
+  buildEmojiGroupTabs() {
+    Scroll() {
+      Row({ space: 8 }) {
+        ForEach(this.emojiGroups, (group: EmojiGroup, index: number) => {
+          Image(group.emojiGroupIconUrl)
+            .width(36)
+            .height(36)
+            .padding(6)
+            .objectFit(ImageFit.Contain)
+            .borderRadius(4)
+            .backgroundColor(index === this.getSelectedGroupIndex() ?
+            this.themeState.colors.bgColorBubbleReciprocal : Color.Transparent)
+            .onClick(() => {
+              this.dismissEmojiPreview();
+              this.selectedGroupIndex = index;
+            })
+        }, (group: EmojiGroup, index: number) => `${index}_${group.id}`)
       }
-      .backgroundColor(this.selectedEmojiType === 'normal' ?
-      this.themeState.colors.bgColorInput : Color.Transparent)
-      .borderRadius(4)
-      .onClick(() => {
-        this.selectedEmojiType = 'normal';
-      })
-
-      
-      // Button() {
-      //   Text(EmojiDataManager.getEmojiTypeDisplayName('large'))
-      //     .fontSize(12)
-      //     .fontColor(this.selectedEmojiType === 'large' ?
-      //     this.themeState.colors.textColorPrimary :
-      //     this.themeState.colors.textColorSecondary)
-      // }
-      // .backgroundColor(this.selectedEmojiType === 'large' ?
-      // this.themeState.colors.bgColorInput : Color.Transparent)
-      // .borderRadius(4)
-      // .onClick(() => {
-      //   this.selectedEmojiType = 'large';
-      // })
-
     }
     .width('100%')
     .height(36)
-    .justifyContent(FlexAlign.Start)
-    .alignItems(VerticalAlign.Center)
+    .align(Alignment.Start)
+    .scrollable(ScrollDirection.Horizontal)
+    .scrollBar(BarState.Off)
     .margin({ bottom: 8 })
   }
 
@@ -130,7 +123,7 @@ export struct EmojiPicker {
     Scroll() {
       Column() {
         
-        if (this.selectedEmojiType === 'normal') {
+        if (this.isLittleEmojiGroup()) {
           
           if (this.recentEmojis.length > 0) {
             Text(EmojiDataManager.getCategoryDisplayName('recent'))
@@ -143,7 +136,7 @@ export struct EmojiPicker {
             Grid() {
               ForEach(this.recentEmojis, (emoji: EmojiItem) => {
                 GridItem() {
-                  this.buildEmojiItem(emoji)
+                  this.buildEmojiItem(emoji, 'recent')
                 }
               })
             }
@@ -165,7 +158,7 @@ export struct EmojiPicker {
           Grid() {
             ForEach(EmojiDataManager.getAllEmojis(), (emoji: EmojiItem) => {
               GridItem() {
-                this.buildEmojiItem(emoji)
+                this.buildEmojiItem(emoji, 'all')
               }
             })
           }
@@ -177,15 +170,15 @@ export struct EmojiPicker {
         } else {
           
           Grid() {
-            ForEach(EmojiDataManager.getAllEmojis(), (emoji: EmojiItem) => {
+            ForEach(this.getSelectedGroupEmojis(), (emoji: Emoji) => {
               GridItem() {
-                this.buildEmojiItem(emoji)
+                this.buildCustomEmojiItem(emoji)
               }
             })
           }
-          .columnsTemplate('1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr')
+          .columnsTemplate('1fr 1fr 1fr 1fr 1fr')
           .rowsGap(8)
-          .columnsGap(4)
+          .columnsGap(8)
           .width('100%')
         }
       }
@@ -200,12 +193,13 @@ export struct EmojiPicker {
 
   
   @Builder
-  buildEmojiItem(emoji: EmojiItem) {
+  buildEmojiItem(emoji: EmojiItem, section: string) {
     Column() {
       Image(EmojiDataManager.getEmojiImageResource(emoji.imageFile))
-        .width(this.selectedEmojiType === 'large' ? 32 : 32)
-        .height(this.selectedEmojiType === 'large' ? 32 : 32)
+        .width(32)
+        .height(32)
         .objectFit(ImageFit.Contain)
+        .draggable(false)
     }
     .width(40)
     .height(40)
@@ -214,6 +208,23 @@ export struct EmojiPicker {
     .backgroundColor(Color.Transparent)
     .onClick(() => {
       this.selectEmoji(emoji);
+    })
+    .gesture(
+      LongPressGesture()
+        .onAction(() => {
+          this.showEmojiPreview(`${section}_${emoji.id}`, EmojiDataManager.getEmojiImageResource(emoji.imageFile));
+        })
+    )
+    .bindPopup(this.previewEmojiId === `${section}_${emoji.id}`, {
+      builder: this.buildEmojiPreview,
+      placement: Placement.Top,
+      popupColor: this.themeState.colors.bgColorInput,
+      enableArrow: true,
+      onStateChange: (e) => {
+        if (!e.isVisible) {
+          this.dismissEmojiPreview();
+        }
+      }
     })
     .onTouch((event: TouchEvent) => {
       if (event.type === TouchType.Down) {
@@ -226,6 +237,56 @@ export struct EmojiPicker {
         .backgroundColor(this.themeState.colors.bgColorInput)
       }
     })
+  }
+
+  @Builder
+  buildCustomEmojiItem(emoji: Emoji) {
+    Column() {
+      Image(emoji.emojiUrl)
+        .width('100%')
+        .height('100%')
+        .objectFit(ImageFit.Contain)
+        .draggable(false)
+    }
+    .width('100%')
+    .aspectRatio(1)
+    .padding(4)
+    .borderRadius(6)
+    .backgroundColor(Color.Transparent)
+    .onClick(() => {
+      this.selectCustomEmoji(emoji);
+    })
+    .gesture(
+      LongPressGesture()
+        .onAction(() => {
+          this.showEmojiPreview(`custom_${emoji.key}`, emoji.emojiUrl);
+        })
+    )
+    .bindPopup(this.previewEmojiId === `custom_${emoji.key}`, {
+      builder: this.buildEmojiPreview,
+      placement: Placement.Top,
+      popupColor: this.themeState.colors.bgColorInput,
+      enableArrow: true,
+      onStateChange: (e) => {
+        if (!e.isVisible) {
+          this.dismissEmojiPreview();
+        }
+      }
+    })
+    .stateStyles({
+      pressed: {
+        .backgroundColor(this.themeState.colors.bgColorInput)
+      }
+    })
+  }
+
+  @Builder
+  buildEmojiPreview() {
+    Image(this.previewEmojiUrl)
+      .width(120)
+      .height(120)
+      .padding(10)
+      .objectFit(ImageFit.Contain)
   }
 
   
@@ -271,6 +332,38 @@ export struct EmojiPicker {
   }
 
   
+  private getSelectedGroupIndex(): number {
+    return Math.min(Math.max(this.selectedGroupIndex, 0), Math.max(this.emojiGroups.length - 1, 0));
+  }
+
+  private getSelectedGroup(): EmojiGroup | undefined {
+    return this.emojiGroups[this.getSelectedGroupIndex()];
+  }
+
+  private getSelectedGroupEmojis(): Emoji[] {
+    return this.getSelectedGroup()?.emojis ?? [];
+  }
+
+  private isLittleEmojiGroup(): boolean {
+    return this.getSelectedGroup()?.isLittleEmoji === true;
+  }
+
+  private selectCustomEmoji(emoji: Emoji) {
+    const group = this.getSelectedGroup();
+    if (group && this.onCustomEmojiClick) {
+      this.onCustomEmojiClick(group, emoji);
+    }
+  }
+
+  private showEmojiPreview(emojiId: string, emojiUrl: ResourceStr) {
+    this.previewEmojiUrl = emojiUrl;
+    this.previewEmojiId = emojiId;
+  }
+
+  private dismissEmojiPreview() {
+    this.previewEmojiId = '';
+  }
+
   private selectEmoji(emoji: EmojiItem) {
     
 

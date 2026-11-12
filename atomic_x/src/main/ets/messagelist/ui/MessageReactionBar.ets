@@ -7,12 +7,14 @@ const CHIP_MAX_WIDTH = 180;
 const CHIP_TEXT_MAX_WIDTH = 120;
 const MAX_REACTION_ROW_WIDTH = 220;
 const CHIP_HORIZONTAL_SPACING = 8;
+const MEDIA_REACTION_TOP_MARGIN = 6;
 
 @Component
 export struct MessageReactionBar {
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   @Prop reactionList: MessageReaction[] = [];
   @Prop isSentBySelf: boolean = false;
+  @Prop isMediaBubble: boolean = false;
   onClickCallback?: () => void;
 
   build() {
@@ -35,8 +37,8 @@ export struct MessageReactionBar {
       .width('auto')
       .alignItems(this.isSentBySelf ? HorizontalAlign.End : HorizontalAlign.Start)
       .alignSelf(this.isSentBySelf ? ItemAlign.End : ItemAlign.Start)
-      .padding({ left: 12, right: 12, bottom: 6 })
-      .margin({ top: 2 })
+      .padding(this.isMediaBubble ? 0 : { left: 12, right: 12, bottom: 6 })
+      .margin({ top: this.isMediaBubble ? MEDIA_REACTION_TOP_MARGIN : 2 })
       .onClick(() => {
         if (this.onClickCallback) {
           this.onClickCallback();

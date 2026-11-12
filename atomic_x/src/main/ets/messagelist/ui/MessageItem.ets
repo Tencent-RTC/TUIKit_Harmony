@@ -570,7 +570,7 @@ export struct MessageItem {
       Text("")
         .width(0)
         .height(0)
-    } else if (message.messageType === MessageType.IMAGE || message.messageType === MessageType.VIDEO) {
+    } else if (MessageBubbleBackgroundFactory.shouldHideBubbleBackground(message)) {
       Column() {
         GetMessageView(this.createRenderContext(message));
         this.TimeInBubbleView();
@@ -578,6 +578,7 @@ export struct MessageItem {
           MessageReactionBar({
             reactionList: message.reactionList,
             isSentBySelf: this.getMessageEffectiveIsSelf(message),
+            isMediaBubble: true,
             onClickCallback: () => {
               this.showReactionDetail();
             }
@@ -585,6 +586,7 @@ export struct MessageItem {
         }
       }
       .padding({ bottom: this.shouldShowTimeInBubble(message) ? 4 : 0 })
+      .alignItems(this.getMessageEffectiveIsSelf(message) ? HorizontalAlign.End : HorizontalAlign.Start)
       .onAreaChange((_old: Area, area: Area): void => {
         this.updateMessageBubbleWidth(area);
       })

@@ -1,6 +1,6 @@
 import { ThemeState, EventBus } from '../../basecomponent/Index';
 import emitter from '@ohos.events.emitter';
-import { EmojiItem, EmojiPicker, EmojiDataManager } from '../../emojipicker/Index';
+import { EmojiItem, EmojiPicker, EmojiDataManager, EmojiGroup, Emoji } from '../../emojipicker/Index';
 import { MessageInputConfigProtocol, ExpandPanelType } from '../config/MessageInputConfig';
 import { MenuItem } from './MessageInputMoreDialog';
 
@@ -18,6 +18,7 @@ export interface ClassicInputBarCallbacks {
   onVoiceRecordEnd?: (x: number, y: number, forceCancel?: boolean) => void;
   onVoiceRecordPointerUpdate?: (x: number, y: number) => void;
   onEmojiSelected?: (emoji: EmojiItem) => void;
+  onCustomEmojiSelected?: (group: EmojiGroup, emoji: Emoji) => void;
   onDeleteClick?: () => void;
   onInputFocusChange?: (focused: boolean) => void;
   onInputChange?: () => void;
@@ -453,13 +454,17 @@ export struct ClassicInputBar {
   private buildEmojiPanel() {
     Column() {
       EmojiPicker({
-        showTypeSelector: false,
         panelHeight: this.emojiPanelHeight,
         onEmojiClick: (emoji: EmojiItem) => {
           if (this.callbacks.onEmojiSelected) {
             this.callbacks.onEmojiSelected(emoji);
           }
           this.checkInputContent();
+        },
+        onCustomEmojiClick: (group: EmojiGroup, emoji: Emoji) => {
+          if (this.callbacks.onCustomEmojiSelected) {
+            this.callbacks.onCustomEmojiSelected(group, emoji);
+          }
         },
         onDeleteClick: () => {
           if (this.callbacks.onDeleteClick) {

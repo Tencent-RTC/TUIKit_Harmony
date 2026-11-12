@@ -21,6 +21,10 @@
       "value": "Welcome to Chat Demo! Send a message to try out the basic chat.\nTo add friends, go to the Contacts page and tap the plus button.\nTo make audio or video calls, tap the plus button below -> Voice Call/Video Call."
     },
     {
+      "name": "demo_tab_ai",
+      "value": "AI"
+    },
+    {
       "name": "demo_conversation_tab_name",
       "value": "Message"
     },

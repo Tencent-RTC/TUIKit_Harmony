@@ -1,7 +1,7 @@
 import { MessageInfo, MergedMessagePayload, MessageListStore } from '@tencentcloud/atomicxcore';
 import { ThemeState, ContextProvider, LanguageState } from '../../basecomponent/Index';
 import { EmojiDataManager, EmojiTextSegment } from '../../emojipicker/Index';
-import { MergedMessageDetailPage } from '../ui/MergedMessageDetailPage';
+import { MergedMessageDetailPage, pushMergedMessageDetailPage } from '../ui/MergedMessageDetailPage';
 import { ImmersiveMode, LevelMode } from '@kit.ArkUI';
 import { AppBuilderConfig } from '../../basecomponent/utils/AppBuilderHelper';
 import { MessageListStyleProtocol } from '../config/MessageListConfig';
@@ -117,11 +117,17 @@ export struct MergedMessageViewContent {
   }
 
   private openMergedMessageDetail() {
+    if (!this.onRequestCloseParentDialog && pushMergedMessageDetailPage(this.message)) {
+      return;
+    }
     if (this.onRequestCloseParentDialog) {
       this.onRequestCloseParentDialog();
     }
 
     setTimeout(() => {
+      if (pushMergedMessageDetailPage(this.message)) {
+        return;
+      }
       this.detailDialogController = new CustomDialogController({
         builder: MergedMessageDetailPage({
           mergedMessage: this.message,

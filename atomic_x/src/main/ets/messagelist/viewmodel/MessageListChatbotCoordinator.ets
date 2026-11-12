@@ -17,6 +17,10 @@ export interface MessageListChatbotHost {
   refreshDataSource(): void;
 
   onStreamContentUpdated(): void;
+
+  isMessageVisible(message: MessageInfo): boolean;
+
+  isReplyPlaceholderEnabled(): boolean;
 }
 
 export class MessageListChatbotCoordinator {
@@ -91,7 +95,11 @@ export class MessageListChatbotCoordinator {
 
   buildDisplayMessages(conversationID: string, source: MessageInfo[]): MessageInfo[] {
     const controller = this.controller;
-    if (!controller || !controller.shouldShowPlaceholder(source)) {
+    if (!controller || this.host?.isReplyPlaceholderEnabled() === false) {
+      return source;
+    }
+    const timestampSeconds = controller.placeholderTimestampSeconds(source);
+    if (timestampSeconds === undefined) {
       return source;
     }
     const conversation = this.host?.getConversationInfo(conversationID);
@@ -103,7 +111,7 @@ export class MessageListChatbotCoordinator {
     );
     const placeholder = ChatbotPlaceholderMessageFactory.create(
       conversationID,
-      controller.currentState.requestTimestampSeconds,
+      timestampSeconds,
       sender
     );
     return source.concat(placeholder);
@@ -114,7 +122,7 @@ export class MessageListChatbotCoordinator {
     if (!messages) {
       return;
     }
-    const filtered = messages.filter((m: MessageInfo) => MessageUtils.shouldDisplayInMessageList(m));
+    const filtered = messages.filter((m: MessageInfo) => this.host?.isMessageVisible(m) ?? true);
     this.host?.setDisplayMessages(this.buildDisplayMessages(conversationID, filtered));
   }
 }

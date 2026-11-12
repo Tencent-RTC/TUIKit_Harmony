@@ -1,7 +1,8 @@
-import { SettingsPage } from './SettingsPage'
-import { ContactsPage, ChatDialog } from 'chatuikit'
-import { ImageSizeUtil,ThemeState, BadgeControl, BadgeType } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index';
-import { UserInteractionHelper, GroupSettingDialog } from '@tencentcloud/atomicx/src/main/ets/chatsetting/Index';
+import { ProfileDetailPage, SettingsPage } from './SettingsPage'
+import { ContactsPage, ChatNavDestination, ChatDestinationParams, AIAssistantPageView } from 'chatuikit'
+import { AlertDialog as AtomicAlertDialog, ImageSizeUtil,ThemeState, BadgeControl, BadgeType, Toast, AtomicxNavigator, AtomicxPageParams, ATOMICX_PAGE_ROUTE } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index';
+import { UserInteractionHelper, GroupChatSetting, C2CChatSetting, GroupMemberListPage, GroupManagementView, GroupAnnouncementView } from '@tencentcloud/atomicx/src/main/ets/chatsetting/Index';
+import { BlackListView, GroupListView, FriendApplicationListView, GroupApplicationListView } from '@tencentcloud/atomicx/src/main/ets/contactlist/Index';
 import { ConversationsPage } from 'chatuikit'
 import {
   ContactInfo,
@@ -22,15 +23,56 @@ import {
   LoginStore
 } from '@tencentcloud/atomicxcore'
 import { MessageInfo } from '@tencentcloud/atomicxcore'
-import { ImmersiveMode, LevelMode } from '@kit.ArkUI'
+import { UIContext } from '@ohos.arkui.UIContext'
 import { promptAction, router } from '@kit.ArkUI'
 import { common, Want } from '@kit.AbilityKit'
 import { setNotificationClickCallback, clearNotificationClickCallback } from '../push/TIMPushInterfaces';
 import { TUICallKit, CallMediaType as CallKitMediaType, CallParams as CallKitParams } from '@tencentcloud/tuicallkit';
-import { TUIEventBus, TUIObserver, NotifyParams } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index'
+import { PublishParams, TUIEventBus, TUIObserver, NotifyParams } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index'
+import { CompletionHandlerAdapter } from '@tencentcloud/atomicx/src/main/ets/basecomponent/utils/CompletionHandlers'
 import { CallMediaType } from '@tencentcloud/atomicx/src/main/ets/call/common/CallStore'
 import { MessageInputActionIDs } from '@tencentcloud/atomicx/src/main/ets/messageinput/Index'
+import { CallMessageClickContext, ChatMessageListConfig } from '@tencentcloud/atomicx/src/main/ets/messagelist/Index'
+import { ChatbotConversationControllers, ChatbotConversationPolicy } from '@tencentcloud/atomicx/src/main/ets/chatbot/Index'
+import { AIAssistantAgent, AIAssistantControlMessages, AIAssistantHandoffStatus } from '@tencentcloud/atomicx/src/main/ets/aiassistant/Index'
 import { MessageInputCallRedDotStore } from '../utils/MessageInputCallRedDotStore'
+import { SupportAgentCatalog } from '../ai/SupportAgentCatalog'
+import { ChatTitleResolver } from '../chat/ChatTitleResolver'
+
+interface GroupSettingRouteParams {
+  groupID: string;
+  onSendMessageClick?: (newConversationID?: string, title?: string, avatarUrl?: string) => void;
+  onGroupDelete?: () => void;
+}
+
+interface C2CSettingRouteParams {
+  userID: string;
+  onSendMessageClick?: (newConversationID?: string, title?: string, avatarUrl?: string) => void;
+  onContactDelete?: () => void;
+}
+
+interface GroupMemberListRouteParams {
+  groupID: string;
+  groupName: string;
+  onSendMessageClick?: (newConversationID?: string, title?: string, avatarUrl?: string) => void;
+}
+
+interface GroupManagementRouteParams {
+  groupID: string;
+}
+
+interface GroupAnnouncementRouteParams {
+  groupID: string;
+  onSave?: (announcement: string) => void;
+}
+
+interface ContactManagementRouteParams {
+  onShowProfile?: (item: ContactInfo) => void;
+}
+
+interface ProfileDetailRouteParams {
+  onProfileUpdated?: () => void;
+}
 
 class CallStartObserver implements TUIObserver {
   onNotify(event: string, _key: string | null, params: NotifyParams | null): void {
@@ -78,9 +120,10 @@ struct HomePage {
   private static readonly ICON_SIZE: number = 24;
   private static readonly INDICATOR_WIDTH: number = 16;
   private static readonly INDICATOR_HEIGHT: number = 3;
-  private static readonly TAB_MESSAGE: number = 0;
-  private static readonly TAB_CONTACT: number = 1;
-  private static readonly TAB_PROFILE: number = 2;
+  private static readonly TAB_AI: number = 0;
+  private static readonly TAB_MESSAGE: number = 1;
+  private static readonly TAB_CONTACT: number = 2;
+  private static readonly TAB_PROFILE: number = 3;
   @State currentIndex: number = 0;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   @State tabItems: TabItem[] = [];
@@ -94,14 +137,22 @@ struct HomePage {
   @State private conversationListStore: ConversationListStore = ConversationListStore.create();
   @Watch('onConversationUnreadCountChanged')
   @State private conversationListState: ConversationListState = this.conversationListStore.state;
-  private chatDialogController?: CustomDialogController;
-  private groupSettingDialogController?: CustomDialogController;
+  private pathStack: NavPathStack = new NavPathStack();
   private userInteractionHelper: UserInteractionHelper = new UserInteractionHelper();
   private unsubscribeLoginEvent?: () => void;
   private callEventObserver?: TUIObserver;
+  private isCheckingHandoffStatus: boolean = false;
 
   aboutToAppear() {
+    AtomicxNavigator.bind(this.pathStack);
     this.tabItems = [
+      new TabItem(
+        HomePage.TAB_AI,
+        $r("app.string.demo_tab_ai"),
+        $r('app.media.tab_ai'),
+        $r('app.media.tab_ai'),
+        0
+      ),
       new TabItem(
         HomePage.TAB_MESSAGE,
         $r("app.string.demo_conversation_tab_name"),
@@ -132,6 +183,7 @@ struct HomePage {
   }
 
   aboutToDisappear() {
+    AtomicxNavigator.unbind(this.pathStack);
     if (this.unsubscribeLoginEvent) {
       this.unsubscribeLoginEvent();
       this.unsubscribeLoginEvent = undefined;
@@ -169,15 +221,7 @@ struct HomePage {
   private handleKickedOffline() {
     console.warn('[HomePage] 🚫 Kicked offline - User logged in from another device');
     
-    // Close all dialogs
-    if (this.groupSettingDialogController) {
-      this.groupSettingDialogController.close();
-      this.groupSettingDialogController = undefined;
-    }
-    if (this.chatDialogController) {
-      this.chatDialogController.close();
-      this.chatDialogController = undefined;
-    }
+    this.pathStack.clear();
 
     // Show alert dialog
     AlertDialog.show({
@@ -197,15 +241,7 @@ struct HomePage {
   private handleUserSigExpired() {
     console.warn('[HomePage] ⏰ UserSig expired - Need to re-login');
     
-    // Close all dialogs
-    if (this.groupSettingDialogController) {
-      this.groupSettingDialogController.close();
-      this.groupSettingDialogController = undefined;
-    }
-    if (this.chatDialogController) {
-      this.chatDialogController.close();
-      this.chatDialogController = undefined;
-    }
+    this.pathStack.clear();
 
     // Show alert dialog
     AlertDialog.show({
@@ -287,19 +323,206 @@ struct HomePage {
     })
   }
 
+  private handleAtomicxPageBack(params: AtomicxPageParams): boolean {
+    if (params.onBackPressed && params.onBackPressed()) {
+      return true;
+    }
+    this.pathStack.pop();
+    return true;
+  }
+
+  @Builder
+  pageMap(name: string, params: Object) {
+    if (name === ATOMICX_PAGE_ROUTE) {
+      NavDestination() {
+        (params as AtomicxPageParams).builder.builder((params as AtomicxPageParams).args)
+      }
+      .hideTitleBar(true)
+      .onBackPressed(() => this.handleAtomicxPageBack(params as AtomicxPageParams))
+    } else if (name === 'chat') {
+      ChatNavDestination({
+        params: params as ChatDestinationParams,
+        pathStack: this.pathStack
+      })
+    } else if (name === 'groupSetting') {
+      NavDestination() {
+        GroupChatSetting({
+          groupID: (params as GroupSettingRouteParams).groupID,
+          navPathStack: this.pathStack,
+          onClose: () => {
+            this.pathStack.pop();
+          },
+          onSendMessageClick: (params as GroupSettingRouteParams).onSendMessageClick,
+          onGroupDelete: (params as GroupSettingRouteParams).onGroupDelete
+        })
+      }
+      .hideTitleBar(true)
+      .onBackPressed(() => {
+        this.pathStack.pop();
+        return true;
+      })
+    } else if (name === 'groupMemberList') {
+      NavDestination() {
+        GroupMemberListPage({
+          groupID: (params as GroupMemberListRouteParams).groupID,
+          groupName: (params as GroupMemberListRouteParams).groupName,
+          onSendMessageClick: (params as GroupMemberListRouteParams).onSendMessageClick,
+          onBack: () => {
+            this.pathStack.pop();
+          }
+        })
+      }
+      .hideTitleBar(true)
+      .onBackPressed(() => {
+        this.pathStack.pop();
+        return true;
+      })
+    } else if (name === 'groupManagement') {
+      NavDestination() {
+        GroupManagementView({
+          groupID: (params as GroupManagementRouteParams).groupID,
+          onBack: () => {
+            this.pathStack.pop();
+          }
+        })
+      }
+      .hideTitleBar(true)
+      .onBackPressed(() => {
+        this.pathStack.pop();
+        return true;
+      })
+    } else if (name === 'groupAnnouncement') {
+      NavDestination() {
+        GroupAnnouncementView({
+          groupID: (params as GroupAnnouncementRouteParams).groupID,
+          onBack: () => {
+            this.pathStack.pop();
+          },
+          onSave: (params as GroupAnnouncementRouteParams).onSave
+        })
+      }
+      .hideTitleBar(true)
+      .onBackPressed(() => {
+        this.pathStack.pop();
+        return true;
+      })
+    } else if (name === 'friendApplications') {
+      NavDestination() {
+        FriendApplicationListView({
+          contactStore: this.contactStore,
+          onBack: () => {
+            this.pathStack.pop();
+          }
+        })
+      }
+      .hideTitleBar(true)
+      .onBackPressed(() => {
+        this.pathStack.pop();
+        return true;
+      })
+    } else if (name === 'groupApplications') {
+      NavDestination() {
+        GroupApplicationListView({
+          groupStore: this.groupStore,
+          onBack: () => {
+            this.pathStack.pop();
+          }
+        })
+      }
+      .hideTitleBar(true)
+      .onBackPressed(() => {
+        this.pathStack.pop();
+        return true;
+      })
+    } else if (name === 'myGroups') {
+      NavDestination() {
+        GroupListView({
+          groupStore: this.groupStore,
+          onBack: () => {
+            this.pathStack.pop();
+          },
+          onShowProfile: (params as ContactManagementRouteParams).onShowProfile
+        })
+      }
+      .hideTitleBar(true)
+      .onBackPressed(() => {
+        this.pathStack.pop();
+        return true;
+      })
+    } else if (name === 'blackList') {
+      NavDestination() {
+        BlackListView({
+          contactStore: this.contactStore,
+          onBack: () => {
+            this.pathStack.pop();
+          },
+          onShowProfile: (params as ContactManagementRouteParams).onShowProfile
+        })
+      }
+      .hideTitleBar(true)
+      .onBackPressed(() => {
+        this.pathStack.pop();
+        return true;
+      })
+    } else if (name === 'profileDetail') {
+      NavDestination() {
+        ProfileDetailPage({
+          onClose: () => {
+            this.pathStack.pop();
+          },
+          onProfileUpdated: (params as ProfileDetailRouteParams).onProfileUpdated
+        })
+      }
+      .hideTitleBar(true)
+      .onBackPressed(() => {
+        this.pathStack.pop();
+        return true;
+      })
+    } else if (name === 'c2cSetting') {
+      NavDestination() {
+        C2CChatSetting({
+          userID: (params as C2CSettingRouteParams).userID,
+          onClose: () => {
+            this.pathStack.pop();
+          },
+          onSendMessageClick: (params as C2CSettingRouteParams).onSendMessageClick,
+          onContactDelete: (params as C2CSettingRouteParams).onContactDelete
+        })
+      }
+      .hideTitleBar(true)
+      .onBackPressed(() => {
+        this.pathStack.pop();
+        return true;
+      })
+    }
+  }
+
   build() {
-    Column() {
-      Tabs({
+    Navigation(this.pathStack) {
+      Column() {
+        Tabs({
         barPosition: BarPosition.End,
         controller: this.tabsController
       }) {
+        TabContent() {
+          AIAssistantPageView({
+            agentLoader: (onResult: (agents: AIAssistantAgent[]) => void) => {
+              SupportAgentCatalog.fetch(onResult);
+            },
+            handoffStatusLoader: (onResult: (status: AIAssistantHandoffStatus) => void) => {
+              SupportAgentCatalog.fetchHandoffStatus(onResult);
+            },
+            isPageVisible: this.currentIndex === HomePage.TAB_AI
+          })
+        }.tabBar(this.TabBuilder(HomePage.TAB_AI))
+
         TabContent() {
           ConversationsPage({
             onConversationClick: (item: ConversationInfo) => {
               this.handleConversationClick(item);
             },
             onConversationClickWithMessage: (item: ConversationInfo, locateMessage?: MessageInfo) => {
-              this.showChatDialog(item.conversationID, item.title || 'Chat', item.avatarURL, locateMessage);
+              this.showChatDialog(item.conversationID, item.title ?? '', item.avatarURL, locateMessage);
             }
           })
         }.tabBar(this.TabBuilder(HomePage.TAB_MESSAGE))
@@ -308,6 +531,7 @@ struct HomePage {
           ContactsPage({
             contactStore: this.contactStore,
             groupStore: this.groupStore,
+            navPathStack: this.pathStack,
             onContactClick: (contact: ContactInfo) => {
               this.handleContactClick(contact);
             },
@@ -318,7 +542,9 @@ struct HomePage {
         }.tabBar(this.TabBuilder(HomePage.TAB_CONTACT))
 
         TabContent() {
-          SettingsPage()
+          SettingsPage({
+            navPathStack: this.pathStack
+          })
         }.tabBar(this.TabBuilder(HomePage.TAB_PROFILE))
       }
       .barHeight(HomePage.TAB_BAR_HEIGHT)
@@ -331,6 +557,13 @@ struct HomePage {
       .width('100%')
       .backgroundColor(this.themeState.colors.bgColorOperate)
     }
+      .width('100%')
+      .height('100%')
+    }
+    .hideTitleBar(true)
+    .hideToolBar(true)
+    .mode(NavigationMode.Stack)
+    .navDestination(this.pageMap)
     .width('100%')
     .height('100%')
   }
@@ -363,7 +596,7 @@ struct HomePage {
 
   private handleConversationClick(item: ConversationInfo): void {
     console.info(`[HomePage] Conversation clicked: ${item.conversationID}`);
-    this.showChatDialog(item.conversationID, item.title || 'Chat', item.avatarURL);
+    this.showChatDialog(item.conversationID, item.title ?? '', item.avatarURL);
   }
 
   private handleContactClick(contact: ContactInfo): void {
@@ -389,81 +622,78 @@ struct HomePage {
   }
 
   private showChatDialog(conversationID: string, title: string, avatarUrl?: string, locateMessage?: MessageInfo): void {
-    try {
-      if (this.chatDialogController) {
-        this.chatDialogController.close();
-        this.chatDialogController = undefined;
+    const params: ChatDestinationParams = {
+      conversationID: conversationID,
+      title: ChatTitleResolver.resolve(title, conversationID),
+      headerActionIcon: ChatbotConversationPolicy.isChatbotConversation(conversationID) ?
+        $rawfile('aiassistant/ic_clear_history.svg') : undefined,
+      avatarUrl: avatarUrl || '',
+      status: '',
+      locateMessage: locateMessage,
+      messageListConfig: this.createChatMessageListConfig(conversationID),
+      moreActionRedDotIDs: MessageInputCallRedDotStore.pendingActionIDs(
+        LoginStore.shared().sdkAppID,
+        [MessageInputActionIDs.VIDEO_CALL, MessageInputActionIDs.AUDIO_CALL]
+      ),
+      onMoreActionRedDotTap: (actionID: string) => {
+        MessageInputCallRedDotStore.markClicked(LoginStore.shared().sdkAppID, actionID);
+      },
+      onUserClick: (userID: string) => {
+        console.log('[HomePage] User clicked in message list:', userID);
+        this.handleUserClick(userID);
+      },
+      onChatHeaderClick: (clickedConversationID: string, uiContext: UIContext) => {
+        console.log('[HomePage] Chat header clicked:', clickedConversationID);
+        this.handleChatHeaderClick(clickedConversationID, uiContext);
+      },
+      onSecurityReportClick: () => {
+        console.log('[HomePage] Security report clicked');
+        const context = getContext(this) as common.UIAbilityContext;
+        const wantInfo: Want = {
+          action: 'ohos.want.action.viewData',
+          entities: ['entity.system.browsable'],
+          uri: 'https://cloud.tencent.com/act/event/report-platform'
+        };
+        context.startAbility(wantInfo);
       }
+    };
 
-      this.chatDialogController = new CustomDialogController({
-        builder: ChatDialog({
-          conversationID: conversationID,
-          title: title,
-          avatarUrl: avatarUrl || '',
-          status: '',
-          locateMessage: locateMessage,
-          moreActionRedDotIDs: MessageInputCallRedDotStore.pendingActionIDs(
-            LoginStore.shared().sdkAppID,
-            [MessageInputActionIDs.VIDEO_CALL, MessageInputActionIDs.AUDIO_CALL]
-          ),
-          onMoreActionRedDotTap: (actionID: string) => {
-            MessageInputCallRedDotStore.markClicked(LoginStore.shared().sdkAppID, actionID);
-          },
-          onBack: () => {
-            console.log('[HomePage] Chat back button clicked');
-          },
-          onUserClick: (userID: string) => {
-            console.log('[HomePage] User clicked in message list:', userID);
-            this.handleUserClick(userID);
-          },
-          onChatHeaderClick: (clickedConversationID: string) => {
-            console.log('[HomePage] Chat header clicked:', clickedConversationID);
-            this.handleChatHeaderClick(clickedConversationID);
-          },
-          onSecurityReportClick: () => {
-            console.log('[HomePage] Security report clicked');
-            const context = getContext(this) as common.UIAbilityContext;
-            const wantInfo: Want = {
-              action: 'ohos.want.action.viewData',
-              entities: ['entity.system.browsable'],
-              uri: 'https://cloud.tencent.com/act/event/report-platform'
-            };
-            context.startAbility(wantInfo);
-          },
-
-        }),
-        autoCancel: false,
-        alignment: DialogAlignment.Center,
-        customStyle: true,
-        keyboardAvoidMode: KeyboardAvoidMode.NONE,
-        maskColor: 'rgba(0, 0, 0, 0)',
-        cancel: () => {
-          this.chatDialogController = undefined;
-        },
-        levelMode: LevelMode.EMBEDDED,
-        immersiveMode: ImmersiveMode.EXTEND,
-        openAnimation: {
-          duration: 300,
-          curve: Curve.EaseInOut,
-          playMode: PlayMode.Normal,
-          onFinish: () => {
-            // Animation finished
-          }
-        },
-        closeAnimation: {
-          duration: 250,
-          curve: Curve.EaseInOut,
-          playMode: PlayMode.Normal,
-          onFinish: () => {
-            // Animation finished
-          }
-        }
-      });
-
-      this.chatDialogController.open();
-    } catch (error) {
-      console.error('[HomePage] showChatDialog error:', error);
+    while (this.pathStack.size() > 0) {
+      this.pathStack.pop(false);
     }
+    this.pathStack.pushPathByName('chat', params, true);
+  }
+
+  private createChatMessageListConfig(conversationID: string): ChatMessageListConfig {
+    const isChatbotConversation = ChatbotConversationPolicy.isChatbotConversation(conversationID);
+    const config = new ChatMessageListConfig().addMessageExclusion((message: MessageInfo): boolean => AIAssistantControlMessages.isControlMessage(message));
+    if (isChatbotConversation) {
+      config.setCallMessageClickListener((clickContext: CallMessageClickContext): boolean => {
+        this.handleChatbotCallMessageClick(clickContext);
+        return true;
+      });
+    }
+    return config;
+  }
+
+  private handleChatbotCallMessageClick(clickContext: CallMessageClickContext): void {
+    if (this.isCheckingHandoffStatus) {
+      return;
+    }
+    this.isCheckingHandoffStatus = true;
+    SupportAgentCatalog.fetchHandoffStatus((status: AIAssistantHandoffStatus) => {
+      this.isCheckingHandoffStatus = false;
+      if (this.pathStack.size() === 0) {
+        return;
+      }
+      if (status.isSeatCallable) {
+        clickContext.startCall(status.seatImUserId);
+      } else if (status.isWaitingForSeat) {
+        Toast.info($r('app.string.uikit_ai_call_handoff_waiting'), this.getUIContext());
+      } else {
+        Toast.info($r('app.string.uikit_ai_call_handoff_required'), this.getUIContext());
+      }
+    });
   }
 
   private handleUserClick(userID: string): void {
@@ -479,15 +709,19 @@ struct HomePage {
       },
       () => {
         console.log('[HomePage] Contact deleted from user interaction');
-        if (this.chatDialogController) {
-          this.chatDialogController.close();
-          this.chatDialogController = undefined;
-        }
+        this.pathStack.clear();
+      },
+      (clickedUserID: string) => {
+        this.showC2CSettingPage(clickedUserID);
       }
     );
   }
 
-  private handleChatHeaderClick(conversationID: string): void {
+  private handleChatHeaderClick(conversationID: string, uiContext?: UIContext): void {
+    if (ChatbotConversationPolicy.isChatbotConversation(conversationID)) {
+      this.showClearChatHistoryConfirmation(conversationID, uiContext);
+      return;
+    }
     console.info(`[HomePage] Handle chat header click: ${conversationID}`);
     const isGroupChat = conversationID.startsWith('group_');
     
@@ -500,7 +734,7 @@ struct HomePage {
       const userID = conversationID.replace('c2c_', '');
       this.userInteractionHelper.showUserProfileByFriendship(
         userID,
-        this.getUIContext(),
+        uiContext ?? this.getUIContext(),
         (newConversationID?: string, title?: string, avatarUrl?: string) => {
           if (newConversationID) {
             this.showChatDialog(newConversationID, title || 'Chat', avatarUrl);
@@ -508,79 +742,87 @@ struct HomePage {
         },
         () => {
           console.log('[HomePage] Contact deleted from chat header');
-          if (this.chatDialogController) {
-            this.chatDialogController.close();
-            this.chatDialogController = undefined;
-          }
+          this.pathStack.clear();
+        },
+        (clickedUserID: string) => {
+          this.showC2CSettingPage(clickedUserID);
         }
       );
     }
   }
 
-  private showGroupSettingDialog(groupID: string): void {
-    try {
-      if (this.groupSettingDialogController) {
-        this.groupSettingDialogController.close();
-        this.groupSettingDialogController = undefined;
-      }
-
-      if (!groupID || groupID.length === 0) {
-        return;
-      }
-
-      this.groupSettingDialogController = new CustomDialogController({
-        builder: GroupSettingDialog({
-          groupID: groupID,
-          onSendMessageClick: (newConversationID?: string, title?: string, avatarUrl?: string) => {
-            if (newConversationID) {
-              this.showChatDialog(newConversationID, title || 'Chat', avatarUrl);
-            }
-          },
-          onGroupDelete: () => {
-            console.log('[HomePage] Group deleted, closing dialogs');
-            // Close the group setting dialog first
-            if (this.groupSettingDialogController) {
-              this.groupSettingDialogController.close();
-              this.groupSettingDialogController = undefined;
-            }
-            // Then close the chat dialog
-            if (this.chatDialogController) {
-              this.chatDialogController.close();
-              this.chatDialogController = undefined;
-            }
-          }
-        }),
-        autoCancel: false,
-        alignment: DialogAlignment.Center,
-        customStyle: true,
-        keyboardAvoidMode: KeyboardAvoidMode.NONE,
-        maskColor: 'rgba(0, 0, 0, 0)',
-        cancel: () => {
-          this.groupSettingDialogController = undefined;
-        },
-        levelMode: LevelMode.EMBEDDED,
-        immersiveMode: ImmersiveMode.EXTEND,
-        openAnimation: {
-          duration: 300,
-          curve: Curve.EaseInOut,
-          playMode: PlayMode.Normal,
-          onFinish: () => {
-            // Animation finished
-          }
-        },
-        closeAnimation: {
-          duration: 250,
-          curve: Curve.EaseInOut,
-          playMode: PlayMode.Normal,
-          onFinish: () => {
-            // Animation finished
-          }
-        }
-      });
-
-      this.groupSettingDialogController.open();
-    } catch (error) {
-      console.error('[HomePage] showGroupSettingDialog error:', error);
+  private showClearChatHistoryConfirmation(conversationID: string, uiContext?: UIContext): void {
+    const context = uiContext ?? this.getUIContext();
+    if (ChatbotConversationControllers.isActive(conversationID)) {
+      Toast.info($r('app.string.message_input_chatbot_waiting_tips'), context);
+      return;
     }
+    AtomicAlertDialog.show(
+      undefined,
+      $r('app.string.chatsetting_clear_contact_history_confirm'),
+      $r('app.string.chatsetting_cancel_clear'),
+      $r('app.string.chatsetting_confirm_clear'),
+      undefined,
+      undefined,
+      () => {
+        this.clearChatHistory(conversationID);
+      },
+      context,
+      true
+    );
+  }
+
+  private clearChatHistory(conversationID: string): void {
+    if (ChatbotConversationControllers.isActive(conversationID)) {
+      Toast.info($r('app.string.message_input_chatbot_waiting_tips'), this.getUIContext());
+      return;
+    }
+    ConversationListStore.create().clearConversationMessages(conversationID, new CompletionHandlerAdapter(() => {
+      ChatbotConversationControllers.clear(conversationID);
+      const data: Record<string, Object> = {
+        'conversationID': conversationID as Object,
+      };
+      TUIEventBus.getInstance().publish('chat.messageList.chatHistoryCleared', null, new PublishParams(false, data));
+      Toast.success($r('app.string.chatsetting_clear_chat_success'), this.getUIContext());
+    }, (_code: number, desc: string) => {
+      Toast.error(desc.length > 0 ? desc : $r('app.string.chatsetting_clear_chat_fail'), this.getUIContext());
+    }));
+  }
+
+  private showC2CSettingPage(userID: string): void {
+    if (!userID || userID.length === 0) {
+      return;
+    }
+    const params: C2CSettingRouteParams = {
+      userID: userID,
+      onSendMessageClick: (newConversationID?: string, title?: string, avatarUrl?: string) => {
+        if (newConversationID) {
+          this.showChatDialog(newConversationID, title || 'Chat', avatarUrl);
+        }
+      },
+      onContactDelete: () => {
+        this.pathStack.clear();
+      }
+    };
+    this.pathStack.pushPathByName('c2cSetting', params, true);
+  }
+
+  private showGroupSettingDialog(groupID: string): void {
+    if (!groupID || groupID.length === 0) {
+      return;
+    }
+    const params: GroupSettingRouteParams = {
+      groupID: groupID,
+      onSendMessageClick: (newConversationID?: string, title?: string, avatarUrl?: string) => {
+        if (newConversationID) {
+          this.showChatDialog(newConversationID, title || 'Chat', avatarUrl);
+        }
+      },
+      onGroupDelete: () => {
+        console.log('[HomePage] Group deleted, closing pages');
+        this.pathStack.clear();
+      }
+    };
+    this.pathStack.pushPathByName('groupSetting', params, true);
   }
 }

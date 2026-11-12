@@ -1,4 +1,4 @@
-import { Avatar, AvatarContentType, AvatarSize, ThemeState } from '../../basecomponent/Index';
+import { AtomicxNavigator, Avatar, AvatarContentType, AvatarSize, ThemeState } from '../../basecomponent/Index';
 import { MessageCheckBox } from './MessageCheckBox';
 import {
   ContactInfo,
@@ -23,8 +23,59 @@ interface ForwardTarget {
   avatarURL: string;
 }
 
+interface ForwardTargetSelectorArgs {
+  currentConversationID?: string;
+  onConfirm?: (conversationIDs: string[]) => void;
+  onCancel?: () => void;
+}
+
+@Builder
+function ForwardTargetSelectorPageBuilder(args: Object) {
+  ForwardTargetSelectorContent({
+    currentConversationID: (args as ForwardTargetSelectorArgs).currentConversationID,
+    onConfirm: (args as ForwardTargetSelectorArgs).onConfirm,
+    onCancel: (args as ForwardTargetSelectorArgs).onCancel,
+    headerTopMargin: 0,
+    onClose: () => {
+      AtomicxNavigator.pop();
+    }
+  })
+}
+
+export function pushForwardTargetSelectorPage(currentConversationID: string | undefined,
+  onConfirm: (conversationIDs: string[]) => void, onCancel?: () => void): boolean {
+  const args: ForwardTargetSelectorArgs = {
+    currentConversationID: currentConversationID,
+    onConfirm: onConfirm,
+    onCancel: onCancel
+  };
+  return AtomicxNavigator.push(wrapBuilder(ForwardTargetSelectorPageBuilder), args, (): boolean => {
+    onCancel?.();
+    return false;
+  });
+}
+
 @CustomDialog
 export struct ForwardTargetSelector {
+  controller: CustomDialogController;
+  currentConversationID?: string;
+  onConfirm?: (conversationIDs: string[]) => void;
+  onCancel?: () => void;
+
+  build() {
+    ForwardTargetSelectorContent({
+      currentConversationID: this.currentConversationID,
+      onConfirm: this.onConfirm,
+      onCancel: this.onCancel,
+      onClose: () => {
+        this.controller.close();
+      }
+    })
+  }
+}
+
+@Component
+struct ForwardTargetSelectorContent {
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   @State private conversationListStore: ConversationListStore = ConversationListStore.create();
   @State private conversationListState: ConversationListState = this.conversationListStore.state;
@@ -37,10 +88,11 @@ export struct ForwardTargetSelector {
   @State private isLoading: boolean = false;
   @State private isContactLoading: boolean = false;
 
-  controller: CustomDialogController;
   currentConversationID?: string;
   onConfirm?: (conversationIDs: string[]) => void;
   onCancel?: () => void;
+  onClose?: () => void;
+  headerTopMargin: number = 24;
 
   private readonly HEADER_HEIGHT: number = 56;
   private readonly ITEM_HEIGHT: number = 64;
@@ -100,6 +152,7 @@ export struct ForwardTargetSelector {
         confirmButtonText: $r('app.string.confirm'),
         showHeaderConfirm: true,
         showBottomConfirm: false,
+        titleTopMargin: this.headerTopMargin,
         onCancel: (): void => {
           this.page = ForwardTargetSelectorPage.CONVERSATIONS;
         },
@@ -119,7 +172,7 @@ export struct ForwardTargetSelector {
         .fontColor(this.themeState.colors.textColorLink)
         .onClick((): void => {
           this.onCancel?.();
-          this.controller.close();
+          this.onClose?.();
         })
 
       Text($r('app.string.forward_select_conversation'))
@@ -134,7 +187,7 @@ export struct ForwardTargetSelector {
     }
     .width('100%')
     .height(this.HEADER_HEIGHT)
-    .margin({ top: 24 })
+    .margin({ top: this.headerTopMargin })
     .padding({ left: this.HORIZONTAL_PADDING, right: this.HORIZONTAL_PADDING })
     .alignItems(VerticalAlign.Center)
     .borderWidth({ bottom: 0.5 })
@@ -280,7 +333,7 @@ export struct ForwardTargetSelector {
             return;
           }
           this.onConfirm?.(Array.from(this.selectedConversationIDs));
-          this.controller.close();
+          this.onClose?.();
         })
       }
       .width('100%')

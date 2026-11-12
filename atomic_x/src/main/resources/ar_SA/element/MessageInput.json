@@ -109,6 +109,10 @@
       "value": "اتركه للإلغاء"
     },
     {
+      "name": "message_input_slide_to_transcribe_hint",
+      "value": "اسحب للتحويل إلى نص"
+    },
+    {
       "name": "voice_release_to_send_slide_to_cancel",
       "value": "اتركه للإرسال، اسحب لأعلى للإلغاء"
     },

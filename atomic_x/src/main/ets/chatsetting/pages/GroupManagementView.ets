@@ -1,7 +1,9 @@
 import {
+  AtomicxNavigator,
   Avatar,
   AvatarContentType,
   AvatarSize,
+  BackButton,
   Switch,
   SwitchType,
   TextUtils,
@@ -20,7 +22,6 @@ import { GroupPermission, GroupPermissionManager } from '../manager/GroupPermiss
 
 @CustomDialog
 struct UserPickerDialogInManagement {
-  @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   controller: CustomDialogController;
   title: string | Resource = $r('app.string.chatsetting_select_user');
   dataSource: UserPickerData<GroupMember>[] = [];
@@ -31,8 +32,63 @@ struct UserPickerDialogInManagement {
   onConfirm?: (selectedMembers: GroupMember[], action: string) => void;
 
   build() {
+    ManagementUserPickerContent({
+      title: this.title,
+      dataSource: this.dataSource,
+      preSelectedUsers: this.preSelectedUsers,
+      maxSelectCount: this.maxSelectCount,
+      confirmButtonText: this.confirmButtonText,
+      action: this.action,
+      onConfirm: this.onConfirm,
+      onClose: () => {
+        this.controller.close();
+      }
+    })
+  }
+}
+
+interface ManagementUserPickerArgs {
+  title: string | Resource;
+  dataSource: UserPickerData<GroupMember>[];
+  preSelectedUsers: string[];
+  confirmButtonText: string | Resource;
+  action: string;
+  onConfirm: (selectedMembers: GroupMember[], action: string) => void;
+}
+
+@Builder
+function ManagementUserPickerPageBuilder(args: Object) {
+  ManagementUserPickerContent({
+    title: (args as ManagementUserPickerArgs).title,
+    dataSource: (args as ManagementUserPickerArgs).dataSource,
+    preSelectedUsers: (args as ManagementUserPickerArgs).preSelectedUsers,
+    confirmButtonText: (args as ManagementUserPickerArgs).confirmButtonText,
+    action: (args as ManagementUserPickerArgs).action,
+    onConfirm: (args as ManagementUserPickerArgs).onConfirm,
+    titleTopMargin: 0,
+    onClose: () => {
+      AtomicxNavigator.pop();
+    }
+  })
+}
+
+@Component
+struct ManagementUserPickerContent {
+  @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
+  title: string | Resource = $r('app.string.chatsetting_select_user');
+  dataSource: UserPickerData<GroupMember>[] = [];
+  preSelectedUsers: string[] = [];
+  maxSelectCount: number = -1;
+  confirmButtonText: string | Resource = $r('app.string.chatsetting_complete');
+  action: string = '';
+  onConfirm?: (selectedMembers: GroupMember[], action: string) => void;
+  onClose?: () => void;
+  titleTopMargin: number = 24;
+
+  build() {
     Column() {
       UserPicker({
+        titleTopMargin: this.titleTopMargin,
         dataSource: this.dataSource,
         defaultSelectedItems: this.preSelectedUsers,
         lockedItems: [], // No locked items for now
@@ -42,14 +98,14 @@ struct UserPickerDialogInManagement {
         confirmButtonText: this.confirmButtonText,
         allowEmptyConfirm: true,
         onCancel: () => {
-          this.controller.close();
+          this.onClose?.();
         },
         onSelectedChanged: (selectedItems: UserPickerData<GroupMember>[]) => {
           if (this.onConfirm) {
             const selectedMembers: GroupMember[] = selectedItems.map((item: UserPickerData<GroupMember>): GroupMember => item.extraData as GroupMember);
             this.onConfirm(selectedMembers, this.action);
           }
-          this.controller.close();
+          this.onClose?.();
         }
       })
     }
@@ -117,23 +173,10 @@ export struct GroupManagementView {
   NavigationBarBuilder() {
     Stack() {
       Row() {
-        Row() {
-          Image($rawfile('basecomponent/common_back_icon.svg'))
-            .width(16)
-            .height(16)
-            .fillColor(this.themeState.colors.textColorSecondary)
-            .scale({
-              x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
-              y: 1
-            })
-        }
-        .width(44)
-        .height(44)
-        .justifyContent(FlexAlign.Center)
-        .alignItems(VerticalAlign.Center)
-        .margin({ left: 16 })
-        .onClick(() => {
-          this.closeDialog();
+        BackButton({
+          onBack: () => {
+            this.closeDialog();
+          }
         })
       }
       .width('100%')
@@ -901,6 +944,20 @@ export struct GroupManagementView {
   }
 
   private showUserPickerDialog(dataSource: UserPickerData<GroupMember>[], action: string, title: string | Resource): void {
+    const pageArgs: ManagementUserPickerArgs = {
+      title: title,
+      dataSource: dataSource,
+      preSelectedUsers: action === 'muteMember' ? this.getMutedMemberIds() : [],
+      confirmButtonText: action === 'muteMember' ? $r('app.string.chatsetting_mute') :
+        $r('app.string.chatsetting_complete'),
+      action: action,
+      onConfirm: (selectedMembers: GroupMember[], actionType: string) => {
+        this.handleUserPickerResult(selectedMembers, actionType);
+      }
+    };
+    if (AtomicxNavigator.push(wrapBuilder(ManagementUserPickerPageBuilder), pageArgs)) {
+      return;
+    }
     try {
       if (this.userPickerDialogController) {
         this.userPickerDialogController.close();

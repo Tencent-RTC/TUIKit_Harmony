@@ -1,5 +1,7 @@
 import { MessageInfo, MessageStatus, MessagePayload } from '@tencentcloud/atomicxcore';
 import { ThemeState, LanguageState } from '../../basecomponent/Index';
+import { AtomicCallEventPublisher } from '../../common/AtomicCallEventPublisher';
+import { CallMessageClickContext, MessageListStyleProtocol } from '../config/MessageListConfig';
 import { MessageRenderContext } from '../context/MessageRenderContext';
 import {
   CallingMessageDataProvider,
@@ -72,6 +74,7 @@ export struct CallMessageBubbleViewContent {
   @ObjectLink messagePayload: MessagePayload;
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   @StorageLink('LanguageState') languageState: LanguageState = LanguageState.getInstance();
+  config?: MessageListStyleProtocol = undefined;
 
   private getEffectiveIsSelf(): boolean {
     if (this.message) {
@@ -100,6 +103,27 @@ export struct CallMessageBubbleViewContent {
       top: 8,
       bottom: 8
     })
+    .onClick(() => {
+      this.handleClick();
+    })
+  }
+
+  private handleClick(): void {
+    const listener = this.config?.callMessageClickListener;
+    const message = this.message;
+    if (!listener || !message) {
+      return;
+    }
+    const callingProvider = new CallingMessageDataProvider(message);
+    const mediaType = callingProvider.streamMediaType;
+    if (mediaType !== CallStreamMediaType.audio && mediaType !== CallStreamMediaType.video) {
+      return;
+    }
+    listener(new CallMessageClickContext(message, callingProvider, (targetUserId: string) => {
+      AtomicCallEventPublisher.publishStartCall([targetUserId],
+        mediaType === CallStreamMediaType.video ? AtomicCallEventPublisher.MEDIA_TYPE_VIDEO :
+        AtomicCallEventPublisher.MEDIA_TYPE_AUDIO);
+    }));
   }
 
   @Builder
@@ -221,7 +245,8 @@ export function CallMessageBubbleView(context: MessageRenderContext) {
   if (context.message && context.message.messagePayload) {
     CallMessageBubbleViewContent({
       message: context.message,
-      messagePayload: context.message.messagePayload
+      messagePayload: context.message.messagePayload,
+      config: context.config
     })
   }
 }

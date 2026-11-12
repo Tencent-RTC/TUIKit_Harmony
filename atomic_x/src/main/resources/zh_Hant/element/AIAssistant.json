@@ -1,0 +1,27 @@
+{
+  "string": [
+    { "name": "uikit_ai_page_title", "value": "AI 助手" },
+    { "name": "uikit_ai_transfer_to_human", "value": "轉人工" },
+    { "name": "uikit_ai_select_agent", "value": "選擇助手" },
+    { "name": "uikit_ai_agents_empty", "value": "暫無可用助手" },
+    { "name": "uikit_ai_call_button", "value": "語音通話" },
+    { "name": "uikit_ai_call_handoff_waiting", "value": "正在排隊等待人工接入，請稍後再試" },
+    { "name": "uikit_ai_call_handoff_required", "value": "請先轉人工後再發起通話" },
+    { "name": "uikit_ai_call_mode_free", "value": "自由對話" },
+    { "name": "uikit_ai_call_listening", "value": "正在聽..." },
+    { "name": "uikit_ai_call_thinking", "value": "思考中..." },
+    { "name": "uikit_ai_call_speaking", "value": "可繼續說話" },
+    { "name": "uikit_ai_call_muted", "value": "已靜音" },
+    { "name": "uikit_ai_call_disclaimer", "value": "內容由 AI 生成" },
+    { "name": "uikit_ai_call_permission_denied", "value": "語音對話需要麥克風權限" },
+    { "name": "uikit_ai_call_start_failed", "value": "語音辨識啟動失敗，請重試" },
+    { "name": "uikit_ai_call_asr_unavailable_title", "value": "語音辨識不可用" },
+    { "name": "uikit_ai_call_asr_unavailable_content", "value": "目前應用的語音辨識資源包已用完或未開通，暫時無法進行語音通話。" },
+    { "name": "uikit_ai_call_asr_unavailable_exit", "value": "結束通話" },
+    { "name": "uikit_ai_call_start_failed_retry", "value": "連線失敗，點麥克風重試" },
+    { "name": "uikit_ai_call_send_failed", "value": "傳送失敗，請重試" },
+    { "name": "uikit_ai_call_reply_timeout", "value": "助手沒有回應，請重試" },
+    { "name": "uikit_ai_call_audio_unavailable", "value": "麥克風不可用" },
+    { "name": "uikit_ai_call_playback_unavailable", "value": "語音播放不可用，回覆將以文字顯示" }
+  ]
+}

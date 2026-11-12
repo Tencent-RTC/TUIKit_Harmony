@@ -12,7 +12,7 @@ export { AddContactDialog, SearchResultType } from './pages/dialog/AddContactDia
 
 export { default as ContactArrayDataSource } from './datasource/ContactArrayDataSource'
 
-export { StartConversationDialog, DialogType } from './components/StartConversationDialog'
+export { StartConversationDialog, DialogType, pushStartConversationPage } from './components/StartConversationDialog'
 
 export { GroupCreationComponent, GroupInfo, GroupCreationParams } from './components/GroupCreationComponent'
 

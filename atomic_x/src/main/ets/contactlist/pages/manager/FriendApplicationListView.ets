@@ -1,18 +1,37 @@
 import { ContactState, ContactStore, FriendApplicationInfo } from '@tencentcloud/atomicxcore';
 import {
+  AtomicxNavigator,
   Avatar,
   AvatarContentType,
   AvatarSize,
+  BackButton,
   TextUtils,
   ThemeState
 } from '../../../basecomponent/Index';
 import { CompletionHandlerAdapter } from '../../../basecomponent/utils/CompletionHandlers';
 import { ImmersiveMode, LevelMode } from '@ohos.promptAction';
 
-@CustomDialog
+interface FriendRequestInfoArgs {
+  application: FriendApplicationInfo;
+  contactStore: ContactStore;
+  onProcessed?: () => void;
+}
+
+@Builder
+function FriendRequestInfoPageBuilder(args: Object) {
+  FriendRequestInfoDialog({
+    application: (args as FriendRequestInfoArgs).application,
+    contactStore: (args as FriendRequestInfoArgs).contactStore,
+    onClose: () => {
+      AtomicxNavigator.pop();
+    },
+    onProcessed: (args as FriendRequestInfoArgs).onProcessed
+  })
+}
+
+@Component
 struct FriendRequestInfoDialog {
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
-  controller: CustomDialogController;
   @Prop application: FriendApplicationInfo;
   @Prop contactStore: ContactStore;
   onClose?: () => void;
@@ -31,17 +50,14 @@ struct FriendRequestInfoDialog {
           .textAlign(TextAlign.Center)
 
         Row() {
-          Image($rawfile('contactlist/back_arrow.svg'))
-            .width(24)
-            .height(24)
-            .fillColor(this.themeState.colors.textColorLink)
+          BackButton({
+            onBack: () => {
+            this.handleClose();
+          }
+          })
         }
-        .onClick(() => {
-          this.handleClose();
-        })
         .width('100%')
         .justifyContent(FlexAlign.Start)
-        .padding({ left: 10, right: 10 })
       }
       .width('100%')
       .height(56)
@@ -236,17 +252,14 @@ export struct FriendApplicationListView {
           .textAlign(TextAlign.Center)
 
         Row() {
-          Image($rawfile('contactlist/back_arrow.svg'))
-            .width(24)
-            .height(24)
-            .fillColor(this.themeState.colors.textColorLink)
+          BackButton({
+            onBack: () => {
+            this.handleBack();
+          }
+          })
         }
-        .onClick(() => {
-          this.handleBack();
-        })
         .width('100%')
         .justifyContent(FlexAlign.Start)
-        .padding({ left: 10, right: 10 })
       }
       .width('100%')
       .height(56)
@@ -470,6 +483,13 @@ export struct FriendApplicationListView {
 
   private navigateToFriendRequestInfo(application: FriendApplicationInfo) {
     console.info('Show friend request info dialog');
+    const pageArgs: FriendRequestInfoArgs = {
+      application: application,
+      contactStore: this.contactStore
+    };
+    if (AtomicxNavigator.push(wrapBuilder(FriendRequestInfoPageBuilder), pageArgs)) {
+      return;
+    }
 
 
     if (this.friendRequestInfoDialogController) {

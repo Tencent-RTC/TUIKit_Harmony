@@ -1,6 +1,6 @@
 import { MMKV } from '@tencent/mmkv';
 import { AllowType, LoginStore, UserProfile, Gender, LoginState } from '@tencentcloud/atomicxcore';
-import { ImageSizeUtil, ThemeState, Log, Toast, TextUtils, ToastType, Avatar, AvatarSize , AvatarContentType,AvatarShape, AppBuilderConfig, Switch, LanguageState } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index';
+import { ImageSizeUtil, ThemeState, Log, Toast, TextUtils, ToastType, Avatar, AvatarSize , AvatarContentType,AvatarShape, AppBuilderConfig, BackButton, Switch, LanguageState } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index';
 import router from '@ohos.router';
 import DemoConstants from '../utils/DemoConstants';
 import { i18n } from '@kit.LocalizationKit';
@@ -10,6 +10,10 @@ import { Want, common } from '@kit.AbilityKit';
 import { ThemeMode } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index';
 import { AvatarSelector } from '@tencentcloud/atomicx/src/main/ets/chatsetting/Index';
 import { TIMPushInterfaces } from '../push/TIMPushInterfaces';
+
+interface ProfileDetailRouteParams {
+  onProfileUpdated?: () => void;
+}
 
 enum SettingsCompletionAction {
   LOGOUT,
@@ -24,7 +28,7 @@ enum SettingsCompletionAction {
 class SettingsCompletionHandler {
   private settingsPage?: SettingsPage;
   private settingItemView?: SettingItemView;
-  private profileDialog?: ProfileDetailDialog;
+  private profileDialog?: ProfileDetailPage;
   private action: SettingsCompletionAction = SettingsCompletionAction.LOGOUT;
   private allowType: AllowType = AllowType.ALLOW_ANY;
   private nickname: string = '';
@@ -47,7 +51,7 @@ class SettingsCompletionHandler {
     return this;
   }
 
-  setProfileDialog(dialog: ProfileDetailDialog): SettingsCompletionHandler {
+  setProfileDialog(dialog: ProfileDetailPage): SettingsCompletionHandler {
     this.profileDialog = dialog;
     return this;
   }
@@ -155,8 +159,7 @@ export struct SettingsPage {
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   @State loginState: LoginState = LoginStore.shared().state;
   @State loginUserInfo?: UserProfile = LoginStore.shared().state.loginUserInfo;
-  
-  private profileDetailDialogController?: CustomDialogController;
+  navPathStack?: NavPathStack;
 
   aboutToAppear() {
     this.refreshSelfInfo();
@@ -232,29 +235,14 @@ export struct SettingsPage {
   }
 
   private showProfileDetailDialog() {
-    this.profileDetailDialogController = new CustomDialogController({
-      builder: ProfileDetailDialog({
+    if (this.navPathStack) {
+      const params: ProfileDetailRouteParams = {
         onProfileUpdated: () => {
           this.refreshSelfInfo();
-        },
-        onClose: () => {
-          if (this.profileDetailDialogController) {
-            this.profileDetailDialogController.close();
-            this.profileDetailDialogController = undefined;
-          }
         }
-      }),
-      alignment: DialogAlignment.Default,
-      customStyle: true,
-      autoCancel: true,
-      keyboardAvoidMode: KeyboardAvoidMode.NONE,
-      levelMode: LevelMode.EMBEDDED,
-      immersiveMode: ImmersiveMode.EXTEND,
-      cancel: () => {
-        this.profileDetailDialogController = undefined;
-      }
-    });
-    this.profileDetailDialogController.open();
+      };
+      this.navPathStack.pushPathByName('profileDetail', params, true);
+    }
   }
 
   @Builder
@@ -1318,8 +1306,8 @@ struct ThemeSelectDialog {
   }
 }
 
-@CustomDialog
-struct ProfileDetailDialog {
+@Component
+export struct ProfileDetailPage {
   @State nickname: string = '';
   @State avatarURL: string = '';
   @State selfSignature: string = '';
@@ -1334,7 +1322,6 @@ struct ProfileDetailDialog {
   @State displaySignature: string = '';
   @State displayGender: string | Resource = '';
   @State displayBirthday: string = '';
-  controller?: CustomDialogController;
   onClose?: () => void;
   onProfileUpdated?: () => void;
   @State loginStore: LoginStore = LoginStore.shared();
@@ -1438,26 +1425,12 @@ struct ProfileDetailDialog {
   @Builder
   private buildHeader() {
     Row() {
-      Button() {
-        Image($rawfile("basecomponent/common_back_icon.svg"))
-          .scale({
-            x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
-            y: 1
-          })
-          .width(16)
-          .height(16)
-          .fillColor(this.themeState.colors.textColorPrimary)
-      }
-      .width(20)
-      .height(20)
-      .backgroundColor(Color.Transparent)
-        .onClick(() => {
-          if (this.onClose) {
-            this.onClose();
-          } else if (this.controller) {
-            this.controller.close();
-          }
-        })
+      BackButton({
+        leadingInset: 0,
+        onBack: () => {
+          this.onClose?.();
+        }
+      })
 
       Text($r('app.string.profile_details'))
         .fontSize(18)

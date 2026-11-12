@@ -1,4 +1,4 @@
-import { AppBuilderConfig, Avatar, AvatarContentType, AvatarSize, ThemeState, LanguageState } from '../../basecomponent/Index';
+import { AppBuilderConfig, Avatar, AvatarContentType, AvatarSize, BackButton, ThemeState, LanguageState } from '../../basecomponent/Index';
 import { FriendSearchInfo, GroupSearchInfo, MessageSearchResultItem, SearchOption, SearchStore, SearchType } from '@tencentcloud/atomicxcore';
 import { MessageInfo } from '@tencentcloud/atomicxcore';
 import { CompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
@@ -47,6 +47,8 @@ export struct SearchListPage {
   onConversationSelect?: (message: MessageSearchResultItem) => void;
   onBack?: () => void;
   onShowMore?: (type: SearchType) => void;
+  onRegisterBackHandler?: (handler: () => boolean) => void;
+  topInset: number = 25 + 26;
   @State private searchStore: SearchStore = SearchStore.create();
   private searchTimer?: number;
   private searchSequence: number = 0;
@@ -54,6 +56,17 @@ export struct SearchListPage {
   aboutToAppear() {
     console.info('SearchListPage aboutToAppear');
     this.loadSearchHistory();
+    this.onRegisterBackHandler?.((): boolean => {
+      if (this.showConversationDetail) {
+        this.showConversationDetail = false;
+        return true;
+      }
+      if (this.showDetailView) {
+        this.showDetailView = false;
+        return true;
+      }
+      return false;
+    });
   }
 
   aboutToDisappear() {
@@ -89,29 +102,19 @@ export struct SearchListPage {
   SearchBarBuilder() {
     Row() {
       if (this.showDetailView || this.showConversationDetail) {
-        Button() {
-          Image($rawfile('basecomponent/common_back_icon.svg'))
-            .width(16)
-            .height(16)
-            .fillColor(this.themeState.colors.textColorPrimary)
-            .scale({
-              x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
-              y: 1
-            })
-        }
-        .type(ButtonType.Normal)
-        .backgroundColor(Color.Transparent)
-        .width(44)
-        .height(44)
-        .onClick(() => {
-          if (this.showConversationDetail) {
-            this.showConversationDetail = false;
-          } else if (this.showDetailView) {
-            this.showDetailView = false;
-          } else if (this.onBack) {
-            this.onBack();
-          } else {
-            router.back();
+        BackButton({
+          leadingInset: 0,
+          buttonHeight: 44,
+          onBack: () => {
+            if (this.showConversationDetail) {
+              this.showConversationDetail = false;
+            } else if (this.showDetailView) {
+              this.showDetailView = false;
+            } else if (this.onBack) {
+              this.onBack();
+            } else {
+              router.back();
+            }
           }
         })
       }
@@ -188,7 +191,7 @@ export struct SearchListPage {
     .width('100%')
     .height(SearchListPage.SEARCH_BAR_HEIGHT)
     .padding({ left: 8, right: 0 })
-    .margin({ top: 25 + 26 })
+    .margin({ top: this.topInset })
     .backgroundColor(this.themeState.colors.bgColorOperate)
   }
 
@@ -569,6 +572,7 @@ export struct SearchListPage {
   DetailViewBuilder() {
     if (this.detailViewType === SearchType.FRIEND) {
       SearchContactPage({
+        topInset: this.topInset,
         initialSearchKeyword: this.searchKeyword,
         onSelectContact: (contact: FriendSearchInfo) => {
           if (this.onContactSelect) {
@@ -581,6 +585,7 @@ export struct SearchListPage {
       })
     } else if (this.detailViewType === SearchType.GROUP) {
       SearchGroupPage({
+        topInset: this.topInset,
         initialSearchKeyword: this.searchKeyword,
         onSelectGroup: (group: GroupSearchInfo) => {
           if (this.onGroupSelect) {
@@ -593,6 +598,7 @@ export struct SearchListPage {
       })
     } else if (this.detailViewType === SearchType.MESSAGE) {
       SearchMessageInAllConversationsPage({
+        topInset: this.topInset,
         initialSearchKeyword: this.searchKeyword,
         onSelectMessage: (message: MessageSearchResultItem) => {
           this.selectedConversation = message;
@@ -610,6 +616,7 @@ export struct SearchListPage {
   ConversationDetailBuilder() {
     if (this.selectedConversation) {
       SearchMessageInOneConversationPage({
+        topInset: this.topInset,
         initialSearchKeyword: this.searchKeyword,
         conversationInfo: this.selectedConversation,
         onSelectMessage: (message: MessageSearchResultItem) => {

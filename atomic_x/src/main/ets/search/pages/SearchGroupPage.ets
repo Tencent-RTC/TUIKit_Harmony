@@ -1,4 +1,4 @@
-import { AppBuilderConfig, Avatar, AvatarContentType, AvatarSize, ThemeState, LanguageState } from '../../basecomponent/Index';
+import { AppBuilderConfig, Avatar, AvatarContentType, AvatarSize, BackButton, ThemeState, LanguageState } from '../../basecomponent/Index';
 import { GroupSearchInfo, SearchOption, SearchStore, SearchType } from '@tencentcloud/atomicxcore';
 import { CompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 import { HighlightText } from '../components/HighlightText';
@@ -16,6 +16,7 @@ export struct SearchGroupPage {
   @State isLoading: boolean = false;
   onSelectGroup?: (group: GroupSearchInfo) => void;
   onBack?: () => void;
+  topInset: number = 25 + 26;
   @State private searchStore: SearchStore = SearchStore.create();
 
   aboutToAppear() {
@@ -53,23 +54,13 @@ export struct SearchGroupPage {
   @Builder
   SearchBarBuilder() {
     Row() {
-      Button() {
-        Image($rawfile('basecomponent/common_back_icon.svg'))
-          .width(16)
-          .height(16)
-          .fillColor(this.themeState.colors.textColorPrimary)
-          .scale({
-            x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
-            y: 1
-          })
-      }
-      .type(ButtonType.Normal)
-      .backgroundColor(Color.Transparent)
-      .width(44)
-      .height(44)
-      .onClick(() => {
-        if (this.onBack) {
-          this.onBack();
+      BackButton({
+        leadingInset: 0,
+        buttonHeight: 44,
+        onBack: () => {
+          if (this.onBack) {
+            this.onBack();
+          }
         }
       })
 
@@ -135,7 +126,7 @@ export struct SearchGroupPage {
     .width('100%')
     .height(SearchGroupPage.SEARCH_BAR_HEIGHT)
     .padding({ left: 8, right: 0 })
-    .margin({ top: 25 + 26 })
+    .margin({ top: this.topInset })
     .backgroundColor(this.themeState.colors.bgColorOperate)
   }
 

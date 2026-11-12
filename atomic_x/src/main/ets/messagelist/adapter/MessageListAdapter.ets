@@ -37,6 +37,14 @@ export class MessageInfoDataSource implements IDataSource {
     this.listeners.forEach((listener: DataChangeListener) => listener.onDataChange(index));
   }
 
+  updateMessage(index: number, message: MessageInfo): void {
+    if (index < 0 || index >= this.messages.length) {
+      return;
+    }
+    this.messages[index] = message;
+    this.forceRefresh(index);
+  }
+
   getIndex(msgID: string): number {
     for (let i = 0; i < this.messages.length; i++) {
       if (this.messages[i].msgID === msgID) {

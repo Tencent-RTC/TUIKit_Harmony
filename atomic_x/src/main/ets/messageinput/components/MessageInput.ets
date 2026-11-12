@@ -1,3 +1,4 @@
+import { window } from '@kit.ArkUI';
 import { ThemeState, Toast ,IMErrorCode } from '../../basecomponent/Index';
 import { EventBus } from '../../basecomponent/utils/EventBus';
 import { MessageQuoteEvent } from '../../messagelist/ui/MessageQuoteEvent';
@@ -7,11 +8,11 @@ import {
 } from '../../messagelist/cells/MessageQuoteDisplayPolicy';
 import emitter from '@ohos.events.emitter';
 import { MessageInfo, MessageQuoteInfo, MessageType, OfflinePushInfo, TextMessagePayload } from '@tencentcloud/atomicxcore';
-import { MessageInputStore, SendMessagePayload, SendMessageOption, TextSendMessagePayload, ImageSendMessagePayload, VideoSendMessagePayload, AudioSendMessagePayload, FileSendMessagePayload, CustomSendMessagePayload } from '@tencentcloud/atomicxcore';
+import { MessageInputStore, SendMessagePayload, SendMessageOption, TextSendMessagePayload, ImageSendMessagePayload, VideoSendMessagePayload, AudioSendMessagePayload, FileSendMessagePayload, CustomSendMessagePayload, FaceSendMessagePayload } from '@tencentcloud/atomicxcore';
 import { ConversationListStore, ConversationInfo, ConversationType } from '@tencentcloud/atomicxcore';
 import { LoginStore } from '@tencentcloud/atomicxcore';
 import { MessageInputMoreDialog, MenuItem } from './MessageInputMoreDialog';
-import { EmojiDataManager, EmojiItem, EmojiPicker, EmojiTextSegment } from '../../emojipicker/Index';
+import { EmojiDataManager, EmojiItem, EmojiPicker, EmojiTextSegment, EmojiManager, EmojiGroup, Emoji } from '../../emojipicker/Index';
 import { AudioRecorder } from '../../audiorecorder/Index';
 import { AudioRecorderView, VoiceRecordReleaseAction } from './AudioRecorderView';
 import { FilePicker } from '../../filepicker/Index';
@@ -60,8 +61,11 @@ export struct MessageInput {
   private static readonly VIDEO_FILE_MAX_SIZE = 100 * 1024 * 1024; // 100MB
   conversationID: string = '';
   config?: MessageInputConfigProtocol = undefined;
+  keyboardPlaceholderBottomInset: number = -1;
+  useUIContextFocus: boolean = false;
   onVoiceCallClick?: () => void;
   onVideoCallClick?: () => void;
+  onTextMessageSent?: () => void;
   private effectiveConfig: MessageInputConfigProtocol = new ChatMessageInputConfig();
   private typingController?: TypingIndicatorController;
   private typingStateListener?: TypingStateListener;
@@ -78,6 +82,12 @@ export struct MessageInput {
   @State private isTextInputVoiceRecording: boolean = false;
   @State private recordingDuration: number = 0;
   @State private showKeyboardPlaceholder: boolean = false;
+  @State private keyboardPlaceholderHeight: number = 0;
+  private keyboardWindow?: window.Window;
+  private keyboardHeightChangeListener?: (height: number) => void;
+  private keyboardObserverGeneration: number = 0;
+  private userLongPressListener?: (eventData: emitter.EventData) => void;
+  private quoteMessageListener?: (eventData: emitter.EventData) => void;
   @State private shouldCancelRecording: boolean = false;
   @State private shouldTranscribeRecording: boolean = false;
   @State private dragOffset: number = 0;
@@ -120,6 +130,7 @@ export struct MessageInput {
   @State private dismissedMoreActionRedDotIds: string[] = [];
 
   aboutToAppear() {
+    this.observeKeyboardHeight();
     if (this.conversationID) {
       this.inputState = MessageInputStore.create(this.conversationID);
       // Parse conversationType and groupID from conversationID
@@ -149,14 +160,16 @@ export struct MessageInput {
     this.loadDraft();
     
     // Subscribe to EventBus for @ mention events
-    EventBus.getInstance().on('onUserLongPress', (eventData) => {
+    this.userLongPressListener = (eventData: emitter.EventData): void => {
       this.handleMentionEvent(eventData);
-    });
+    };
+    EventBus.getInstance().on('onUserLongPress', this.userLongPressListener);
 
     // Subscribe to EventBus for quote message events
-    EventBus.getInstance().on(MessageQuoteEvent.QUOTE_MESSAGE, (eventData: emitter.EventData) => {
+    this.quoteMessageListener = (eventData: emitter.EventData): void => {
       this.handleQuoteMessageEvent(eventData);
-    });
+    };
+    EventBus.getInstance().on(MessageQuoteEvent.QUOTE_MESSAGE, this.quoteMessageListener);
   }
 
   /**
@@ -324,6 +337,7 @@ export struct MessageInput {
   }
 
   aboutToDisappear() {
+    this.removeKeyboardHeightObserver();
     // Save draft immediately when component disappears (fallback mechanism)
     this.saveDraftImmediately();
     // Cancel any pending draft save timer
@@ -336,8 +350,51 @@ export struct MessageInput {
     this.detachTypingController();
 
     // Unsubscribe from EventBus
-    EventBus.getInstance().off('onUserLongPress');
-    EventBus.getInstance().off(MessageQuoteEvent.QUOTE_MESSAGE);
+    if (this.userLongPressListener) {
+      EventBus.getInstance().off('onUserLongPress', this.userLongPressListener);
+      this.userLongPressListener = undefined;
+    }
+    if (this.quoteMessageListener) {
+      EventBus.getInstance().off(MessageQuoteEvent.QUOTE_MESSAGE, this.quoteMessageListener);
+      this.quoteMessageListener = undefined;
+    }
+  }
+
+  private observeKeyboardHeight(): void {
+    const generation = ++this.keyboardObserverGeneration;
+    window.getLastWindow(this.context).then((target: window.Window) => {
+      if (generation !== this.keyboardObserverGeneration) {
+        return;
+      }
+      this.keyboardWindow = target;
+      this.keyboardHeightChangeListener = (height: number): void => {
+        const nextHeight = height > 0 ? px2vp(height) : 0;
+        if (nextHeight > 0) {
+          this.getUIContext().animateTo({ duration: 200, curve: Curve.EaseOut }, () => {
+            this.keyboardPlaceholderHeight = nextHeight;
+          });
+        } else {
+          this.getUIContext().animateTo({ duration: 200, curve: Curve.EaseOut }, () => {
+            this.keyboardPlaceholderHeight = 0;
+          });
+        }
+      };
+      target.on('keyboardHeightChange', this.keyboardHeightChangeListener);
+    }).catch(() => {
+      if (generation === this.keyboardObserverGeneration) {
+        this.keyboardPlaceholderHeight = 0;
+      }
+    });
+  }
+
+  private removeKeyboardHeightObserver(): void {
+    this.keyboardObserverGeneration++;
+    if (this.keyboardWindow && this.keyboardHeightChangeListener) {
+      this.keyboardWindow.off('keyboardHeightChange', this.keyboardHeightChangeListener);
+    }
+    this.keyboardWindow = undefined;
+    this.keyboardHeightChangeListener = undefined;
+    this.keyboardPlaceholderHeight = 0;
   }
 
   private attachChatbotControllerIfNeeded(): void {
@@ -347,9 +404,9 @@ export struct MessageInput {
     this.effectiveConfig = createChatbotMessageInputConfig(this.effectiveConfig);
     const controller = ChatbotConversationControllers.acquire(this.conversationID);
     this.chatbotController = controller;
-    this.isChatbotActive = controller.isActive;
+    this.isChatbotActive = controller.canInterrupt;
     const listener: ChatbotStateListener = () => {
-      this.isChatbotActive = controller.isActive;
+      this.isChatbotActive = controller.canInterrupt;
     };
     this.chatbotStateListener = listener;
     controller.addStateListener(listener);
@@ -417,10 +474,10 @@ export struct MessageInput {
   }
 
   private handleChatbotStop(): void {
-    this.chatbotController?.sendInterrupt(undefined, (code: number, desc: string) => {
+    this.chatbotController?.sendInterrupt(new CompletionHandlerAdapter(undefined, (code: number, desc: string) => {
       const localizedMessage = IMErrorCode.getErrorMessage(code, desc);
       Toast.error(localizedMessage, this.getUIContext());
-    });
+    }));
   }
 
   private isRedDotRequested(actionID: string): boolean {
@@ -575,7 +632,6 @@ export struct MessageInput {
       .justifyContent(FlexAlign.End)
       .alignItems(HorizontalAlign.Center)
       .backgroundColor(this.themeState.colors.bgColorOperate)
-      .expandSafeArea([SafeAreaType.SYSTEM, SafeAreaType.KEYBOARD], [SafeAreaEdge.BOTTOM])
       .bindContentCover(this.isVoiceRecording, this.VoiceRecordingOverlay, {
         backgroundColor: Color.Transparent,
         modalTransition: ModalTransition.NONE
@@ -596,6 +652,7 @@ export struct MessageInput {
       shouldTranscribeRecording: $shouldTranscribeRecording,
       primaryColor: this.themeState.colors.textColorLink || '#4A90E2',
       fullScreen: true,
+      allowReleaseToSendVoice: this.effectiveConfig.enableSendRecordedVoice ?? true,
       onTimeLimitReached: () => {
         this.finishVoiceRecording();
       },
@@ -617,6 +674,7 @@ export struct MessageInput {
   private VoiceTranscriptionOverlay() {
     VoiceTranscriptionDraftView({
       audioDuration: this.voiceTranscriptionAudioDuration,
+      allowSendOriginalVoice: this.effectiveConfig.enableSendRecordedVoice ?? true,
       text: $voiceTranscriptionText,
       isLoading: $voiceTranscriptionLoading,
       onCancel: () => {
@@ -772,10 +830,13 @@ export struct MessageInput {
   private buildClassicStyle() {
     Column() {
       if (!this.isVoiceRecording || this.isTextInputVoiceRecording) {
-      ClassicInputBar({
+        ClassicInputBar({
         inputFocused: $inputFocused,
         isVoiceRecording: $isVoiceRecording,
         showKeyboardPlaceholder: $showKeyboardPlaceholder,
+        keyboardPlaceholderHeight: this.keyboardPlaceholderHeight,
+        keyboardPlaceholderBottomInset: this.keyboardPlaceholderBottomInset,
+        useUIContextFocus: this.useUIContextFocus,
         effectiveConfig: this.effectiveConfig,
         richEditorController: this.richEditorController,
         actionMenuItems: this.getActionMenuItems(),
@@ -800,17 +861,14 @@ export struct MessageInput {
           onEmojiSelected: (emoji: EmojiItem) => {
             this.handleEmojiSelected(emoji);
           },
+          onCustomEmojiSelected: (group: EmojiGroup, emoji: Emoji) => {
+            this.handleCustomEmojiSelected(group, emoji);
+          },
           onDeleteClick: () => {
             this.handleDeleteLastCharacter();
           },
           onInputFocusChange: (focused: boolean) => {
-            if (focused) {
-              setTimeout(() => {
-                if (this.inputFocused) {
-                  this.showKeyboardPlaceholder = true;
-                }
-              }, 100);
-            } else {
+            if (!focused) {
               this.showKeyboardPlaceholder = false;
             }
           },
@@ -910,13 +968,7 @@ export struct MessageInput {
             this.takePhoto();
           },
           onInputFocusChange: (focused: boolean) => {
-            if (focused) {
-              setTimeout(() => {
-                if (this.inputFocused) {
-                  this.showKeyboardPlaceholder = true;
-                }
-              }, 100);
-            } else {
+            if (!focused) {
               this.showKeyboardPlaceholder = false;
             }
           },
@@ -993,6 +1045,9 @@ export struct MessageInput {
       EmojiPicker({
         onEmojiClick: (emoji: EmojiItem) => {
           this.handleEmojiSelected(emoji);
+        },
+        onCustomEmojiClick: (group: EmojiGroup, emoji: Emoji) => {
+          this.handleCustomEmojiSelected(group, emoji);
         },
         onDeleteClick: () => {
           this.handleDeleteLastCharacter();
@@ -1164,7 +1219,7 @@ export struct MessageInput {
       return;
     }
 
-    if (this.chatbotController?.isActive === true) {
+    if (this.chatbotController?.canInterrupt === true) {
       Toast.info($r('app.string.message_input_chatbot_waiting_tips'), this.getUIContext());
       return;
     }
@@ -1198,6 +1253,7 @@ export struct MessageInput {
       this.inputState.sendMessage(payload, option, new CompletionHandlerAdapter(() => {
         console.log(`[MessageInput] Message sent successfully`);
         this.chatbotController?.onTextMessageSent();
+        this.onTextMessageSent?.();
       }, (code: number, desc: string) => {
         console.error(`[MessageInput] Send failed: code=${code}, message=${desc}`);
         const localizedMessage = IMErrorCode.getErrorMessage(code ?? -1, '' + code + desc);
@@ -1437,6 +1493,32 @@ export struct MessageInput {
     this.inputFocused = false;
   }
 
+  private handleCustomEmojiSelected(group: EmojiGroup, emoji: Emoji) {
+    const groupIndex = EmojiManager.getInstance().emojiGroupList
+      .findIndex((item: EmojiGroup) => item.id === group.id);
+    if (groupIndex < 0 || !emoji.key) {
+      return;
+    }
+    this.sendFaceMessage(groupIndex, emoji.key);
+  }
+
+  private sendFaceMessage(faceIndex: number, faceData: string) {
+    if (!this.inputState || !faceData) {
+      return;
+    }
+    const payload = new FaceSendMessagePayload(faceIndex, faceData);
+    const option = new SendMessageOption();
+    option.needReadReceipt = this.effectiveConfig.enableReadReceipt ?? false;
+    option.offlinePushInfo = this.createOfflinePushInfoForDescription(
+      getContext().resourceManager.getStringSync($r('app.string.message_type_animate_emoji').id));
+    option.quotedMessage = this.quotedMessage;
+    this.clearQuotedMessage();
+    this.inputState.sendMessage(payload, option, new CompletionHandlerAdapter(undefined, (code: number, desc: string) => {
+      const localizedMessage = IMErrorCode.getErrorMessage(code ?? -1, '' + code + desc);
+      Toast.error(localizedMessage, this.getUIContext());
+    }));
+  }
+
   private handleDeleteLastCharacter() {
     try {
       const spans = this.richEditorController.getSpans({
@@ -1618,7 +1700,7 @@ export struct MessageInput {
         this.shouldCancelRecording = false;
         this.shouldTranscribeRecording = false;
         this.dragOffset = 0;
-        if (releaseAction !== 'transcribe') {
+        if (releaseAction === 'send') {
           this.sendVoiceMessage(Math.max(1, Math.floor(duration)), filePath);
         }
       },
@@ -1696,8 +1778,9 @@ export struct MessageInput {
       return;
     }
     this.voiceReleaseInProgress = true;
-    this.voiceRecordReleaseAction = action;
-    if (action === 'cancel') {
+    const releaseAction = action === 'send' && this.effectiveConfig.enableSendRecordedVoice === false ? 'cancel' : action;
+    this.voiceRecordReleaseAction = releaseAction;
+    if (releaseAction === 'cancel') {
       AudioRecorder.getInstance().cancelRecord();
     } else {
       AudioRecorder.getInstance().stopRecord();
@@ -1740,12 +1823,18 @@ export struct MessageInput {
     if (!text || text.trim().length === 0 || !this.inputState) {
       return;
     }
+    if (this.chatbotController?.canInterrupt === true) {
+      Toast.info($r('app.string.message_input_chatbot_waiting_tips'), this.getUIContext());
+      return;
+    }
     const option = new SendMessageOption();
     option.needReadReceipt = this.effectiveConfig.enableReadReceipt ?? false;
     option.offlinePushInfo = this.createOfflinePushInfoForText(text.trim());
     const payload = new TextSendMessagePayload(text.trim());
     this.inputState.sendMessage(payload, option, new CompletionHandlerAdapter(() => {
       this.hideVoiceTranscriptionDraft();
+      this.chatbotController?.onTextMessageSent();
+      this.onTextMessageSent?.();
     }, (code: number, desc: string) => {
       const localizedMessage = IMErrorCode.getErrorMessage(code ?? -1, '' + code + desc);
       Toast.error(localizedMessage, this.getUIContext());
@@ -1753,7 +1842,7 @@ export struct MessageInput {
   }
 
   private async sendVoiceMessage(duration: number, voiceFilePath?: string) {
-    if (!this.inputState) {
+    if (!this.inputState || this.effectiveConfig.enableSendRecordedVoice === false) {
       return;
     }
     try {

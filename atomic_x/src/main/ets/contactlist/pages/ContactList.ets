@@ -15,6 +15,10 @@ enum ManagementBadgeKind {
   GROUP_APPLICATION = 2
 }
 
+interface ContactManagementRouteParams {
+  onShowProfile?: (item: ContactInfo) => void;
+}
+
 @Component
 export struct ContactList {
   private static readonly AVATAR_SIZE: number = 40;
@@ -33,6 +37,7 @@ export struct ContactList {
   @State currentSelectedLetter: string = '';
   onContactClick?: (item: ContactInfo) => void;
   onGroupClick?: (item: ContactInfo) => void;
+  navPathStack?: NavPathStack;
   private friendApplicationDialogController: CustomDialogController | null = null;
   private groupApplicationDialogController: CustomDialogController | null = null;
   private groupListDialogController: CustomDialogController | null = null;
@@ -443,6 +448,12 @@ export struct ContactList {
   // Internal dialog display methods
   private showFriendApplicationDialogInternal(): void {
     try {
+      if (this.navPathStack) {
+        const params: ContactManagementRouteParams = {};
+        this.navPathStack.pushPathByName('friendApplications', params, true);
+        return;
+      }
+
       if (this.friendApplicationDialogController) {
         this.friendApplicationDialogController.close();
         this.friendApplicationDialogController = null;
@@ -482,6 +493,12 @@ export struct ContactList {
 
   private showGroupApplicationDialogInternal(): void {
     try {
+      if (this.navPathStack) {
+        const params: ContactManagementRouteParams = {};
+        this.navPathStack.pushPathByName('groupApplications', params, true);
+        return;
+      }
+
       if (this.groupApplicationDialogController) {
         this.groupApplicationDialogController.close();
         this.groupApplicationDialogController = null;
@@ -521,6 +538,19 @@ export struct ContactList {
 
   private showGroupListDialogInternal(): void {
     try {
+      if (this.navPathStack) {
+        const params: ContactManagementRouteParams = {
+          onShowProfile: (item: ContactInfo) => {
+            this.navPathStack?.pop();
+            if (this.onGroupClick) {
+              this.onGroupClick(item);
+            }
+          }
+        };
+        this.navPathStack.pushPathByName('myGroups', params, true);
+        return;
+      }
+
       if (this.groupListDialogController) {
         this.groupListDialogController.close();
         this.groupListDialogController = null;
@@ -560,6 +590,19 @@ export struct ContactList {
 
   private showBlackListDialogInternal(): void {
     try {
+      if (this.navPathStack) {
+        const params: ContactManagementRouteParams = {
+          onShowProfile: (item: ContactInfo) => {
+            this.navPathStack?.pop();
+            if (this.onContactClick) {
+              this.onContactClick(item);
+            }
+          }
+        };
+        this.navPathStack.pushPathByName('blackList', params, true);
+        return;
+      }
+
       if (this.blackListDialogController) {
         this.blackListDialogController.close();
         this.blackListDialogController = null;

@@ -1,8 +1,10 @@
 import { GroupApplicationHandledResult, GroupApplicationHandledStatus, GroupApplicationInfo, GroupState, GroupStore } from '@tencentcloud/atomicxcore';
 import {
+  AtomicxNavigator,
   Avatar,
   AvatarContentType,
   AvatarSize,
+  BackButton,
   TextUtils,
   ThemeState
 } from '../../../basecomponent/Index';
@@ -10,10 +12,42 @@ import { CompletionHandlerAdapter } from '../../../basecomponent/utils/Completio
 
 import { ImmersiveMode, LevelMode } from '@ohos.promptAction';
 
-@CustomDialog
+interface GroupRequestInfoArgs {
+  application: GroupApplicationInfo;
+  groupStore: GroupStore;
+  onProcessed?: () => void;
+}
+
+@Builder
+function GroupRequestInfoPageBuilder(args: Object) {
+  GroupRequestInfoPage({
+    application: (args as GroupRequestInfoArgs).application,
+    groupStore: (args as GroupRequestInfoArgs).groupStore,
+    onProcessed: (args as GroupRequestInfoArgs).onProcessed
+  })
+}
+
+@Component
+struct GroupRequestInfoPage {
+  @Prop application: GroupApplicationInfo;
+  @State groupStore: GroupStore = GroupStore.shared;
+  onProcessed?: () => void;
+
+  build() {
+    GroupRequestInfoDialog({
+      application: this.application,
+      groupStore: this.groupStore,
+      onClose: () => {
+        AtomicxNavigator.pop();
+      },
+      onProcessed: this.onProcessed
+    })
+  }
+}
+
+@Component
 struct GroupRequestInfoDialog {
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
-  controller: CustomDialogController;
   @ObjectLink application: GroupApplicationInfo;
   @ObjectLink groupStore: GroupStore;
   onClose?: () => void;
@@ -32,17 +66,14 @@ struct GroupRequestInfoDialog {
           .textAlign(TextAlign.Center)
 
         Row() {
-          Image($rawfile('contactlist/back_arrow.svg'))
-            .width(24)
-            .height(24)
-            .fillColor(this.themeState.colors.textColorLink)
+          BackButton({
+            onBack: () => {
+            this.handleClose();
+          }
+          })
         }
-        .onClick(() => {
-          this.handleClose();
-        })
         .width('100%')
         .justifyContent(FlexAlign.Start)
-        .padding({ left: 10, right: 10 })
       }
       .width('100%')
       .height(56)
@@ -282,17 +313,14 @@ export struct GroupApplicationListView {
           .textAlign(TextAlign.Center)
 
         Row() {
-          Image($rawfile('contactlist/back_arrow.svg'))
-            .width(24)
-            .height(24)
-            .fillColor(this.themeState.colors.textColorLink)
+          BackButton({
+            onBack: () => {
+            this.handleBack();
+          }
+          })
         }
-        .onClick(() => {
-          this.handleBack();
-        })
         .width('100%')
         .justifyContent(FlexAlign.Start)
-        .padding({ left: 10, right: 10 })
       }
       .width('100%')
       .height(56)
@@ -537,6 +565,16 @@ export struct GroupApplicationListView {
 
   private navigateToGroupRequestInfo(application: GroupApplicationInfo) {
     console.info('Show group request info dialog');
+    const pageArgs: GroupRequestInfoArgs = {
+      application: application,
+      groupStore: this.groupStore,
+      onProcessed: () => {
+        this.syncApplicationList();
+      }
+    };
+    if (AtomicxNavigator.push(wrapBuilder(GroupRequestInfoPageBuilder), pageArgs)) {
+      return;
+    }
 
 
     if (this.groupRequestInfoDialogController) {

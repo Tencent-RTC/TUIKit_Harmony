@@ -4,7 +4,6 @@ import { MessageInfoDataSource } from '../../adapter/MessageListAdapter';
 const LOCATE_SCROLL_DELAY_MS: number = 200;
 const HIGHLIGHT_DURATION_MS: number = 3000;
 const SCROLL_TO_BOTTOM_GUARD_MS: number = 500;
-const SCROLL_TO_BOTTOM_DELAY_MS: number = 100;
 
 export interface MessageListLocateHost {
   getScroller(): Scroller;
@@ -27,7 +26,6 @@ export class MessageListLocateCoordinator {
   private lastScrollToBottomTime: number = 0;
   private highlightTimer?: number;
   private locateTimer?: number;
-  private scrollToBottomTimer?: number;
 
   attach(host: MessageListLocateHost): void {
     this.host = host;
@@ -48,10 +46,6 @@ export class MessageListLocateCoordinator {
     if (this.locateTimer !== undefined) {
       clearTimeout(this.locateTimer);
       this.locateTimer = undefined;
-    }
-    if (this.scrollToBottomTimer !== undefined) {
-      clearTimeout(this.scrollToBottomTimer);
-      this.scrollToBottomTimer = undefined;
     }
   }
 
@@ -118,13 +112,21 @@ export class MessageListLocateCoordinator {
 
   scrollToBottom(): void {
     this.lastScrollToBottomTime = Date.now();
-    if (this.scrollToBottomTimer !== undefined) {
-      clearTimeout(this.scrollToBottomTimer);
+    const host = this.host;
+    if (!host) {
+      return;
     }
-    this.scrollToBottomTimer = setTimeout(() => {
-      this.scrollToBottomTimer = undefined;
-      this.host?.getScroller().scrollEdge(Edge.End);
-    }, SCROLL_TO_BOTTOM_DELAY_MS);
+    const count = host.getDataSource().totalCount();
+    if (count > 0) {
+      host.getScroller().scrollToIndex(count - 1, true, ScrollAlign.END);
+    } else {
+      host.getScroller().scrollEdge(Edge.End);
+    }
+  }
+
+  enqueueStreamingScrollToBottom(): void {
+    this.lastScrollToBottomTime = Date.now();
+    this.host?.getScroller().scrollEdge(Edge.End);
   }
 
   anchorToLatest(): void {

@@ -2,7 +2,7 @@ import { ContactInfo } from '@tencentcloud/atomicxcore';
 import { GroupInfo, GroupState, GroupStore } from '@tencentcloud/atomicxcore';
 import { PinyinUtils } from '../../../basecomponent/utils/PinyinUtils';
 import { CompletionHandlerAdapter } from '../../../basecomponent/utils/CompletionHandlers';
-import { AppBuilderConfig, TextUtils, ThemeState } from '../../../basecomponent/Index';
+import { AppBuilderConfig, BackButton, TextUtils, ThemeState } from '../../../basecomponent/Index';
 import { AZOrderedList, AZOrderedListItem, AZOrderedListConfig } from '../../../basecomponent/components/AZOrderedList';
 
 @Component
@@ -68,15 +68,14 @@ export struct GroupListView {
           .textAlign(TextAlign.Center)
 
         Row() {
-          Image($rawfile('contactlist/back_arrow.svg'))
-            .width(24)
-            .height(24)
-            .fillColor(this.themeState.colors.textColorLink)
+          BackButton({
+            onBack: () => {
+            this.handleBack();
+          }
+          })
         }
-        .onClick(() => this.handleBack())
         .width('100%')
         .justifyContent(FlexAlign.Start)
-        .padding({ left: 10, right: 10 })
       }
       .width('100%')
       .height(56)

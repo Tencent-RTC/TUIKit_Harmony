@@ -3,6 +3,7 @@ import {
   Avatar,
   AvatarContentType,
   AvatarSize,
+  BackButton,
   Switch,
   SwitchType,
   TextUtils,
@@ -77,6 +78,7 @@ export struct C2CChatSetting {
   @State isLoading: boolean = true;
   userID: string = '';
   dialogController?: CustomDialogController;
+  onClose?: () => void;
   onSendMessageClick?: (newConversationID?: string, title?: string, avatarUrl?: string) => void;
   onContactDelete?: () => void;
   /**
@@ -182,26 +184,15 @@ export struct C2CChatSetting {
   NavigationBarBuilder() {
     Stack() {
       Row() {
-        Row() {
-          Image($rawfile('basecomponent/common_back_icon.svg'))
-            .width(16)
-            .height(16)
-            .fillColor(this.themeState.colors.textColorSecondary)
-            .scale({
-              x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
-              y: 1
-            })
-        }
-        .width(44)
-        .height(44)
-        .justifyContent(FlexAlign.Center)
-        .alignItems(VerticalAlign.Center)
-        .margin({ left: 16 })
-        .onClick(() => {
-          if (this.dialogController) {
-            this.dialogController.close();
-          } else {
-            console.warn('[C2CChatSettingPage] dialogController not available');
+        BackButton({
+          onBack: () => {
+            if (this.onClose) {
+              this.onClose();
+            } else if (this.dialogController) {
+              this.dialogController.close();
+            } else {
+              console.warn('[C2CChatSettingPage] close handler not available');
+            }
           }
         })
       }
@@ -569,8 +560,10 @@ export struct C2CChatSetting {
               this.onContactDelete();
             }
 
-            // Then close the dialog
-            if (this.dialogController) {
+            // Then close the setting page
+            if (this.onClose) {
+              this.onClose();
+            } else if (this.dialogController) {
               this.dialogController.close();
             }
           }).catch((error: Error) => {
@@ -678,8 +671,14 @@ export struct C2CChatSetting {
       const contactTitle: string = this.c2cState?.remark || this.c2cState?.nickname || this.c2cStore?.userID || 'Contact';
       const contactAvatarUrl: string = this.c2cState?.avatarURL || '';
       this.onSendMessageClick(this.conversationID, contactTitle, contactAvatarUrl);
+      if (!this.onClose && this.dialogController) {
+        this.dialogController.close();
+      }
+      return;
     }
-    if (this.dialogController) {
+    if (this.onClose) {
+      this.onClose();
+    } else if (this.dialogController) {
       this.dialogController.close();
     }
   }

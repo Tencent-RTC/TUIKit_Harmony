@@ -247,6 +247,9 @@ export class ThemeState {
 
   private applyTheme(): void {
     this.colors = this.calculateColorScheme();
+    const nextVersion = (AppStorage.get<number>('themeVersion') ?? 0) + 1;
+    AppStorage.setOrCreate('themeVersion', nextVersion);
+    AppStorage.setOrCreate('themeTextPrimary', this.colors.textColorPrimary);
     this.settingStatusBarAuto();
     this.subscribers.forEach(cb => cb(this.colors));
   }

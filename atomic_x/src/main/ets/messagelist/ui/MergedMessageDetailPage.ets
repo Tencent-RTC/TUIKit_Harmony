@@ -1,6 +1,6 @@
 import { MessageListStore, MessageInfo } from '@tencentcloud/atomicxcore';
 import { MessageActionStore } from '@tencentcloud/atomicxcore';
-import { ThemeState } from '../../basecomponent/Index';
+import { AtomicxNavigator, BackButton, ThemeState } from '../../basecomponent/Index';
 import { MergedMessageListCompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 import { MessageItem, MessageDisplayMode } from './MessageItem';
 import { MergedMessageListConfig } from '../config/MessageListConfig';
@@ -9,8 +9,44 @@ import { MessageUtils } from '../utils/MessageUtils';
 import { AsrDisplayManager } from '../utils/AsrDisplayManager';
 import { TranslationDisplayManager } from '../utils/TranslationDisplayManager';
 
+interface MergedMessageDetailArgs {
+  mergedMessage?: MessageInfo;
+}
+
+@Builder
+export function MergedMessageDetailPageBuilder(args: Object) {
+  MergedMessageDetailContent({
+    mergedMessage: (args as MergedMessageDetailArgs).mergedMessage,
+    onClose: () => {
+      AtomicxNavigator.pop();
+    }
+  })
+}
+
+export function pushMergedMessageDetailPage(mergedMessage?: MessageInfo): boolean {
+  const args: MergedMessageDetailArgs = { mergedMessage: mergedMessage };
+  return AtomicxNavigator.push(wrapBuilder(MergedMessageDetailPageBuilder), args);
+}
+
 @CustomDialog
 export struct MergedMessageDetailPage {
+  controller: CustomDialogController;
+  mergedMessage: MessageInfo | undefined = undefined;
+  depth: number = 0;
+
+  build() {
+    MergedMessageDetailContent({
+      mergedMessage: this.mergedMessage,
+      depth: this.depth,
+      onClose: () => {
+        this.controller.close();
+      }
+    })
+  }
+}
+
+@Component
+export struct MergedMessageDetailContent {
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   @State private isLoading: boolean = true;
   @State private subMessages: MessageInfo[] = [];
@@ -19,9 +55,9 @@ export struct MergedMessageDetailPage {
   @State private translationDisplayManager: TranslationDisplayManager = new TranslationDisplayManager();
   @State private placeholderStore: MessageListStore = MessageListStore.create('');
 
-  controller: CustomDialogController;
   mergedMessage: MessageInfo | undefined = undefined;
   depth: number = 0;
+  onClose?: () => void;
 
   private readonly HEADER_HEIGHT: number = 56;
   private readonly ENRICHMENT_TIMEOUT_MS: number = 5000;
@@ -118,13 +154,12 @@ export struct MergedMessageDetailPage {
   @Builder
   private buildHeader() {
     Row() {
-      Image($rawfile('messagelist/back_icon.svg'))
-        .width(12)
-        .height(20)
-        .fillColor(this.themeState.colors.textColorLink)
-        .onClick(() => {
-          this.controller.close();
-        })
+      BackButton({
+        leadingInset: 0,
+        onBack: () => {
+          this.onClose?.();
+        }
+      })
 
       Text(this.title)
         .fontSize(17)

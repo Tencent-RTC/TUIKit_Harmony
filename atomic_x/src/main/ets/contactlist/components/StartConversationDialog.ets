@@ -1,4 +1,4 @@
-import { ThemeState } from '../../basecomponent/Index';
+import { AtomicxNavigator, ThemeState } from '../../basecomponent/Index';
 import { ContactInfo, ContactState, ContactStore, ContactOnlineStatus } from '@tencentcloud/atomicxcore';
 import { CustomSendMessagePayload, MessageInputStore } from '@tencentcloud/atomicxcore';
 import { LoginStore } from '@tencentcloud/atomicxcore';
@@ -16,15 +16,72 @@ enum DialogPageState {
   GROUP_CREATION = 'groupCreation'
 }
 
+interface StartConversationArgs {
+  dialogType: DialogType;
+  onCancel?: () => void;
+  onSelectUser?: (contact: ContactInfo) => void;
+  onCreateGroup?: (groupInfo: GroupInfo) => void;
+}
+
+@Builder
+function StartConversationPageBuilder(args: Object) {
+  StartConversationContent({
+    dialogType: (args as StartConversationArgs).dialogType,
+    onCancel: (args as StartConversationArgs).onCancel,
+    onSelectUser: (args as StartConversationArgs).onSelectUser,
+    onCreateGroup: (args as StartConversationArgs).onCreateGroup,
+    titleTopMargin: 0,
+    onClose: () => {
+      AtomicxNavigator.pop();
+    }
+  })
+}
+
+export function pushStartConversationPage(dialogType: DialogType, onSelectUser?: (contact: ContactInfo) => void,
+  onCreateGroup?: (groupInfo: GroupInfo) => void, onCancel?: () => void): boolean {
+  const args: StartConversationArgs = {
+    dialogType: dialogType,
+    onCancel: onCancel,
+    onSelectUser: onSelectUser,
+    onCreateGroup: onCreateGroup
+  };
+  return AtomicxNavigator.push(wrapBuilder(StartConversationPageBuilder), args, (): boolean => {
+    onCancel?.();
+    return false;
+  });
+}
+
 @CustomDialog
 export struct StartConversationDialog {
-  @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   controller: CustomDialogController;
+  dialogType: DialogType = DialogType.START_CONVERSATION;
+  onCancel?: () => void;
+  onSelectUser?: (contact: ContactInfo) => void;
+  onCreateGroup?: (groupInfo: GroupInfo) => void;
+
+  build() {
+    StartConversationContent({
+      dialogType: this.dialogType,
+      onCancel: this.onCancel,
+      onSelectUser: this.onSelectUser,
+      onCreateGroup: this.onCreateGroup,
+      onClose: () => {
+        this.controller.close();
+      }
+    })
+  }
+}
+
+@Component
+struct StartConversationContent {
+  @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   dialogType: DialogType = DialogType.START_CONVERSATION;
   // Callback function
   onCancel?: () => void;
   onSelectUser?: (contact: ContactInfo) => void;
   onCreateGroup?: (groupInfo: GroupInfo) => void;
+  onClose?: () => void;
+  titleTopMargin: number = 24;
   // State management
   @State isLoading: boolean = true;
   @State friendList: UserPickerData<ContactInfo>[] = [];
@@ -70,6 +127,7 @@ export struct StartConversationDialog {
         .justifyContent(FlexAlign.Center)
       } else {
         UserPicker({
+          titleTopMargin: this.titleTopMargin,
           dataSource: this.friendList,
           defaultSelectedItems: [],
           maxCount: this.getMaxSelectCount(),
@@ -152,7 +210,7 @@ export struct StartConversationDialog {
     if (this.onCancel) {
       this.onCancel();
     }
-    this.controller.close();
+    this.onClose?.();
   }
 
   private handleUserPickerComplete = (selectedUsers: UserPickerData<ContactInfo>[]) => {
@@ -163,8 +221,10 @@ export struct StartConversationDialog {
         const selectedUser = selectedUsers[0];
         const contactInfo = selectedUser.extraData;
         
-        if (contactInfo && this.onSelectUser) {
-          this.onSelectUser(contactInfo);
+        const onSelectUser = this.onSelectUser;
+        this.onClose?.();
+        if (contactInfo && onSelectUser) {
+          onSelectUser(contactInfo);
         }
       }
     } else if (this.dialogType === DialogType.CREATE_GROUP) {
@@ -190,29 +250,29 @@ export struct StartConversationDialog {
 
   private handleGroupCreation(groupInfo: GroupInfo) {
     console.info('[StartConversationDialog] Group creation started:', groupInfo.groupName);
-    if (this.onCreateGroup) {
-      this.onCreateGroup(groupInfo);
+    const onCreateGroup = this.onCreateGroup;
+    const createContent: string = getContext(this).resourceManager.getStringSync($r('app.string.create_group_chat').id);
+    this.onClose?.();
+    if (onCreateGroup) {
+      onCreateGroup(groupInfo);
     }
 
     setTimeout(() => {
       // Send group create message after successful group creation
       if (groupInfo.groupID) {
-        this.sendGroupCreateMessage(groupInfo.groupID, groupInfo.groupType);
+        StartConversationContent.sendGroupCreateMessage(groupInfo.groupID, groupInfo.groupType, createContent);
       }
     }, 1000);
-
-    // Close dialog
-    this.controller.close();
   }
 
-  private sendGroupCreateMessage(groupID: string, groupType: GroupType): void {
+  private static sendGroupCreateMessage(groupID: string, groupType: GroupType, content: string): void {
     const conversationID = `group_${groupID}`;
     const currentUser = LoginStore.shared().state.loginUserInfo;
     const customContent: Record<string, ESObject> = {};
     customContent['version'] = 1;
     customContent['businessID'] = 'group_create';
     customContent['opUser'] = currentUser?.userID || '';
-    customContent['content'] = getContext(this).resourceManager.getStringSync($r('app.string.create_group_chat').id);
+    customContent['content'] = content;
     customContent['cmd'] = groupType === GroupType.COMMUNITY ? 1 : 0;
 
     const messageInputStore = MessageInputStore.create(conversationID);

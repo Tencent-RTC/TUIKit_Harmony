@@ -30,8 +30,22 @@ export class EventBus {
     arr.push(callback);
   }
 
-  off(eventName: string): void {
-    this.listeners.delete(eventName);
+  off(eventName: string, callback?: EventBusCallback): void {
+    if (callback === undefined) {
+      this.listeners.delete(eventName);
+      return;
+    }
+    const arr = this.listeners.get(eventName);
+    if (!arr) {
+      return;
+    }
+    const index = arr.indexOf(callback);
+    if (index >= 0) {
+      arr.splice(index, 1);
+    }
+    if (arr.length === 0) {
+      this.listeners.delete(eventName);
+    }
   }
 
   post(eventName: string, data: Record<string, Object>): void {

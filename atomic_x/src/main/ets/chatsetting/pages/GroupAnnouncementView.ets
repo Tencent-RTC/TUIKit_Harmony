@@ -1,4 +1,4 @@
-import { ThemeState, Toast, LanguageState } from '../../basecomponent/Index';
+import { BackButton, ThemeState, Toast, LanguageState } from '../../basecomponent/Index';
 import { GroupType } from '@tencentcloud/atomicxcore';
 import { GroupSettingState, GroupSettingStore } from '../viewmodel/GroupChatSettingViewModel';
 import { GroupPermission, GroupPermissionManager } from '../manager/GroupPermissionManager';
@@ -100,23 +100,11 @@ export struct GroupAnnouncementView {
   @Builder
   NavigationBarBuilder() {
     Row() {
-      // Back button
-      Row() {
-        Image($rawfile('basecomponent/common_back_icon.svg'))
-          .width(16)
-          .height(16)
-          .fillColor(this.themeState.colors.textColorLink)
-          .scale({
-            x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
-            y: 1
-          })
-      }
-      .width(44)
-      .height(44)
-      .justifyContent(FlexAlign.Center)
-      .alignItems(VerticalAlign.Center)
-      .onClick(() => {
-        this.handleBackClick();
+      BackButton({
+        leadingInset: 0,
+        onBack: () => {
+          this.handleBackClick();
+        }
       })
 
       Blank()

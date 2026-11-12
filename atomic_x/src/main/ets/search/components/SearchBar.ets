@@ -1,5 +1,46 @@
-import { ThemeState } from '../../basecomponent/Index';
+import { AtomicxNavigator, ThemeState } from '../../basecomponent/Index';
 import { SearchListPage, FriendSearchInfo, GroupSearchInfo, MessageSearchResultItem } from '../pages/SearchListPage';
+
+class SearchBackHolder {
+  handler?: () => boolean;
+}
+
+interface SearchPageArgs {
+  onContactSelect?: (contact: FriendSearchInfo) => void;
+  onGroupSelect?: (group: GroupSearchInfo) => void;
+  onMessageSelect?: (message: MessageSearchResultItem) => void;
+  onConversationSelect?: (message: MessageSearchResultItem) => void;
+  backHolder: SearchBackHolder;
+}
+
+@Builder
+function SearchPageBuilder(args: Object) {
+  SearchListPage({
+    onContactSelect: (contact: FriendSearchInfo) => {
+      AtomicxNavigator.pop();
+      (args as SearchPageArgs).onContactSelect?.(contact);
+    },
+    onGroupSelect: (group: GroupSearchInfo) => {
+      AtomicxNavigator.pop();
+      (args as SearchPageArgs).onGroupSelect?.(group);
+    },
+    onMessageSelect: (message: MessageSearchResultItem) => {
+      AtomicxNavigator.pop();
+      (args as SearchPageArgs).onMessageSelect?.(message);
+    },
+    onConversationSelect: (message: MessageSearchResultItem) => {
+      AtomicxNavigator.pop();
+      (args as SearchPageArgs).onConversationSelect?.(message);
+    },
+    onBack: () => {
+      AtomicxNavigator.pop();
+    },
+    onRegisterBackHandler: (handler: () => boolean) => {
+      (args as SearchPageArgs).backHolder.handler = handler;
+    },
+    topInset: 8
+  })
+}
 
 /**
  * SearchBar - Search Entry Component
@@ -74,6 +115,18 @@ export struct SearchBar {
    */
   private openSearch(): void {
     console.info('[SearchBar] Opening search dialog');
+    const backHolder = new SearchBackHolder();
+    const pageArgs: SearchPageArgs = {
+      onContactSelect: this.onContactSelect,
+      onGroupSelect: this.onGroupSelect,
+      onMessageSelect: this.onMessageSelect,
+      onConversationSelect: this.onConversationSelect,
+      backHolder: backHolder
+    };
+    if (AtomicxNavigator.push(wrapBuilder(SearchPageBuilder), pageArgs,
+      (): boolean => backHolder.handler ? backHolder.handler() : false)) {
+      return;
+    }
 
     // Close existing dialog if any
     if (this.searchDialogController) {

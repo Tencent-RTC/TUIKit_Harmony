@@ -6,10 +6,12 @@ import { ThemeState } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Ind
 import { i18n } from '@kit.LocalizationKit';
 import { AppBuilderConfig, AppBuilderHelper } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index';
 import { ContextProvider } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index'
+import { Emoji, EmojiGroup, EmojiManager } from '@tencentcloud/atomicx/src/main/ets/emojipicker/Index';
 import { TIMPushInterfaces } from '../push/TIMPushInterfaces';
 import { TUICallKit } from '@tencentcloud/tuicallkit';
 
 const DOMAIN = 0x0000;
+const CUSTOM_STICKER_BASE_URL = 'https://web.sdk.qcloud.com/im/assets/face-elem/';
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
@@ -17,8 +19,25 @@ export default class EntryAbility extends UIAbility {
     MMKV.initialize(this.context.getApplicationContext());
     // Initialize ContextProvider, which will automatically set the system configuration to AppStorage
     ContextProvider.init(this.context);
+    this.setupCustomSticker();
     // 注册推送监听
     TIMPushInterfaces.addPushListener();
+  }
+
+  private setupCustomSticker(): void {
+    const emojiManager = EmojiManager.getInstance();
+    emojiManager.addEmojiGroup(this.createCustomStickerGroup('4350', 'yz', 17), 1);
+    emojiManager.addEmojiGroup(this.createCustomStickerGroup('4351', 'ys', 15), 2);
+    emojiManager.addEmojiGroup(this.createCustomStickerGroup('4352', 'gcs', 16), 3);
+  }
+
+  private createCustomStickerGroup(groupId: string, prefix: string, lastIndex: number): EmojiGroup {
+    const emojis: Emoji[] = [];
+    for (let i = 0; i <= lastIndex; i++) {
+      const name = `${prefix}${i < 10 ? '0' : ''}${i}`;
+      emojis.push(new Emoji(name, name, `${CUSTOM_STICKER_BASE_URL}${name}@2x.png`));
+    }
+    return new EmojiGroup(groupId, groupId, '', emojis[0].emojiUrl, emojis);
   }
 
 

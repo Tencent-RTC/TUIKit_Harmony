@@ -37,3 +37,5 @@ export * from './ets/search/Index';
 export * from './ets/call/Index';
 
 export * from './ets/chatbot/Index';
+
+export * from './ets/aiassistant/Index';

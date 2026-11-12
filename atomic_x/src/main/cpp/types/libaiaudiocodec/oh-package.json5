@@ -1,0 +1,6 @@
+{
+  "name": "libaiaudiocodec.so",
+  "types": "./index.d.ts",
+  "version": "1.0.0",
+  "description": "Opus codec bridge for AI assistant voice call."
+}

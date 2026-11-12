@@ -1,0 +1,27 @@
+{
+  "string": [
+    { "name": "uikit_ai_page_title", "value": "AI 助手" },
+    { "name": "uikit_ai_transfer_to_human", "value": "转人工" },
+    { "name": "uikit_ai_select_agent", "value": "选择助手" },
+    { "name": "uikit_ai_agents_empty", "value": "暂无可用助手" },
+    { "name": "uikit_ai_call_button", "value": "语音通话" },
+    { "name": "uikit_ai_call_handoff_waiting", "value": "正在排队等待人工接入，请稍后再试" },
+    { "name": "uikit_ai_call_handoff_required", "value": "请先转人工后再发起通话" },
+    { "name": "uikit_ai_call_mode_free", "value": "自由对话" },
+    { "name": "uikit_ai_call_listening", "value": "正在听..." },
+    { "name": "uikit_ai_call_thinking", "value": "思考中..." },
+    { "name": "uikit_ai_call_speaking", "value": "可继续说话" },
+    { "name": "uikit_ai_call_muted", "value": "已静音" },
+    { "name": "uikit_ai_call_disclaimer", "value": "内容由 AI 生成" },
+    { "name": "uikit_ai_call_permission_denied", "value": "语音对话需要麦克风权限" },
+    { "name": "uikit_ai_call_start_failed", "value": "语音识别启动失败，请重试" },
+    { "name": "uikit_ai_call_asr_unavailable_title", "value": "语音识别不可用" },
+    { "name": "uikit_ai_call_asr_unavailable_content", "value": "当前应用的语音识别资源包已用完或未开通，暂时无法进行语音通话。" },
+    { "name": "uikit_ai_call_asr_unavailable_exit", "value": "退出通话" },
+    { "name": "uikit_ai_call_start_failed_retry", "value": "连接失败，点麦克风重试" },
+    { "name": "uikit_ai_call_send_failed", "value": "发送失败，请重试" },
+    { "name": "uikit_ai_call_reply_timeout", "value": "助手没有响应，请重试" },
+    { "name": "uikit_ai_call_audio_unavailable", "value": "麦克风不可用" },
+    { "name": "uikit_ai_call_playback_unavailable", "value": "语音播放不可用，回复将以文字显示" }
+  ]
+}

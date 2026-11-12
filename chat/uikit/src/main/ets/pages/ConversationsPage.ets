@@ -5,7 +5,7 @@ import { ConversationList } from '@tencentcloud/atomicx/src/main/ets/conversatio
 import { ConversationInfo } from '@tencentcloud/atomicxcore';
 import { ContactInfo } from '@tencentcloud/atomicxcore';
 import { MessageInfo } from '@tencentcloud/atomicxcore';
-import { StartConversationDialog, DialogType, GroupInfo } from '@tencentcloud/atomicx/src/main/ets/contactlist/Index';
+import { StartConversationDialog, DialogType, GroupInfo, pushStartConversationPage } from '@tencentcloud/atomicx/src/main/ets/contactlist/Index';
 import { ImmersiveMode, LevelMode } from '@kit.ArkUI';
 
 @Component
@@ -36,6 +36,7 @@ export struct ConversationsPage {
         Image($r('app.media.new_chat_icon'))
           .width(24)
           .height(24)
+          .fillColor(this.themeState.colors.textColorPrimary)
           .onClick(() => {
             this.showAddMenu = true;
           })
@@ -66,8 +67,8 @@ export struct ConversationsPage {
 
         Row() {
           Image($r('app.media.start_conversation_c2c'))
-            .width(15)
-            .height(17)
+            .width(24)
+            .height(24)
             .margin({ right: 12 })
             .fillColor(this.themeState.colors.textColorPrimary)
 
@@ -78,6 +79,7 @@ export struct ConversationsPage {
         }
         .width('100%')
         .height(48)
+        .alignItems(VerticalAlign.Center)
         .padding({ left: 16, right: 16 })
         .onClick(() => {
           this.showAddMenu = false;
@@ -94,8 +96,8 @@ export struct ConversationsPage {
         if (AppBuilderConfig.getInstance().enableCreateConversation) {
           Row() {
             Image($r('app.media.start_conversation_group'))
-              .width(19)
-              .height(16)
+              .width(24)
+              .height(24)
               .margin({ right: 12 })
               .fillColor(this.themeState.colors.textColorPrimary)
 
@@ -106,6 +108,7 @@ export struct ConversationsPage {
           }
           .width('100%')
           .height(48)
+          .alignItems(VerticalAlign.Center)
           .padding({ left: 16, right: 16 })
           .onClick(() => {
             this.showAddMenu = false;
@@ -217,6 +220,11 @@ export struct ConversationsPage {
 
   private handleStartConversation(): void {
     console.info('[ConversationPage] handleStartConversation')
+    if (pushStartConversationPage(DialogType.START_CONVERSATION, (contact: ContactInfo) => {
+      this.openConversationWithContact(contact);
+    })) {
+      return;
+    }
 
 
     if (this.startConversationDialogController) {
@@ -263,6 +271,11 @@ export struct ConversationsPage {
 
   private handleCreateGroup(): void {
     console.info('[ConversationPage] handleCreateGroup')
+    if (pushStartConversationPage(DialogType.CREATE_GROUP, undefined, (groupInfo: GroupInfo) => {
+      this.openConversationWithGroup(groupInfo);
+    })) {
+      return;
+    }
 
 
     if (this.createGroupDialogController) {
@@ -303,6 +316,26 @@ export struct ConversationsPage {
 
 
     this.createGroupDialogController.open();
+  }
+
+  private openConversationWithContact(contact: ContactInfo): void {
+    if (contact.userID && this.onConversationClick) {
+      const conversationInfo = new ConversationInfo();
+      conversationInfo.conversationID = `c2c_${contact.userID}`;
+      conversationInfo.title = contact.friendRemark || contact.nickname || contact.userID;
+      conversationInfo.avatarURL = contact.avatarURL;
+      this.onConversationClick(conversationInfo);
+    }
+  }
+
+  private openConversationWithGroup(groupInfo: GroupInfo): void {
+    if (groupInfo.groupID && this.onConversationClick) {
+      const conversationInfo = new ConversationInfo();
+      conversationInfo.conversationID = `group_${groupInfo.groupID}`;
+      conversationInfo.title = groupInfo.groupName || groupInfo.groupID;
+      conversationInfo.avatarURL = groupInfo.avatarUrl;
+      this.onConversationClick(conversationInfo);
+    }
   }
 
   private showChatDialog(conversationID: string, title: string, avatarURL?: string, message?: MessageInfo): void {

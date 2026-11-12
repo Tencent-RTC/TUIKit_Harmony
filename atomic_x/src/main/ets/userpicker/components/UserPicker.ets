@@ -1,4 +1,4 @@
-import { Avatar, AvatarContentType, AvatarSize, TextUtils, ThemeState, Toast } from '../../basecomponent/Index';
+import { Avatar, AvatarContentType, AvatarSize, BackButton, TextUtils, ThemeState, Toast } from '../../basecomponent/Index';
 import { PinyinUtils } from '../../basecomponent/utils/PinyinUtils';
 
 export interface UserPickerData<T> {
@@ -38,6 +38,7 @@ export struct UserPicker {
   showHeaderConfirm?: boolean = true;
   showBottomConfirm?: boolean = false;
   allowEmptyConfirm?: boolean = false;
+  titleTopMargin: number = 24;
   onCancel?: () => void = undefined;
   
   // Internal state
@@ -508,19 +509,12 @@ export struct UserPicker {
     Stack() {
       Row() {
         if (this.showBackButton) {
-          Button() {
-            Image($rawfile('basecomponent/common_back_icon.svg'))
-              .width(16)
-              .height(16)
-              .fillColor(this.themeState.colors.textColorSecondary)
-          }
-          .type(ButtonType.Normal)
-          .backgroundColor(Color.Transparent)
-          .width(44)
-          .height(44)
-          .onClick(() => {
-            if (this.onCancel) {
-              this.onCancel();
+          BackButton({
+            leadingInset: 0,
+            onBack: () => {
+              if (this.onCancel) {
+                this.onCancel();
+              }
             }
           })
         } else {
@@ -566,7 +560,7 @@ export struct UserPicker {
     }
     .width('100%')
     .height(56)
-    .margin({ top: 24 })
+    .margin({ top: this.titleTopMargin })
     .padding({ left: 16, right: 16 })
     .backgroundColor(this.themeState.colors.bgColorOperate)
   }

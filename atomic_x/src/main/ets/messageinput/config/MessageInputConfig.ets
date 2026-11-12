@@ -37,12 +37,17 @@ export interface MessageInputConfigProtocol {
   /** Input style: 'minimalist' (default) or 'classic' (WeChat-style) */
   inputStyle?: InputStyle;
   isShowAudioRecorder?: boolean;
+  enableSendRecordedVoice?: boolean;
   isShowPhotoTaker?: boolean;
   /** Show audio call entry in the more menu (default: true) */
   isShowAudioCall?: boolean;
   /** Show video call entry in the more menu (default: true) */
   isShowVideoCall?: boolean;
   isShowMore?: boolean;
+  /** Show the emoji entry in the classic input bar (default: true) */
+  isShowEmojiButton?: boolean;
+  /** Show the plus entry in the classic input bar (default: true) */
+  isShowPlusButton?: boolean;
   isShowSendButton?: boolean;
   /** Enable @ mention feature for group conversations (default: true) */
   enableMention?: boolean;
@@ -71,10 +76,13 @@ export interface MessageInputConfigProtocol {
 export class ChatMessageInputConfig implements MessageInputConfigProtocol {
   private userInputStyle?: InputStyle;
   private userIsShowAudioRecorder?: boolean;
+  private userEnableSendRecordedVoice?: boolean;
   private userIsShowPhotoTaker?: boolean;
   private userIsShowAudioCall?: boolean;
   private userIsShowVideoCall?: boolean;
   private userIsShowMore?: boolean;
+  private userIsShowEmojiButton?: boolean;
+  private userIsShowPlusButton?: boolean;
   private userIsShowSendButton?: boolean;
   private userEnableMention?: boolean;
   private userEnableReadReceipt?: boolean;
@@ -87,10 +95,13 @@ export class ChatMessageInputConfig implements MessageInputConfigProtocol {
     if (config) {
       this.userInputStyle = config.inputStyle;
       this.userIsShowAudioRecorder = config.isShowAudioRecorder;
+      this.userEnableSendRecordedVoice = config.enableSendRecordedVoice;
       this.userIsShowPhotoTaker = config.isShowPhotoTaker;
       this.userIsShowAudioCall = config.isShowAudioCall;
       this.userIsShowVideoCall = config.isShowVideoCall;
       this.userIsShowMore = config.isShowMore;
+      this.userIsShowEmojiButton = config.isShowEmojiButton;
+      this.userIsShowPlusButton = config.isShowPlusButton;
       this.userIsShowSendButton = config.isShowSendButton;
       this.userEnableMention = config.enableMention;
       this.userEnableReadReceipt = config.enableReadReceipt;
@@ -112,6 +123,10 @@ export class ChatMessageInputConfig implements MessageInputConfigProtocol {
     return this.userIsShowAudioRecorder ?? true;
   }
 
+  get enableSendRecordedVoice(): boolean {
+    return this.userEnableSendRecordedVoice ?? true;
+  }
+
   get isShowPhotoTaker(): boolean {
     return this.userIsShowPhotoTaker ?? true;
   }
@@ -126,6 +141,14 @@ export class ChatMessageInputConfig implements MessageInputConfigProtocol {
 
   get isShowMore(): boolean {
     return this.userIsShowMore ?? true;
+  }
+
+  get isShowEmojiButton(): boolean {
+    return this.userIsShowEmojiButton ?? true;
+  }
+
+  get isShowPlusButton(): boolean {
+    return this.userIsShowPlusButton ?? true;
   }
 
   get isShowSendButton(): boolean {

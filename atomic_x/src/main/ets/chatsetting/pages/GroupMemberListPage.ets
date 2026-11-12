@@ -4,6 +4,7 @@ import {
   Avatar,
   AvatarContentType,
   AvatarSize,
+  BackButton,
   TextUtils,
   ThemeState,
   Toast,
@@ -38,6 +39,7 @@ export struct GroupMemberListPage {
   @Prop groupName: string | Resource = $r('app.string.chatsetting_group_members_title');
   onMemberSelect?: (member: GroupMember) => void;
   onSendMessageClick?: (newConversationID?: string, title?: string, avatarUrl?: string) => void;
+  onBack?: () => void;
   dialogController?: CustomDialogController;
   private memberOptionsDialogController?: CustomDialogController;
   private userInteractionHelper: UserInteractionHelper = new UserInteractionHelper();
@@ -92,23 +94,10 @@ export struct GroupMemberListPage {
   NavigationBarBuilder() {
     Stack() {
       Row() {
-        Row() {
-          Image($rawfile('basecomponent/common_back_icon.svg'))
-            .width(16)
-            .height(16)
-            .fillColor(this.themeState.colors.textColorSecondary)
-            .scale({
-              x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
-              y: 1
-            })
-        }
-        .width(44)
-        .height(44)
-        .justifyContent(FlexAlign.Center)
-        .alignItems(VerticalAlign.Center)
-        .margin({ left: 16 })
-        .onClick(() => {
-          this.closeDialog();
+        BackButton({
+          onBack: () => {
+            this.closeDialog();
+          }
         })
       }
       .width('100%')
@@ -286,7 +275,9 @@ export struct GroupMemberListPage {
   }
 
   private closeDialog(): void {
-    if (this.dialogController) {
+    if (this.onBack) {
+      this.onBack();
+    } else if (this.dialogController) {
       this.dialogController.close();
     }
   }

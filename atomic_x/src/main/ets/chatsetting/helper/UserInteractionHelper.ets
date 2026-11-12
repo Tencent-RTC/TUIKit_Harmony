@@ -1,10 +1,10 @@
 import { ContactInfo, ContactState, ContactStore } from '@tencentcloud/atomicxcore';
 import { GroupMember } from '@tencentcloud/atomicxcore';
-import { ThemeState, LanguageState } from '../../basecomponent/Index';
+import { AtomicxNavigator, BackButton, ThemeState, LanguageState } from '../../basecomponent/Index';
 import { GetContactInfoCompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 import { ContactDetailPage } from '../../contactlist/pages/dialog/ContactDetailPage';
 import { C2CChatSetting } from '../pages/C2CChatSetting';
-import { ComponentContent, ImmersiveMode, LevelMode, promptAction } from '@kit.ArkUI';
+import { ComponentContent, ImmersiveMode, promptAction } from '@kit.ArkUI';
 import { UIContext } from '@ohos.arkui.UIContext';
 import { BusinessError } from '@kit.BasicServicesKit';
 
@@ -103,7 +103,8 @@ export class UserInteractionHelper {
     userID: string,
     context: UIContext,
     onSendMessageClick?: (newConversationID?: string, title?: string, avatarUrl?: string) => void,
-    onContactDelete?: () => void
+    onContactDelete?: () => void,
+    onOpenC2CSetting?: (userID: string) => void
   ): void {
     console.log(`[UserInteractionHelper] Show user profile by friendship for user: ${userID}`);
     
@@ -112,11 +113,15 @@ export class UserInteractionHelper {
     this.getUserInteractionInfo(userID)
       .then((result: UserInteractionResult) => {
         if (result.isFriend) {
-          UserInteractionHelper.showC2CSettingDialog(
-            userID,
-            onSendMessageClick,
-            onContactDelete
-          );
+          if (onOpenC2CSetting) {
+            onOpenC2CSetting(userID);
+          } else {
+            UserInteractionHelper.showC2CSettingDialog(
+              userID,
+              onSendMessageClick,
+              onContactDelete
+            );
+          }
         } else if (result.userInfo) {
           UserInteractionHelper.showContactDetailDialog(result.userInfo);
         }
@@ -131,6 +136,15 @@ export class UserInteractionHelper {
     onSendMessageClick?: (newConversationID?: string, title?: string, avatarUrl?: string) => void,
     onContactDelete?: () => void
   ): void {
+    const params: C2CDialogParams = {
+      userID: userID,
+      onSendMessageClick: onSendMessageClick,
+      onContactDelete: onContactDelete
+    };
+    if (AtomicxNavigator.push(wrapBuilder(C2CPageBuilder), params)) {
+      return;
+    }
+
     if (!UserInteractionHelper.ctx) {
       console.error('[UserInteractionHelper] UIContext not set. Call setUIContext() first.');
       return;
@@ -140,12 +154,6 @@ export class UserInteractionHelper {
       UserInteractionHelper.closeDialog();
     }
 
-    const params: C2CDialogParams = {
-      userID: userID,
-      onSendMessageClick: onSendMessageClick,
-      onContactDelete: onContactDelete
-    };
-
     UserInteractionHelper.currentContentNode = new ComponentContent(
       UserInteractionHelper.ctx,
       wrapBuilder(C2CDialogBuilder),
@@ -154,7 +162,7 @@ export class UserInteractionHelper {
 
     const options: promptAction.BaseDialogOptions = {
       alignment: DialogAlignment.TopStart,
-      levelMode: LevelMode.EMBEDDED,
+      showInSubWindow: true,
       immersiveMode: ImmersiveMode.EXTEND,
       autoCancel: false,
       maskColor: Color.Transparent
@@ -171,6 +179,13 @@ export class UserInteractionHelper {
   }
 
   static showContactDetailDialog(userInfo: ContactInfo): void {
+    const params: ContactDetailDialogParams = {
+      userInfo: userInfo
+    };
+    if (AtomicxNavigator.push(wrapBuilder(ContactDetailPageBuilder), params)) {
+      return;
+    }
+
     if (!UserInteractionHelper.ctx) {
       console.error('[UserInteractionHelper] UIContext not set. Call setUIContext() first.');
       return;
@@ -180,10 +195,6 @@ export class UserInteractionHelper {
       UserInteractionHelper.closeDialog();
     }
 
-    const params: ContactDetailDialogParams = {
-      userInfo: userInfo
-    };
-
     UserInteractionHelper.currentContentNode = new ComponentContent(
       UserInteractionHelper.ctx,
       wrapBuilder(ContactDetailDialogBuilder),
@@ -192,7 +203,7 @@ export class UserInteractionHelper {
 
     const options: promptAction.BaseDialogOptions = {
       alignment: DialogAlignment.TopStart,
-      levelMode: LevelMode.EMBEDDED,
+      showInSubWindow: true,
       immersiveMode: ImmersiveMode.EXTEND,
       autoCancel: false,
       keyboardAvoidMode: KeyboardAvoidMode.NONE,
@@ -264,31 +275,29 @@ struct ContactDetailDialogComponent {
   @StorageLink('LanguageState') languageState: LanguageState = LanguageState.getInstance();
   @Prop userInfo?: ContactInfo = undefined;
   @State showSendForm: boolean = false;
+  onClose?: () => void;
+
+  private close(): void {
+    if (this.onClose) {
+      this.onClose();
+    } else {
+      UserInteractionHelper.closeDialog();
+    }
+  }
 
   build() {
     Column() {
       Row() {
-      Row() {
-        Image($rawfile('basecomponent/common_back_icon.svg'))
-          .width(16)
-          .height(16)
-          .fillColor(this.themeState.colors.textColorPrimary)
-          .scale({
-            x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
-            y: 1
-          })
-      }
-      .width(44)
-      .height(44)
-      .justifyContent(FlexAlign.Center)
-      .alignItems(VerticalAlign.Center)
-      .onClick(() => {
-        if (this.showSendForm) {
-          this.showSendForm = false;
-        } else {
-          UserInteractionHelper.closeDialog();
-        }
-      })
+        BackButton({
+          leadingInset: 0,
+          onBack: () => {
+            if (this.showSendForm) {
+              this.showSendForm = false;
+            } else {
+              this.close();
+            }
+          }
+        })
 
         Text($r('app.string.add_contacts_title'))
           .fontSize(17)
@@ -304,7 +313,7 @@ struct ContactDetailDialogComponent {
       }
       .width('100%')
       .height(56)
-      .padding({ left: 8, right: 8 })
+      .padding({ left: 16, right: 16 })
       .alignItems(VerticalAlign.Center)
       .backgroundColor(this.themeState.colors.bgColorOperate)
 
@@ -317,7 +326,7 @@ struct ContactDetailDialogComponent {
         ContactDetailPage({
           userInfo: this.userInfo,
           onClose: () => {
-            UserInteractionHelper.closeDialog();
+            this.close();
           }
         })
       }
@@ -344,6 +353,28 @@ function C2CDialogBuilder(params: C2CDialogParams) {
 function ContactDetailDialogBuilder(params: ContactDetailDialogParams) {
   ContactDetailDialogComponent({
     userInfo: params.userInfo
+  })
+}
+
+@Builder
+function C2CPageBuilder(args: Object) {
+  C2CChatSetting({
+    userID: (args as C2CDialogParams).userID,
+    onClose: () => {
+      AtomicxNavigator.pop();
+    },
+    onSendMessageClick: (args as C2CDialogParams).onSendMessageClick,
+    onContactDelete: (args as C2CDialogParams).onContactDelete
+  })
+}
+
+@Builder
+function ContactDetailPageBuilder(args: Object) {
+  ContactDetailDialogComponent({
+    userInfo: (args as ContactDetailDialogParams).userInfo,
+    onClose: () => {
+      AtomicxNavigator.pop();
+    }
   })
 }
 

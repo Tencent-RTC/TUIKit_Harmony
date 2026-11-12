@@ -137,6 +137,10 @@
       "value": "Release to Text"
     },
     {
+      "name": "message_input_slide_to_transcribe_hint",
+      "value": "Slide to transcribe"
+    },
+    {
       "name": "voice_transcription_action",
       "value": "To Text"
     },

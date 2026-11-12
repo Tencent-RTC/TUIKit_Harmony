@@ -1,8 +1,10 @@
 import {
   AlertDialog,
+  AtomicxNavigator,
   Avatar,
   AvatarContentType,
   AvatarSize,
+  BackButton,
   Switch,
   SwitchType,
   ThemeState,
@@ -37,6 +39,21 @@ import { C2CChatSetting } from './C2CChatSetting';
 import { ContactDetailPage } from '../../contactlist/pages/dialog/ContactDetailPage';
 import { UserInteractionHelper } from '../helper/UserInteractionHelper';
 import { ChatBackgroundPickerDialog } from './ChatBackgroundPicker';
+
+interface GroupMemberListRouteParams {
+  groupID: string;
+  groupName: string;
+  onSendMessageClick?: (newConversationID?: string, title?: string, avatarUrl?: string) => void;
+}
+
+interface GroupManagementRouteParams {
+  groupID: string;
+}
+
+interface GroupAnnouncementRouteParams {
+  groupID: string;
+  onSave?: (announcement: string) => void;
+}
 
 type UserPickerDataType = ContactInfo | GroupMember;
 
@@ -130,7 +147,6 @@ struct GroupMemberListDialog {
 
 @CustomDialog
 struct UserPickerDialog {
-  @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
   controller: CustomDialogController;
   title: string | Resource = $r('app.string.chatsetting_select_user');
   dataSource: UserPickerData<UserPickerDataType>[] = [];
@@ -141,8 +157,61 @@ struct UserPickerDialog {
   onConfirm?: (selectedItems: UserPickerDataType[], action: string) => void;
 
   build() {
+    UserPickerContent({
+      title: this.title,
+      dataSource: this.dataSource,
+      preSelectedUsers: this.preSelectedUsers,
+      maxSelectCount: this.maxSelectCount,
+      confirmButtonText: this.confirmButtonText,
+      action: this.action,
+      onConfirm: this.onConfirm,
+      onClose: () => {
+        this.controller.close();
+      }
+    })
+  }
+}
+
+interface UserPickerPageArgs {
+  title: string | Resource;
+  dataSource: UserPickerData<UserPickerDataType>[];
+  maxSelectCount: number;
+  action: string;
+  onConfirm: (selectedItems: UserPickerDataType[], action: string) => void;
+}
+
+@Builder
+function UserPickerPageBuilder(args: Object) {
+  UserPickerContent({
+    title: (args as UserPickerPageArgs).title,
+    dataSource: (args as UserPickerPageArgs).dataSource,
+    maxSelectCount: (args as UserPickerPageArgs).maxSelectCount,
+    action: (args as UserPickerPageArgs).action,
+    onConfirm: (args as UserPickerPageArgs).onConfirm,
+    titleTopMargin: 0,
+    onClose: () => {
+      AtomicxNavigator.pop();
+    }
+  })
+}
+
+@Component
+struct UserPickerContent {
+  @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
+  title: string | Resource = $r('app.string.chatsetting_select_user');
+  dataSource: UserPickerData<UserPickerDataType>[] = [];
+  preSelectedUsers: string[] = [];
+  maxSelectCount: number = -1;
+  confirmButtonText: string | Resource = $r('app.string.chatsetting_complete');
+  action: string = '';
+  onConfirm?: (selectedItems: UserPickerDataType[], action: string) => void;
+  onClose?: () => void;
+  titleTopMargin: number = 24;
+
+  build() {
     Column() {
       UserPicker({
+        titleTopMargin: this.titleTopMargin,
         dataSource: this.dataSource,
         defaultSelectedItems: this.preSelectedUsers,
         lockedItems: [], // No locked items for now
@@ -151,14 +220,14 @@ struct UserPickerDialog {
         title: this.title,
         confirmButtonText: this.confirmButtonText,
         onCancel: () => {
-          this.controller.close();
+          this.onClose?.();
         },
         onSelectedChanged: (selectedItems: UserPickerData<UserPickerDataType>[]) => {
           if (this.onConfirm) {
             const selectedData: UserPickerDataType[] = selectedItems.map((item: UserPickerData<UserPickerDataType>): UserPickerDataType => item.extraData);
             this.onConfirm(selectedData, this.action);
           }
-          this.controller.close();
+          this.onClose?.();
         }
       })
     }
@@ -214,6 +283,8 @@ export struct GroupChatSetting {
   @State showInviteGroupDialog: boolean = false;
   groupID: string = '';
   dialogController?: CustomDialogController;
+  navPathStack?: NavPathStack;
+  onClose?: () => void;
   onSendMessageClick?: (newConversationID?: string, title?: string, avatarUrl?: string) => void;
   onGroupDelete?: () => void;
   private contactListStore: ContactStore = ContactStore.shared;
@@ -366,26 +437,15 @@ export struct GroupChatSetting {
   NavigationBarBuilder() {
     Stack() {
       Row() {
-        Row() {
-          Image($rawfile('basecomponent/common_back_icon.svg'))
-            .width(16)
-            .height(16)
-            .fillColor(this.themeState.colors.textColorSecondary)
-            .scale({
-              x: this.languageState.getLayoutDirection() === LayoutDirection.RTL ? -1 : 1,
-              y: 1
-            })
-        }
-        .width(44)
-        .height(44)
-        .justifyContent(FlexAlign.Center)
-        .alignItems(VerticalAlign.Center)
-        .margin({ left: 16 })
-        .onClick(() => {
-          if (this.dialogController) {
-            this.dialogController.close();
-          } else {
-            console.warn('[GroupSettingPage] dialogController not available');
+        BackButton({
+          onBack: () => {
+            if (this.onClose) {
+              this.onClose();
+            } else if (this.dialogController) {
+              this.dialogController.close();
+            } else {
+              console.warn('[GroupSettingPage] close handler not available');
+            }
           }
         })
       }
@@ -1422,7 +1482,9 @@ export struct GroupChatSetting {
   }
 
   private closeDialog(): void {
-    if (this.dialogController) {
+    if (this.onClose) {
+      this.onClose();
+    } else if (this.dialogController) {
       this.dialogController.close();
     }
   }
@@ -1953,6 +2015,8 @@ export struct GroupChatSetting {
         this.contactListStore.loadFriends(completion);
       });
 
+      Toast.closeDialog();
+
 
       const friendList: UserPickerData<ContactInfo>[] = [];
       const contacts: ContactInfo[] = this.contactListState.friendList;
@@ -2331,6 +2395,16 @@ export struct GroupChatSetting {
     if (!this.hasPermission(GroupPermission.SET_GROUP_NOTICE)) {
       return;
     }
+    if (this.navPathStack && this.groupStore?.groupID) {
+      const params: GroupAnnouncementRouteParams = {
+        groupID: this.groupStore.groupID,
+        onSave: () => {
+          this.loadGroupData();
+        }
+      };
+      this.navPathStack.pushPathByName('groupAnnouncement', params, true);
+      return;
+    }
     this.groupAnnouncementDialogController = new CustomDialogController({
       builder: GroupTextInputDialog({
         title: $r('app.string.chatsetting_group_announcement'),
@@ -2365,6 +2439,20 @@ export struct GroupChatSetting {
 
   private showGroupMemberListDialog(): void {
     try {
+      if (!this.groupStore?.groupID) {
+        return;
+      }
+
+      if (this.navPathStack) {
+        const params: GroupMemberListRouteParams = {
+          groupID: this.groupStore.groupID,
+          groupName: getContext(this).resourceManager.getStringSync($r('app.string.chatsetting_group_members_title').id),
+          onSendMessageClick: this.onSendMessageClick
+        };
+        this.navPathStack.pushPathByName('groupMemberList', params, true);
+        return;
+      }
+
       if (this.groupMemberListDialogController) {
         this.groupMemberListDialogController.close();
         this.groupMemberListDialogController = undefined;
@@ -2403,6 +2491,18 @@ export struct GroupChatSetting {
   }
 
   private showUserPickerDialog(dataSource: UserPickerData<UserPickerDataType>[], action: string, title?: string | Resource, maxSelectCount?: number): void {
+    const pageArgs: UserPickerPageArgs = {
+      title: title || $r('app.string.chatsetting_select_user'),
+      dataSource: dataSource,
+      maxSelectCount: maxSelectCount ?? -1,
+      action: action,
+      onConfirm: (selectedItems: UserPickerDataType[], actionType: string) => {
+        this.handleSelectedUsersResult(selectedItems, actionType);
+      }
+    };
+    if (AtomicxNavigator.push(wrapBuilder(UserPickerPageBuilder), pageArgs)) {
+      return;
+    }
     try {
       if (this.userPickerDialogController) {
         this.userPickerDialogController.close();
@@ -2456,6 +2556,18 @@ export struct GroupChatSetting {
 
   private showGroupManagementDialog(): void {
     try {
+      if (!this.groupStore?.groupID) {
+        return;
+      }
+
+      if (this.navPathStack) {
+        const params: GroupManagementRouteParams = {
+          groupID: this.groupStore.groupID
+        };
+        this.navPathStack.pushPathByName('groupManagement', params, true);
+        return;
+      }
+
       if (this.groupManagementDialogController) {
         this.groupManagementDialogController.close();
         this.groupManagementDialogController = undefined;

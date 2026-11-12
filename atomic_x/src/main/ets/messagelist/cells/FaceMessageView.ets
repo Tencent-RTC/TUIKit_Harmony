@@ -1,26 +1,29 @@
-import { MessageInfo, FaceMessagePayload } from '@tencentcloud/atomicxcore';
-import { ImageSizeUtil } from '../../basecomponent/Index';
+import { FaceMessagePayload } from '@tencentcloud/atomicxcore';
+import { EmojiManager } from '../../emojipicker/EmojiManager';
+import { EmojiGroup } from '../../emojipicker/model/EmojiGroup';
 import { MessageRenderContext } from '../context/MessageRenderContext';
+import { FaceMessageResourceResolver } from './FaceMessageResourceResolver';
 
-let DEFAULT_IMAGE_MAX_SIZE = 180;
+const FACE_MESSAGE_SIZE: number = 80;
 
 @Component
 export struct FaceMessageViewContent {
-  @State mesage?: MessageInfo = undefined;
   @ObjectLink messagePayload: FaceMessagePayload;
+  @StorageLink('EmojiGroupState') emojiGroups: EmojiGroup[] = EmojiManager.getInstance().emojiGroupList;
 
-  getImageSize(): SizeOptions {
-    return { width: 24, height: 24 };
+  private resolveFaceUrl(): ResourceStr {
+    const emoji = FaceMessageResourceResolver.resolve(this.messagePayload.faceData, this.messagePayload.faceIndex,
+      this.emojiGroups);
+    return emoji ? emoji.emojiUrl : $rawfile('basecomponent/common_image_replace_icon.png');
   }
 
   build() {
-    Column() {
-      Image(this.messagePayload?.faceData)
-        .borderRadius(5)
-        .interpolation(ImageInterpolation.Medium)
-        .objectFit(ImageFit.Cover)
-        .size(this.getImageSize())
-    }
+    Image(this.resolveFaceUrl())
+      .alt($rawfile('basecomponent/common_image_replace_icon.png'))
+      .objectFit(ImageFit.Contain)
+      .interpolation(ImageInterpolation.Medium)
+      .draggable(false)
+      .size({ width: FACE_MESSAGE_SIZE, height: FACE_MESSAGE_SIZE })
   }
 }
 

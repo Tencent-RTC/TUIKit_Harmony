@@ -22,6 +22,7 @@ export struct ContactsPage {
   private addContactDialogController: CustomDialogController | null = null;
   onContactClick?: (contact: ContactInfo) => void;
   onGroupClick?: (group: ContactInfo) => void;
+  navPathStack?: NavPathStack;
 
   @Builder
   LargeTitleBuilder() {
@@ -41,6 +42,7 @@ export struct ContactsPage {
         Image($r('app.media.new_chat_icon'))
           .width(24)
           .height(24)
+          .fillColor(this.themeState.colors.textColorPrimary)
           .onClick(() => {
             this.showAddMenu = true;
           })
@@ -113,8 +115,8 @@ export struct ContactsPage {
 
         Row() {
           Image($r('app.media.start_conversation_c2c'))
-            .width(15)
-            .height(17)
+            .width(24)
+            .height(24)
             .margin({ right: 12 })
             .fillColor(this.themeState.colors.textColorPrimary)
 
@@ -125,6 +127,7 @@ export struct ContactsPage {
         }
         .width('100%')
         .height(48)
+        .alignItems(VerticalAlign.Center)
         .padding({ left: 16, right: 16 })
         .onClick(() => {
           this.showAddMenu = false;
@@ -140,8 +143,8 @@ export struct ContactsPage {
 
         Row() {
           Image($r('app.media.start_conversation_group'))
-            .width(19)
-            .height(16)
+            .width(24)
+            .height(24)
             .margin({ right: 12 })
             .fillColor(this.themeState.colors.textColorPrimary)
 
@@ -152,6 +155,7 @@ export struct ContactsPage {
         }
         .width('100%')
         .height(48)
+        .alignItems(VerticalAlign.Center)
         .padding({ left: 16, right: 16 })
         .onClick(() => {
           this.showAddMenu = false;
@@ -167,10 +171,10 @@ export struct ContactsPage {
         offsetX: 0,
         offsetY: 2
       })
-      .width(140)
+      .width(160)
     }
     .position({ x: '100%', y: ContactsPage.LARGE_TITLE_HEIGHT + 8 })
-    .markAnchor({ x: 148, y: 0 })
+    .markAnchor({ x: 168, y: 0 })
   }
 
   build() {
@@ -185,6 +189,7 @@ export struct ContactsPage {
           contactStore: this.contactStore,
           groupStore: this.groupStore,
           searchKeyword: this.searchKeyword,
+          navPathStack: this.navPathStack,
           onContactClick: (contact: ContactInfo) => {
             if (this.onContactClick) {
               this.onContactClick(contact);

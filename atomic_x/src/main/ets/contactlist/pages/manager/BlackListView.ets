@@ -1,5 +1,5 @@
 import { ContactInfo, ContactState, ContactStore } from '@tencentcloud/atomicxcore';
-import { Avatar, AvatarContentType, AvatarSize, ThemeState } from '../../../basecomponent/Index';
+import { Avatar, AvatarContentType, AvatarSize, BackButton, ThemeState } from '../../../basecomponent/Index';
 import { CompletionHandlerAdapter } from '../../../basecomponent/utils/CompletionHandlers';
 
 @Component
@@ -59,15 +59,14 @@ export struct BlackListView {
           .textAlign(TextAlign.Center)
 
         Row() {
-          Image($rawfile('contactlist/back_arrow.svg'))
-            .width(24)
-            .height(24)
-            .fillColor(this.themeState.colors.textColorLink)
+          BackButton({
+            onBack: () => {
+            this.handleBack();
+          }
+          })
         }
-        .onClick(() => this.handleBack())
         .width('100%')
         .justifyContent(FlexAlign.Start)
-        .padding({ left: 10, right: 10 })
       }
       .width('100%')
       .height(56)

@@ -137,6 +137,10 @@
       "value": "松开 转文字"
     },
     {
+      "name": "message_input_slide_to_transcribe_hint",
+      "value": "滑到转文字"
+    },
+    {
       "name": "voice_transcription_action",
       "value": "转文字"
     },

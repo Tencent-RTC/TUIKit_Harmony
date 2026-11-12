@@ -1,4 +1,4 @@
-import { Avatar, AvatarContentType, AvatarSize, ThemeState } from '../../../basecomponent/Index';
+import { Avatar, AvatarContentType, AvatarSize, BackButton, ThemeState } from '../../../basecomponent/Index';
 import { ContactInfo, ContactStore } from '@tencentcloud/atomicxcore';
 import { GroupStore } from '@tencentcloud/atomicxcore';
 import { GroupInfo as CoreGroupInfo } from '@tencentcloud/atomicxcore';
@@ -71,22 +71,10 @@ export struct AddContactDialog {
   @Builder
   CancelButtonBuilder() {
     if (this.showDetailPage) {
-
-      Row() {
-        Image($rawfile('contactlist/back_arrow.svg'))
-          .width(24)
-          .height(24)
-          .fillColor(this.themeState.colors.textColorLink)
-          .margin({ right: 8 })
-
-        Text($r('app.string.back_button'))
-          .fontSize(17)
-          .fontColor(this.themeState.colors.textColorLink)
-          .fontFamily('PingFang SC')
-      }
-      .margin({ left: 16 })
-      .onClick(() => {
-        this.handleBackToSearch();
+      BackButton({
+        onBack: () => {
+          this.handleBackToSearch();
+        }
       })
     } else {
 

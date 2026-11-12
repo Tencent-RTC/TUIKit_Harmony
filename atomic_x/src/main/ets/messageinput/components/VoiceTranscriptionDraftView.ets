@@ -5,6 +5,7 @@ export struct VoiceTranscriptionDraftView {
   @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
 
   @Prop audioDuration: number = 0;
+  @Prop allowSendOriginalVoice: boolean = true;
   @Link text: string;
   @Link isLoading: boolean;
 
@@ -62,29 +63,31 @@ export struct VoiceTranscriptionDraftView {
         }
         .alignItems(HorizontalAlign.Center)
 
-        Column({ space: 8 }) {
-          Row() {
-            Image($rawfile('messageinput/voice_transcription_audio.svg'))
-              .width(24)
-              .height(24)
-          }
-          .width(48)
-          .height(48)
-          .borderRadius(24)
-          .backgroundColor(this.themeState.colors.buttonColorSecondaryDefault)
-          .justifyContent(FlexAlign.Center)
-          .alignItems(VerticalAlign.Center)
-          .onClick(() => {
-            this.onSendAudio?.();
-          })
+        if (this.allowSendOriginalVoice) {
+          Column({ space: 8 }) {
+            Row() {
+              Image($rawfile('messageinput/voice_transcription_audio.svg'))
+                .width(24)
+                .height(24)
+            }
+            .width(48)
+            .height(48)
+            .borderRadius(24)
+            .backgroundColor(this.themeState.colors.buttonColorSecondaryDefault)
+            .justifyContent(FlexAlign.Center)
+            .alignItems(VerticalAlign.Center)
+            .onClick(() => {
+              this.onSendAudio?.();
+            })
 
-          Text($r('app.string.voice_transcription_send_original_voice'))
-            .fontSize(12)
-            .fontColor(this.themeState.colors.textColorSecondary)
-            .textAlign(TextAlign.Center)
+            Text($r('app.string.voice_transcription_send_original_voice'))
+              .fontSize(12)
+              .fontColor(this.themeState.colors.textColorSecondary)
+              .textAlign(TextAlign.Center)
+          }
+          .alignItems(HorizontalAlign.Center)
+          .margin({ left: 46 })
         }
-        .alignItems(HorizontalAlign.Center)
-        .margin({ left: 46 })
 
         Text($r('app.string.send_button'))
           .fontSize(14)
@@ -192,24 +195,21 @@ export struct VoiceTranscriptionDraftView {
     } else {
       Column() {
         Stack() {
-          if (((this.userEdited ? this.draftText : this.text) || '').trim().length === 0) {
-            Text($r('app.string.voice_transcription_empty'))
-              .fontSize(16)
-              .fontColor(this.themeState.colors.textColorButton)
-              .width('100%')
-              .textAlign(TextAlign.Center)
-          } else {
-            TextArea({ text: this.userEdited ? this.draftText : this.text, controller: this.controller })
-              .fontSize(16)
-              .fontColor(this.themeState.colors.textColorButton)
-              .backgroundColor(Color.Transparent)
-              .width('100%')
-              .maxLines(4)
-              .onChange((value: string) => {
-                this.draftText = value;
-                this.userEdited = true;
-              })
-          }
+          TextArea({
+            text: this.userEdited ? this.draftText : this.text,
+            placeholder: $r('app.string.voice_transcription_empty'),
+            controller: this.controller
+          })
+            .fontSize(16)
+            .fontColor(this.themeState.colors.textColorButton)
+            .placeholderColor(this.themeState.colors.textColorButton)
+            .backgroundColor(Color.Transparent)
+            .width('100%')
+            .maxLines(4)
+            .onChange((value: string) => {
+              this.draftText = value;
+              this.userEdited = true;
+            })
         }
         .width('100%')
         .padding({ left: 16, right: 16, top: 10, bottom: 10 })

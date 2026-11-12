@@ -8,7 +8,8 @@ const BUBBLE_BORDER_WIDTH: number = 1;
 
 export class MessageBubbleBackgroundFactory {
   static shouldHideBubbleBackground(message: MessageInfo): boolean {
-    return message.messageType === MessageType.IMAGE || message.messageType === MessageType.VIDEO;
+    return message.messageType === MessageType.IMAGE || message.messageType === MessageType.VIDEO ||
+      message.messageType === MessageType.FACE;
   }
 
   static resolveBackgroundColor(message: MessageInfo, isSelf: boolean,

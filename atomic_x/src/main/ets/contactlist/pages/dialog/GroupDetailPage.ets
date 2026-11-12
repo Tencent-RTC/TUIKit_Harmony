@@ -1,4 +1,4 @@
-import { IMErrorCode, TextUtils, ThemeState, Toast, ToastType } from '../../../basecomponent/Index';
+import { BackButton, IMErrorCode, TextUtils, ThemeState, Toast, ToastType } from '../../../basecomponent/Index';
 import { ContactInfo } from '@tencentcloud/atomicxcore';
 import { GroupStore } from '@tencentcloud/atomicxcore';
 import { CompletionHandlerAdapter } from '../../../basecomponent/utils/CompletionHandlers';
@@ -52,14 +52,13 @@ export struct GroupDetailPage {
 
   @Builder
   BackButtonBuilder() {
-    Text($r('app.string.back_button'))
-      .fontSize(16)
-      .fontColor(this.themeState.colors.textColorLink)// Figma: #1C66E5
-      .fontFamily('PingFang SC')
-      .fontWeight(FontWeight.Normal)
-      .onClick(() => {
+    BackButton({
+      leadingInset: 0,
+      buttonHeight: 44,
+      onBack: () => {
         this.handleClose();
-      })
+      }
+    })
   }
 
   @Builder

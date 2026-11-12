@@ -1,7 +1,8 @@
 import { MessageInfo, ConversationListStore } from '@tencentcloud/atomicxcore';
 import { LanguageState, NotifyParams, ThemeState, TUIEventBus, TUIObserver } from '@tencentcloud/atomicx/src/main/ets/basecomponent/Index';
-import { MessageList, MultiSelectBottomBar, MultiSelectActions } from '@tencentcloud/atomicx/src/main/ets/messagelist/Index';
-import { MessageInput, ChatMessageInputConfig } from '@tencentcloud/atomicx/src/main/ets/messageinput/Index';
+import { MessageList, MultiSelectBottomBar, MultiSelectActions, MessageListStyleProtocol } from '@tencentcloud/atomicx/src/main/ets/messagelist/Index';
+import { MessageInput, ChatMessageInputConfig, MessageInputConfigProtocol } from '@tencentcloud/atomicx/src/main/ets/messageinput/Index';
+import { UIContext } from '@ohos.arkui.UIContext';
 
 // NOTE: Call-related event publishing (AtomicCallEventPublisher, TUICallKit
 // invocation reporting) has been moved into the atomic_x MessageInput /
@@ -19,22 +20,28 @@ export struct ChatDialog {
   locateMessage?: MessageInfo = undefined;
   onBack?: () => void;
   onUserClick?: (userID: string) => void;
-  onChatHeaderClick?: (conversationID: string) => void;
+  onChatHeaderClick?: (conversationID: string, uiContext: UIContext) => void;
   onSecurityReportClick?: () => void;
   @Prop enableCalls: boolean = true;
+  headerActionIcon?: Resource;
   moreActionRedDotIDs?: string[];
   onMoreActionRedDotTap?: (actionID: string) => void;
+  messageListConfig?: MessageListStyleProtocol;
+  messageInputConfig?: MessageInputConfigProtocol;
 
   build() {
-    ChatPage({
-      conversationID: this.conversationID,
-      enableCalls: this.enableCalls,
+    Column() {
+      ChatPage({
+        conversationID: this.conversationID,
+        enableCalls: this.enableCalls,
       title: this.title,
       status: this.status,
       avatarUrl: this.avatarUrl,
       locateMessage: this.locateMessage,
       moreActionRedDotIDs: this.moreActionRedDotIDs,
       onMoreActionRedDotTap: this.onMoreActionRedDotTap,
+      messageListConfig: this.messageListConfig,
+      messageInputConfig: this.messageInputConfig,
       onBack: () => {
         if (this.onBack) {
           this.onBack();
@@ -46,9 +53,9 @@ export struct ChatDialog {
           this.onUserClick(userID);
         }
       },
-      onChatHeaderClick: (conversationID: string) => {
+      onChatHeaderClick: (conversationID: string, uiContext: UIContext) => {
         if (this.onChatHeaderClick) {
-          this.onChatHeaderClick(conversationID);
+          this.onChatHeaderClick(conversationID, uiContext);
         }
       },
       onSecurityReportClick: () => {
@@ -56,8 +63,13 @@ export struct ChatDialog {
           this.onSecurityReportClick();
         }
       },
+      headerActionIcon: this.headerActionIcon,
       dialogController: this.controller
-    })
+      })
+    }
+    .width('100%')
+    .height('100%')
+    .padding({ top: 39 })
   }
 }
 
@@ -80,19 +92,25 @@ export struct ChatPage {
   private multiSelectActions?: MultiSelectActions = undefined;
 
   onBack?: () => void;
+  onRegisterBackHandler?: (handler: () => boolean) => void;
   onUserClick?: (userID: string) => void;
-  onChatHeaderClick?: (conversationID: string) => void;
+  onChatHeaderClick?: (conversationID: string, uiContext: UIContext) => void;
   onSecurityReportClick?: () => void;
+  headerActionIcon?: Resource;
   // Which more-panel entries deserve a dot, and where to report a tap. The host
   // owns both, because only it knows what counts as "already seen".
   @Prop enableCalls: boolean = true;
   moreActionRedDotIDs?: string[];
   onMoreActionRedDotTap?: (actionID: string) => void;
+  messageListConfig?: MessageListStyleProtocol;
+  messageInputConfig?: MessageInputConfigProtocol;
+  useUIContextFocus: boolean = false;
   dialogController?: CustomDialogController;
   private chatProfileObserver?: TUIObserver;
   private unreadTimer?: number;
 
   aboutToAppear(): void {
+    this.onRegisterBackHandler?.(() => this.onBackPress());
     this.chatProfileObserver = new ChatProfileUpdatedObserver(this);
     TUIEventBus.getInstance().subscribe('chat.conversation.profileUpdated', null, this.chatProfileObserver);
     this.startUnreadObserver();
@@ -170,6 +188,7 @@ export struct ChatPage {
       MessageList({
         conversationID: this.conversationID,
         locateMessage: this.locateMessage,
+        config: this.messageListConfig,
         onUserClick: (userID: string) => {
           if (this.onUserClick) {
             this.onUserClick(userID);
@@ -200,7 +219,9 @@ export struct ChatPage {
       } else {
         MessageInput({
           conversationID: this.conversationID,
-          config: new ChatMessageInputConfig({
+          keyboardPlaceholderBottomInset: 24,
+          useUIContextFocus: this.useUIContextFocus,
+          config: this.messageInputConfig ?? new ChatMessageInputConfig({
             enableTyping: true,
             isShowAudioCall: this.enableCalls,
             isShowVideoCall: this.enableCalls,
@@ -281,14 +302,14 @@ export struct ChatPage {
           .layoutWeight(2)
 
         Row() {
-          Image($rawfile('conversationlist/ic_public_more.svg'))
+          Image(this.headerActionIcon ?? $rawfile('conversationlist/ic_public_more.svg'))
             .width(24)
             .height(24)
             .fillColor(this.themeState.colors.textColorSecondary)
             .visibility(this.isMultiSelectMode ? Visibility.Hidden : Visibility.Visible)
             .onClick(() => {
               if (!this.isMultiSelectMode) {
-                this.onChatHeaderClick?.(this.conversationID);
+                this.onChatHeaderClick?.(this.conversationID, this.getUIContext());
               }
             })
         }

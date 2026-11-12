@@ -5,6 +5,7 @@ import { ConversationType } from '@tencentcloud/atomicxcore';
 import { LoginStore } from '@tencentcloud/atomicxcore';
 
 import { TextMessageView } from '../cells/TextMessageView';
+import { StreamMessageView } from '../cells/StreamMessageView';
 import { ImageMessageView } from '../cells/ImageMessageView';
 import { FaceMessageView } from '../cells/FaceMessageView';
 import { FileMessageView } from '../cells/FileMessageView';
@@ -66,6 +67,8 @@ export function GetMessageView(context: MessageRenderContext) {
     VideoMessageView(context);
   } else if (context.message.messageType == MessageType.FACE) {
     FaceMessageView(context);
+  } else if (context.message.messageType == MessageType.STREAM) {
+    StreamMessageView(context);
   } else if (context.message.messageType == MessageType.MERGED) {
     MergedMessageView(context);
   } else if (context.message.messageType == MessageType.TIPS) {
@@ -565,12 +568,13 @@ export struct MessageItem {
   MessageBubble(message: MessageInfo) {
 
     if (message.messageType === MessageType.TIPS ||
-      (message.messageType === MessageType.CUSTOM && !isCallingC2C(message) && !isBusinessCustomMessage(message))) {
+      (message.messageType === MessageType.CUSTOM && !isCallingC2C(message) &&
+        !isBusinessCustomMessage(message) && !isChatbotVisualMessage(message))) {
 
       Text("")
         .width(0)
         .height(0)
-    } else if (message.messageType === MessageType.IMAGE || message.messageType === MessageType.VIDEO) {
+    } else if (MessageBubbleBackgroundFactory.shouldHideBubbleBackground(message)) {
       Column() {
         GetMessageView(this.createRenderContext(message));
         this.TimeInBubbleView();
@@ -578,6 +582,7 @@ export struct MessageItem {
           MessageReactionBar({
             reactionList: message.reactionList,
             isSentBySelf: this.getMessageEffectiveIsSelf(message),
+            isMediaBubble: true,
             onClickCallback: () => {
               this.showReactionDetail();
             }
@@ -585,6 +590,7 @@ export struct MessageItem {
         }
       }
       .padding({ bottom: this.shouldShowTimeInBubble(message) ? 4 : 0 })
+      .alignItems(this.getMessageEffectiveIsSelf(message) ? HorizontalAlign.End : HorizontalAlign.Start)
       .onAreaChange((_old: Area, area: Area): void => {
         this.updateMessageBubbleWidth(area);
       })
@@ -1071,6 +1077,15 @@ export struct MessageItem {
     return rawFaceURL;
   }
 
+  private getSideAvatarName(isSelfSide: boolean): string {
+    const sideUserID = this.getSideUserID(isSelfSide);
+    const fromUserID = this.message?.from?.userID ?? '';
+    if (sideUserID === fromUserID) {
+      return this.message?.from?.nickname?.trim() || sideUserID;
+    }
+    return sideUserID;
+  }
+
   private getSideUserID(isSelfSide: boolean): string {
     const fromUserID = this.message?.from?.userID ?? '';
     if (!isCallingC2C(this.message)) {
@@ -1239,9 +1254,9 @@ export struct MessageItem {
 
   @Builder
   LeftAvatarSlot() {
-    if (this.shouldShowAvatarValue) {
+    if (this.shouldShowAvatarValue && (this.effectiveConfig.isShowLeftAvatar ?? true)) {
       Stack() {
-        this.AvatarView(this.getSideFaceURL(false), this.getSideUserID(false))
+        this.AvatarView(this.getSideFaceURL(false), this.getSideAvatarName(false))
       }
       .margin({ right: this.effectiveConfig.avatarSpacing ?? 8 })
     } else if (this.effectiveConfig.isShowLeftAvatar ?? true) {
@@ -1254,9 +1269,9 @@ export struct MessageItem {
 
   @Builder
   RightAvatarSlot() {
-    if (this.shouldShowAvatarValue) {
+    if (this.shouldShowAvatarValue && (this.effectiveConfig.isShowRightAvatar ?? true)) {
       Stack() {
-        this.AvatarView(this.getSideFaceURL(true), this.getSideUserID(true))
+        this.AvatarView(this.getSideFaceURL(true), this.getSideAvatarName(true))
       }
       .margin({ left: this.effectiveConfig.avatarSpacing ?? 8, top: -1 })
     }

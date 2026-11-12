@@ -1,0 +1,27 @@
+{
+  "string": [
+    { "name": "uikit_ai_page_title", "value": "مساعد الذكاء الاصطناعي" },
+    { "name": "uikit_ai_transfer_to_human", "value": "التحويل إلى موظف" },
+    { "name": "uikit_ai_select_agent", "value": "اختيار المساعد" },
+    { "name": "uikit_ai_agents_empty", "value": "لا يوجد مساعدون متاحون" },
+    { "name": "uikit_ai_call_button", "value": "مكالمة صوتية" },
+    { "name": "uikit_ai_call_handoff_waiting", "value": "في انتظار اتصال الموظف، يرجى المحاولة لاحقًا" },
+    { "name": "uikit_ai_call_handoff_required", "value": "يرجى التحويل إلى موظف أولاً قبل إجراء المكالمة" },
+    { "name": "uikit_ai_call_mode_free", "value": "محادثة حرة" },
+    { "name": "uikit_ai_call_listening", "value": "...جارٍ الاستماع" },
+    { "name": "uikit_ai_call_thinking", "value": "...جارٍ التفكير" },
+    { "name": "uikit_ai_call_speaking", "value": "يمكنك متابعة التحدث" },
+    { "name": "uikit_ai_call_muted", "value": "تم كتم الصوت" },
+    { "name": "uikit_ai_call_disclaimer", "value": "محتوى تم إنشاؤه بواسطة الذكاء الاصطناعي" },
+    { "name": "uikit_ai_call_permission_denied", "value": "تتطلب المحادثة الصوتية إذن الميكروفون" },
+    { "name": "uikit_ai_call_start_failed", "value": "تعذر بدء التعرف على الصوت، يرجى المحاولة مرة أخرى" },
+    { "name": "uikit_ai_call_asr_unavailable_title", "value": "التعرف على الكلام غير متاح" },
+    { "name": "uikit_ai_call_asr_unavailable_content", "value": "نفدت حزمة التعرف على الكلام لهذا التطبيق أو لم يتم تفعيلها، لذا فإن المكالمات الصوتية غير متاحة مؤقتًا." },
+    { "name": "uikit_ai_call_asr_unavailable_exit", "value": "إنهاء المكالمة" },
+    { "name": "uikit_ai_call_start_failed_retry", "value": "فشل الاتصال، انقر على الميكروفون لإعادة المحاولة" },
+    { "name": "uikit_ai_call_send_failed", "value": "فشل الإرسال، يرجى المحاولة مرة أخرى" },
+    { "name": "uikit_ai_call_reply_timeout", "value": "لم يستجب المساعد، يرجى المحاولة مرة أخرى" },
+    { "name": "uikit_ai_call_audio_unavailable", "value": "الميكروفون غير متاح" },
+    { "name": "uikit_ai_call_playback_unavailable", "value": "تشغيل الصوت غير متاح، وسيتم عرض الردود كنص" }
+  ]
+}

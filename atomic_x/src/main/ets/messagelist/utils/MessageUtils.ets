@@ -1,4 +1,4 @@
-import { MessageInfo, MessageType, MessageStatus, TextMessagePayload, AudioMessagePayload, CustomMessagePayload, TipsMessagePayload, GroupTipsInfo, JoinGroup, InviteToGroup, QuitGroup, KickedFromGroup, SetGroupAdmin, CancelGroupAdmin, ChangeGroupName, ChangeGroupAvatar, ChangeGroupNotification, ChangeGroupIntroduction, ChangeGroupOwner, ChangeGroupMuteAll, ChangeJoinGroupApproval, ChangeInviteToGroupApproval, MuteGroupMember, PinGroupMessage, UnpinGroupMessage } from '@tencentcloud/atomicxcore';
+import { MessageInfo, MessageType, MessageStatus, TextMessagePayload, AudioMessagePayload, CustomMessagePayload, StreamMessagePayload, TipsMessagePayload, GroupTipsInfo, JoinGroup, InviteToGroup, QuitGroup, KickedFromGroup, SetGroupAdmin, CancelGroupAdmin, ChangeGroupName, ChangeGroupAvatar, ChangeGroupNotification, ChangeGroupIntroduction, ChangeGroupOwner, ChangeGroupMuteAll, ChangeJoinGroupApproval, ChangeInviteToGroupApproval, MuteGroupMember, PinGroupMessage, UnpinGroupMessage } from '@tencentcloud/atomicxcore';
 import { ConversationType } from '@tencentcloud/atomicxcore';
 import { GroupJoinOption, GroupInviteOption } from '@tencentcloud/atomicxcore';
 import { GroupMember } from '@tencentcloud/atomicxcore';
@@ -43,7 +43,18 @@ export class MessageUtils {
     if (MessageUtils.isMentionMirrorMessage(message)) {
       return false;
     }
+    if (MessageUtils.isEmptyStreamMessage(message)) {
+      return false;
+    }
     return !TypingMessageProtocol.isTypingMessage(message);
+  }
+
+  static isEmptyStreamMessage(message: MessageInfo): boolean {
+    if (message.messageType !== MessageType.STREAM) {
+      return false;
+    }
+    const payload = message.messagePayload as StreamMessagePayload | undefined;
+    return (payload?.markdown ?? '').length === 0;
   }
 
   // TODO(harmony): IM SDK Harmony 版会把群 @ 系统镜像消息(sender 以 @TIM#SYSTEM 结尾)
@@ -514,6 +525,10 @@ export class MessageUtils {
         const customPayload = message.messagePayload as CustomMessagePayload | undefined;
         const customData = customPayload?.customData ?? '';
         stateObj.set('customDataHash', MessageUtils.getStringHash(customData));
+      } else if (message.messageType === MessageType.STREAM) {
+        const streamPayload = message.messagePayload as StreamMessagePayload | undefined;
+        stateObj.set('streamMarkdownHash', MessageUtils.getStringHash(streamPayload?.markdown ?? ''));
+        stateObj.set('streamEnded', streamPayload?.isStreamEnded);
       }
 
       const entries: Array<[string, Object | undefined]> = [];

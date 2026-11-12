@@ -1,5 +1,7 @@
+import { MessageInfo } from '@tencentcloud/atomicxcore';
 import { ThemeState } from '../../basecomponent/Index';
 import { AppBuilderConfig, MessageAlignment } from '../../basecomponent/utils/AppBuilderHelper';
+import { CallingMessageDataProvider } from '../utils/CallingMessageDataProvider';
 
 /**
  * Message action display style
@@ -7,6 +9,30 @@ import { AppBuilderConfig, MessageAlignment } from '../../basecomponent/utils/Ap
  * - 'popup': Floating popup style (classic style, using bindPopup)
  */
 export type MessageActionStyle = 'dialog' | 'popup';
+
+export type MessageMatcher = (message: MessageInfo) => boolean;
+
+export class CallMessageClickContext {
+  readonly message: MessageInfo;
+  readonly callModel: CallingMessageDataProvider;
+  private readonly callStarter: (targetUserId: string) => void;
+
+  constructor(message: MessageInfo, callModel: CallingMessageDataProvider,
+    callStarter: (targetUserId: string) => void) {
+    this.message = message;
+    this.callModel = callModel;
+    this.callStarter = callStarter;
+  }
+
+  startCall(targetUserId: string): void {
+    const trimmed = targetUserId.trim();
+    if (trimmed.length > 0) {
+      this.callStarter(trimmed);
+    }
+  }
+}
+
+export type CallMessageClickListener = (context: CallMessageClickContext) => boolean;
 
 /**
  * Message list configuration protocol
@@ -27,6 +53,9 @@ export interface MessageListConfigProtocol {
   avatarSpacing?:number;
   enableReadReceipt?: boolean;
   messageActionStyle?: MessageActionStyle;
+  messageExclusionMatchers?: MessageMatcher[];
+  enableChatbotReplyPlaceholder?: boolean;
+  callMessageClickListener?: CallMessageClickListener;
 }
 
 /**
@@ -85,6 +114,9 @@ export class ChatMessageListConfig implements MessageListStyleProtocol {
   private userIsSupportTranslate?: boolean;
   private userIsSupportQuote?: boolean;
   private userIsSupportListenFromHere?: boolean;
+  private userMessageExclusionMatchers: MessageMatcher[] = [];
+  private userEnableChatbotReplyPlaceholder: boolean = true;
+  private userCallMessageClickListener?: CallMessageClickListener;
 
   constructor(config?: Partial<MessageListStyleProtocol>) {
     if (config) {
@@ -112,7 +144,42 @@ export class ChatMessageListConfig implements MessageListStyleProtocol {
       this.userIsSupportTranslate = config.isSupportTranslate;
       this.userIsSupportQuote = config.isSupportQuote;
       this.userIsSupportListenFromHere = config.isSupportListenFromHere;
+      this.userMessageExclusionMatchers = config.messageExclusionMatchers?.slice() ?? [];
+      this.userEnableChatbotReplyPlaceholder = config.enableChatbotReplyPlaceholder ?? true;
+      this.userCallMessageClickListener = config.callMessageClickListener;
     }
+  }
+
+  get messageExclusionMatchers(): MessageMatcher[] {
+    return this.userMessageExclusionMatchers.slice();
+  }
+
+  get enableChatbotReplyPlaceholder(): boolean {
+    return this.userEnableChatbotReplyPlaceholder;
+  }
+
+  get callMessageClickListener(): CallMessageClickListener | undefined {
+    return this.userCallMessageClickListener;
+  }
+
+  addMessageExclusion(matcher: MessageMatcher): ChatMessageListConfig {
+    this.userMessageExclusionMatchers.push(matcher);
+    return this;
+  }
+
+  clearMessageExclusions(): ChatMessageListConfig {
+    this.userMessageExclusionMatchers = [];
+    return this;
+  }
+
+  setEnableChatbotReplyPlaceholder(enable: boolean): ChatMessageListConfig {
+    this.userEnableChatbotReplyPlaceholder = enable;
+    return this;
+  }
+
+  setCallMessageClickListener(listener?: CallMessageClickListener): ChatMessageListConfig {
+    this.userCallMessageClickListener = listener;
+    return this;
   }
 
   // Getters with default values
@@ -136,7 +203,7 @@ export class ChatMessageListConfig implements MessageListStyleProtocol {
   }
 
   get isShowRightAvatar(): boolean {
-    return true;
+    return this.userIsShowRightAvatar ?? true;
   }
 
   get isShowRightNickname(): boolean {

@@ -17,6 +17,8 @@ export { MessageList, MessageCustomAction, MultiSelectActions } from './componen
 // Export message view components
 export { TextMessageView, TextMessageViewContent } from './cells/TextMessageView';
 
+export { StreamMessageView, StreamMessageViewContent } from './cells/StreamMessageView';
+
 export { ImageMessageView, ImageMessageViewContent } from './cells/ImageMessageView';
 
 export { FileMessageView, FileMessageViewContent } from './cells/FileMessageView';
@@ -41,6 +43,9 @@ export {
   ChatMessageListConfig,
   MergedMessageListConfig,
   MessageActionStyle,
+  MessageMatcher,
+  CallMessageClickContext,
+  CallMessageClickListener,
 } from './config/MessageListConfig';
 
 // Export reaction components

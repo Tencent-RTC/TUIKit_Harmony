@@ -1,5 +1,8 @@
 import { LoginStore } from '@tencentcloud/atomicxcore';
 import { MessageListStore, MessageInfo, MessageType, MessageLoadDirection, MessageEvent, OnReceiveNewMessage, OnMessageReactionUpdated, OnMessageRevoked, OnMessageDeleted, MessageStatus, MessageListState, MessageForwardType, ForwardMessageOption, MergedForwardInfo, TextMessagePayload, AudioMessagePayload, CustomMessagePayload, TipsMessagePayload, OfflinePushInfo } from '@tencentcloud/atomicxcore';
+import { V2TIMAdvancedMsgListener, V2TIMManager, V2TIMMessage } from '@tencentcloud/imsdk';
+import { ChatbotConversationPolicy } from '../../chatbot/ChatbotConversationPolicy';
+import { ChatbotMessageProtocol, ChatbotMessageSource } from '../../chatbot/ChatbotMessageProtocol';
 import { MessageActionStore } from '@tencentcloud/atomicxcore';
 import { ConversationListStore, ConversationListState, ConversationInfo, ConversationMarkType, ConversationType } from '@tencentcloud/atomicxcore';
 import { MessageInputStore, TextSendMessagePayload, SendMessageOption } from '@tencentcloud/atomicxcore';
@@ -9,9 +12,9 @@ import { MessageActionDialog } from '../ui/MessageActionPanel';
 import { MessageQuoteEvent } from '../ui/MessageQuoteEvent';
 import emitter from '@ohos.events.emitter';
 import { MultiSelectBottomBar } from '../ui/MultiSelectBottomBar';
-import { ForwardTargetSelector } from '../ui/ForwardTargetSelector';
+import { ForwardTargetSelector, pushForwardTargetSelectorPage } from '../ui/ForwardTargetSelector';
 import { ForwardTypeDialog } from '../ui/ForwardTypeDialog';
-import { MessageReadReceiptDetailPage } from '../ui/MessageReadReceiptDetailPage';
+import { MessageReadReceiptDetailPage, pushMessageReadReceiptDetailPage } from '../ui/MessageReadReceiptDetailPage';
 import { MessageCheckBox } from '../ui/MessageCheckBox';
 import { ReactionEmojiPickerSheet } from '../ui/ReactionEmojiPickerSheet';
 import { EmojiItem } from '../../emojipicker/data/EmojiData';
@@ -180,16 +183,21 @@ class ChatbotHostAdapter implements MessageListChatbotHost {
   setDisplayMessages: (messages: MessageInfo[]) => void;
   refreshDataSource: () => void;
   onStreamContentUpdated: () => void;
+  isMessageVisible: (message: MessageInfo) => boolean;
+  isReplyPlaceholderEnabled: () => boolean;
 
   constructor(getRawMessages: () => MessageInfo[] | undefined,
     getConversationInfo: (conversationID: string) => ConversationInfo | undefined,
     setDisplayMessages: (messages: MessageInfo[]) => void, refreshDataSource: () => void,
-    onStreamContentUpdated: () => void) {
+    onStreamContentUpdated: () => void, isMessageVisible: (message: MessageInfo) => boolean,
+    isReplyPlaceholderEnabled: () => boolean) {
     this.getRawMessages = getRawMessages;
     this.getConversationInfo = getConversationInfo;
     this.setDisplayMessages = setDisplayMessages;
     this.refreshDataSource = refreshDataSource;
     this.onStreamContentUpdated = onStreamContentUpdated;
+    this.isMessageVisible = isMessageVisible;
+    this.isReplyPlaceholderEnabled = isReplyPlaceholderEnabled;
   }
 }
 
@@ -251,6 +259,13 @@ export struct MessageList {
   @State isLoadingMore: boolean = false;
   @State private loadingDirection: MessageLoadDirection = MessageLoadDirection.OLDER;
   @State userScrolling: boolean = false;
+  private stickToBottom: boolean = true;
+  @State private hideStreamingScrollBar: boolean = false;
+  private streamScrollBarTimer?: number;
+  private streamMessageListener?: V2TIMAdvancedMsgListener;
+  private streamRefreshTimer?: number;
+  private streamSettleTimer?: number;
+  private pendingStreamRefreshMessageID: string = '';
   @Watch('onSelectedMessageChanged')
   @State selectedMessage?: MessageInfo = undefined;
   // Multi-select mode states
@@ -272,7 +287,7 @@ export struct MessageList {
   onUserLongPress?: (userID: string, nickname: string) => void;
   onMultiSelectModeChange?: (isMultiSelectMode: boolean, selectedCount: number, actions?: MultiSelectActions) => void;
   customActions?: MessageCustomAction[] = [];
-  @Prop config?: MessageListStyleProtocol = undefined;
+  config?: MessageListStyleProtocol = undefined;
   @Prop bottomContentInset: number = 0;
   private pagingController: MessageListPagingController = new MessageListPagingController();
   private locateCoordinator: MessageListLocateCoordinator = new MessageListLocateCoordinator();
@@ -297,11 +312,34 @@ export struct MessageList {
 
   private readReceiptController: MessageListReadReceiptController = new MessageListReadReceiptController();
   private chatHistoryClearedObserver?: TUIObserver;
+  private inputFocusListener?: (eventData: emitter.EventData) => void;
+  private locateQuotedMessageListener?: (eventData: emitter.EventData) => void;
+  private chatBackgroundListener?: (eventData: emitter.EventData) => void;
+  private unreadClearTimer?: number;
+  private initialLatestAnchorTimer?: number;
+  private initialLatestAnchorSettleTimer?: number;
+  private initialLatestAnchorAttempts: number = 0;
   private static readonly EVENT_CHAT_HISTORY_CLEARED: string = 'chat.messageList.chatHistoryCleared';
+  private static readonly UNREAD_CLEAR_DEBOUNCE_MS: number = 300;
 
   aboutToDisappear(): void {
     this.listenController.stop();
+    this.detachStreamMessageListener();
+    if (this.streamRefreshTimer !== undefined) {
+      clearTimeout(this.streamRefreshTimer);
+      this.streamRefreshTimer = undefined;
+    }
+    if (this.streamSettleTimer !== undefined) {
+      clearTimeout(this.streamSettleTimer);
+      this.streamSettleTimer = undefined;
+    }
+    if (this.streamScrollBarTimer !== undefined) {
+      clearTimeout(this.streamScrollBarTimer);
+      this.streamScrollBarTimer = undefined;
+    }
     this.locateCoordinator.cancelPendingTimers();
+    this.stopInitialLatestAnchor();
+    this.cancelDebouncedUnreadClear();
     this.detachChatbotController();
     this.readReceiptController.cancelPendingFlush();
     this.readReceiptController.detachHost();
@@ -318,10 +356,17 @@ export struct MessageList {
     this.floatingEntryStateController.reset();
     this.floatingEntry = undefined;
 
-    EventBus.getInstance().off(MessageQuoteEvent.LOCATE_QUOTED_MESSAGE);
-    EventBus.getInstance().off('onInputFocus');
-    if (this.conversationID) {
-      EventBus.getInstance().off(ChatBackgroundStore.eventName(this.conversationID));
+    if (this.locateQuotedMessageListener) {
+      EventBus.getInstance().off(MessageQuoteEvent.LOCATE_QUOTED_MESSAGE, this.locateQuotedMessageListener);
+      this.locateQuotedMessageListener = undefined;
+    }
+    if (this.inputFocusListener) {
+      EventBus.getInstance().off('onInputFocus', this.inputFocusListener);
+      this.inputFocusListener = undefined;
+    }
+    if (this.chatBackgroundListener) {
+      EventBus.getInstance().off(ChatBackgroundStore.eventName(this.conversationID), this.chatBackgroundListener);
+      this.chatBackgroundListener = undefined;
     }
     if (this.chatHistoryClearedObserver) {
       TUIEventBus.getInstance().unsubscribe(MessageList.EVENT_CHAT_HISTORY_CLEARED, null, this.chatHistoryClearedObserver);
@@ -334,6 +379,7 @@ export struct MessageList {
       this.effectiveConfig = this.config;
     }
     this.attachControllers();
+    this.attachStreamMessageListener();
     console.info(`[MessageList] aboutToAppear with conversationID: ${this.conversationID}, locateMessage: ${this.locateMessage?.msgID ||
       'none'}`);
     
@@ -346,18 +392,23 @@ export struct MessageList {
       console.error('[MessageList] No valid conversationID provided');
     }
 
-    EventBus.getInstance().on(MessageQuoteEvent.LOCATE_QUOTED_MESSAGE, (eventData: emitter.EventData) => {
+    this.locateQuotedMessageListener = (eventData: emitter.EventData): void => {
       this.handleLocateQuotedMessage(eventData);
-    });
+    };
+    EventBus.getInstance().on(MessageQuoteEvent.LOCATE_QUOTED_MESSAGE, this.locateQuotedMessageListener);
 
-    EventBus.getInstance().on('onInputFocus', (_eventData: emitter.EventData) => {
-      this.scrollToBottom();
-    });
+    this.inputFocusListener = (_eventData: emitter.EventData): void => {
+      // Do not scroll here: the keyboard has not resized the list yet. Mark the list as sticking to bottom and
+      // let onAreaChange perform the scroll once the viewport shrinks.
+      this.stickToBottom = true;
+    };
+    EventBus.getInstance().on('onInputFocus', this.inputFocusListener);
 
     if (this.conversationID) {
-      EventBus.getInstance().on(ChatBackgroundStore.eventName(this.conversationID), (_eventData: emitter.EventData) => {
+      this.chatBackgroundListener = (_eventData: emitter.EventData): void => {
         this.chatBackgroundImageUri = ChatBackgroundStore.getImageUri(this.conversationID);
-      });
+      };
+      EventBus.getInstance().on(ChatBackgroundStore.eventName(this.conversationID), this.chatBackgroundListener);
     }
 
     this.chatHistoryClearedObserver = new MessageListChatHistoryClearedObserver(this);
@@ -380,6 +431,8 @@ export struct MessageList {
       },
       (): void => {
         this.pendingInitialLatestAnchor = true;
+        this.initialLatestAnchorAttempts = 0;
+        this.anchorToInitialLatestMessage();
       }
     ));
 
@@ -421,7 +474,9 @@ export struct MessageList {
       (conversationID: string): ConversationInfo | undefined => this.findConversationInfo(conversationID),
       (messages: MessageInfo[]): void => this.messageDataSource.setMessages(messages),
       (): void => this.refreshDataSource(),
-      (): void => this.keepStreamAtBottom()
+      (): void => this.keepStreamAtBottom(),
+      (message: MessageInfo): boolean => this.isMessageVisible(message),
+      (): boolean => this.effectiveConfig.enableChatbotReplyPlaceholder ?? true
     ));
 
     this.asrCoordinator.attach(new AsrHostAdapter(
@@ -453,9 +508,10 @@ export struct MessageList {
   }
 
   loadMessages() {
+    this.stickToBottom = true;
     this.pagingController.reset();
     this.locateCoordinator.reset();
-    this.pendingInitialLatestAnchor = false;
+    this.stopInitialLatestAnchor();
     this.floatingEntryStateController.reset();
     this.floatingEntry = undefined;
     this.messageListStore = MessageListStore.create(this.conversationID);
@@ -477,11 +533,19 @@ export struct MessageList {
       return;
     }
     const filtered = this.messageListState.messageList.filter(
-      (m: MessageInfo) => MessageUtils.shouldDisplayInMessageList(m)
+      (m: MessageInfo) => this.isMessageVisible(m)
     );
     this.chatbotCoordinator.activeController?.onMessagesChanged(filtered);
     this.messageDataSource.setMessages(this.chatbotCoordinator.buildDisplayMessages(this.conversationID, filtered));
     this.readReceiptController.markIndicatorsRendered();
+  }
+
+  private isMessageVisible(message: MessageInfo): boolean {
+    if (!MessageUtils.shouldDisplayInMessageList(message)) {
+      return false;
+    }
+    const matchers = this.effectiveConfig.messageExclusionMatchers;
+    return !matchers || !matchers.some((matcher: (message: MessageInfo) => boolean) => matcher(message));
   }
 
   onChatHistoryClearedNotification(conversationID: string): void {
@@ -517,10 +581,94 @@ export struct MessageList {
     this.chatbotCoordinator.refreshMessagesIfChanged(this.conversationID);
   }
 
-  private keepStreamAtBottom(): void {
-    if (this.isLatestMessageVisible()) {
-      this.scrollToBottom();
+  private anchorToInitialLatestMessage(): void {
+    if (!this.pendingInitialLatestAnchor) {
+      return;
     }
+    const latestIndex = this.messageDataSource.totalCount() - 1;
+    if (latestIndex < 0) {
+      return;
+    }
+    this.scroller.scrollToIndex(latestIndex, false, ScrollAlign.END);
+    if (this.locateCoordinator.lastIndex >= latestIndex) {
+      this.stopInitialLatestAnchorRetry();
+      this.scheduleInitialLatestAnchorSettle();
+      return;
+    }
+    if (this.initialLatestAnchorTimer !== undefined) {
+      return;
+    }
+    this.initialLatestAnchorAttempts = 0;
+    this.initialLatestAnchorTimer = setInterval(() => {
+      if (!this.pendingInitialLatestAnchor || this.userScrolling) {
+        this.stopInitialLatestAnchor();
+        return;
+      }
+      const currentLatestIndex = this.messageDataSource.totalCount() - 1;
+      if (currentLatestIndex < 0) {
+        return;
+      }
+      if (this.locateCoordinator.lastIndex >= currentLatestIndex) {
+        this.stopInitialLatestAnchorRetry();
+        this.scheduleInitialLatestAnchorSettle();
+        return;
+      }
+      this.scroller.scrollToIndex(currentLatestIndex, false, ScrollAlign.END);
+      this.initialLatestAnchorAttempts++;
+      if (this.initialLatestAnchorAttempts >= 60) {
+        this.stopInitialLatestAnchor();
+      }
+    }, 80);
+  }
+
+  private scheduleInitialLatestAnchorSettle(): void {
+    if (this.initialLatestAnchorSettleTimer !== undefined) {
+      clearTimeout(this.initialLatestAnchorSettleTimer);
+    }
+    this.initialLatestAnchorSettleTimer = setTimeout(() => {
+      this.initialLatestAnchorSettleTimer = undefined;
+      if (!this.pendingInitialLatestAnchor) {
+        return;
+      }
+      const latestIndex = this.messageDataSource.totalCount() - 1;
+      const latestIsVisible = latestIndex >= 0 && this.locateCoordinator.firstIndex >= latestIndex;
+      if (latestIsVisible) {
+        this.stopInitialLatestAnchor();
+      } else {
+        this.anchorToInitialLatestMessage();
+      }
+    }, 300);
+  }
+
+  private stopInitialLatestAnchorRetry(): void {
+    if (this.initialLatestAnchorTimer !== undefined) {
+      clearInterval(this.initialLatestAnchorTimer);
+      this.initialLatestAnchorTimer = undefined;
+    }
+  }
+
+  private stopInitialLatestAnchor(): void {
+    this.pendingInitialLatestAnchor = false;
+    this.stopInitialLatestAnchorRetry();
+    if (this.initialLatestAnchorSettleTimer !== undefined) {
+      clearTimeout(this.initialLatestAnchorSettleTimer);
+      this.initialLatestAnchorSettleTimer = undefined;
+    }
+  }
+
+  private keepStreamAtBottom(): void {
+    if (!this.stickToBottom || this.userScrolling) {
+      return;
+    }
+    this.hideStreamingScrollBar = true;
+    if (this.streamScrollBarTimer !== undefined) {
+      clearTimeout(this.streamScrollBarTimer);
+    }
+    this.streamScrollBarTimer = setTimeout(() => {
+      this.streamScrollBarTimer = undefined;
+      this.hideStreamingScrollBar = false;
+    }, 600);
+    this.locateCoordinator.enqueueStreamingScrollToBottom();
   }
 
   private attachChatbotControllerIfNeeded(): void {
@@ -600,6 +748,27 @@ export struct MessageList {
         this.dialogController = null;
       }
       this.selectedMessage = undefined;
+    }
+  }
+
+  private scheduleDebouncedUnreadClear(): void {
+    if (!this.conversationID) {
+      return;
+    }
+    this.cancelDebouncedUnreadClear();
+    this.unreadClearTimer = setTimeout(() => {
+      this.unreadClearTimer = undefined;
+      if (!this.conversationID) {
+        return;
+      }
+      this.conversationListStore?.clearConversationUnreadCount(this.conversationID);
+    }, MessageList.UNREAD_CLEAR_DEBOUNCE_MS);
+  }
+
+  private cancelDebouncedUnreadClear(): void {
+    if (this.unreadClearTimer !== undefined) {
+      clearTimeout(this.unreadClearTimer);
+      this.unreadClearTimer = undefined;
     }
   }
 
@@ -976,6 +1145,14 @@ export struct MessageList {
             .onAppear(() => {
               this.handleMessageAppear(message);
             })
+            .onAreaChange((_old: Area, area: Area): void => {
+              if (index === this.messageDataSource.totalCount() - 1 && Number(area.height) > 0) {
+                this.anchorToInitialLatestMessage();
+                if (this.locateCoordinator.firstIndex >= index) {
+                  this.scheduleInitialLatestAnchorSettle();
+                }
+              }
+            })
             .visibility(this.shouldRenderMessageRow(message) ? Visibility.Visible : Visibility.None)
           }, (message: MessageInfo, index: number) => this.getMessageKey(message, index))
         }
@@ -986,10 +1163,16 @@ export struct MessageList {
         })
         .width('100%')
         .layoutWeight(1)
+        .scrollBar(this.hideStreamingScrollBar ? BarState.Off : BarState.Auto)
+        .onAppear(() => {
+          this.anchorToInitialLatestMessage();
+        })
         .onAreaChange((_old: Area, area: Area): void => {
-          if (this.pendingInitialLatestAnchor && Number(area.height) > 0) {
-            this.pendingInitialLatestAnchor = false;
-            this.locateCoordinator.anchorToLatest();
+          if (Number(area.height) > 0) {
+            this.anchorToInitialLatestMessage();
+            if (this.stickToBottom && !this.userScrolling) {
+              this.scrollToBottom();
+            }
           }
         })
         .onReachStart(() => {
@@ -1009,6 +1192,7 @@ export struct MessageList {
         })
         .onReachEnd(() => {
           console.info('[MessageList] Reached end of list');
+          this.stickToBottom = true;
 
           if (this.locateCoordinator.isWithinScrollToBottomGuard()) {
             console.info('[MessageList] Skip loading on onReachEnd - just scrolled to bottom');
@@ -1028,13 +1212,37 @@ export struct MessageList {
           }
         })
         .onScrollIndex((firstIndex: number, lastIndex: number, _centerIndex: number) => {
-          console.info(`[MessageList] Scroll index changed: first=${firstIndex}, last=${lastIndex}, prevFirst=${this.locateCoordinator.firstIndex}, userScrolling: ${this.userScrolling}`);
-
           this.locateCoordinator.onScrollIndexChanged(firstIndex, lastIndex);
+          const latestIndex = this.messageDataSource.totalCount() - 1;
+          if (lastIndex >= latestIndex) {
+            this.stickToBottom = true;
+          } else if (this.userScrolling) {
+            this.stickToBottom = false;
+          }
+          if (this.pendingInitialLatestAnchor) {
+            const latestIndex = this.messageDataSource.totalCount() - 1;
+            if (lastIndex >= latestIndex) {
+              this.stopInitialLatestAnchorRetry();
+              this.scheduleInitialLatestAnchorSettle();
+            } else {
+              if (this.initialLatestAnchorSettleTimer !== undefined) {
+                clearTimeout(this.initialLatestAnchorSettleTimer);
+                this.initialLatestAnchorSettleTimer = undefined;
+              }
+              this.anchorToInitialLatestMessage();
+            }
+          }
           this.updateFloatingEntryForScroll();
         })
+        .onTouch((event: TouchEvent) => {
+          if (event.type === TouchType.Down) {
+            this.stopInitialLatestAnchor();
+          }
+        })
         .onScrollStart(() => {
-
+          if (this.locateCoordinator.isWithinScrollToBottomGuard()) {
+            return;
+          }
           this.userScrolling = true;
           const scrollEventData: Record<string, Object> = {};
           scrollEventData['source'] = 'MessageList';
@@ -1243,11 +1451,98 @@ export struct MessageList {
     return MessageListTimeGroupingPolicy.getIntervalSeconds(timestamp1, timestamp2);
   }
 
+  private attachStreamMessageListener(): void {
+    if (this.streamMessageListener) {
+      return;
+    }
+    this.streamMessageListener = {
+      onRecvMessageModified: (msg: V2TIMMessage): void => {
+        this.scheduleStreamMessageRefresh(msg);
+      }
+    };
+    V2TIMManager.getMessageManager().addAdvancedMsgListener(this.streamMessageListener);
+  }
+
+  private detachStreamMessageListener(): void {
+    if (!this.streamMessageListener) {
+      return;
+    }
+    V2TIMManager.getMessageManager().removeAdvancedMsgListener(this.streamMessageListener);
+    this.streamMessageListener = undefined;
+  }
+
+  private scheduleStreamMessageRefresh(msg: V2TIMMessage): void {
+    if (!msg || !msg.msgID || !this.belongsToCurrentConversation(msg)) {
+      return;
+    }
+    this.pendingStreamRefreshMessageID = msg.msgID;
+    if (this.streamRefreshTimer !== undefined) {
+      return;
+    }
+    this.streamRefreshTimer = setTimeout(() => {
+      this.streamRefreshTimer = undefined;
+      const targetID = this.pendingStreamRefreshMessageID;
+      this.pendingStreamRefreshMessageID = '';
+      const updated = this.findMessageInState(targetID);
+      const index = this.messageDataSource.getIndex(targetID);
+      if (updated && index >= 0) {
+        this.messageDataSource.updateMessage(index, updated);
+      } else {
+        this.refreshDataSource();
+      }
+      const latest = this.getLatestMessage();
+      if (latest && latest.msgID === targetID && this.isStreamingMessage(latest)) {
+        this.keepStreamAtBottom();
+        this.scheduleStreamSettle(msg.streamElem?.isStreamEnded === true ? 400 : 200);
+      }
+    }, 50);
+  }
+
+  private findMessageInState(msgID: string): MessageInfo | undefined {
+    if (!msgID || !this.messageListState) {
+      return undefined;
+    }
+    return this.messageListState.messageList.find((message: MessageInfo) => message.msgID === msgID);
+  }
+
+  private isStreamingMessage(message: MessageInfo): boolean {
+    if (message.messageType === MessageType.STREAM) {
+      return true;
+    }
+    if (message.messageType === MessageType.CUSTOM) {
+      return ChatbotMessageProtocol.parse(message)?.source === ChatbotMessageSource.FLOW;
+    }
+    return false;
+  }
+
+  private scheduleStreamSettle(delayMs: number): void {
+    if (this.streamSettleTimer !== undefined) {
+      clearTimeout(this.streamSettleTimer);
+    }
+    this.streamSettleTimer = setTimeout(() => {
+      this.streamSettleTimer = undefined;
+      this.refreshDataSource();
+      this.keepStreamAtBottom();
+    }, delayMs);
+  }
+
+  private belongsToCurrentConversation(msg: V2TIMMessage): boolean {
+    const targetID = ChatbotConversationPolicy.targetID(this.conversationID);
+    if (!targetID) {
+      return false;
+    }
+    if (ChatbotConversationPolicy.isGroupConversation(this.conversationID)) {
+      return msg.groupID === targetID;
+    }
+    return msg.userID === targetID;
+  }
+
   private handleMessageEvent(event: MessageEvent) {
     if (event instanceof OnReceiveNewMessage) {
       if (TypingMessageProtocol.isTypingMessage(event.message)) {
         return;
       }
+      this.scheduleDebouncedUnreadClear();
       const wasLatestVisible = this.isLatestMessageVisible();
       this.refreshDataSource();
       const latestMessage = this.getLatestMessage();
@@ -1524,6 +1819,9 @@ export struct MessageList {
     if (!message || !this.messageListStore) {
       return;
     }
+    if (pushMessageReadReceiptDetailPage(message, this.messageListStore)) {
+      return;
+    }
 
     this.readReceiptDialogController = new CustomDialogController({
       builder: MessageReadReceiptDetailPage({
@@ -1716,6 +2014,13 @@ export struct MessageList {
    * Show the forward target selector dialog (public method for parent component)
    */
   showForwardTargetSelector() {
+    if (pushForwardTargetSelectorPage(this.conversationID, (conversationIDs: string[]) => {
+      this.forwardMessagesToConversations(conversationIDs);
+    }, () => {
+      this.selectionController.clearTransientSelection();
+    })) {
+      return;
+    }
     this.forwardDialogController = new CustomDialogController({
       builder: ForwardTargetSelector({
         currentConversationID: this.conversationID,
@@ -1792,6 +2097,11 @@ export struct MessageList {
       return;
     }
 
+    if (pushForwardTargetSelectorPage(this.conversationID, (conversationIDs: string[]) => {
+      this.sendAsrTextToConversations(asrText, conversationIDs);
+    })) {
+      return;
+    }
     // Show forward target selector
     this.forwardDialogController = new CustomDialogController({
       builder: ForwardTargetSelector({
@@ -1864,6 +2174,11 @@ export struct MessageList {
 
     console.log(`[MessageList] 📤 Forwarding translated text`);
 
+    if (pushForwardTargetSelectorPage(this.conversationID, (conversationIDs: string[]) => {
+      this.sendTranslatedTextToConversations(translatedText, conversationIDs);
+    })) {
+      return;
+    }
     // Show forward target selector
     this.forwardDialogController = new CustomDialogController({
       builder: ForwardTargetSelector({

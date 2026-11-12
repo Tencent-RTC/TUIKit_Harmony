@@ -23,6 +23,8 @@ export { BadgeControl, BadgeType } from "./components/Badge"
 
 export { AlertDialog } from "./components/AlertDialog"
 
+export { BackButton } from "./components/BackButton"
+
 export { IMErrorCode } from  "./utils/IMErrorCode"
 export {
   TagLabel,
@@ -78,5 +80,6 @@ export { LanguageState } from './language/LanguageState';
 export * from './utils/AppBuilderHelper';
 
 export { ContextProvider } from './utils/ContextProvider';
+export { AtomicxNavigator, AtomicxPageParams, ATOMICX_PAGE_ROUTE } from './utils/AtomicxNavigator';
 export { EventBus } from './utils/EventBus';
 export { TUIEventBus, TUIObserver, PublishParams, NotifyParams } from './utils/TUIEventBus';

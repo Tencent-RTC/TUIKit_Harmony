@@ -2,22 +2,62 @@ import { MessageActionStore } from '@tencentcloud/atomicxcore';
 import { MessageInfo, MessageListStore } from '@tencentcloud/atomicxcore';
 import { GroupMember } from '@tencentcloud/atomicxcore';
 import {
+  AtomicxNavigator,
   Avatar,
   AvatarContentType,
   AvatarSize,
+  BackButton,
   TextUtils,
   ThemeState,
   Toast
 } from '../../basecomponent/Index';
 import { CompletionHandlerAdapter } from '../../basecomponent/utils/CompletionHandlers';
 
+interface MessageReadReceiptDetailArgs {
+  message: MessageInfo;
+  messageListStore: MessageListStore;
+}
+
+@Builder
+function MessageReadReceiptDetailPageBuilder(args: Object) {
+  MessageReadReceiptDetailContent({
+    message: (args as MessageReadReceiptDetailArgs).message,
+    messageListStore: (args as MessageReadReceiptDetailArgs).messageListStore,
+    onClose: () => {
+      AtomicxNavigator.pop();
+    }
+  })
+}
+
+export function pushMessageReadReceiptDetailPage(message: MessageInfo, messageListStore: MessageListStore): boolean {
+  const args: MessageReadReceiptDetailArgs = { message: message, messageListStore: messageListStore };
+  return AtomicxNavigator.push(wrapBuilder(MessageReadReceiptDetailPageBuilder), args);
+}
+
 @CustomDialog
 export struct MessageReadReceiptDetailPage {
-  @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
-
   controller: CustomDialogController;
   message!: MessageInfo;
   messageListStore!: MessageListStore;
+
+  build() {
+    MessageReadReceiptDetailContent({
+      message: this.message,
+      messageListStore: this.messageListStore,
+      onClose: () => {
+        this.controller.close();
+      }
+    })
+  }
+}
+
+@Component
+struct MessageReadReceiptDetailContent {
+  @StorageLink('ThemeState') themeState: ThemeState = ThemeState.getInstance();
+
+  message!: MessageInfo;
+  messageListStore!: MessageListStore;
+  onClose?: () => void;
 
   private messageActionStore?: MessageActionStore = undefined;
   @State private selectedReadTab: boolean = true;
@@ -87,18 +127,10 @@ export struct MessageReadReceiptDetailPage {
   @Builder
   private buildHeader() {
     Row() {
-      Row() {
-        Image($rawfile('basecomponent/common_back_icon.svg'))
-          .width(16)
-          .height(16)
-          .fillColor(this.themeState.colors.textColorSecondary)
-      }
-      .width(44)
-      .height(44)
-      .justifyContent(FlexAlign.Center)
-      .alignItems(VerticalAlign.Center)
-      .onClick(() => {
-        this.controller.close();
+      BackButton({
+        onBack: () => {
+          this.onClose?.();
+        }
       })
 
       Text($r('app.string.read_receipt_detail_title'))

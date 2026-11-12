@@ -16,6 +16,7 @@ export struct AudioRecorderView {
   @Link shouldTranscribeRecording: boolean;
   @Prop primaryColor: string = '#4A90E2';
   @Prop fullScreen: boolean = false;
+  @Prop allowReleaseToSendVoice: boolean = true;
   
   onTimeLimitReached?: () => void;
   onActionTargetAreaChange?: (action: VoiceRecordReleaseAction, x: number, y: number, width: number, height: number) => void;
@@ -289,6 +290,9 @@ export struct AudioRecorderView {
     }
     if (this.shouldTranscribeRecording) {
       return $r('app.string.voice_release_to_transcribe');
+    }
+    if (!this.allowReleaseToSendVoice) {
+      return $r('app.string.message_input_slide_to_transcribe_hint');
     }
     return $r('app.string.voice_release_to_end');
   }

@@ -43,6 +43,10 @@ class ChatbotConversationControllerRegistry {
       this.entries.delete(conversationID);
     }
   }
+
+  isActive(conversationID: string): boolean {
+    return this.entries.get(conversationID)?.controller.isActive ?? false;
+  }
 }
 
 const registry: ChatbotConversationControllerRegistry = new ChatbotConversationControllerRegistry();
@@ -63,5 +67,9 @@ export class ChatbotConversationControllers {
 
   static clear(conversationID: string): void {
     registry.clear(conversationID);
+  }
+
+  static isActive(conversationID: string): boolean {
+    return registry.isActive(conversationID);
   }
 }

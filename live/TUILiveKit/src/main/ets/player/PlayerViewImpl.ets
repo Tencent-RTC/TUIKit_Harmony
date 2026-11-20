@@ -1,4 +1,5 @@
-import { ApplicationStateChangeCallback } from '@kit.AbilityKit'
+import { ApplicationStateChangeCallback, common } from '@kit.AbilityKit'
+import { util } from '@kit.ArkTS'
 import {
   AtomicPlayer,
   CoGuestStore,
@@ -14,7 +15,7 @@ import {
 } from '@tencentcloud/atomicxcore'
 import { BeautyPreferences } from '../common/beauty/BeautyPanel'
 import { KeyMetrics } from '../common/KeyMetrics'
-import { LiveKitResources, LiveKitSafeArea } from '../common/LiveKitResources'
+import { LiveKitResources, LiveKitSafeArea, LiveScreenAwake } from '../common/LiveKitResources'
 import { dismissAllBottomSheets } from '../common/theme/BottomSheetView'
 import { LiveTheme, white } from '../common/theme/LiveTheme'
 import { LiveToast } from '../common/theme/LiveToastView'
@@ -73,6 +74,7 @@ export class PlayerViewImplController {
   private microphoneRestoreID: number = 0
   private isMicrophoneRestoring: boolean = false
   private pendingJoinCompletions: PendingJoin[] = []
+  private readonly screenAwakeOwner: string = util.generateRandomUUID(true)
   private isAttached: boolean = false
   private isAppActive: boolean = true
   private applicationStateCallback?: ApplicationStateChangeCallback
@@ -97,11 +99,17 @@ export class PlayerViewImplController {
 
   attach(): void {
     this.overlayView.videoSeatRegions = () => this.videoView.unitAdapter.seatRegions()
-    this.videoView.unitAdapter.onGeometryChanged = () => this.overlayView.updateInteractionLayout()
+    this.videoView.unitAdapter.onGeometryChanged = () => {
+      const connected = this.videoView.unitAdapter.isCoHostConnected
+      this.videoView.isCoHostConnected = connected
+      this.overlayView.isCoHostConnected = connected
+      this.overlayView.updateInteractionLayout()
+    }
     if (this.isAttached) {
       return
     }
     this.isAttached = true
+    this.updateScreenAwake()
     this.overlayView.onToast = (message: string) => {
       if (this.isJoinedChannel) {
         this.showToast(message)
@@ -114,11 +122,13 @@ export class PlayerViewImplController {
     const callback: ApplicationStateChangeCallback = {
       onApplicationForeground: () => {
         this.isAppActive = true
+        this.updateScreenAwake()
         this.restoreCaptureIfNeeded()
         this.restoreMicrophoneIfNeeded()
       },
       onApplicationBackground: () => {
         this.isAppActive = false
+        this.updateScreenAwake()
         this.suspendCapture()
       },
     }
@@ -132,7 +142,10 @@ export class PlayerViewImplController {
     this.overlayView.videoSeatRegions = undefined
     this.videoView.unitAdapter.onGeometryChanged = undefined
     this.videoView.unitAdapter.clearGeometry()
+    this.videoView.isCoHostConnected = false
+    this.overlayView.isCoHostConnected = false
     this.isAttached = false
+    this.updateScreenAwake()
     this.player.removeListener(this.playerListener)
     this.playerListener.liveEnded = undefined
     this.playerListener.kickedOut = undefined
@@ -463,6 +476,13 @@ export class PlayerViewImplController {
     }
   }
 
+  private updateScreenAwake(): void {
+    const playing = this.status === PlayerStatus.playing || this.status === PlayerStatus.inRoom ||
+      this.status === PlayerStatus.coGuest
+    LiveScreenAwake.setEnabled(this.screenAwakeOwner, this.isAttached && this.isAppActive && playing,
+      getContext() as common.UIAbilityContext)
+  }
+
   private updateStatus(newValue: PlayerStatus): void {
     if (newValue === PlayerStatus.idle || newValue === PlayerStatus.playing) {
       this.isPreviewEnabled = true
@@ -471,6 +491,7 @@ export class PlayerViewImplController {
       return
     }
     this.status = newValue
+    this.updateScreenAwake()
     this.videoView.setPlayerStatus(newValue)
     this.statusListeners.forEach((listener: (status: PlayerStatus) => void) => listener(newValue))
   }

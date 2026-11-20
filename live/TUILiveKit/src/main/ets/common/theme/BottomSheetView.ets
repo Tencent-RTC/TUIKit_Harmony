@@ -4,8 +4,18 @@ import { LiveTheme } from './LiveTheme'
 
 const presentedPanels: Set<() => void> = new Set()
 
-export function dismissAllBottomSheets(): void {
+const dismissalCompletions: (() => void)[] = []
+
+function finishDismissals(): void {
+  if (presentedPanels.size > 0) return
+  const completions = dismissalCompletions.splice(0)
+  completions.forEach((completion: () => void) => completion())
+}
+
+export function dismissAllBottomSheets(completion?: () => void): void {
+  if (completion) dismissalCompletions.push(completion)
   Array.from(presentedPanels).forEach((dismiss: () => void) => dismiss())
+  finishDismissals()
 }
 
 @Component
@@ -42,6 +52,7 @@ export struct BottomSheetView {
     this.presentationRevision++
     clearTimeout(this.presentTask)
     presentedPanels.delete(this.dismissHandle)
+    finishDismissals()
     if (this.isShowing && this.isPresented) {
       this.sheetWillDismiss?.()
     }
@@ -87,7 +98,6 @@ export struct BottomSheetView {
     }
     const revision = ++this.presentationRevision
     clearTimeout(this.presentTask)
-    presentedPanels.delete(this.dismissHandle)
     this.sheetWillDismiss?.()
     this.getUIContext().animateTo({
       duration: 200, curve: Curve.EaseIn, onFinish: () => {
@@ -97,7 +107,9 @@ export struct BottomSheetView {
         this.isShowing = false
         this.isContentLaidOut = false
         this.offsetY = 0
+        presentedPanels.delete(this.dismissHandle)
         this.sheetDidDismiss?.()
+        finishDismissals()
       }
     }, () => {
       this.dimmingOpacity = 0

@@ -2,7 +2,7 @@ import { LiveKitResources } from '../../LiveKitResources'
 import { white } from '../../theme/LiveTheme'
 import { GiftSendComboButton } from './GiftSendComboButton'
 import { GiftPanelStyle } from './GiftSendPanelView'
-import { GiftItem } from './GiftSendStore'
+import { GiftItem } from './GiftSendPanelView'
 
 const columns: number = 4
 const cellSpacing: number = 4

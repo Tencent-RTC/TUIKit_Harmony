@@ -1,4 +1,6 @@
 import { window } from '@kit.ArkUI'
+import { common } from '@kit.AbilityKit'
+import { LiveKitLog } from './log/LiveKitLog'
 import { i18n } from '@kit.LocalizationKit'
 import { BasicData, BasicDataSource } from '@tencentcloud/atomicxcore'
 
@@ -50,7 +52,7 @@ export class LiveKitSafeArea {
   private static isObserving: boolean = false
 
   static observe(): void {
-    if (LiveKitSafeArea.isObserving) {
+    if (AppStorage.get<boolean>('tuilivekit.safeArea.hostManaged') === true || LiveKitSafeArea.isObserving) {
       return
     }
     LiveKitSafeArea.isObserving = true
@@ -122,5 +124,43 @@ export class LiveKitDataObserver implements DataChangeListener {
 
   onDatasetChange(dataOperations: DataOperation[]): void {
     this.onChange()
+  }
+}
+
+// Shared platform leases serialize window writes across Pusher and Player.
+export class LiveScreenAwake {
+  private static owners: Set<string> = new Set()
+  private static target?: window.Window
+  private static previous?: boolean
+  private static queue: Promise<void> = Promise.resolve()
+
+  static setEnabled(owner: string, enabled: boolean, context: common.UIAbilityContext): void {
+    if (enabled === LiveScreenAwake.owners.has(owner)) {
+      return
+    }
+    if (enabled) {
+      LiveScreenAwake.owners.add(owner)
+    } else {
+      LiveScreenAwake.owners.delete(owner)
+    }
+    LiveScreenAwake.queue = LiveScreenAwake.queue.then(async () => {
+      if (LiveScreenAwake.owners.size > 0) {
+        const target = LiveScreenAwake.target ?? await window.getLastWindow(context)
+        if (LiveScreenAwake.owners.size === 0) {
+          return
+        }
+        if (LiveScreenAwake.previous === undefined) {
+          LiveScreenAwake.previous = target.getWindowProperties().isKeepScreenOn
+          LiveScreenAwake.target = target
+        }
+        await target.setWindowKeepScreenOn(true)
+      } else if (LiveScreenAwake.target !== undefined && LiveScreenAwake.previous !== undefined) {
+        await LiveScreenAwake.target.setWindowKeepScreenOn(LiveScreenAwake.previous)
+        LiveScreenAwake.target = undefined
+        LiveScreenAwake.previous = undefined
+      }
+    }).catch((error: Error) => {
+      LiveKitLog.warn(`[LiveScreenAwake] keep screen on failed: ${error.message}`)
+    })
   }
 }

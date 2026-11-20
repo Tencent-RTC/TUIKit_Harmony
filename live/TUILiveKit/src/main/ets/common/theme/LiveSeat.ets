@@ -1,4 +1,4 @@
-import { curves } from '@kit.ArkUI'
+import { AnimatorResult, curves } from '@kit.ArkUI'
 import { LiveKitResources } from '../LiveKitResources'
 import { LiveText } from './LiveText'
 import { black, LiveTheme, rgba, white } from './LiveTheme'
@@ -19,6 +19,7 @@ export class LiveSeatState {
     this.name = name
     this.avatarURL = avatarURL
     this.microphoneOn = microphoneOn
+    if (!microphoneOn) this.volume = 0
   }
 
   updateVisibility(isEmpty: boolean, showsNoVideo: boolean, showsOverlay: boolean): void {
@@ -28,8 +29,9 @@ export class LiveSeatState {
   }
 
   updateVolume(volume: number): void {
-    if (this.volume !== volume) {
-      this.volume = volume
+    const value = this.microphoneOn ? Math.min(100, Math.max(0, volume)) : 0
+    if (this.volume !== value) {
+      this.volume = value
     }
   }
 }
@@ -40,12 +42,12 @@ export struct LiveSeat {
   emptyTitle: string = ''
   @State private seatWidth: number = 0
   @State private seatHeight: number = 0
-  @State private waveScale: number = 1
-  @State private waveOpacity: number = 0
-  private waveTask: number = -1
+  @State private waveProgress: number = 0
+  private waveAnimator?: AnimatorResult
+  private readonly waveCurve = curves.cubicBezierCurve(0.16, 0.5, 0.4, 1)
 
   aboutToDisappear(): void {
-    clearTimeout(this.waveTask)
+    this.stopWave()
   }
 
   private shortSide(): number {
@@ -53,39 +55,50 @@ export struct LiveSeat {
   }
 
   private avatarSize(): number {
-    const side = this.shortSide()
-    return side <= 110 ? 42 : side <= 140 ? 30 : side > 250 ? 67 : 63
+    // Shared logical-unit policy: leave room for the full wave and bottom nickname.
+    const targetDiameter = Math.min(67, Math.max(42, this.shortSide() * 0.44))
+    const waveSpace = Math.max(0, Math.min(this.seatWidth - 16, this.seatHeight - 32))
+    const fittingDiameter = Math.max(0, waveSpace / 1.38 - 6)
+    return Math.min(targetDiameter, fittingDiameter)
   }
 
   private showsWave(): boolean {
-    return !this.seat.isEmpty && this.seat.showsNoVideo && this.seat.volume > volumeWaveThreshold
+    return !this.seat.isEmpty && this.seat.showsNoVideo && this.seat.microphoneOn &&
+      this.seat.volume > volumeWaveThreshold
+  }
+
+  private ringProgress(phaseOffset: number): number {
+    return this.waveCurve.interpolate((this.waveProgress + phaseOffset) % 1)
+  }
+
+  private ringScale(phaseOffset: number): number {
+    return 1 + 0.38 * this.ringProgress(phaseOffset)
+  }
+
+  private ringOpacity(phaseOffset: number): number {
+    const progress = this.ringProgress(phaseOffset)
+    if (progress <= 0) return 0
+    if (progress < 0.14) return 0.78 * progress / 0.14
+    if (progress < 0.7) return 0.78 + (0.22 - 0.78) * (progress - 0.14) / (0.7 - 0.14)
+    if (progress < 1) return 0.22 * (1 - progress) / (1 - 0.7)
+    return 0
   }
 
   @Builder
-  waveRing(delay: number) {
+  waveRing(phaseOffset: number) {
     Circle()
       .width(this.avatarSize() + 4)
       .height(this.avatarSize() + 4)
       .fill(Color.Transparent)
       .stroke(white(0.9))
       .strokeWidth(2)
-      .scale({ x: this.waveScale, y: this.waveScale })
-      .opacity(this.waveOpacity)
-      .animation({
-        duration: 1400,
-        delay: delay,
-        iterations: -1,
-        curve: curves.cubicBezierCurve(0.16, 0.5, 0.4, 1)
-      })
+      .scale({ x: this.ringScale(phaseOffset), y: this.ringScale(phaseOffset) })
+      .opacity(this.ringOpacity(phaseOffset))
       .onDisAppear(() => {
-        if (delay === 0) {
-          clearTimeout(this.waveTask)
-        }
+        if (phaseOffset === 0) this.stopWave()
       })
       .onAppear(() => {
-        if (delay === 0) {
-          this.startWave()
-        }
+        if (phaseOffset === 0) this.startWave()
       })
   }
 
@@ -94,7 +107,7 @@ export struct LiveSeat {
     Stack() {
       if (this.showsWave()) {
         this.waveRing(0)
-        this.waveRing(700)
+        this.waveRing(0.5)
       }
       Image(this.seat.avatarURL.length > 0 ? this.seat.avatarURL :
         LiveKitResources.image('livekit_livelist_default_avatar'))
@@ -169,15 +182,38 @@ export struct LiveSeat {
   }
 
   private startWave(): void {
-    this.waveScale = 1
-    this.waveOpacity = 0.78
-    clearTimeout(this.waveTask)
-    this.waveTask = setTimeout(() => {
-      if (this.showsWave()) {
-        this.waveScale = 1.38
-        this.waveOpacity = 0
-      }
-    }, 0)
+    if (this.waveAnimator !== undefined || !this.showsWave()) return
+    const context = this.getUIContext()
+    const animation = context.createAnimator({
+      duration: 1400,
+      easing: 'linear',
+      delay: 0,
+      fill: 'forwards',
+      direction: 'normal',
+      iterations: -1,
+      begin: 0,
+      end: 1,
+    })
+    this.waveAnimator = animation
+    this.waveProgress = 0
+    animation.onFrame = (progress: number) => {
+      context.runScopedTask(() => {
+        if (this.waveAnimator !== animation) return
+        if (!this.showsWave()) {
+          this.stopWave()
+          return
+        }
+        this.waveProgress = progress
+      })
+    }
+    animation.play()
+  }
+
+  private stopWave(): void {
+    const animation = this.waveAnimator
+    this.waveAnimator = undefined
+    animation?.cancel()
+    this.waveProgress = 0
   }
 
   build() {
@@ -200,5 +236,23 @@ export struct LiveSeat {
       this.seatWidth = area.width as number
       this.seatHeight = area.height as number
     })
+  }
+}
+
+export enum LivingScrimDirection { top, bottom, horizontalCenter }
+
+@Component
+export struct LivingScrimView {
+  scrimDirection: LivingScrimDirection = LivingScrimDirection.top
+  build() {
+    Column().width('100%').height('100%')
+      .linearGradient({
+        direction: this.scrimDirection === LivingScrimDirection.horizontalCenter ?
+          GradientDirection.Right : GradientDirection.Bottom,
+        colors: this.scrimDirection === LivingScrimDirection.horizontalCenter ?
+          [['#00000000', 0], ['#85000000', 0.5], ['#00000000', 1]] :
+          (this.scrimDirection === LivingScrimDirection.top ? [['#80000000', 0], ['#00000000', 1]] :
+          [['#00000000', 0], ['#94000000', 1]])
+      }).hitTestBehavior(HitTestMode.None)
   }
 }

@@ -10,6 +10,7 @@ import { PusherPrepareGradientOverlayView } from './PusherPrepareGradientOverlay
 
 @Component
 export struct PusherPrepareView {
+  @BuilderParam accessory?: () => void
   @Prop title: string = ''
   @Prop coverURL: string = LiveKitResources.defaultCoverURL
   @Prop settings: PusherSettingsState = new PusherSettingsState()
@@ -90,6 +91,10 @@ export struct PusherPrepareView {
       if (!this.isCountdownPresented) {
         Stack({ alignContent: Alignment.TopStart }) {
           PusherPrepareGradientOverlayView()
+          if (this.accessory !== undefined) {
+            Column() { this.accessory() }.width('100%').height(48)
+              .padding({ left: 60, right: 60 }).position({ x: 0, y: this.safeTop + 4 })
+          }
           Scroll() {
             PusherLiveInfoEditorView({
               title: this.countdownTimer >= 0 ? this.editingTitle : this.title,

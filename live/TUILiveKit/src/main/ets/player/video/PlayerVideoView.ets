@@ -9,7 +9,7 @@ import {
 } from '@tencentcloud/atomicxcore'
 import { LiveKitResources } from '../../common/LiveKitResources'
 import { PlayerStatus } from '../PlayerView'
-import { UnitView, UnitViewState } from './UnitView'
+import { PlayerUnitView, PlayerUnitViewState } from './PlayerUnitView'
 
 function unitKey(unitInfo: UnitInfo): string { return `${unitInfo.liveID}_${unitInfo.index}` }
 
@@ -17,12 +17,12 @@ function unitKey(unitInfo: UnitInfo): string { return `${unitInfo.liveID}_${unit
 struct PlayerUnitHost {
   @Prop @Watch('updateInfo') unitInfo: UnitInfo = new UnitInfo()
   @Consume('playerUnitAdapter') adapter: LiveVideoViewAdapter
-  @State private unit: UnitViewState = new UnitViewState(new UnitInfo())
+  @State private unit: PlayerUnitViewState = new PlayerUnitViewState(new UnitInfo())
   aboutToAppear(): void { this.unit = this.adapter.attach(this.unitInfo) }
   aboutToDisappear(): void { this.adapter.detach(this.unit) }
   private updateInfo(): void { this.unit.setUnitInfo(this.unitInfo); this.adapter.notifyGeometryChanged() }
   build() {
-    UnitView({ unit: this.unit }).onAreaChange((_: Area, area: Area) => {
+    PlayerUnitView({ unit: this.unit }).onAreaChange((_: Area, area: Area) => {
       this.unit.frame = area
       this.adapter.notifyGeometryChanged()
     })
@@ -34,43 +34,63 @@ function unitViewBuilder(unitInfo: UnitInfo) { PlayerUnitHost({ unitInfo: unitIn
 
 class LiveVideoViewAdapter extends AtomicLiveViewChangeAdapter {
   liveInfo: LiveInfo = new LiveInfo()
+  private session: number = 0
   onGeometryChanged?: () => void
+  isCoHostConnected: boolean = false
   private currentStatus: PlayerStatus = PlayerStatus.idle
-  private readonly units: Map<string, UnitViewState> = new Map()
+  private readonly units: Map<string, PlayerUnitViewState> = new Map()
   private geometryTask: number = -1
   setStatus(status: PlayerStatus): void {
     if (this.currentStatus === status) return
     this.currentStatus = status
-    this.units.forEach((unit: UnitViewState) => unit.setPlayerStatus(status))
+    this.units.forEach((unit: PlayerUnitViewState) => unit.setPlayerStatus(status))
     this.notifyGeometryChanged()
   }
-  attach(info: UnitInfo): UnitViewState {
-    const unit = new UnitViewState(info, this.liveInfo, this.currentStatus)
+  attach(info: UnitInfo): PlayerUnitViewState {
+    const unit = new PlayerUnitViewState(info, this.liveInfo, this.currentStatus)
     this.units.set(unitKey(info), unit)
     this.notifyGeometryChanged()
     return unit
   }
-  detach(unit: UnitViewState): void {
+  detach(unit: PlayerUnitViewState): void {
     const key = `${unit.liveID}_${unit.index}`
     if (this.units.get(key) === unit) this.units.delete(key)
     unit.frame = undefined
     this.notifyGeometryChanged()
   }
   seatRegions(): Area[] {
-    return Array.from(this.units.values()).filter((unit: UnitViewState) => unit.liveID === this.liveInfo.liveID && unit.frame !== undefined)
-      .map((unit: UnitViewState) => unit.frame!)
+    return Array.from(this.units.values()).filter((unit: PlayerUnitViewState) =>
+      unit.frame !== undefined && (unit.liveID === this.liveInfo.liveID || unit.isRemoteHost))
+      .map((unit: PlayerUnitViewState) => unit.frame!)
   }
   clearGeometry(): void {
-    this.units.forEach((unit: UnitViewState) => unit.frame = undefined)
+    this.session++
+    clearTimeout(this.geometryTask)
+    this.geometryTask = -1
+    this.isCoHostConnected = false
+    this.units.forEach((unit: PlayerUnitViewState) => unit.frame = undefined)
+    this.units.clear()
     this.notifyGeometryChanged()
   }
   notifyGeometryChanged(): void {
     if (this.geometryTask >= 0) return
-    this.geometryTask = setTimeout(() => { this.geometryTask = -1; this.onGeometryChanged?.() }, 0)
+    const session = this.session
+    this.geometryTask = setTimeout(() => {
+      if (session !== this.session) return
+      this.geometryTask = -1
+      this.isCoHostConnected =
+        (this.currentStatus === PlayerStatus.inRoom || this.currentStatus === PlayerStatus.coGuest) &&
+        Array.from(this.units.values()).some((unit: PlayerUnitViewState) =>
+          unit.isRemoteHost && unit.frame !== undefined)
+      this.units.forEach((unit: PlayerUnitViewState) => unit.setCoHostConnected(this.isCoHostConnected))
+      this.onGeometryChanged?.()
+    }, 0)
   }
   onCreateUnitView(unitInfo: UnitInfo): WrappedBuilder<[UnitInfo]> | undefined { return wrapBuilder(unitViewBuilder) }
   onUpdateUnitView(unitInfo: UnitInfo): void { this.units.get(unitKey(unitInfo))?.setUnitInfo(unitInfo); this.notifyGeometryChanged() }
-  onVolumeChanged(unitInfo: UnitInfo, volume: number): void { this.units.get(unitKey(unitInfo))?.updateVolume(volume) }
+  onVolumeChanged(unitInfo: UnitInfo, volume: number): void {
+    this.units.get(unitKey(unitInfo))?.updateSpeakingVolume(unitInfo, volume)
+  }
   onVideoViewFrameChanged(left: number, top: number, right: number, bottom: number): void { this.notifyGeometryChanged() }
 }
 
@@ -79,6 +99,7 @@ export class PlayerVideoViewController {
   readonly coreView: AtomicLiveView = new AtomicLiveView(AtomicLiveController.create(AtomicLiveViewType.playView))
   backgroundURL: string = LiveKitResources.defaultBackgroundURL
   isHidden: boolean = false
+  isCoHostConnected: boolean = false
   private liveInfo: LiveInfo = new LiveInfo()
   readonly unitAdapter: LiveVideoViewAdapter = new LiveVideoViewAdapter()
 
@@ -87,7 +108,10 @@ export class PlayerVideoViewController {
   }
 
   setLiveInfo(liveInfo: LiveInfo): void {
-    if (this.liveInfo.liveID !== liveInfo.liveID) this.unitAdapter.clearGeometry()
+    if (this.liveInfo.liveID !== liveInfo.liveID) {
+      this.unitAdapter.clearGeometry()
+      this.isCoHostConnected = false
+    }
     this.liveInfo = liveInfo
     this.unitAdapter.liveInfo = liveInfo
     this.backgroundURL = liveInfo.backgroundURL.length > 0 ? liveInfo.backgroundURL
@@ -113,7 +137,11 @@ export struct PlayerVideoView {
         .height('100%')
         .objectFit(ImageFit.Cover)
         .blur(80)
-      AtomicLiveViewImpl({ view: this.controller.coreView })
+      if (this.controller.isCoHostConnected) {
+        Image(LiveKitResources.image('livekit_pusher_coguest_background')).width('100%').height('100%')
+          .objectFit(ImageFit.Fill).hitTestBehavior(HitTestMode.None)
+      }
+      AtomicLiveViewImpl({ view: this.controller.coreView }).backgroundColor(Color.Transparent)
     }
     .width('100%')
     .height('100%')

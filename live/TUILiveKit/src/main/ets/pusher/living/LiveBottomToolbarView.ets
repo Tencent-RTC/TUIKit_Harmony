@@ -7,7 +7,7 @@ import { black, LiveTheme } from '../../common/theme/LiveTheme'
 export struct LiveBottomToolbarView {
   @Prop isCoGuestStageActive: boolean = false
   @Prop hasCoGuestUnread: boolean = false
-  onPK?: () => void
+  onCoHost?: () => void
   onCoGuest?: () => void
   onFlipCamera?: () => void
   onShowBackgroundMusic?: () => void
@@ -19,7 +19,7 @@ export struct LiveBottomToolbarView {
 
   aboutToAppear(): void {
     this.titles = [
-      'tuilivekit.pusher.living.pk', 'tuilivekit.pusher.living.coguest', 'tuilivekit.pusher.flip_camera',
+      'tuilivekit.pusher.cohost.title', 'tuilivekit.pusher.living.coguest', 'tuilivekit.pusher.flip_camera',
       'tuilivekit.pusher.living.music', 'tuilivekit.common.more',
     ].map((key: string) => LiveKitResources.localizedString(key))
     const uiContext: UIContext = this.getUIContext()
@@ -38,7 +38,8 @@ export struct LiveBottomToolbarView {
   livingActionControl(index: number, assetName: string, iconWidth: number, iconHeight: number, iconTop: number,
     action: () => void) {
     Stack({ alignContent: Alignment.Top }) {
-      Image(LiveKitResources.image(assetName))
+      // Read the reactive prop inside the image builder; a computed string argument is captured by value.
+      Image(LiveKitResources.image(index === 1 && this.hasCoGuestUnread ? 'livekit_living_coguest_unread' : assetName))
         .width(iconWidth)
         .height(iconHeight)
         .objectFit(ImageFit.Contain)
@@ -63,15 +64,13 @@ export struct LiveBottomToolbarView {
 
   build() {
     Row() {
-      this.livingActionControl(0, 'livekit_living_pk', 46, 38, -6, () => this.onPK?.())
+      this.livingActionControl(0, 'livekit_living_cohost', 46, 38, -6, () => this.onCoHost?.())
       Blank().width(14)
-      this.livingActionControl(1,
-        this.hasCoGuestUnread ? 'livekit_living_coguest_unread' : 'livekit_living_coguest', 46, 38, -6,
-        () => this.onCoGuest?.())
+      this.livingActionControl(1, 'livekit_living_coguest', 46, 38, -6, () => this.onCoGuest?.())
       Blank().constraintSize({ minWidth: 12 })
-      this.livingActionControl(2, 'livekit_living_setting_flip', 22, 22, 2.5, () => this.onFlipCamera?.())
+      this.livingActionControl(2, 'livekit_living_toolbar_flip', 26, 26, 0.5, () => this.onFlipCamera?.())
       Blank().width(12)
-      this.livingActionControl(3, 'livekit_living_setting_music', 22, 22, 2.5, () => this.onShowBackgroundMusic?.())
+      this.livingActionControl(3, 'livekit_living_toolbar_music', 26, 26, 0.5, () => this.onShowBackgroundMusic?.())
       Blank().width(12)
       Stack() {
         this.livingActionControl(4, 'livekit_living_more', 27, 27, 0, () => this.onMore?.())

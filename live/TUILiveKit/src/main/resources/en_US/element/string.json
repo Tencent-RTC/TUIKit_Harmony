@@ -1231,6 +1231,126 @@
     {
       "name": "tuilivekit_pusher_summary_duration_seconds",
       "value": "%1$ds"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_title",
+      "value": "Connect"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_invite_title",
+      "value": "Invite hosts"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_empty",
+      "value": "No hosts available"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_retry",
+      "value": "Could not load. Tap to retry"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_load_more",
+      "value": "Load more"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_recommended",
+      "value": "Recommended hosts"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_mutual",
+      "value": "Mutual follows"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_following",
+      "value": "Following"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_connected",
+      "value": "Connected"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_cancel_invitation",
+      "value": "Cancel invite"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_invite",
+      "value": "Invite"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_connected_with",
+      "value": "Connected with %s"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_connected_count",
+      "value": "%d hosts connected"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_end",
+      "value": "End connection"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_invite_more",
+      "value": "Find more hosts"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_duration",
+      "value": "Connected %s"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_request_timeout",
+      "value": "Connection invitation timed out"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_request_rejected",
+      "value": "Connection invitation declined"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_follow_query_failed",
+      "value": "Could not load follow status. Pull to refresh to retry."
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_interaction_title",
+      "value": "Host interaction"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_incoming_mutual",
+      "value": "Connection invitation from a mutual follow"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_incoming",
+      "value": "Host connection invitation"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_reject_countdown",
+      "value": "Decline (%ds)"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_accept",
+      "value": "Accept"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_random_title",
+      "value": "Random connection"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_random_subtitle",
+      "value": "Find a host to connect with"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_random_button",
+      "value": "Connect with a random host"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_random_developing",
+      "value": "Random connection is under development"
+    },
+    {
+      "name": "tuilivekit_player_cohost_connected",
+      "value": "Connected"
+    },
+    {
+      "name": "tuilivekit_common_back",
+      "value": "Back"
     }
   ]
 }

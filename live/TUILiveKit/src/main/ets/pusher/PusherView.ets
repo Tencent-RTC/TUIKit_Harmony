@@ -1,7 +1,7 @@
+import { PusherCoHostStore, CoHostState } from './living/cohost/PusherCoHostStore'
 import { abilityAccessCtrl, ApplicationStateChangeCallback, common, Permissions } from '@kit.AbilityKit'
 import { util } from '@kit.ArkTS'
 import { thermal } from '@kit.BasicServicesKit'
-import { window } from '@kit.ArkUI'
 import {
   AtomicPusher,
   CoGuestLayoutTemplate,
@@ -29,7 +29,7 @@ import {
 import { BeautyPanel, BeautyPreferences } from '../common/beauty/BeautyPanel'
 import { KeyMetrics } from '../common/KeyMetrics'
 import { LiveKitErrorText } from '../common/LiveKitErrorText'
-import { LiveKitDataObserver, LiveKitResources, LiveKitSafeArea } from '../common/LiveKitResources'
+import { LiveKitDataObserver, LiveKitResources, LiveKitSafeArea, LiveScreenAwake } from '../common/LiveKitResources'
 import { LiveKitLog } from '../common/log/LiveKitLog'
 import { LiveToast } from '../common/theme/LiveToastView'
 import { black } from '../common/theme/LiveTheme'
@@ -98,6 +98,7 @@ export struct PusherView {
   @Provide('pusherAudioEffect') audioEffect: AudioEffectState = new AudioEffectState()
   liveID: string = ''
   onExit?: () => void
+  @BuilderParam prepareAccessory?: () => void
   @StorageProp(LiveKitSafeArea.bottomKey) safeBottom: number = 0
   @State private phase: Phase = Phase.prepare
   @State private liveTitle: string = LiveKitResources.localizedString('tuilivekit.pusher.default_title')
@@ -115,6 +116,7 @@ export struct PusherView {
   @State @Watch('onLoginStateChanged') private loginState: LoginState = new LoginState()
   @State @Watch('onPushStateChanged') private pushState: PusherState = new PusherState()
   private seatStore?: LiveSeatStore
+  private coHostStore?: PusherCoHostStore
   private coGuestStore?: PusherCoGuestStore
   private connectedGuestCount: number = 0
   private coGuestLayout: CoGuestLayoutTemplate = CoGuestLayoutTemplate.dynamicLayout
@@ -141,10 +143,7 @@ export struct PusherView {
   private isPreviewStarting: boolean = false
   private backgroundDevices?: BackgroundDevices
   private needsDeviceCleanup: boolean = false
-  private keepScreenRequested: boolean = false
-  private keepScreenWindow?: window.Window
-  private previousKeepScreenOn?: boolean
-  private keepScreenQueue: Promise<void> = Promise.resolve()
+  private readonly screenAwakeOwner: string = util.generateRandomUUID(true)
   private didReleaseSession: boolean = false
   private didRequestExit: boolean = false
   private isApplicationActive: boolean = true
@@ -165,6 +164,7 @@ export struct PusherView {
     LiveKitSafeArea.observe()
     const seatStore = LiveSeatStore.create(this.liveID)
     this.seatStore = seatStore
+    this.coHostStore = new PusherCoHostStore(this.liveID)
     this.coGuestStore = new PusherCoGuestStore(this.liveID, seatStore)
     this.livingController = new PusherLivingViewController(this.liveID)
     this.updateHostProfile(LoginStore.shared().state.loginUserInfo)
@@ -205,6 +205,7 @@ export struct PusherView {
     living.onResume = () => this.resumeLive()
     living.onFlipCamera = () => this.switchCamera()
     living.settingsActionHandler = this.settingsActionHandler
+    living.coHostStore = this.coHostStore
     living.coGuestActionHandler = this.coGuestStore
     living.coGuestGridRegions = () => this.videoController.coGuestGridRegions()
     living.coGuestSmallWindowRegions = () => this.videoController.coGuestSmallWindowRegions()
@@ -220,6 +221,14 @@ export struct PusherView {
   }
 
   private bindState(): void {
+    this.coHostStore!.onToast = (message: string) => {
+      if (this.phase === Phase.living && !this.didReleaseSession) LiveToast.show(message)
+    }
+    this.coHostStore!.onStateChanged = (state: CoHostState) => {
+      this.videoController.isCoHostConnected = state.isConnected
+      this.updateCoGuestPresentation()
+      this.livingController.updateCoHost(state)
+    }
     const coGuestStore = this.coGuestStore!
     coGuestStore.onToast = (message: string) => {
       if (this.phase === Phase.living && !this.isEndingLive && !this.didReleaseSession) {
@@ -255,6 +264,7 @@ export struct PusherView {
     if (this.phase === Phase.living) {
       this.livingController.updateHost(this.presentationState.hostName, this.presentationState.hostAvatarURL)
       this.livingController.updateElapsedSeconds(this.elapsedSeconds)
+      this.livingController.updateCoHostElapsed()
       this.livingController.updatePause(this.isPaused, this.pausedSeconds)
     }
     this.updateSettings()
@@ -305,7 +315,7 @@ export struct PusherView {
 
   private updateCoGuestPresentation(): void {
     const isLiving = this.phase === Phase.living
-    this.isCoGuestStageActive = isLiving && (this.connectedGuestCount > 0 ||
+    this.isCoGuestStageActive = isLiving && (this.videoController.isCoHostConnected || this.connectedGuestCount > 0 ||
       this.coGuestLayout.templateId !== CoGuestLayoutTemplate.floatLayout.templateId)
     this.videoController.updateCoGuestVideoState(isLiving, this.coGuestLayout, this.connectedGuestCount)
     this.livingController.setCoGuestStageActive(this.isCoGuestStageActive)
@@ -532,6 +542,7 @@ export struct PusherView {
     this.livingController.activateComments()
     this.livingController.activateMusic()
     this.coGuestStore?.activate()
+    this.coHostStore?.activate()
     this.liveStartTime = new Date()
     this.liveEndTime = undefined
     this.elapsedSeconds = 0
@@ -547,6 +558,7 @@ export struct PusherView {
       }
       this.updateElapsedTime()
       this.livingController.updateElapsedSeconds(this.elapsedSeconds)
+      this.livingController.updateCoHostElapsed()
     }, 1000)
   }
 
@@ -684,6 +696,8 @@ export struct PusherView {
     this.interruptionMessage = undefined
     this.livingController.resetAfterStartFailure()
     this.coGuestStore?.deactivate()
+    this.coHostStore?.deactivate()
+    this.livingController.resetCoHost()
     this.prepareDeactivateToken++
     this.render()
     this.startPreviewIfNeeded()
@@ -738,6 +752,7 @@ export struct PusherView {
     this.isPaused = true
     this.updateElapsedTime()
     this.livingController.updateElapsedSeconds(this.elapsedSeconds)
+    this.livingController.updateCoHostElapsed()
     this.backgroundDevices = undefined
     this.pausedSeconds = 0
     this.livingController.pauseComments()
@@ -779,6 +794,8 @@ export struct PusherView {
     this.livingController.deactivateComments(false)
     this.livingController.deactivateMusic()
     this.coGuestStore?.deactivate()
+    this.coHostStore?.deactivate()
+    this.livingController.resetCoHost()
     this.finishPause()
     clearInterval(this.elapsedTimer)
     this.elapsedTimer = -1
@@ -824,6 +841,8 @@ export struct PusherView {
     this.livingController.deactivateComments(true)
     this.livingController.deactivateMusic()
     this.coGuestStore?.deactivate()
+    this.coHostStore?.deactivate()
+    this.livingController.resetCoHost()
     this.unobservers.forEach((unobserve: () => void) => unobserve())
     this.unobservers = []
     if (this.applicationStateCallback !== undefined) {
@@ -836,7 +855,7 @@ export struct PusherView {
     }
     this.stopPreview(true)
     this.releasePusher()
-    this.videoController.coGuestSeatViewProvider.release()
+    this.videoController.unitAdapter.release()
     this.invalidateLifecycle()
     this.isEndingLive = false
   }
@@ -906,42 +925,21 @@ export struct PusherView {
   }
 
   private updateKeepScreenOn(): void {
-    this.keepScreenRequested = this.phase === Phase.living && this.isApplicationActive && !this.didReleaseSession
-    const context = getContext(this) as common.UIAbilityContext
-    // Serialize window writes and read the latest intent after each asynchronous lookup.
-    this.keepScreenQueue = this.keepScreenQueue.then(async () => {
-      if (this.keepScreenRequested) {
-        const target = this.keepScreenWindow ?? await window.getLastWindow(context)
-        if (!this.keepScreenRequested) {
-          return
-        }
-        if (this.previousKeepScreenOn === undefined) {
-          this.previousKeepScreenOn = target.getWindowProperties().isKeepScreenOn
-          this.keepScreenWindow = target
-        }
-        await target.setWindowKeepScreenOn(true)
-      } else {
-        const target = this.keepScreenWindow
-        const previous = this.previousKeepScreenOn
-        if (target !== undefined && previous !== undefined) {
-          await target.setWindowKeepScreenOn(previous)
-          this.keepScreenWindow = undefined
-          this.previousKeepScreenOn = undefined
-        }
-      }
-    }).catch((error: Error) => {
-      LiveKitLog.warn(`[PusherView] keep screen on failed: ${error.message}`)
-    })
+    const requested = this.phase === Phase.living && this.isApplicationActive && !this.didReleaseSession
+    LiveScreenAwake.setEnabled(this.screenAwakeOwner, requested, getContext(this) as common.UIAbilityContext)
   }
 
   private subscribeCaptureLifecycle(): void {
     const callback: ApplicationStateChangeCallback = {
       onApplicationForeground: () => {
+        this.livingController.setCoHostActive(true)
+        this.livingController.updateCoHost(this.coHostStore?.state ?? new CoHostState())
         this.isApplicationActive = true
         this.updateKeepScreenOn()
         this.startPreviewIfNeeded()
       },
       onApplicationBackground: () => {
+        this.livingController.setCoHostActive(false)
         this.isApplicationActive = false
         this.updateKeepScreenOn()
         this.prepareDeactivateToken++
@@ -1017,6 +1015,7 @@ export struct PusherView {
       }
       if (this.phase === Phase.prepare) {
         PusherPrepareView({
+          accessory: this.prepareAccessory,
           title: this.liveTitle,
           coverURL: this.coverURL,
           settings: this.presentationState.settings,

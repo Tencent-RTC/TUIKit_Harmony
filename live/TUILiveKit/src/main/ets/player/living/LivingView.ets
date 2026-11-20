@@ -1,3 +1,4 @@
+import { LivingScrimView, LivingScrimDirection } from '../../common/theme/LiveSeat'
 import { RectShape } from '@kit.ArkUI'
 import { LiveInfo, LoginStore, UserProfile } from '@tencentcloud/atomicxcore'
 import { AudienceWelcome, AudienceWelcomeView } from '../../common/audience/AudienceWelcomeView'
@@ -6,9 +7,7 @@ import { BarrageUIState, BarrageUIStore, Comment } from '../../common/barrage/Ba
 import { BarrageStreamView, defaultWidthRatio, LiveInteractionLayout, Message } from '../../common/barrage/BarrageStreamView'
 import { GiftDisplayController, GiftDisplayItem, GiftDisplayView } from '../../common/gift/display/GiftDisplayView'
 import { GiftBarrageStore, LiveGiftBarrage } from '../../common/gift/GiftBarrageStore'
-import { GiftSendComboButton } from '../../common/gift/send/GiftSendComboButton'
 import { GiftSendPanelView } from '../../common/gift/send/GiftSendPanelView'
-import { GiftCategoryGroup, GiftItem, GiftSendState, GiftSendStore } from '../../common/gift/send/GiftSendStore'
 import { LikeAnimationController, LikeAnimationView } from '../../common/like/LikeAnimationView'
 import { LiveUIState, LiveUIStore } from '../../common/like/LiveUIStore'
 import { LiveKitResources, LiveKitSafeArea } from '../../common/LiveKitResources'
@@ -38,6 +37,8 @@ export class LivingViewController {
   isCleanScreen: boolean = false
   cleanScreenProgress: number = 0
   messages: Message[] = []
+  isCoHostConnected: boolean = false
+  connectionStatusTop: number = -1
   videoSeatRegions?: () => Area[]
   interactionLayout: LiveInteractionLayout = new LiveInteractionLayout(undefined, 0, 0, false, 0, 0)
   interactionTop: number = -1
@@ -56,11 +57,7 @@ export class LivingViewController {
   isGiftPanelPresented: boolean = false
   isAudienceListPresented: boolean = false
   isGiftPanelAbove: boolean = false
-  giftCategories: GiftCategoryGroup[] = []
-  isGiftLoading: boolean = false
   likeCount: number = 0
-  floatingCombo?: GiftItem
-  floatingComboID: number = 0
   welcome?: AudienceWelcome
   welcomeResetToken: number = 0
   audienceListLiveID: string = ''
@@ -70,7 +67,6 @@ export class LivingViewController {
   private cleanScreenStateAtGestureStart: boolean = false
   private lastStageLikeTapTime: number = 0
   private readonly commentStore: BarrageUIStore = new BarrageUIStore()
-  private readonly giftSendStore: GiftSendStore = new GiftSendStore()
   private readonly giftBarrageStore: GiftBarrageStore = new GiftBarrageStore()
   private readonly likeStore: LiveUIStore = new LiveUIStore()
 
@@ -89,10 +85,6 @@ export class LivingViewController {
       }
     }
     this.giftBarrageStore.onGiftBarrageSettled = (gift: LiveGiftBarrage) => this.commentStore.appendGiftBarrage(gift)
-    this.giftSendStore.onStateChanged = (state: GiftSendState) => {
-      this.giftCategories = state.categories
-      this.isGiftLoading = state.isLoading
-    }
     this.likeStore.onStateChanged = (state: LiveUIState) => this.likeCount = state.likeCount
   }
 
@@ -148,7 +140,6 @@ export class LivingViewController {
     this.commentStore.activate(liveID, hostUserID)
     this.giftDisplay = new GiftDisplayController(liveID)
     this.giftDisplay.onNoticeContentHeightChanged = () => this.updateInteractionLayout()
-    this.giftSendStore.activate(liveID)
     this.giftBarrageStore.activate(liveID)
     this.audienceListLiveID = liveID
     this.likeStore.activate(liveID)
@@ -163,7 +154,6 @@ export class LivingViewController {
     }
     this.commentStore.deactivate()
     this.giftBarrageStore.deactivate()
-    this.giftSendStore.deactivate()
     if (this.giftDisplay !== undefined) this.giftDisplay.onNoticeContentHeightChanged = undefined
     this.giftDisplay = undefined
     this.audienceListLiveID = ''
@@ -266,6 +256,10 @@ export class LivingViewController {
   }
   setWelcomeVisible(visible: boolean): void { this.isWelcomeVisible = visible; this.updateInteractionLayout() }
   updateInteractionLayout(): void {
+    const regions = this.videoSeatRegions?.() ?? []
+    this.connectionStatusTop = this.isCoHostConnected && regions.length > 0 ?
+      Math.min(...regions.map((area: Area) => Number(area.globalPosition.y))) - this.hostOriginY - 22 : -1
+
     const normalBottom = this.hostHeight - this.safeBottom - bottomBarBottomInset - bottomBarHeight - messageBottomSpacing
     const bottoms = (this.isJoinedChannel ? (this.videoSeatRegions?.() ?? []) : []).filter((area: Area) =>
       (area.height as number) > 0 && (area.globalPosition.y as number) < this.hostOriginY + this.hostHeight &&
@@ -296,32 +290,6 @@ export class LivingViewController {
       this.likeAnimation.showButtonLike(origin)
     }
     this.likeStore.sendLike()
-  }
-
-  sendGift(gift: GiftItem, count: number): void {
-    const normalizedCount = Math.max(1, count)
-    const profile: UserProfile | undefined = LoginStore.shared().state.loginUserInfo
-    const giftDisplay = this.giftDisplay
-    const reservationID = profile === undefined ? undefined : giftDisplay?.reserveLocalGift(new GiftDisplayItem(gift.id,
-      gift.name, gift.iconURL, gift.resourceURL, Math.max(0, gift.coins), normalizedCount, profile.userID,
-      profile.nickname ?? '', profile.avatarURL ?? ''))
-    this.giftSendStore.sendGift(gift.id, count, (isSuccess: boolean) => {
-      if (reservationID === undefined) {
-        return
-      }
-      isSuccess ? giftDisplay?.confirmLocalGift(reservationID) : giftDisplay?.cancelLocalGift(reservationID)
-    })
-  }
-
-  beginFloatingGiftSendCombo(gift: GiftItem): void {
-    this.floatingCombo = gift
-    this.floatingComboID++
-  }
-
-  endFloatingGiftSendCombo(comboID: number): void {
-    if (this.floatingComboID === comboID) {
-      this.floatingCombo = undefined
-    }
   }
 
   handleStageTap(x: number, y: number, height: number): void {
@@ -487,6 +455,14 @@ export struct LivingView {
     Stack({ alignContent: Alignment.TopStart }) {
       if (this.movableVisible()) {
         Stack({ alignContent: Alignment.TopStart }) {
+          if (this.controller.isCoHostConnected && this.controller.connectionStatusTop >= 0) {
+            LivingScrimView({ scrimDirection: LivingScrimDirection.horizontalCenter })
+              .width('100%').height(22).position({ x: 0, y: this.controller.connectionStatusTop })
+            Text(LiveKitResources.localizedString('tuilivekit.player.cohost.connected'))
+              .fontSize(12).fontWeight(FontWeight.Medium).fontColor('#F6FAFF')
+              .width('100%').height(22).textAlign(TextAlign.Center)
+              .position({ x: 0, y: this.controller.connectionStatusTop }).hitTestBehavior(HitTestMode.None)
+          }
           HostInfoView({
             liveInfo: this.controller.liveInfo ?? new LiveInfo(),
             likeCount: this.controller.likeCount,
@@ -568,19 +544,6 @@ export struct LivingView {
           .zIndex(this.controller.isGiftPanelAbove ? 2 : 0)
           .hitTestBehavior(HitTestMode.None)
       }
-      if (this.controller.floatingCombo !== undefined) {
-        ForEach([this.controller.floatingComboID], (comboID: number) => {
-          GiftSendComboButton({
-            giftID: this.controller.floatingCombo!.id,
-            iconURL: this.controller.floatingCombo!.iconURL,
-            onSendOnce: () => this.controller.sendGift(this.controller.floatingCombo!, 1),
-            onExpired: () => this.controller.endFloatingGiftSendCombo(comboID),
-          })
-            .width(72)
-            .height(96)
-            .position({ right: 16, bottom: this.bottomBarBottom() + bottomBarHeight + 30 })
-        }, (comboID: number) => `${comboID}`)
-      }
       BarrageInputView({
         isPresented: this.controller.isCommentComposerPresented,
         resetToken: this.controller.commentResetToken,
@@ -591,14 +554,11 @@ export struct LivingView {
         .zIndex(1)
         .hitTestBehavior(HitTestMode.None)
       GiftSendPanelView({
+        liveID: this.controller.liveInfo?.liveID ?? '',
         isPresented: this.controller.isGiftPanelPresented,
-        categories: this.controller.giftCategories,
-        isLoading: this.controller.isGiftLoading,
         onDismiss: () => this.controller.isGiftPanelPresented = false,
-        onSendGift: (gift: GiftItem, count: number) => this.controller.sendGift(gift, count),
         onPresentationChanged: (isPresented: boolean, height: number) =>
         this.controller.updateGiftPanelPresentation(isPresented, height),
-        onAdvancedComboStart: (gift: GiftItem) => this.controller.beginFloatingGiftSendCombo(gift),
       })
         .zIndex(1)
         .hitTestBehavior(HitTestMode.None)

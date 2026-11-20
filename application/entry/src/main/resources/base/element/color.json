@@ -1,22 +1,44 @@
 {
   "color": [
-    { "name": "start_window_background", "value": "#FFFFFF" },
-    { "name": "primary_blue", "value": "#006EFF" },
-    { "name": "primary_blue_dark", "value": "#1C66E5" },
-    { "name": "accent_blue", "value": "#73A1F0" },
-    { "name": "bg_gray", "value": "#EBEDF5" },
-    { "name": "bg_input", "value": "#F5F5F5" },
-    { "name": "text_primary", "value": "#333333" },
-    { "name": "text_title", "value": "#262B32" },
-    { "name": "text_secondary", "value": "#626E84" },
-    { "name": "text_hint", "value": "#888888" },
-    { "name": "text_placeholder", "value": "#BBBBBB" },
-    { "name": "danger_red", "value": "#F33A50" },
-    { "name": "divider", "value": "#EEEEEE" },
-    { "name": "divider_light", "value": "#E7ECF6" },
-    { "name": "gradient_start", "value": "#FFCCDEFF" },
-    { "name": "gradient_mid", "value": "#4DCCDEFF" },
-    { "name": "gradient_end", "value": "#00CCDEFF" },
-    { "name": "button_disabled", "value": "#CCCCCC" }
+    {
+      "name": "app_background",
+      "value": "#EBEDF5"
+    },
+    {
+      "name": "app_primary",
+      "value": "#006EFF"
+    },
+    {
+      "name": "app_text",
+      "value": "#171822"
+    },
+    {
+      "name": "app_secondary",
+      "value": "#67686F"
+    },
+    {
+      "name": "app_live_background",
+      "value": "#101116"
+    },
+    {
+      "name": "app_live_secondary",
+      "value": "#8C93A1"
+    },
+    {
+      "name": "app_danger",
+      "value": "#F33A50"
+    },
+    {
+      "name": "app_uikit_start_background",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "app_grouped_background",
+      "value": "#F2F2F7"
+    },
+    {
+      "name": "app_room_canvas",
+      "value": "#F5F4F5"
+    }
   ]
 }

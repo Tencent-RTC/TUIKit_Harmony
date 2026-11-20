@@ -1,10 +1,10 @@
 {
   "app": {
-    "bundleName": "com.trtc.uikit.example.db",
-    "vendor": "example",
+    "bundleName": "com.tencent.uikit.application",
+    "vendor": "Tencent Cloud",
     "versionCode": 1000000,
     "versionName": "1.0.0",
-    "icon": "$media:layered_image",
-    "label": "$string:app_name"
+    "icon": "$media:app_uikit_icon",
+    "label": "$string:app_uikit_name"
   }
 }

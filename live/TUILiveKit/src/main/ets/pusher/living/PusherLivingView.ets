@@ -1,3 +1,9 @@
+import { LivingScrimDirection, LivingScrimView } from '../../common/theme/LiveSeat'
+import { CoHostState, PusherCoHostStore } from './cohost/PusherCoHostStore'
+import { PusherCoHostActionsView } from './cohost/PusherCoHostActionsView'
+import { PusherCoHostCandidateListView } from './cohost/PusherCoHostCandidateListView'
+import { PusherCoHostIncomingInviteView } from './cohost/PusherCoHostIncomingInviteView'
+import { dismissAllBottomSheets } from '../../common/theme/BottomSheetView'
 import { RectShape } from '@kit.ArkUI'
 import { ApplicationStateChangeCallback } from '@kit.AbilityKit'
 import {
@@ -36,6 +42,77 @@ import { PusherLiveStatusView } from './status/PusherLiveStatusView'
 
 @Observed
 export class PusherLivingViewController {
+  @Track coHostStore?: PusherCoHostStore
+  @Track coHostState: CoHostState = new CoHostState()
+  @Track coHostPanel: string = ''
+  @Track coHostCandidatesAdding: boolean = false
+  @Track isCoHostActive: boolean = true
+  @Track coHostElapsed: number = 0
+  @Track coHostStatusTop: number = -1
+  private queuedCoHostPanel: string = ''
+  private isSwitchingCoHostPanel: boolean = false
+  private coHostPanelRevision: number = 0
+
+  updateCoHost(state: CoHostState): void {
+    this.coHostState = state
+    this.updateCoHostElapsed()
+    if (state.applicant && this.isCoHostActive) this.showCoHostPanel('incoming')
+    else if (this.coHostPanel === 'incoming' || this.queuedCoHostPanel === 'incoming') this.showCoHostPanel('')
+    else if (!state.isConnected && (this.coHostPanel === 'actions' || this.coHostPanel === 'adding')) {
+      this.showCoHostPanel('')
+    }
+    this.updateCommentWidth()
+  }
+  updateCoHostElapsed(): void {
+    const start = this.coHostState.connectionStartedAt
+    this.coHostElapsed = start > 0 ? Math.max(0, Math.floor((Date.now() - start) / 1000)) : 0
+  }
+  showCoHost(): void {
+    if (this.coHostState.applicant) this.showCoHostPanel('incoming')
+    else this.showCoHostPanel(this.coHostState.isConnected ? 'actions' : 'candidates')
+  }
+  showCoHostPanel(panel: string): void {
+    if ((!this.isSwitchingCoHostPanel && this.coHostPanel === panel) ||
+      (this.isSwitchingCoHostPanel && this.queuedCoHostPanel === panel)) return
+    const revision = ++this.coHostPanelRevision
+    this.isSwitchingCoHostPanel = true
+    this.queuedCoHostPanel = panel
+    this.coHostPanel = ''
+    dismissAllBottomSheets(() => {
+      if (revision !== this.coHostPanelRevision) return
+      this.isSwitchingCoHostPanel = false
+      if (!this.isCoHostActive) return
+      if (this.queuedCoHostPanel === 'candidates' || this.queuedCoHostPanel === 'adding') {
+        this.coHostCandidatesAdding = this.queuedCoHostPanel === 'adding'
+      }
+      this.coHostPanel = this.queuedCoHostPanel
+      this.queuedCoHostPanel = ''
+    })
+  }
+  setCoHostActive(active: boolean): void {
+    this.isCoHostActive = active
+    if (active && !this.isSwitchingCoHostPanel && this.queuedCoHostPanel.length > 0) {
+      const panel = this.queuedCoHostPanel
+      this.queuedCoHostPanel = ''
+      this.showCoHostPanel(panel)
+    }
+  }
+  dismissCoHostPanel(): void {
+    if (!this.isSwitchingCoHostPanel) this.showCoHostPanel('')
+  }
+  resetCoHost(): void {
+    this.coHostPanelRevision++
+    this.isSwitchingCoHostPanel = false
+    this.queuedCoHostPanel = ''
+    this.coHostPanel = ''
+    this.coHostState = new CoHostState()
+    this.coHostStatusTop = -1
+  }
+  coHostStatusText(): string {
+    const minutes = `${Math.floor(this.coHostElapsed / 60)}`.padStart(2, '0')
+    const seconds = `${this.coHostElapsed % 60}`.padStart(2, '0')
+    return LiveKitResources.localizedFormat('tuilivekit.pusher.cohost.duration', `${minutes}:${seconds}`)
+  }
   @Track onShowBeauty?: () => void
   @Track onEnd?: () => void
   @Track onToggleMute?: () => void
@@ -390,8 +467,9 @@ export class PusherLivingViewController {
     }
     const defaultWidth = Math.min(this.viewWidth * defaultWidthRatio, this.viewWidth - 24)
     let width = defaultWidth
-    if (this.coGuestState.layout.templateId === CoGuestLayoutTemplate.floatLayout.templateId ||
-      this.coGuestState.layout.templateId === CoGuestLayoutTemplate.columnLayout.templateId) {
+    if (!this.coHostState.isConnected &&
+      (this.coGuestState.layout.templateId === CoGuestLayoutTemplate.floatLayout.templateId ||
+      this.coGuestState.layout.templateId === CoGuestLayoutTemplate.columnLayout.templateId)) {
       const edges = (this.coGuestSmallWindowRegions?.() ?? []).filter((area: Area) => {
         const top = area.globalPosition.y as number
         return top + (area.height as number) > this.commentTop && top < this.commentBottom
@@ -470,8 +548,12 @@ export class PusherLivingViewController {
     this.isCommentComposerPresented = true
   }
   private updateInteractionLayout(): void {
+    const statusRegions = this.coGuestGridRegions?.() ?? []
+    this.coHostStatusTop = this.coHostState.isConnected && statusRegions.length > 0 ?
+      Math.min(...statusRegions.map((area: Area) => Number(area.globalPosition.y))) - this.viewOriginY - 22 : -1
+
     const template = this.coGuestState.layout.templateId
-    const grid = template === CoGuestLayoutTemplate.gridLayout.templateId ||
+    const grid = this.coHostState.isConnected || template === CoGuestLayoutTemplate.gridLayout.templateId ||
       (template === CoGuestLayoutTemplate.dynamicLayout.templateId && this.coGuestState.connected.length > 0)
     let top: number | undefined = undefined
     if (grid) {
@@ -616,27 +698,22 @@ export struct PusherLivingView {
       this.toolbarHeight() + 14
   }
 
-  @Builder
-  scrim(isTop: boolean) {
-    Column()
-      .width('100%')
-      .height(isTop ? 170 : 186)
-      .linearGradient({
-        direction: GradientDirection.Bottom,
-        colors: isTop ? [[black(0.5), 0], [black(0), 1]] : [[black(0), 0], [black(0.58), 1]],
-      })
-      .hitTestBehavior(HitTestMode.None)
-  }
-
   build() {
     Stack({ alignContent: Alignment.TopStart }) {
-      this.scrim(true)
+      LivingScrimView({ scrimDirection: LivingScrimDirection.top }).width('100%').height(170)
       Column() {
-        this.scrim(false)
+        LivingScrimView({ scrimDirection: LivingScrimDirection.bottom }).width('100%').height(186)
       }
         .position({ left: 0, bottom: 0 })
         .hitTestBehavior(HitTestMode.None)
 
+      if (this.controller.coHostStatusTop >= 0) {
+        LivingScrimView({ scrimDirection: LivingScrimDirection.horizontalCenter })
+          .width('100%').height(22).position({ x: 0, y: this.controller.coHostStatusTop })
+        Text(this.controller.coHostStatusText()).fontSize(12).fontWeight(FontWeight.Medium).fontColor('#F6FAFF')
+          .width('100%').height(22).textAlign(TextAlign.Center)
+          .position({ x: 0, y: this.controller.coHostStatusTop }).hitTestBehavior(HitTestMode.None)
+      }
       LiveHeaderView({
         hostName: this.controller.hostName,
         avatarURL: this.controller.hostAvatarURL,
@@ -678,7 +755,7 @@ export struct PusherLivingView {
       LiveBottomToolbarView({
         isCoGuestStageActive: this.controller.isCoGuestStageActive,
         hasCoGuestUnread: this.controller.hasCoGuestUnread,
-        onPK: () => LiveToast.show(LiveKitResources.localizedString('tuilivekit.pusher.living.pk_developing')),
+        onCoHost: () => this.controller.showCoHost(),
         onFlipCamera: () => this.controller.onFlipCamera?.(),
         onShowBackgroundMusic: () => this.controller.isMusicPresented = true,
         onCoGuest: () => this.controller.showCoGuestSettings(),
@@ -751,6 +828,28 @@ export struct PusherLivingView {
         viewerCount: this.controller.audienceCount,
         onDismiss: () => this.controller.isEndConfirmationPresented = false,
         onConfirmEnd: () => this.controller.onEnd?.(),
+      })
+      PusherCoHostActionsView({
+        isPresented: this.controller.coHostPanel === 'actions', state: this.controller.coHostState,
+        onDismiss: () => this.controller.dismissCoHostPanel(),
+        onInviteMore: () => this.controller.showCoHostPanel('adding'),
+        onEnd: () => this.controller.coHostStore?.exitConnection()
+      })
+      PusherCoHostCandidateListView({
+        isPresented: this.controller.coHostPanel === 'candidates' || this.controller.coHostPanel === 'adding',
+        isAdding: this.controller.coHostCandidatesAdding, active: this.controller.isCoHostActive,
+        state: this.controller.coHostState, hostAvatar: this.controller.hostAvatarURL,
+        onDismiss: () => this.controller.dismissCoHostPanel(),
+        onBack: () => this.controller.showCoHostPanel('actions'),
+        onRefresh: () => this.controller.coHostStore?.refresh(),
+        onLoadMore: () => this.controller.coHostStore?.loadMore(),
+        onInvite: (id: string) => this.controller.coHostStore?.invite(id),
+        onCancel: (id: string) => this.controller.coHostStore?.cancelInvitation(id)
+      })
+      PusherCoHostIncomingInviteView({
+        isPresented: this.controller.coHostPanel === 'incoming', state: this.controller.coHostState,
+        onAccept: () => this.controller.coHostStore?.acceptInvitation(),
+        onReject: () => this.controller.coHostStore?.rejectInvitation()
       })
       PusherCoGuestSettingsView({
         isPresented: this.controller.isCoGuestSettingsPresented,

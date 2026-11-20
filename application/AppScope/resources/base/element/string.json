@@ -1,8 +1,8 @@
 {
   "string": [
     {
-      "name": "app_name",
-      "value": "Tencent RTC"
+      "name": "app_uikit_name",
+      "value": "App-UIKit"
     }
   ]
 }

@@ -1,11 +1,26 @@
 {
   "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "/Users/mason/.ohos/config/default_application_cBNmGqZ5jh28dn70YZzZTTpCUpceOshtj4NmT5FzLog=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001A0611529CFEEFD8FD3C954B0AD061259A4DBB1A91D5D316BBB3CDBBEE1FFA9AC1D561C8601FB8",
+          "profile": "/Users/mason/.ohos/config/default_application_cBNmGqZ5jh28dn70YZzZTTpCUpceOshtj4NmT5FzLog=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "/Users/mason/.ohos/config/default_application_cBNmGqZ5jh28dn70YZzZTTpCUpceOshtj4NmT5FzLog=.p12",
+          "storePassword": "0000001A6DF3F6A8CA4CBF1450E747E35A181F3C24FAA1D53BBE29AAFF67361984C0DD1C8E4067FEA1D2"
+        }
+      }
+    ],
     "products": [
       {
         "name": "default",
         "signingConfig": "default",
-        "targetSdkVersion": "6.0.2(22)",
-        "compatibleSdkVersion": "5.0.0(12)",
+        "targetSdkVersion": "6.1.1(24)",
+        "compatibleSdkVersion": "6.0.0(20)",
         "runtimeOS": "HarmonyOS",
         "buildOption": {
           "strictMode": {
@@ -22,7 +37,7 @@
       {
         "name": "release"
       }
-    ],
+    ]
   },
   "modules": [
     {
@@ -38,40 +53,20 @@
       ]
     },
     {
+      "name": "tuilivekit",
+      "srcPath": "../live/TUILiveKit"
+    },
+    {
       "name": "tuiroomkit",
-      "srcPath": "../room",
-      "targets": [
-        {
-          "name": "default",
-          "applyToProducts": [
-            "default"
-          ]
-        }
-      ]
+      "srcPath": "../room/TUIRoomKit"
+    },
+    {
+      "name": "chatuikit",
+      "srcPath": "../chat/uikit"
     },
     {
       "name": "atomic_x",
-      "srcPath": "../atomic_x",
-      "targets": [
-        {
-          "name": "default",
-          "applyToProducts": [
-            "default"
-          ]
-        }
-      ]
-    },
-    {
-      "name": "tuicallkit",
-      "srcPath": "../call",
-      "targets": [
-        {
-          "name": "default",
-          "applyToProducts": [
-            "default"
-          ]
-        }
-      ]
+      "srcPath": "../atomic_x"
     }
   ]
 }

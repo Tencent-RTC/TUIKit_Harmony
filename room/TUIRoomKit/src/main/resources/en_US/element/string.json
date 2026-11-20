@@ -1,0 +1,2896 @@
+{
+  "string": [
+    {
+      "name": "roomkit_beauty_reset",
+      "value": "Reset"
+    },
+    {
+      "name": "roomkit_beauty_ruddy",
+      "value": "Rosy"
+    },
+    {
+      "name": "roomkit_beauty_smooth",
+      "value": "Smooth"
+    },
+    {
+      "name": "roomkit_beauty_title",
+      "value": "Beauty"
+    },
+    {
+      "name": "roomkit_beauty_whitening",
+      "value": "Whitening"
+    },
+    {
+      "name": "roomkit_calendar_empty",
+      "value": "No meetings yet"
+    },
+    {
+      "name": "roomkit_calendar_empty_day",
+      "value": "No meetings on this day"
+    },
+    {
+      "name": "roomkit_calendar_empty_recent",
+      "value": "No upcoming meetings"
+    },
+    {
+      "name": "roomkit_calendar_enter",
+      "value": "Enter"
+    },
+    {
+      "name": "roomkit_calendar_fri",
+      "value": "Fri"
+    },
+    {
+      "name": "roomkit_calendar_join",
+      "value": "Join"
+    },
+    {
+      "name": "roomkit_calendar_loading",
+      "value": "Loading…"
+    },
+    {
+      "name": "roomkit_calendar_login_to_view",
+      "value": "Sign in to view"
+    },
+    {
+      "name": "roomkit_calendar_mon",
+      "value": "Mon"
+    },
+    {
+      "name": "roomkit_calendar_more",
+      "value": "More"
+    },
+    {
+      "name": "roomkit_calendar_owner",
+      "value": "Host"
+    },
+    {
+      "name": "roomkit_calendar_sat",
+      "value": "Sat"
+    },
+    {
+      "name": "roomkit_calendar_share",
+      "value": "Share"
+    },
+    {
+      "name": "roomkit_calendar_status_live",
+      "value": "Live"
+    },
+    {
+      "name": "roomkit_calendar_status_soon",
+      "value": "Upcoming"
+    },
+    {
+      "name": "roomkit_calendar_status_upcoming",
+      "value": "To join"
+    },
+    {
+      "name": "roomkit_calendar_sun",
+      "value": "Sun"
+    },
+    {
+      "name": "roomkit_calendar_thu",
+      "value": "Thu"
+    },
+    {
+      "name": "roomkit_calendar_title",
+      "value": "This week"
+    },
+    {
+      "name": "roomkit_calendar_today",
+      "value": "Today"
+    },
+    {
+      "name": "roomkit_calendar_tomorrow",
+      "value": "Tomorrow"
+    },
+    {
+      "name": "roomkit_calendar_tue",
+      "value": "Tue"
+    },
+    {
+      "name": "roomkit_calendar_wed",
+      "value": "Wed"
+    },
+    {
+      "name": "roomkit_caption_close",
+      "value": "Hide live captions"
+    },
+    {
+      "name": "roomkit_caption_drag_hint",
+      "value": "Hold to drag. Double-click to reset."
+    },
+    {
+      "name": "roomkit_caption_font_large",
+      "value": "L"
+    },
+    {
+      "name": "roomkit_caption_font_medium",
+      "value": "M"
+    },
+    {
+      "name": "roomkit_caption_font_size",
+      "value": "Font size"
+    },
+    {
+      "name": "roomkit_caption_font_small",
+      "value": "S"
+    },
+    {
+      "name": "roomkit_caption_group_caption",
+      "value": "Captions"
+    },
+    {
+      "name": "roomkit_caption_group_transcription",
+      "value": "Transcription"
+    },
+    {
+      "name": "roomkit_caption_group_translation",
+      "value": "Translation"
+    },
+    {
+      "name": "roomkit_caption_language_ar",
+      "value": "العربية(Arabic)"
+    },
+    {
+      "name": "roomkit_caption_language_auto",
+      "value": "Auto-detect (Chinese/English)"
+    },
+    {
+      "name": "roomkit_caption_language_de",
+      "value": "Deutsch(German)"
+    },
+    {
+      "name": "roomkit_caption_language_en",
+      "value": "English(English)"
+    },
+    {
+      "name": "roomkit_caption_language_es",
+      "value": "Español(Spanish)"
+    },
+    {
+      "name": "roomkit_caption_language_fil",
+      "value": "Filipino(Filipino)"
+    },
+    {
+      "name": "roomkit_caption_language_fr",
+      "value": "Français(French)"
+    },
+    {
+      "name": "roomkit_caption_language_hi",
+      "value": "हिन्दी(Hindi)"
+    },
+    {
+      "name": "roomkit_caption_language_id",
+      "value": "Bahasa Indonesia(Indonesian)"
+    },
+    {
+      "name": "roomkit_caption_language_it",
+      "value": "Italiano(Italian)"
+    },
+    {
+      "name": "roomkit_caption_language_ja",
+      "value": "日本語(Japanese)"
+    },
+    {
+      "name": "roomkit_caption_language_ko",
+      "value": "한국어(Korean)"
+    },
+    {
+      "name": "roomkit_caption_language_ms",
+      "value": "Bahasa Melayu(Malay)"
+    },
+    {
+      "name": "roomkit_caption_language_pt",
+      "value": "Português(Portuguese)"
+    },
+    {
+      "name": "roomkit_caption_language_ru",
+      "value": "Русский(Russian)"
+    },
+    {
+      "name": "roomkit_caption_language_th",
+      "value": "ภาษาไทย(Thai)"
+    },
+    {
+      "name": "roomkit_caption_language_tr",
+      "value": "Türkçe(Turkish)"
+    },
+    {
+      "name": "roomkit_caption_language_vi",
+      "value": "Tiếng Việt(Vietnamese)"
+    },
+    {
+      "name": "roomkit_caption_language_yue",
+      "value": "粵語(Cantonese)"
+    },
+    {
+      "name": "roomkit_caption_language_zh_hans",
+      "value": "简体中文(Chinese)"
+    },
+    {
+      "name": "roomkit_caption_live",
+      "value": "Live captions"
+    },
+    {
+      "name": "roomkit_caption_live_desc",
+      "value": "Only affects your view"
+    },
+    {
+      "name": "roomkit_caption_settings",
+      "value": "Caption and translation settings"
+    },
+    {
+      "name": "roomkit_caption_show_bilingual",
+      "value": "Show bilingual captions"
+    },
+    {
+      "name": "roomkit_caption_show_floating",
+      "value": "Show live captions"
+    },
+    {
+      "name": "roomkit_caption_source_language",
+      "value": "Source language"
+    },
+    {
+      "name": "roomkit_caption_target_language",
+      "value": "Target language"
+    },
+    {
+      "name": "roomkit_caption_title",
+      "value": "Captions"
+    },
+    {
+      "name": "roomkit_chat_muted",
+      "value": "You have been muted and cannot send messages"
+    },
+    {
+      "name": "roomkit_chat_muted_all",
+      "value": "Everyone is muted in this meeting"
+    },
+    {
+      "name": "roomkit_cloud_recording_end_title",
+      "value": "Cloud recording ended"
+    },
+    {
+      "name": "roomkit_cloud_recording_ended_abnormal",
+      "value": "Cloud recording ended unexpectedly"
+    },
+    {
+      "name": "roomkit_cloud_recording_notify_cancel",
+      "value": "Leave Room"
+    },
+    {
+      "name": "roomkit_cloud_recording_notify_confirm",
+      "value": "Got it"
+    },
+    {
+      "name": "roomkit_cloud_recording_notify_content",
+      "value": "%s started cloud recording. Audio, video, and shared screen content in the room will be recorded. By staying in the room, you consent to being recorded."
+    },
+    {
+      "name": "roomkit_cloud_recording_notify_title",
+      "value": "Cloud recording in progress"
+    },
+    {
+      "name": "roomkit_cloud_recording_record_label",
+      "value": "Record"
+    },
+    {
+      "name": "roomkit_cloud_recording_recording_label",
+      "value": "Recording"
+    },
+    {
+      "name": "roomkit_cloud_recording_start_confirm",
+      "value": "Start Recording"
+    },
+    {
+      "name": "roomkit_cloud_recording_start_content",
+      "value": "Once enabled, the room's audio/video and shared screen content will be recorded to the cloud, and all participants will be notified."
+    },
+    {
+      "name": "roomkit_cloud_recording_start_title",
+      "value": "Start cloud recording?"
+    },
+    {
+      "name": "roomkit_cloud_recording_started_toast",
+      "value": "Recording started and saved to the cloud"
+    },
+    {
+      "name": "roomkit_cloud_recording_stop_confirm",
+      "value": "Stop recording"
+    },
+    {
+      "name": "roomkit_cloud_recording_stop_content",
+      "value": "Once stopped, audio/video and shared screen content will no longer be recorded. All participants will be notified."
+    },
+    {
+      "name": "roomkit_cloud_recording_stop_title",
+      "value": "Stop cloud recording?"
+    },
+    {
+      "name": "roomkit_cloud_recording_stopped_toast",
+      "value": "Recording stopped"
+    },
+    {
+      "name": "roomkit_common_cancel",
+      "value": "Cancel"
+    },
+    {
+      "name": "roomkit_common_copied",
+      "value": "Copied"
+    },
+    {
+      "name": "roomkit_common_developing",
+      "value": "This feature is in development"
+    },
+    {
+      "name": "roomkit_device_ai_noise_reduction",
+      "value": "AI noise reduction"
+    },
+    {
+      "name": "roomkit_device_ai_noise_reduction_hint",
+      "value": "Off by default. Turn it on to reduce background noise"
+    },
+    {
+      "name": "roomkit_device_all_cam_disabled",
+      "value": "Video is disabled for everyone, so the camera cannot be turned on"
+    },
+    {
+      "name": "roomkit_device_all_mic_disabled",
+      "value": "Everyone is muted, so the microphone cannot be turned on"
+    },
+    {
+      "name": "roomkit_device_audio_interrupted",
+      "value": "The audio capture device is unavailable. It may be in use by a phone call or another app"
+    },
+    {
+      "name": "roomkit_device_cam_close",
+      "value": "Turn off camera"
+    },
+    {
+      "name": "roomkit_device_cam_open",
+      "value": "Turn on camera"
+    },
+    {
+      "name": "roomkit_device_camera",
+      "value": "Camera"
+    },
+    {
+      "name": "roomkit_device_camera_back",
+      "value": "Switched to the back camera"
+    },
+    {
+      "name": "roomkit_device_camera_front",
+      "value": "Switched to the front camera"
+    },
+    {
+      "name": "roomkit_device_camera_no_device",
+      "value": "No camera device detected"
+    },
+    {
+      "name": "roomkit_device_camera_no_permission",
+      "value": "Camera access is not granted. Please allow camera access in system settings"
+    },
+    {
+      "name": "roomkit_device_camera_occupied",
+      "value": "The camera is in use by another app. Please close it and try again"
+    },
+    {
+      "name": "roomkit_device_camera_start_failed",
+      "value": "Failed to turn on the camera. Please try again later"
+    },
+    {
+      "name": "roomkit_device_earpiece",
+      "value": "Earpiece"
+    },
+    {
+      "name": "roomkit_device_fault_call_cam_off",
+      "value": "Camera off during a phone call"
+    },
+    {
+      "name": "roomkit_device_fault_enabled",
+      "value": "The %s is on"
+    },
+    {
+      "name": "roomkit_device_fault_got_it",
+      "value": "Got it"
+    },
+    {
+      "name": "roomkit_device_fault_host_cam_off_all",
+      "value": "The host turned off video for everyone"
+    },
+    {
+      "name": "roomkit_device_fault_host_cam_on_all",
+      "value": "The host allowed everyone to start video"
+    },
+    {
+      "name": "roomkit_device_fault_host_chat_muted_all",
+      "value": "The host disabled chat for everyone"
+    },
+    {
+      "name": "roomkit_device_fault_host_chat_unmuted_all",
+      "value": "The host enabled chat for everyone"
+    },
+    {
+      "name": "roomkit_device_fault_host_muted_all",
+      "value": "The host muted everyone"
+    },
+    {
+      "name": "roomkit_device_fault_host_share_everyone",
+      "value": "The host allowed everyone to share the screen"
+    },
+    {
+      "name": "roomkit_device_fault_host_share_owner_only",
+      "value": "The host allowed only the host and admins to share the screen"
+    },
+    {
+      "name": "roomkit_device_fault_host_unmuted_all",
+      "value": "The host allowed everyone to unmute"
+    },
+    {
+      "name": "roomkit_device_fault_interrupted",
+      "value": "On a call. The %s is paused"
+    },
+    {
+      "name": "roomkit_device_fault_interrupted_blocked",
+      "value": "On a call. Can't turn on the %s"
+    },
+    {
+      "name": "roomkit_device_fault_mobile_busy_body",
+      "value": "End the call or close the app using the %s, then try again"
+    },
+    {
+      "name": "roomkit_device_fault_mobile_busy_title",
+      "value": "The %s is in use"
+    },
+    {
+      "name": "roomkit_device_fault_mobile_fail_body",
+      "value": "Try again in a moment"
+    },
+    {
+      "name": "roomkit_device_fault_mobile_fail_restart_body",
+      "value": "Restart the app and try again"
+    },
+    {
+      "name": "roomkit_device_fault_mobile_system_body",
+      "value": "Allow this app to access the %s in system settings, then come back"
+    },
+    {
+      "name": "roomkit_device_fault_mobile_system_title",
+      "value": "Can't use the %s"
+    },
+    {
+      "name": "roomkit_device_fault_name_cam",
+      "value": "camera"
+    },
+    {
+      "name": "roomkit_device_fault_name_mic",
+      "value": "microphone"
+    },
+    {
+      "name": "roomkit_device_fault_no_device_title",
+      "value": "No %s found"
+    },
+    {
+      "name": "roomkit_device_fault_not_now",
+      "value": "Not now"
+    },
+    {
+      "name": "roomkit_device_fault_open_settings_toast",
+      "value": "Allow access in system settings, then return."
+    },
+    {
+      "name": "roomkit_device_fault_open_system_settings",
+      "value": "Open system settings"
+    },
+    {
+      "name": "roomkit_device_fault_pane_cam",
+      "value": "Camera"
+    },
+    {
+      "name": "roomkit_device_fault_pane_mic",
+      "value": "Microphone"
+    },
+    {
+      "name": "roomkit_device_fault_paused",
+      "value": "Paused"
+    },
+    {
+      "name": "roomkit_device_fault_pre_hint",
+      "value": "No access to the %s"
+    },
+    {
+      "name": "roomkit_device_fault_pre_hint_action",
+      "value": "Allow"
+    },
+    {
+      "name": "roomkit_device_fault_pre_hint_none",
+      "value": "No %s found"
+    },
+    {
+      "name": "roomkit_device_fault_resumed",
+      "value": "The %s is back on"
+    },
+    {
+      "name": "roomkit_device_fault_retry",
+      "value": "Try again"
+    },
+    {
+      "name": "roomkit_device_fault_start_failed_title",
+      "value": "The %s failed to start"
+    },
+    {
+      "name": "roomkit_device_flip_camera",
+      "value": "Flip camera"
+    },
+    {
+      "name": "roomkit_device_mic_close",
+      "value": "Turn off microphone"
+    },
+    {
+      "name": "roomkit_device_mic_no_device",
+      "value": "No microphone device detected"
+    },
+    {
+      "name": "roomkit_device_mic_no_permission",
+      "value": "Microphone access is not granted. Please allow microphone access in system settings"
+    },
+    {
+      "name": "roomkit_device_mic_occupied",
+      "value": "The microphone is in use by another app. Please close it and try again"
+    },
+    {
+      "name": "roomkit_device_mic_open",
+      "value": "Turn on microphone"
+    },
+    {
+      "name": "roomkit_device_mic_start_failed",
+      "value": "Failed to turn on the microphone. Please try again later"
+    },
+    {
+      "name": "roomkit_device_microphone",
+      "value": "Microphone"
+    },
+    {
+      "name": "roomkit_device_mirror",
+      "value": "Mirror video"
+    },
+    {
+      "name": "roomkit_device_mute",
+      "value": "Mute speaker"
+    },
+    {
+      "name": "roomkit_device_permission_hint",
+      "value": "The browser will ask for device access."
+    },
+    {
+      "name": "roomkit_device_permission_join_with_audio",
+      "value": "Turn on audio when joining"
+    },
+    {
+      "name": "roomkit_device_permission_join_with_video",
+      "value": "Turn on video when joining"
+    },
+    {
+      "name": "roomkit_device_permission_not_now",
+      "value": "Not now"
+    },
+    {
+      "name": "roomkit_device_permission_privacy",
+      "value": "Audio and video are only used in this meeting and are not stored."
+    },
+    {
+      "name": "roomkit_device_permission_title",
+      "value": "Authorize camera and microphone"
+    },
+    {
+      "name": "roomkit_device_permission_use_cam_mic",
+      "value": "Use camera and microphone"
+    },
+    {
+      "name": "roomkit_device_permission_use_camera",
+      "value": "Use camera"
+    },
+    {
+      "name": "roomkit_device_permission_use_mic",
+      "value": "Use microphone"
+    },
+    {
+      "name": "roomkit_device_resolution",
+      "value": "Resolution"
+    },
+    {
+      "name": "roomkit_device_speaker",
+      "value": "Speaker"
+    },
+    {
+      "name": "roomkit_device_speaker_test",
+      "value": "Speaker test"
+    },
+    {
+      "name": "roomkit_device_speaker_test_hint",
+      "value": "Play a test sound"
+    },
+    {
+      "name": "roomkit_entry_failure_illegal_room_id",
+      "value": "Invalid meeting ID. Please check and try again."
+    },
+    {
+      "name": "roomkit_entry_failure_illegal_room_name",
+      "value": "Invalid meeting name. Please change and try again."
+    },
+    {
+      "name": "roomkit_entry_failure_password_required",
+      "value": "A password is required to join this meeting"
+    },
+    {
+      "name": "roomkit_entry_failure_room_exists",
+      "value": "This room ID already exists. Please create another one."
+    },
+    {
+      "name": "roomkit_entry_failure_room_full",
+      "value": "The meeting is full. You cannot join now."
+    },
+    {
+      "name": "roomkit_entry_failure_room_not_found",
+      "value": "The meeting does not exist or has ended."
+    },
+    {
+      "name": "roomkit_entry_failure_sensitive_word",
+      "value": "Contains sensitive words. Please change and try again."
+    },
+    {
+      "name": "roomkit_entry_failure_wrong_password",
+      "value": "Incorrect password. Please try again."
+    },
+    {
+      "name": "roomkit_error_default",
+      "value": "Operation failed. Please try again later."
+    },
+    {
+      "name": "roomkit_error_invalid_parameter",
+      "value": "Invalid request. Please try again later."
+    },
+    {
+      "name": "roomkit_error_not_logged_in",
+      "value": "Not signed in. Please sign in first."
+    },
+    {
+      "name": "roomkit_error_package",
+      "value": "Feature not available."
+    },
+    {
+      "name": "roomkit_error_server",
+      "value": "Server error. Please try again later."
+    },
+    {
+      "name": "roomkit_error_too_frequent",
+      "value": "Too many requests. Please try again later."
+    },
+    {
+      "name": "roomkit_foreground_service_running",
+      "value": "Running"
+    },
+    {
+      "name": "roomkit_invitation_link",
+      "value": "Link"
+    },
+    {
+      "name": "roomkit_invitation_room_id",
+      "value": "Meeting ID"
+    },
+    {
+      "name": "roomkit_invitation_room_name",
+      "value": "Meeting topic"
+    },
+    {
+      "name": "roomkit_invitation_time",
+      "value": "Time"
+    },
+    {
+      "name": "roomkit_join_password_placeholder",
+      "value": "Enter the 6-digit password"
+    },
+    {
+      "name": "roomkit_layout_gallery_right",
+      "value": "Gallery on right"
+    },
+    {
+      "name": "roomkit_layout_gallery_top",
+      "value": "Gallery at top"
+    },
+    {
+      "name": "roomkit_layout_grid",
+      "value": "Grid"
+    },
+    {
+      "name": "roomkit_layout_title",
+      "value": "Layout"
+    },
+    {
+      "name": "roomkit_login_agreement_prefix",
+      "value": "By logging in you agree to the"
+    },
+    {
+      "name": "roomkit_login_and",
+      "value": "and"
+    },
+    {
+      "name": "roomkit_login_brand_line",
+      "value": "Start a meeting, or join one"
+    },
+    {
+      "name": "roomkit_login_code_placeholder",
+      "value": "Please enter verification code"
+    },
+    {
+      "name": "roomkit_login_lead",
+      "value": "Continue with a phone number or UserID"
+    },
+    {
+      "name": "roomkit_login_phone_number",
+      "value": "Phone number"
+    },
+    {
+      "name": "roomkit_login_phone_number_placeholder",
+      "value": "Please enter phone number"
+    },
+    {
+      "name": "roomkit_login_phone_verification",
+      "value": "Phone verification"
+    },
+    {
+      "name": "roomkit_login_privacy_policy",
+      "value": "Privacy Policy"
+    },
+    {
+      "name": "roomkit_login_send_code",
+      "value": "Send code"
+    },
+    {
+      "name": "roomkit_login_terms_of_service",
+      "value": "Terms of Service"
+    },
+    {
+      "name": "roomkit_login_user_id_placeholder",
+      "value": "Please enter UserID"
+    },
+    {
+      "name": "roomkit_login_user_name",
+      "value": "User name"
+    },
+    {
+      "name": "roomkit_login_user_name_placeholder",
+      "value": "Please enter UserName"
+    },
+    {
+      "name": "roomkit_login_verification_code",
+      "value": "Verification code"
+    },
+    {
+      "name": "roomkit_main_audio_route_earpiece",
+      "value": "Earpiece"
+    },
+    {
+      "name": "roomkit_main_audio_route_speaker",
+      "value": "Speaker"
+    },
+    {
+      "name": "roomkit_main_device_enabled_format",
+      "value": "The %s is on"
+    },
+    {
+      "name": "roomkit_main_device_name_camera",
+      "value": "camera"
+    },
+    {
+      "name": "roomkit_main_device_name_microphone",
+      "value": "microphone"
+    },
+    {
+      "name": "roomkit_main_ended",
+      "value": "Meeting ended"
+    },
+    {
+      "name": "roomkit_main_feature_coming",
+      "value": "Coming soon"
+    },
+    {
+      "name": "roomkit_main_leave_end",
+      "value": "End Meeting"
+    },
+    {
+      "name": "roomkit_main_leave_self",
+      "value": "Leave Meeting"
+    },
+    {
+      "name": "roomkit_main_left",
+      "value": "Left the meeting"
+    },
+    {
+      "name": "roomkit_more_captions",
+      "value": "Captions"
+    },
+    {
+      "name": "roomkit_more_record",
+      "value": "Record"
+    },
+    {
+      "name": "roomkit_more_screen_share",
+      "value": "Screen share"
+    },
+    {
+      "name": "roomkit_network",
+      "value": "Network"
+    },
+    {
+      "name": "roomkit_network_disconnected",
+      "value": "Disconnected"
+    },
+    {
+      "name": "roomkit_network_fair",
+      "value": "Fair"
+    },
+    {
+      "name": "roomkit_network_good",
+      "value": "Good"
+    },
+    {
+      "name": "roomkit_network_latency",
+      "value": "Latency"
+    },
+    {
+      "name": "roomkit_network_packet_loss",
+      "value": "Packet loss"
+    },
+    {
+      "name": "roomkit_network_unit_ms",
+      "value": "ms"
+    },
+    {
+      "name": "roomkit_network_unit_percent",
+      "value": "\\%"
+    },
+    {
+      "name": "roomkit_network_weak",
+      "value": "Weak"
+    },
+    {
+      "name": "roomkit_participants_admin",
+      "value": "Admin"
+    },
+    {
+      "name": "roomkit_participants_admin_limit",
+      "value": "Couldn't set as admin. The admin limit has been reached."
+    },
+    {
+      "name": "roomkit_participants_admin_mark",
+      "value": "A"
+    },
+    {
+      "name": "roomkit_participants_all_chat_muted",
+      "value": "Chat is muted for everyone"
+    },
+    {
+      "name": "roomkit_participants_all_chat_unmuted",
+      "value": "Chat is unmuted for everyone"
+    },
+    {
+      "name": "roomkit_participants_audio_allow",
+      "value": "Ask to turn on microphone"
+    },
+    {
+      "name": "roomkit_participants_audio_disable",
+      "value": "Turn off microphone"
+    },
+    {
+      "name": "roomkit_participants_call",
+      "value": "Call"
+    },
+    {
+      "name": "roomkit_participants_call_all",
+      "value": "Call all"
+    },
+    {
+      "name": "roomkit_participants_call_all_tip",
+      "value": "Call every member that has not joined"
+    },
+    {
+      "name": "roomkit_participants_call_started",
+      "value": "Calling %s"
+    },
+    {
+      "name": "roomkit_participants_calling",
+      "value": "Calling"
+    },
+    {
+      "name": "roomkit_participants_cam_close",
+      "value": "Turn off camera"
+    },
+    {
+      "name": "roomkit_participants_cam_closed",
+      "value": "Camera off"
+    },
+    {
+      "name": "roomkit_participants_cam_off_all",
+      "value": "Disable Videos"
+    },
+    {
+      "name": "roomkit_participants_cam_off_all_done",
+      "value": "Video is stopped for everyone"
+    },
+    {
+      "name": "roomkit_participants_cam_on_all",
+      "value": "Enable Videos"
+    },
+    {
+      "name": "roomkit_participants_cam_on_all_done",
+      "value": "Stop all video is turned off"
+    },
+    {
+      "name": "roomkit_participants_cam_open",
+      "value": "Turn on camera"
+    },
+    {
+      "name": "roomkit_participants_cam_opened",
+      "value": "Camera on"
+    },
+    {
+      "name": "roomkit_participants_cam_requested",
+      "value": "Asked %s to turn on the camera"
+    },
+    {
+      "name": "roomkit_participants_cam_stop_done",
+      "value": "Turned off the camera of %s"
+    },
+    {
+      "name": "roomkit_participants_chat_mute",
+      "value": "Mute chat"
+    },
+    {
+      "name": "roomkit_participants_chat_muted",
+      "value": "Muted the chat of %s"
+    },
+    {
+      "name": "roomkit_participants_chat_unmute",
+      "value": "Unmute chat"
+    },
+    {
+      "name": "roomkit_participants_chat_unmuted",
+      "value": "Unmuted the chat of %s"
+    },
+    {
+      "name": "roomkit_participants_clear_search",
+      "value": "Clear search"
+    },
+    {
+      "name": "roomkit_participants_confirm",
+      "value": "Confirm"
+    },
+    {
+      "name": "roomkit_participants_contact_empty",
+      "value": "No data"
+    },
+    {
+      "name": "roomkit_participants_contact_invited",
+      "value": "Invited"
+    },
+    {
+      "name": "roomkit_participants_empty",
+      "value": "No members"
+    },
+    {
+      "name": "roomkit_participants_invite",
+      "value": "Invite"
+    },
+    {
+      "name": "roomkit_participants_invite_no_contacts",
+      "value": "Select contacts to invite"
+    },
+    {
+      "name": "roomkit_participants_joined",
+      "value": "In meeting"
+    },
+    {
+      "name": "roomkit_participants_joined_count",
+      "value": "In meeting (%s)"
+    },
+    {
+      "name": "roomkit_participants_kick",
+      "value": "Remove from room"
+    },
+    {
+      "name": "roomkit_participants_kick_confirm",
+      "value": "Remove"
+    },
+    {
+      "name": "roomkit_participants_kick_done",
+      "value": "Removed %s from the room"
+    },
+    {
+      "name": "roomkit_participants_kick_message",
+      "value": "Remove %s from the room?"
+    },
+    {
+      "name": "roomkit_participants_me",
+      "value": "Me"
+    },
+    {
+      "name": "roomkit_participants_mic_close",
+      "value": "Turn off microphone"
+    },
+    {
+      "name": "roomkit_participants_mic_closed",
+      "value": "Microphone off"
+    },
+    {
+      "name": "roomkit_participants_mic_off_hint",
+      "value": "Microphone is off"
+    },
+    {
+      "name": "roomkit_participants_mic_on_hint",
+      "value": "Microphone is on"
+    },
+    {
+      "name": "roomkit_participants_mic_open",
+      "value": "Turn on microphone"
+    },
+    {
+      "name": "roomkit_participants_mic_opened",
+      "value": "Microphone on"
+    },
+    {
+      "name": "roomkit_participants_mute_all",
+      "value": "Mute All"
+    },
+    {
+      "name": "roomkit_participants_mute_all_chat",
+      "value": "Mute all chat"
+    },
+    {
+      "name": "roomkit_participants_mute_all_chat_done",
+      "value": "Chat is muted for everyone"
+    },
+    {
+      "name": "roomkit_participants_mute_all_done",
+      "value": "Everyone is muted"
+    },
+    {
+      "name": "roomkit_participants_mute_chat_done",
+      "value": "Muted %s"
+    },
+    {
+      "name": "roomkit_participants_mute_done",
+      "value": "Turned off the microphone of %s"
+    },
+    {
+      "name": "roomkit_participants_name_separator",
+      "value": ", "
+    },
+    {
+      "name": "roomkit_participants_no_answer",
+      "value": "No answer / declined"
+    },
+    {
+      "name": "roomkit_participants_not_joined_count",
+      "value": "Not joined (%s)"
+    },
+    {
+      "name": "roomkit_participants_owner",
+      "value": "Host"
+    },
+    {
+      "name": "roomkit_participants_owner_mark",
+      "value": "H"
+    },
+    {
+      "name": "roomkit_participants_panel",
+      "value": "Participants"
+    },
+    {
+      "name": "roomkit_participants_panel_count",
+      "value": "Participants (%s)"
+    },
+    {
+      "name": "roomkit_participants_pending",
+      "value": "Not joined"
+    },
+    {
+      "name": "roomkit_participants_rename",
+      "value": "Rename"
+    },
+    {
+      "name": "roomkit_participants_rename_desc",
+      "value": "Other participants will see this display name"
+    },
+    {
+      "name": "roomkit_participants_rename_done",
+      "value": "Name updated"
+    },
+    {
+      "name": "roomkit_participants_rename_placeholder",
+      "value": "Enter a user name"
+    },
+    {
+      "name": "roomkit_participants_revoke_admin",
+      "value": "Remove admin"
+    },
+    {
+      "name": "roomkit_participants_revoke_admin_done",
+      "value": "The administrator status of %s has been withdrawn"
+    },
+    {
+      "name": "roomkit_participants_search_empty",
+      "value": "No matching participants"
+    },
+    {
+      "name": "roomkit_participants_search_empty_desc",
+      "value": "No one matches “%s”"
+    },
+    {
+      "name": "roomkit_participants_search_placeholder",
+      "value": "Search"
+    },
+    {
+      "name": "roomkit_participants_set_admin",
+      "value": "Make admin"
+    },
+    {
+      "name": "roomkit_participants_set_admin_done",
+      "value": "Made %s an admin"
+    },
+    {
+      "name": "roomkit_participants_share_everyone",
+      "value": "All members can share screen"
+    },
+    {
+      "name": "roomkit_participants_share_everyone_done",
+      "value": "Everyone can share the screen now"
+    },
+    {
+      "name": "roomkit_participants_share_owner_only",
+      "value": "Only host/admins can share screen"
+    },
+    {
+      "name": "roomkit_participants_share_owner_only_done",
+      "value": "Only the host and admins can share the screen now"
+    },
+    {
+      "name": "roomkit_participants_share_requested",
+      "value": "Asked %s to share the screen"
+    },
+    {
+      "name": "roomkit_participants_share_stopped",
+      "value": "Stopped the screen sharing of %s"
+    },
+    {
+      "name": "roomkit_participants_sharing",
+      "value": "Sharing"
+    },
+    {
+      "name": "roomkit_participants_transfer_owner",
+      "value": "Transfer host"
+    },
+    {
+      "name": "roomkit_participants_transfer_owner_confirm",
+      "value": "Transfer"
+    },
+    {
+      "name": "roomkit_participants_transfer_owner_done",
+      "value": "Transferred the host role to %s"
+    },
+    {
+      "name": "roomkit_participants_transfer_owner_message",
+      "value": "Transfer the host role to %s? You become a regular member afterwards."
+    },
+    {
+      "name": "roomkit_participants_unmute_all",
+      "value": "Unmute All"
+    },
+    {
+      "name": "roomkit_participants_unmute_all_chat",
+      "value": "Unmute all chat"
+    },
+    {
+      "name": "roomkit_participants_unmute_all_chat_done",
+      "value": "Mute all chat is turned off"
+    },
+    {
+      "name": "roomkit_participants_unmute_all_done",
+      "value": "Mute all is turned off"
+    },
+    {
+      "name": "roomkit_participants_unmute_chat_done",
+      "value": "Unmuted %s"
+    },
+    {
+      "name": "roomkit_participants_unmute_requested",
+      "value": "Asked %s to turn on the microphone"
+    },
+    {
+      "name": "roomkit_participants_video_allow",
+      "value": "Ask to turn on camera"
+    },
+    {
+      "name": "roomkit_participants_video_disable",
+      "value": "Turn off camera"
+    },
+    {
+      "name": "roomkit_participants_waiting_empty",
+      "value": "No one is waiting to join"
+    },
+    {
+      "name": "roomkit_pre_room_add_member",
+      "value": "Add"
+    },
+    {
+      "name": "roomkit_pre_room_agenda",
+      "value": "Schedule"
+    },
+    {
+      "name": "roomkit_pre_room_back",
+      "value": "Back"
+    },
+    {
+      "name": "roomkit_pre_room_camera_off",
+      "value": "Camera is off"
+    },
+    {
+      "name": "roomkit_pre_room_cancel_meeting",
+      "value": "Cancel meeting"
+    },
+    {
+      "name": "roomkit_pre_room_copy_invite",
+      "value": "Copy invite"
+    },
+    {
+      "name": "roomkit_pre_room_create_sub",
+      "value": "Start now"
+    },
+    {
+      "name": "roomkit_pre_room_create_title",
+      "value": "New meeting"
+    },
+    {
+      "name": "roomkit_pre_room_device_check",
+      "value": "Device check"
+    },
+    {
+      "name": "roomkit_pre_room_edit_meeting",
+      "value": "Edit meeting"
+    },
+    {
+      "name": "roomkit_pre_room_edit_meeting_info",
+      "value": "Edit meeting"
+    },
+    {
+      "name": "roomkit_pre_room_edit_meeting_success",
+      "value": "Meeting updated"
+    },
+    {
+      "name": "roomkit_pre_room_enable_speaker",
+      "value": "Turn on speaker"
+    },
+    {
+      "name": "roomkit_pre_room_enable_video",
+      "value": "Turn on video"
+    },
+    {
+      "name": "roomkit_pre_room_entry_password",
+      "value": "Join password"
+    },
+    {
+      "name": "roomkit_pre_room_invite_copied",
+      "value": "Invitation copied"
+    },
+    {
+      "name": "roomkit_pre_room_join",
+      "value": "Join the meeting"
+    },
+    {
+      "name": "roomkit_pre_room_join_sub",
+      "value": "Enter meeting ID"
+    },
+    {
+      "name": "roomkit_pre_room_logged_in",
+      "value": "Logged in"
+    },
+    {
+      "name": "roomkit_pre_room_login",
+      "value": "Log in"
+    },
+    {
+      "name": "roomkit_pre_room_login_sign_up",
+      "value": "Log in / Sign up"
+    },
+    {
+      "name": "roomkit_pre_room_meeting_name",
+      "value": "Meeting name"
+    },
+    {
+      "name": "roomkit_pre_room_my_meeting",
+      "value": "My meeting"
+    },
+    {
+      "name": "roomkit_pre_room_or_join",
+      "value": "Or join"
+    },
+    {
+      "name": "roomkit_pre_room_preview_region",
+      "value": "Local preview"
+    },
+    {
+      "name": "roomkit_pre_room_quick_meeting",
+      "value": "Quick meeting"
+    },
+    {
+      "name": "roomkit_pre_room_recent_meetings",
+      "value": "Recent meetings"
+    },
+    {
+      "name": "roomkit_pre_room_room_id_label",
+      "value": "Meeting number"
+    },
+    {
+      "name": "roomkit_pre_room_room_id_placeholder",
+      "value": "Enter a meeting number"
+    },
+    {
+      "name": "roomkit_pre_room_save_meeting",
+      "value": "Save"
+    },
+    {
+      "name": "roomkit_pre_room_schedule_sub",
+      "value": "Add to calendar"
+    },
+    {
+      "name": "roomkit_pre_room_schedule_title",
+      "value": "Schedule"
+    },
+    {
+      "name": "roomkit_room_chat_attachment",
+      "value": "Attachment"
+    },
+    {
+      "name": "roomkit_room_chat_delete",
+      "value": "Delete"
+    },
+    {
+      "name": "roomkit_room_chat_delete_success",
+      "value": "Deleted"
+    },
+    {
+      "name": "roomkit_room_chat_download",
+      "value": "Download"
+    },
+    {
+      "name": "roomkit_room_chat_emoji",
+      "value": "Emoji"
+    },
+    {
+      "name": "roomkit_room_chat_empty",
+      "value": "No messages yet"
+    },
+    {
+      "name": "roomkit_room_chat_empty_hint",
+      "value": "Chat with participants here"
+    },
+    {
+      "name": "roomkit_room_chat_file",
+      "value": "File"
+    },
+    {
+      "name": "roomkit_room_chat_file_fallback",
+      "value": "File"
+    },
+    {
+      "name": "roomkit_room_chat_image",
+      "value": "Image"
+    },
+    {
+      "name": "roomkit_room_chat_image_alt",
+      "value": "Image"
+    },
+    {
+      "name": "roomkit_room_chat_input_placeholder",
+      "value": "Say something..."
+    },
+    {
+      "name": "roomkit_room_chat_muted_all_placeholder",
+      "value": "Everyone is muted"
+    },
+    {
+      "name": "roomkit_room_chat_muted_placeholder",
+      "value": "You have been muted"
+    },
+    {
+      "name": "roomkit_room_chat_panel",
+      "value": "Meeting chat"
+    },
+    {
+      "name": "roomkit_room_chat_recall",
+      "value": "Recall"
+    },
+    {
+      "name": "roomkit_room_chat_recall_success",
+      "value": "Recalled"
+    },
+    {
+      "name": "roomkit_room_chat_recalled",
+      "value": "%s recalled a message"
+    },
+    {
+      "name": "roomkit_room_chat_reedit",
+      "value": "Re-edit"
+    },
+    {
+      "name": "roomkit_room_chat_resend_confirm_message",
+      "value": "Resend this message?"
+    },
+    {
+      "name": "roomkit_room_chat_resent",
+      "value": "Message resent"
+    },
+    {
+      "name": "roomkit_room_chat_retry",
+      "value": "Resend"
+    },
+    {
+      "name": "roomkit_room_chat_send_failed",
+      "value": "Failed to send"
+    },
+    {
+      "name": "roomkit_room_chat_sending",
+      "value": "Sending…"
+    },
+    {
+      "name": "roomkit_room_chat_title",
+      "value": "Chat"
+    },
+    {
+      "name": "roomkit_room_chat_unmuted_toast",
+      "value": "You can send messages now"
+    },
+    {
+      "name": "roomkit_room_chat_video",
+      "value": "Video"
+    },
+    {
+      "name": "roomkit_room_chat_you_recalled",
+      "value": "You recalled a message"
+    },
+    {
+      "name": "roomkit_room_common_back",
+      "value": "Back"
+    },
+    {
+      "name": "roomkit_room_common_cancel",
+      "value": "Cancel"
+    },
+    {
+      "name": "roomkit_room_common_close",
+      "value": "Close"
+    },
+    {
+      "name": "roomkit_room_common_confirm",
+      "value": "Confirm"
+    },
+    {
+      "name": "roomkit_room_common_copied",
+      "value": "Copied"
+    },
+    {
+      "name": "roomkit_room_common_copy",
+      "value": "Copy"
+    },
+    {
+      "name": "roomkit_room_common_copy_failed",
+      "value": "Copy failed"
+    },
+    {
+      "name": "roomkit_room_common_got_it",
+      "value": "Got it"
+    },
+    {
+      "name": "roomkit_room_common_notification",
+      "value": "Notification"
+    },
+    {
+      "name": "roomkit_room_common_please_select",
+      "value": "Please select"
+    },
+    {
+      "name": "roomkit_room_end",
+      "value": "End meeting"
+    },
+    {
+      "name": "roomkit_room_end_hint",
+      "value": "Everyone will leave"
+    },
+    {
+      "name": "roomkit_room_ended_by_host",
+      "value": "The host has ended the meeting"
+    },
+    {
+      "name": "roomkit_room_ended_done",
+      "value": "Meeting ended"
+    },
+    {
+      "name": "roomkit_room_entry_create_failed",
+      "value": "Unable to create the meeting ({code})"
+    },
+    {
+      "name": "roomkit_room_entry_failure_create",
+      "value": "Unable to start the meeting"
+    },
+    {
+      "name": "roomkit_room_entry_failure_default",
+      "value": "Please try again later."
+    },
+    {
+      "name": "roomkit_room_entry_failure_illegal_room_id",
+      "value": "Invalid meeting ID format. Check it and try again."
+    },
+    {
+      "name": "roomkit_room_entry_failure_illegal_room_name",
+      "value": "Invalid meeting name. Change it and try again."
+    },
+    {
+      "name": "roomkit_room_entry_failure_invalid_room_id",
+      "value": "Invalid meeting ID. Check it and try again."
+    },
+    {
+      "name": "roomkit_room_entry_failure_room_exists",
+      "value": "This room already exists. Please create a new one."
+    },
+    {
+      "name": "roomkit_room_entry_failure_room_full",
+      "value": "The meeting is full. Please try again later."
+    },
+    {
+      "name": "roomkit_room_entry_failure_room_not_found",
+      "value": "The meeting does not exist or has ended."
+    },
+    {
+      "name": "roomkit_room_entry_failure_sensitive_word",
+      "value": "The content contains sensitive words. Change it and try again."
+    },
+    {
+      "name": "roomkit_room_entry_failure_unknown",
+      "value": "The operation failed. Please try again."
+    },
+    {
+      "name": "roomkit_room_entry_join",
+      "value": "Join"
+    },
+    {
+      "name": "roomkit_room_entry_join_failed",
+      "value": "Unable to join the meeting"
+    },
+    {
+      "name": "roomkit_room_entry_joining",
+      "value": "Joining the meeting"
+    },
+    {
+      "name": "roomkit_room_entry_password_title",
+      "value": "Enter the meeting password"
+    },
+    {
+      "name": "roomkit_room_entry_wrong_password",
+      "value": "Incorrect password. Please try again."
+    },
+    {
+      "name": "roomkit_room_error_common",
+      "value": "Something went wrong. Please try again later."
+    },
+    {
+      "name": "roomkit_room_error_invalid_parameter",
+      "value": "Invalid request. Please try again later."
+    },
+    {
+      "name": "roomkit_room_error_not_logged_in",
+      "value": "You are not logged in. Please log in first."
+    },
+    {
+      "name": "roomkit_room_error_package",
+      "value": "This feature isn't available."
+    },
+    {
+      "name": "roomkit_room_error_server",
+      "value": "Server error. Please try again later."
+    },
+    {
+      "name": "roomkit_room_error_too_frequent",
+      "value": "Too many requests. Please try again later."
+    },
+    {
+      "name": "roomkit_room_error_with_reason",
+      "value": "%s. %s"
+    },
+    {
+      "name": "roomkit_room_error_with_retry",
+      "value": "%s. Please try again later."
+    },
+    {
+      "name": "roomkit_room_fullscreen",
+      "value": "Full screen"
+    },
+    {
+      "name": "roomkit_room_info_host",
+      "value": "Host"
+    },
+    {
+      "name": "roomkit_room_info_invitation",
+      "value": "Copy invitation"
+    },
+    {
+      "name": "roomkit_room_info_invitation_link",
+      "value": "Link: %s"
+    },
+    {
+      "name": "roomkit_room_info_invitation_password",
+      "value": "Password: %s"
+    },
+    {
+      "name": "roomkit_room_info_invitation_room_id",
+      "value": "Room ID: %s"
+    },
+    {
+      "name": "roomkit_room_info_password",
+      "value": "Password"
+    },
+    {
+      "name": "roomkit_room_info_room_id",
+      "value": "Meeting ID"
+    },
+    {
+      "name": "roomkit_room_info_name_you",
+      "value": "%s (Me)"
+    },
+    {
+      "name": "roomkit_room_invite_accept_join",
+      "value": "Accept and join"
+    },
+    {
+      "name": "roomkit_room_invite_decline",
+      "value": "Not now"
+    },
+    {
+      "name": "roomkit_room_invite_invites_you",
+      "value": "invites you to join the meeting"
+    },
+    {
+      "name": "roomkit_room_invite_timed_out",
+      "value": "Invite timed out"
+    },
+    {
+      "name": "roomkit_room_leave",
+      "value": "Leave meeting"
+    },
+    {
+      "name": "roomkit_room_leave_hint",
+      "value": "Only you will leave"
+    },
+    {
+      "name": "roomkit_room_left",
+      "value": "Left the meeting"
+    },
+    {
+      "name": "roomkit_room_meeting_in_progress",
+      "value": "Meeting in progress"
+    },
+    {
+      "name": "roomkit_room_mini_restore",
+      "value": "Back to meeting"
+    },
+    {
+      "name": "roomkit_room_mini_sharing",
+      "value": "Sharing screen"
+    },
+    {
+      "name": "roomkit_room_more",
+      "value": "More"
+    },
+    {
+      "name": "roomkit_room_notifications_admin_revoked",
+      "value": "Your administrator status has been revoked"
+    },
+    {
+      "name": "roomkit_room_notifications_all_cameras_disabled",
+      "value": "Participants' video off. Camera access disabled."
+    },
+    {
+      "name": "roomkit_room_notifications_all_cameras_enabled",
+      "value": "Participants can now start video."
+    },
+    {
+      "name": "roomkit_room_notifications_all_messages_disabled",
+      "value": "Chat disabled for participants."
+    },
+    {
+      "name": "roomkit_room_notifications_all_messages_enabled",
+      "value": "Chat enabled for participants."
+    },
+    {
+      "name": "roomkit_room_notifications_all_microphones_disabled",
+      "value": "Participants muted. Mic access disabled."
+    },
+    {
+      "name": "roomkit_room_notifications_all_microphones_enabled",
+      "value": "Participants can now unmute themselves."
+    },
+    {
+      "name": "roomkit_room_notifications_all_screen_shares_disabled",
+      "value": "Screen sharing disabled for participants."
+    },
+    {
+      "name": "roomkit_room_notifications_all_screen_shares_enabled",
+      "value": "Screen sharing enabled for participants."
+    },
+    {
+      "name": "roomkit_room_notifications_become_admin",
+      "value": "You have become administrator"
+    },
+    {
+      "name": "roomkit_room_notifications_become_owner",
+      "value": "You have become the host"
+    },
+    {
+      "name": "roomkit_room_notifications_camera",
+      "value": "Camera"
+    },
+    {
+      "name": "roomkit_room_notifications_camera_closed",
+      "value": "Your camera has been disabled by %s"
+    },
+    {
+      "name": "roomkit_room_notifications_camera_invitation_received",
+      "value": "%s is inviting you to enable your camera"
+    },
+    {
+      "name": "roomkit_room_notifications_connection_timeout",
+      "value": "Connection timed out. You have left the meeting."
+    },
+    {
+      "name": "roomkit_room_notifications_default_kicked_out",
+      "value": "You have been removed from the room"
+    },
+    {
+      "name": "roomkit_room_notifications_device_request_rejected",
+      "value": "Your %s request has been rejected"
+    },
+    {
+      "name": "roomkit_room_notifications_invalid_status_on_reconnect",
+      "value": "The room has been disbanded or you have been removed while offline"
+    },
+    {
+      "name": "roomkit_room_notifications_keep_mute",
+      "value": "Keep Mute"
+    },
+    {
+      "name": "roomkit_room_notifications_keep_off",
+      "value": "Keep Off"
+    },
+    {
+      "name": "roomkit_room_notifications_kicked_by_admin",
+      "value": "You have been removed from the room by the host"
+    },
+    {
+      "name": "roomkit_room_notifications_kicked_by_server",
+      "value": "You have been removed from the room by the server"
+    },
+    {
+      "name": "roomkit_room_notifications_message_muted",
+      "value": "You have been disabled from text chatting"
+    },
+    {
+      "name": "roomkit_room_notifications_message_unmuted",
+      "value": "You have been allowed to text chat"
+    },
+    {
+      "name": "roomkit_room_notifications_microphone",
+      "value": "Microphone"
+    },
+    {
+      "name": "roomkit_room_notifications_microphone_closed",
+      "value": "Your microphone has been disabled by %s"
+    },
+    {
+      "name": "roomkit_room_notifications_microphone_invitation_received",
+      "value": "%s is inviting you to unmute your microphone"
+    },
+    {
+      "name": "roomkit_room_notifications_open_camera",
+      "value": "Open Camera"
+    },
+    {
+      "name": "roomkit_room_notifications_open_microphone",
+      "value": "Unmute"
+    },
+    {
+      "name": "roomkit_room_notifications_open_screen_share",
+      "value": "Open Screen Share"
+    },
+    {
+      "name": "roomkit_room_notifications_replaced_by_another_device",
+      "value": "Your account has been logged in on another device"
+    },
+    {
+      "name": "roomkit_room_notifications_room_limit_exceeded",
+      "value": "Room limit exceeded. Unable to join"
+    },
+    {
+      "name": "roomkit_room_notifications_screen_share",
+      "value": "Screen Share"
+    },
+    {
+      "name": "roomkit_room_notifications_screen_share_closed",
+      "value": "Your screen sharing has been stopped by %s"
+    },
+    {
+      "name": "roomkit_room_notifications_screen_share_invitation_received",
+      "value": "%s is inviting you to enable your screen sharing"
+    },
+    {
+      "name": "roomkit_room_pip",
+      "value": "Pop-out window"
+    },
+    {
+      "name": "roomkit_room_pip_off",
+      "value": "Floating window off"
+    },
+    {
+      "name": "roomkit_room_pip_on",
+      "value": "Floating window on"
+    },
+    {
+      "name": "roomkit_room_rejoin",
+      "value": "Rejoin"
+    },
+    {
+      "name": "roomkit_room_view_autoplay_cta",
+      "value": "Click anywhere to continue"
+    },
+    {
+      "name": "roomkit_room_view_autoplay_desc",
+      "value": "The browser needs a click before it can play video."
+    },
+    {
+      "name": "roomkit_room_view_autoplay_hint",
+      "value": "After you click, all participant videos will resume."
+    },
+    {
+      "name": "roomkit_room_view_autoplay_title",
+      "value": "Click to continue playback"
+    },
+    {
+      "name": "roomkit_room_view_flip_camera",
+      "value": "Flip camera"
+    },
+    {
+      "name": "roomkit_room_view_me",
+      "value": "Me"
+    },
+    {
+      "name": "roomkit_room_view_next_page",
+      "value": "Next page"
+    },
+    {
+      "name": "roomkit_room_view_page_number",
+      "value": "%d / %d"
+    },
+    {
+      "name": "roomkit_room_view_prev_page",
+      "value": "Previous page"
+    },
+    {
+      "name": "roomkit_room_view_share_paused",
+      "value": "Paused"
+    },
+    {
+      "name": "roomkit_room_view_sharing_by",
+      "value": "%s is sharing the screen"
+    },
+    {
+      "name": "roomkit_room_view_sharing_screen",
+      "value": "Sharing screen"
+    },
+    {
+      "name": "roomkit_schedule_attendee_count",
+      "value": "%s"
+    },
+    {
+      "name": "roomkit_schedule_attendee_empty",
+      "value": "No matching contacts"
+    },
+    {
+      "name": "roomkit_schedule_attendee_search",
+      "value": "Searching…"
+    },
+    {
+      "name": "roomkit_schedule_cal_fri",
+      "value": "Fr"
+    },
+    {
+      "name": "roomkit_schedule_cal_mon",
+      "value": "Mo"
+    },
+    {
+      "name": "roomkit_schedule_cal_sat",
+      "value": "Sa"
+    },
+    {
+      "name": "roomkit_schedule_cal_sun",
+      "value": "Su"
+    },
+    {
+      "name": "roomkit_schedule_cal_thu",
+      "value": "Th"
+    },
+    {
+      "name": "roomkit_schedule_cal_tue",
+      "value": "Tu"
+    },
+    {
+      "name": "roomkit_schedule_cal_wed",
+      "value": "We"
+    },
+    {
+      "name": "roomkit_schedule_cancel",
+      "value": "Cancel"
+    },
+    {
+      "name": "roomkit_schedule_cancel_confirm",
+      "value": "Cancel room"
+    },
+    {
+      "name": "roomkit_schedule_cancel_room",
+      "value": "Cancel room"
+    },
+    {
+      "name": "roomkit_schedule_cancel_room_desc",
+      "value": "This reservation will be removed from the calendar, and participants will no longer be able to join."
+    },
+    {
+      "name": "roomkit_schedule_cancel_think",
+      "value": "Keep it"
+    },
+    {
+      "name": "roomkit_schedule_cancelled",
+      "value": "Cancel room successfully"
+    },
+    {
+      "name": "roomkit_schedule_clear_input",
+      "value": "Clear"
+    },
+    {
+      "name": "roomkit_schedule_confirm",
+      "value": "Schedule"
+    },
+    {
+      "name": "roomkit_schedule_copy_link",
+      "value": "Copy link"
+    },
+    {
+      "name": "roomkit_schedule_copy_password",
+      "value": "Copy password"
+    },
+    {
+      "name": "roomkit_schedule_copy_room_id",
+      "value": "Copy room ID"
+    },
+    {
+      "name": "roomkit_schedule_default_topic",
+      "value": "%s's temporary room"
+    },
+    {
+      "name": "roomkit_schedule_duration",
+      "value": "Duration"
+    },
+    {
+      "name": "roomkit_schedule_duration_hour",
+      "value": "%s hour"
+    },
+    {
+      "name": "roomkit_schedule_duration_hours",
+      "value": "%s hours"
+    },
+    {
+      "name": "roomkit_schedule_duration_minutes",
+      "value": "%s min"
+    },
+    {
+      "name": "roomkit_schedule_edit_room",
+      "value": "Edit room"
+    },
+    {
+      "name": "roomkit_schedule_edit_title",
+      "value": "Edit room"
+    },
+    {
+      "name": "roomkit_schedule_error_password",
+      "value": "The password must be %s digits."
+    },
+    {
+      "name": "roomkit_schedule_error_topic",
+      "value": "The topic must be %s–%s characters."
+    },
+    {
+      "name": "roomkit_schedule_failure_create",
+      "value": "Couldn't schedule the meeting"
+    },
+    {
+      "name": "roomkit_schedule_failure_update",
+      "value": "Couldn't update the meeting"
+    },
+    {
+      "name": "roomkit_schedule_hour_unit",
+      "value": ""
+    },
+    {
+      "name": "roomkit_schedule_meeting_cancelled",
+      "value": "Meeting cancelled successfully"
+    },
+    {
+      "name": "roomkit_schedule_members",
+      "value": "Member management"
+    },
+    {
+      "name": "roomkit_schedule_members_count",
+      "value": "%s people"
+    },
+    {
+      "name": "roomkit_schedule_members_more",
+      "value": "%s people"
+    },
+    {
+      "name": "roomkit_schedule_minute_unit",
+      "value": ""
+    },
+    {
+      "name": "roomkit_schedule_mute_video",
+      "value": "Stop all video"
+    },
+    {
+      "name": "roomkit_schedule_name_sep",
+      "value": ", "
+    },
+    {
+      "name": "roomkit_schedule_option_mute_all",
+      "value": "Mute all"
+    },
+    {
+      "name": "roomkit_schedule_participants",
+      "value": "Participants"
+    },
+    {
+      "name": "roomkit_schedule_participants_placeholder",
+      "value": "Enter a member name"
+    },
+    {
+      "name": "roomkit_schedule_participants_title",
+      "value": "Participants (%s)"
+    },
+    {
+      "name": "roomkit_schedule_password",
+      "value": "Meeting password"
+    },
+    {
+      "name": "roomkit_schedule_password_hint",
+      "value": "Enter a 6-digit password"
+    },
+    {
+      "name": "roomkit_schedule_pick_contacts",
+      "value": "Choose contacts"
+    },
+    {
+      "name": "roomkit_schedule_room_password",
+      "value": "Room password"
+    },
+    {
+      "name": "roomkit_schedule_save",
+      "value": "Save"
+    },
+    {
+      "name": "roomkit_schedule_security",
+      "value": "Security"
+    },
+    {
+      "name": "roomkit_schedule_share_attendees",
+      "value": "Participants"
+    },
+    {
+      "name": "roomkit_schedule_share_copy_all",
+      "value": "Copy invitation"
+    },
+    {
+      "name": "roomkit_schedule_share_room_id",
+      "value": "Room ID"
+    },
+    {
+      "name": "roomkit_schedule_share_room_name",
+      "value": "Room name"
+    },
+    {
+      "name": "roomkit_schedule_share_title_detail",
+      "value": "Meeting details"
+    },
+    {
+      "name": "roomkit_schedule_share_title_invite",
+      "value": "%s invites you to a meeting"
+    },
+    {
+      "name": "roomkit_schedule_share_title_invite_plain",
+      "value": "You are invited to a meeting"
+    },
+    {
+      "name": "roomkit_schedule_share_title_success",
+      "value": "Scheduled"
+    },
+    {
+      "name": "roomkit_schedule_show_password",
+      "value": "Show or hide password"
+    },
+    {
+      "name": "roomkit_schedule_start",
+      "value": "Start"
+    },
+    {
+      "name": "roomkit_schedule_start_time",
+      "value": "Start time"
+    },
+    {
+      "name": "roomkit_schedule_timezone",
+      "value": "Time zone"
+    },
+    {
+      "name": "roomkit_schedule_title",
+      "value": "Schedule meeting"
+    },
+    {
+      "name": "roomkit_schedule_topic",
+      "value": "Topic"
+    },
+    {
+      "name": "roomkit_schedule_topic_placeholder",
+      "value": "Give the meeting a name…"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm01_00",
+      "value": "UTC-01:00 (Azores)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm02_00",
+      "value": "UTC-02:00 (Mid-Atlantic)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm03_00",
+      "value": "UTC-03:00 (Buenos Aires)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm04_00",
+      "value": "UTC-04:00 (Halifax)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm05_00",
+      "value": "UTC-05:00 (New York)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm06_00",
+      "value": "UTC-06:00 (Chicago)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm07_00",
+      "value": "UTC-07:00 (Denver)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm08_00",
+      "value": "UTC-08:00 (Los Angeles)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm09_00",
+      "value": "UTC-09:00 (Alaska)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm10_00",
+      "value": "UTC-10:00 (Hawaii)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm11_00",
+      "value": "UTC-11:00 (Samoa)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm12_00",
+      "value": "UTC-12:00 (Baker Island)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp00_00",
+      "value": "UTC+00:00 (London)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp01_00",
+      "value": "UTC+01:00 (Berlin)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp02_00",
+      "value": "UTC+02:00 (Cairo)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp03_00",
+      "value": "UTC+03:00 (Moscow)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp04_00",
+      "value": "UTC+04:00 (Dubai)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp05_00",
+      "value": "UTC+05:00 (Karachi)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp05_30",
+      "value": "UTC+05:30 (Mumbai)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp06_00",
+      "value": "UTC+06:00 (Dhaka)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp07_00",
+      "value": "UTC+07:00 (Bangkok)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp08_00",
+      "value": "UTC+08:00 (Beijing)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp09_00",
+      "value": "UTC+09:00 (Tokyo)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp10_00",
+      "value": "UTC+10:00 (Sydney)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp11_00",
+      "value": "UTC+11:00 (Solomon Islands)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp12_00",
+      "value": "UTC+12:00 (Auckland)"
+    },
+    {
+      "name": "roomkit_schedule_updated",
+      "value": "Room updated successfully"
+    },
+    {
+      "name": "roomkit_schedule_view_detail",
+      "value": "View details"
+    },
+    {
+      "name": "roomkit_screen_share_all",
+      "value": "All"
+    },
+    {
+      "name": "roomkit_screen_share_continue",
+      "value": "Continue sharing"
+    },
+    {
+      "name": "roomkit_screen_share_failure_failed",
+      "value": "Couldn't share the screen. Please try again later."
+    },
+    {
+      "name": "roomkit_screen_share_failure_owner_admin_only",
+      "value": "Only the host and admins can share the screen"
+    },
+    {
+      "name": "roomkit_screen_share_failure_remotemsharing",
+      "value": "Someone else is already sharing the screen"
+    },
+    {
+      "name": "roomkit_screen_share_failure_source_unavailable",
+      "value": "Failed to get screen content. Please check the screen recording permission"
+    },
+    {
+      "name": "roomkit_screen_share_failure_unsupported",
+      "value": "Couldn't share the screen. This version doesn't support it."
+    },
+    {
+      "name": "roomkit_screen_share_go_share",
+      "value": "Return to screen share"
+    },
+    {
+      "name": "roomkit_screen_share_live",
+      "value": "Live"
+    },
+    {
+      "name": "roomkit_screen_share_new",
+      "value": "New share"
+    },
+    {
+      "name": "roomkit_screen_share_owner_admin_only",
+      "value": "Only the host or admins can share the screen"
+    },
+    {
+      "name": "roomkit_screen_share_pause_share",
+      "value": "Pause share"
+    },
+    {
+      "name": "roomkit_screen_share_paused",
+      "value": "Share paused"
+    },
+    {
+      "name": "roomkit_screen_share_pick_title",
+      "value": "Select content to share"
+    },
+    {
+      "name": "roomkit_screen_share_resume_share",
+      "value": "Resume share"
+    },
+    {
+      "name": "roomkit_screen_share_resumed",
+      "value": "Share resumed"
+    },
+    {
+      "name": "roomkit_screen_share_safety_message",
+      "value": "Sharing your screen can expose verification codes, passwords, and other private information. Watch out for scams."
+    },
+    {
+      "name": "roomkit_screen_share_safety_title",
+      "value": "Security reminder"
+    },
+    {
+      "name": "roomkit_screen_share_screen",
+      "value": "Screen"
+    },
+    {
+      "name": "roomkit_screen_share_screen1",
+      "value": "Screen 1"
+    },
+    {
+      "name": "roomkit_screen_share_screen2",
+      "value": "Screen 2"
+    },
+    {
+      "name": "roomkit_screen_share_share",
+      "value": "Share"
+    },
+    {
+      "name": "roomkit_screen_share_sharing",
+      "value": "Screen is being shared"
+    },
+    {
+      "name": "roomkit_screen_share_sharing_phone",
+      "value": "Sharing your phone screen"
+    },
+    {
+      "name": "roomkit_screen_share_sharing_phone_hint",
+      "value": "Everything on your phone is being shared with the other participants."
+    },
+    {
+      "name": "roomkit_screen_share_start_confirm",
+      "value": "Start sharing"
+    },
+    {
+      "name": "roomkit_screen_share_start_message",
+      "value": "Start sharing your screen? Other participants will see your screen."
+    },
+    {
+      "name": "roomkit_screen_share_start_title",
+      "value": "Start sharing"
+    },
+    {
+      "name": "roomkit_screen_share_started",
+      "value": "Screen sharing started"
+    },
+    {
+      "name": "roomkit_screen_share_stop",
+      "value": "Stop sharing"
+    },
+    {
+      "name": "roomkit_screen_share_stop_confirm",
+      "value": "Stop sharing"
+    },
+    {
+      "name": "roomkit_screen_share_stop_message",
+      "value": "Stop sharing? Other participants will no longer see your screen."
+    },
+    {
+      "name": "roomkit_screen_share_stop_title",
+      "value": "Stop sharing"
+    },
+    {
+      "name": "roomkit_screen_share_stopped",
+      "value": "You stopped sharing"
+    },
+    {
+      "name": "roomkit_screen_share_tab_whiteboard",
+      "value": "Whiteboard"
+    },
+    {
+      "name": "roomkit_settings_audio_input",
+      "value": "Input"
+    },
+    {
+      "name": "roomkit_settings_audio_output",
+      "value": "Output"
+    },
+    {
+      "name": "roomkit_settings_audio_title",
+      "value": "Audio settings"
+    },
+    {
+      "name": "roomkit_settings_camera",
+      "value": "Camera"
+    },
+    {
+      "name": "roomkit_settings_camera_preview_unavailable",
+      "value": "Camera preview unavailable"
+    },
+    {
+      "name": "roomkit_settings_general_title",
+      "value": "General"
+    },
+    {
+      "name": "roomkit_settings_group_general",
+      "value": "General"
+    },
+    {
+      "name": "roomkit_settings_group_video",
+      "value": "Video"
+    },
+    {
+      "name": "roomkit_settings_language",
+      "value": "Language"
+    },
+    {
+      "name": "roomkit_settings_language_en_us",
+      "value": "English"
+    },
+    {
+      "name": "roomkit_settings_language_zh_cn",
+      "value": "简体中文"
+    },
+    {
+      "name": "roomkit_settings_mic_level",
+      "value": "Input level"
+    },
+    {
+      "name": "roomkit_settings_microphone",
+      "value": "Microphone"
+    },
+    {
+      "name": "roomkit_settings_mirror",
+      "value": "Mirror my video"
+    },
+    {
+      "name": "roomkit_settings_mirror_desc",
+      "value": "When on, both you and everyone else see a mirrored image"
+    },
+    {
+      "name": "roomkit_settings_quality1080_p",
+      "value": "Super Definition"
+    },
+    {
+      "name": "roomkit_settings_quality360_p",
+      "value": "Low Definition"
+    },
+    {
+      "name": "roomkit_settings_quality540_p",
+      "value": "Standard Definition"
+    },
+    {
+      "name": "roomkit_settings_quality720_p",
+      "value": "High Definition"
+    },
+    {
+      "name": "roomkit_settings_resolution",
+      "value": "Resolution"
+    },
+    {
+      "name": "roomkit_settings_resolution_desc",
+      "value": "Resolution you send"
+    },
+    {
+      "name": "roomkit_settings_share_system_audio",
+      "value": "Share computer audio"
+    },
+    {
+      "name": "roomkit_settings_share_system_audio_desc",
+      "value": "Send the sound your computer plays along with the shared screen"
+    },
+    {
+      "name": "roomkit_settings_share_title",
+      "value": "Sharing settings"
+    },
+    {
+      "name": "roomkit_settings_speaker",
+      "value": "Speaker"
+    },
+    {
+      "name": "roomkit_settings_speaker_test",
+      "value": "Speaker test"
+    },
+    {
+      "name": "roomkit_settings_speaker_test_start",
+      "value": "Test"
+    },
+    {
+      "name": "roomkit_settings_speaker_test_stop",
+      "value": "Stop"
+    },
+    {
+      "name": "roomkit_settings_tab_audio",
+      "value": "Audio"
+    },
+    {
+      "name": "roomkit_settings_tab_general",
+      "value": "General"
+    },
+    {
+      "name": "roomkit_settings_tab_share",
+      "value": "Sharing"
+    },
+    {
+      "name": "roomkit_settings_tab_video",
+      "value": "Video"
+    },
+    {
+      "name": "roomkit_settings_tab_video_effect",
+      "value": "Background & beauty"
+    },
+    {
+      "name": "roomkit_settings_theme",
+      "value": "Theme"
+    },
+    {
+      "name": "roomkit_settings_theme_dark",
+      "value": "Dark"
+    },
+    {
+      "name": "roomkit_settings_theme_light",
+      "value": "Light"
+    },
+    {
+      "name": "roomkit_settings_theme_system",
+      "value": "System"
+    },
+    {
+      "name": "roomkit_settings_theme_to_dark",
+      "value": "Switch to dark theme"
+    },
+    {
+      "name": "roomkit_settings_theme_to_light",
+      "value": "Switch to light theme"
+    },
+    {
+      "name": "roomkit_settings_title",
+      "value": "Settings"
+    },
+    {
+      "name": "roomkit_settings_video_effect_title",
+      "value": "Background & beauty"
+    },
+    {
+      "name": "roomkit_settings_video_title",
+      "value": "Video settings"
+    },
+    {
+      "name": "roomkit_transcription_close",
+      "value": "Hide transcript"
+    },
+    {
+      "name": "roomkit_transcription_copied_all",
+      "value": "Copied %s transcript entries"
+    },
+    {
+      "name": "roomkit_transcription_copied_results",
+      "value": "Copied %s search results"
+    },
+    {
+      "name": "roomkit_transcription_copy_all",
+      "value": "Copy the full transcript"
+    },
+    {
+      "name": "roomkit_transcription_copy_results",
+      "value": "Copy search results"
+    },
+    {
+      "name": "roomkit_transcription_empty_hint",
+      "value": "Speech will appear here as people talk"
+    },
+    {
+      "name": "roomkit_transcription_no_match",
+      "value": "No matching transcript"
+    },
+    {
+      "name": "roomkit_transcription_off",
+      "value": "Transcription is off for this room"
+    },
+    {
+      "name": "roomkit_transcription_on_for_room",
+      "value": "Transcription is on for this room"
+    },
+    {
+      "name": "roomkit_transcription_open",
+      "value": "Show transcript"
+    },
+    {
+      "name": "roomkit_transcription_room_desc",
+      "value": "Applies to everyone in the room"
+    },
+    {
+      "name": "roomkit_transcription_room_title",
+      "value": "Room transcription"
+    },
+    {
+      "name": "roomkit_transcription_search",
+      "value": "Search"
+    },
+    {
+      "name": "roomkit_transcription_search_placeholder",
+      "value": "Search transcript"
+    },
+    {
+      "name": "roomkit_transcription_start",
+      "value": "Start transcription"
+    },
+    {
+      "name": "roomkit_transcription_start_confirm",
+      "value": "Start"
+    },
+    {
+      "name": "roomkit_transcription_start_content",
+      "value": "This applies to the whole room. Speech will be transcribed, and all participants can view live captions and the transcript."
+    },
+    {
+      "name": "roomkit_transcription_start_show_mine",
+      "value": "Also show captions for me"
+    },
+    {
+      "name": "roomkit_transcription_start_title",
+      "value": "Start transcription?"
+    },
+    {
+      "name": "roomkit_transcription_stop",
+      "value": "Stop transcription"
+    },
+    {
+      "name": "roomkit_transcription_stop_confirm",
+      "value": "Stop"
+    },
+    {
+      "name": "roomkit_transcription_stop_content",
+      "value": "This applies to the whole room. Live captions will stop for all participants and the transcript will no longer update. Existing transcript stays available."
+    },
+    {
+      "name": "roomkit_transcription_stop_title",
+      "value": "Stop transcription?"
+    },
+    {
+      "name": "roomkit_transcription_title",
+      "value": "Transcript"
+    },
+    {
+      "name": "roomkit_transcription_view_desc",
+      "value": "See the full transcript"
+    },
+    {
+      "name": "roomkit_transcription_wait_host",
+      "value": "Available after the host starts transcription"
+    },
+    {
+      "name": "roomkit_user_picker_back",
+      "value": "Back"
+    },
+    {
+      "name": "roomkit_user_picker_clear",
+      "value": "Clear"
+    },
+    {
+      "name": "roomkit_user_picker_confirm_count",
+      "value": "Confirm (%s)"
+    },
+    {
+      "name": "roomkit_user_picker_invite",
+      "value": "Invite"
+    },
+    {
+      "name": "roomkit_user_picker_invite_count",
+      "value": "Invite (%s)"
+    },
+    {
+      "name": "roomkit_user_picker_people_unit",
+      "value": "people"
+    },
+    {
+      "name": "roomkit_user_picker_picked_empty",
+      "value": "Select contacts on the left"
+    },
+    {
+      "name": "roomkit_user_picker_remove",
+      "value": "Remove"
+    },
+    {
+      "name": "roomkit_user_picker_selected_count",
+      "value": "%s selected"
+    },
+    {
+      "name": "roomkit_user_picker_title",
+      "value": "Select contacts"
+    },
+    {
+      "name": "roomkit_virtual_background_blurred",
+      "value": "Blur"
+    },
+    {
+      "name": "roomkit_virtual_background_close",
+      "value": "None"
+    },
+    {
+      "name": "roomkit_virtual_background_custom",
+      "value": "Custom"
+    },
+    {
+      "name": "roomkit_virtual_background_title",
+      "value": "Virtual background"
+    },
+    {
+      "name": "roomkit_whiteboard_annotation",
+      "value": "Annotate"
+    },
+    {
+      "name": "roomkit_whiteboard_clear",
+      "value": "Clear"
+    },
+    {
+      "name": "roomkit_whiteboard_clear_all_confirm_content",
+      "value": "Annotations from all participants will be permanently removed. Continue?"
+    },
+    {
+      "name": "roomkit_whiteboard_clear_all_confirm_title",
+      "value": "Clear all annotations?"
+    },
+    {
+      "name": "roomkit_whiteboard_close",
+      "value": "Close whiteboard"
+    },
+    {
+      "name": "roomkit_whiteboard_close_confirm_content",
+      "value": "The whiteboard content cannot be recovered after it ends. Continue?"
+    },
+    {
+      "name": "roomkit_whiteboard_close_confirm_title",
+      "value": "End whiteboard?"
+    },
+    {
+      "name": "roomkit_whiteboard_close_screen_share_first",
+      "value": "Stop screen sharing first"
+    },
+    {
+      "name": "roomkit_whiteboard_collapse",
+      "value": "Collapse"
+    },
+    {
+      "name": "roomkit_whiteboard_color",
+      "value": "Color"
+    },
+    {
+      "name": "roomkit_whiteboard_dashed",
+      "value": "Dashed"
+    },
+    {
+      "name": "roomkit_whiteboard_enter_text",
+      "value": "Enter text"
+    },
+    {
+      "name": "roomkit_whiteboard_line_type",
+      "value": "Line type"
+    },
+    {
+      "name": "roomkit_whiteboard_object_eraser",
+      "value": "Object eraser"
+    },
+    {
+      "name": "roomkit_whiteboard_open",
+      "value": "Whiteboard"
+    },
+    {
+      "name": "roomkit_whiteboard_opened",
+      "value": "Whiteboard opened"
+    },
+    {
+      "name": "roomkit_whiteboard_pen_settings",
+      "value": "Pen settings"
+    },
+    {
+      "name": "roomkit_whiteboard_pixel_eraser",
+      "value": "Pixel eraser"
+    },
+    {
+      "name": "roomkit_whiteboard_redo",
+      "value": "Redo"
+    },
+    {
+      "name": "roomkit_whiteboard_save",
+      "value": "Save"
+    },
+    {
+      "name": "roomkit_whiteboard_shape_ellipse",
+      "value": "Ellipse"
+    },
+    {
+      "name": "roomkit_whiteboard_shape_line",
+      "value": "Line"
+    },
+    {
+      "name": "roomkit_whiteboard_shape_rect",
+      "value": "Rectangle"
+    },
+    {
+      "name": "roomkit_whiteboard_shape_triangle",
+      "value": "Triangle"
+    },
+    {
+      "name": "roomkit_whiteboard_solid",
+      "value": "Solid"
+    },
+    {
+      "name": "roomkit_whiteboard_stroke_width",
+      "value": "Stroke"
+    },
+    {
+      "name": "roomkit_whiteboard_tool_arrow",
+      "value": "Arrow"
+    },
+    {
+      "name": "roomkit_whiteboard_tool_eraser",
+      "value": "Eraser"
+    },
+    {
+      "name": "roomkit_whiteboard_tool_laser",
+      "value": "Laser"
+    },
+    {
+      "name": "roomkit_whiteboard_tool_pen",
+      "value": "Pen"
+    },
+    {
+      "name": "roomkit_whiteboard_tool_select",
+      "value": "Select"
+    },
+    {
+      "name": "roomkit_whiteboard_tool_shape",
+      "value": "Shape"
+    },
+    {
+      "name": "roomkit_whiteboard_tool_text",
+      "value": "Text"
+    },
+    {
+      "name": "roomkit_whiteboard_undo",
+      "value": "Undo"
+    }
+  ]
+}

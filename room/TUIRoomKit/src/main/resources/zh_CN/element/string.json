@@ -1,0 +1,2896 @@
+{
+  "string": [
+    {
+      "name": "roomkit_beauty_reset",
+      "value": "重置"
+    },
+    {
+      "name": "roomkit_beauty_ruddy",
+      "value": "红润"
+    },
+    {
+      "name": "roomkit_beauty_smooth",
+      "value": "磨皮"
+    },
+    {
+      "name": "roomkit_beauty_title",
+      "value": "美颜"
+    },
+    {
+      "name": "roomkit_beauty_whitening",
+      "value": "美白"
+    },
+    {
+      "name": "roomkit_calendar_empty",
+      "value": "暂无会议"
+    },
+    {
+      "name": "roomkit_calendar_empty_day",
+      "value": "当天暂无会议安排"
+    },
+    {
+      "name": "roomkit_calendar_empty_recent",
+      "value": "暂无近期会议"
+    },
+    {
+      "name": "roomkit_calendar_enter",
+      "value": "进入"
+    },
+    {
+      "name": "roomkit_calendar_fri",
+      "value": "周五"
+    },
+    {
+      "name": "roomkit_calendar_join",
+      "value": "加入"
+    },
+    {
+      "name": "roomkit_calendar_loading",
+      "value": "加载中…"
+    },
+    {
+      "name": "roomkit_calendar_login_to_view",
+      "value": "登录后查看"
+    },
+    {
+      "name": "roomkit_calendar_mon",
+      "value": "周一"
+    },
+    {
+      "name": "roomkit_calendar_more",
+      "value": "更多"
+    },
+    {
+      "name": "roomkit_calendar_owner",
+      "value": "主持人"
+    },
+    {
+      "name": "roomkit_calendar_sat",
+      "value": "周六"
+    },
+    {
+      "name": "roomkit_calendar_share",
+      "value": "分享"
+    },
+    {
+      "name": "roomkit_calendar_status_live",
+      "value": "进行中"
+    },
+    {
+      "name": "roomkit_calendar_status_soon",
+      "value": "待开始"
+    },
+    {
+      "name": "roomkit_calendar_status_upcoming",
+      "value": "待加入"
+    },
+    {
+      "name": "roomkit_calendar_sun",
+      "value": "周日"
+    },
+    {
+      "name": "roomkit_calendar_thu",
+      "value": "周四"
+    },
+    {
+      "name": "roomkit_calendar_title",
+      "value": "本周日程"
+    },
+    {
+      "name": "roomkit_calendar_today",
+      "value": "今天"
+    },
+    {
+      "name": "roomkit_calendar_tomorrow",
+      "value": "明天"
+    },
+    {
+      "name": "roomkit_calendar_tue",
+      "value": "周二"
+    },
+    {
+      "name": "roomkit_calendar_wed",
+      "value": "周三"
+    },
+    {
+      "name": "roomkit_caption_close",
+      "value": "关闭实时字幕"
+    },
+    {
+      "name": "roomkit_caption_drag_hint",
+      "value": "按住拖动 · 双击回到默认位置"
+    },
+    {
+      "name": "roomkit_caption_font_large",
+      "value": "大"
+    },
+    {
+      "name": "roomkit_caption_font_medium",
+      "value": "中"
+    },
+    {
+      "name": "roomkit_caption_font_size",
+      "value": "字幕字号"
+    },
+    {
+      "name": "roomkit_caption_font_small",
+      "value": "小"
+    },
+    {
+      "name": "roomkit_caption_group_caption",
+      "value": "字幕设置"
+    },
+    {
+      "name": "roomkit_caption_group_transcription",
+      "value": "转录设置"
+    },
+    {
+      "name": "roomkit_caption_group_translation",
+      "value": "翻译设置"
+    },
+    {
+      "name": "roomkit_caption_language_ar",
+      "value": "العربية(阿拉伯语)"
+    },
+    {
+      "name": "roomkit_caption_language_auto",
+      "value": "自动识别 (中英)"
+    },
+    {
+      "name": "roomkit_caption_language_de",
+      "value": "Deutsch(德语)"
+    },
+    {
+      "name": "roomkit_caption_language_en",
+      "value": "English(英语)"
+    },
+    {
+      "name": "roomkit_caption_language_es",
+      "value": "Español(西班牙语)"
+    },
+    {
+      "name": "roomkit_caption_language_fil",
+      "value": "Filipino(菲律宾语)"
+    },
+    {
+      "name": "roomkit_caption_language_fr",
+      "value": "Français(法语)"
+    },
+    {
+      "name": "roomkit_caption_language_hi",
+      "value": "हिन्दी(印地语)"
+    },
+    {
+      "name": "roomkit_caption_language_id",
+      "value": "Bahasa Indonesia(印尼语)"
+    },
+    {
+      "name": "roomkit_caption_language_it",
+      "value": "Italiano(意大利语)"
+    },
+    {
+      "name": "roomkit_caption_language_ja",
+      "value": "日本語(日语)"
+    },
+    {
+      "name": "roomkit_caption_language_ko",
+      "value": "한국어(韩语)"
+    },
+    {
+      "name": "roomkit_caption_language_ms",
+      "value": "Bahasa Melayu(马来语)"
+    },
+    {
+      "name": "roomkit_caption_language_pt",
+      "value": "Português(葡萄牙语)"
+    },
+    {
+      "name": "roomkit_caption_language_ru",
+      "value": "Русский(俄语)"
+    },
+    {
+      "name": "roomkit_caption_language_th",
+      "value": "ภาษาไทย(泰语)"
+    },
+    {
+      "name": "roomkit_caption_language_tr",
+      "value": "Türkçe(土耳其语)"
+    },
+    {
+      "name": "roomkit_caption_language_vi",
+      "value": "Tiếng Việt(越南语)"
+    },
+    {
+      "name": "roomkit_caption_language_yue",
+      "value": "粵語(粤语)"
+    },
+    {
+      "name": "roomkit_caption_language_zh_hans",
+      "value": "简体中文(简体中文)"
+    },
+    {
+      "name": "roomkit_caption_live",
+      "value": "实时字幕"
+    },
+    {
+      "name": "roomkit_caption_live_desc",
+      "value": "仅对自己生效"
+    },
+    {
+      "name": "roomkit_caption_settings",
+      "value": "字幕与翻译设置"
+    },
+    {
+      "name": "roomkit_caption_show_bilingual",
+      "value": "字幕显示双语"
+    },
+    {
+      "name": "roomkit_caption_show_floating",
+      "value": "显示实时字幕"
+    },
+    {
+      "name": "roomkit_caption_source_language",
+      "value": "识别语言"
+    },
+    {
+      "name": "roomkit_caption_target_language",
+      "value": "翻译语言"
+    },
+    {
+      "name": "roomkit_caption_title",
+      "value": "字幕"
+    },
+    {
+      "name": "roomkit_chat_muted",
+      "value": "你已被禁言，暂时无法发送消息"
+    },
+    {
+      "name": "roomkit_chat_muted_all",
+      "value": "当前会议已开启全员禁言"
+    },
+    {
+      "name": "roomkit_cloud_recording_end_title",
+      "value": "云端录制已结束"
+    },
+    {
+      "name": "roomkit_cloud_recording_ended_abnormal",
+      "value": "云端录制异常结束"
+    },
+    {
+      "name": "roomkit_cloud_recording_notify_cancel",
+      "value": "离开房间"
+    },
+    {
+      "name": "roomkit_cloud_recording_notify_confirm",
+      "value": "我知道了"
+    },
+    {
+      "name": "roomkit_cloud_recording_notify_content",
+      "value": "%s开启了云端录制，房间中的音视频画面、共享屏幕内容将会被录制。如果留在房间中，表示您同意录制。"
+    },
+    {
+      "name": "roomkit_cloud_recording_notify_title",
+      "value": "云端录制中"
+    },
+    {
+      "name": "roomkit_cloud_recording_record_label",
+      "value": "录制"
+    },
+    {
+      "name": "roomkit_cloud_recording_recording_label",
+      "value": "录制中"
+    },
+    {
+      "name": "roomkit_cloud_recording_start_confirm",
+      "value": "开启录制"
+    },
+    {
+      "name": "roomkit_cloud_recording_start_content",
+      "value": "开启后，将录制房间中的音视频画面、共享屏幕内容到云端，并告知所有参会成员"
+    },
+    {
+      "name": "roomkit_cloud_recording_start_title",
+      "value": "是否开启云端录制？"
+    },
+    {
+      "name": "roomkit_cloud_recording_started_toast",
+      "value": "录制已开始 · 云端保存"
+    },
+    {
+      "name": "roomkit_cloud_recording_stop_confirm",
+      "value": "结束录制"
+    },
+    {
+      "name": "roomkit_cloud_recording_stop_content",
+      "value": "结束录制后，将停止录制房间中的音视频画面、共享屏幕内容到云端，并告知所有参会成员"
+    },
+    {
+      "name": "roomkit_cloud_recording_stop_title",
+      "value": "结束云端录制？"
+    },
+    {
+      "name": "roomkit_cloud_recording_stopped_toast",
+      "value": "录制已停止"
+    },
+    {
+      "name": "roomkit_common_cancel",
+      "value": "取消"
+    },
+    {
+      "name": "roomkit_common_copied",
+      "value": "已复制"
+    },
+    {
+      "name": "roomkit_common_developing",
+      "value": "功能开发中"
+    },
+    {
+      "name": "roomkit_device_ai_noise_reduction",
+      "value": "AI 降噪"
+    },
+    {
+      "name": "roomkit_device_ai_noise_reduction_hint",
+      "value": "默认关闭，开启后抑制背景噪音"
+    },
+    {
+      "name": "roomkit_device_all_cam_disabled",
+      "value": "全员禁画中，无法打开摄像头"
+    },
+    {
+      "name": "roomkit_device_all_mic_disabled",
+      "value": "全员静音中，无法打开麦克风"
+    },
+    {
+      "name": "roomkit_device_audio_interrupted",
+      "value": "音频采集设备不可用，可能被系统电话或其他应用占用"
+    },
+    {
+      "name": "roomkit_device_cam_close",
+      "value": "关闭摄像头"
+    },
+    {
+      "name": "roomkit_device_cam_open",
+      "value": "打开摄像头"
+    },
+    {
+      "name": "roomkit_device_camera",
+      "value": "摄像头"
+    },
+    {
+      "name": "roomkit_device_camera_back",
+      "value": "已切换为后置摄像头"
+    },
+    {
+      "name": "roomkit_device_camera_front",
+      "value": "已切换为前置摄像头"
+    },
+    {
+      "name": "roomkit_device_camera_no_device",
+      "value": "未检测到摄像头设备"
+    },
+    {
+      "name": "roomkit_device_camera_no_permission",
+      "value": "摄像头权限未开启，请在系统设置中允许访问摄像头"
+    },
+    {
+      "name": "roomkit_device_camera_occupied",
+      "value": "摄像头被其他应用占用，请关闭后重试"
+    },
+    {
+      "name": "roomkit_device_camera_start_failed",
+      "value": "摄像头打开失败，请稍后重试"
+    },
+    {
+      "name": "roomkit_device_earpiece",
+      "value": "听筒"
+    },
+    {
+      "name": "roomkit_device_fault_call_cam_off",
+      "value": "通话中，摄像头已关闭"
+    },
+    {
+      "name": "roomkit_device_fault_enabled",
+      "value": "%s已开启"
+    },
+    {
+      "name": "roomkit_device_fault_got_it",
+      "value": "我知道了"
+    },
+    {
+      "name": "roomkit_device_fault_host_cam_off_all",
+      "value": "主持人已开启全体禁画"
+    },
+    {
+      "name": "roomkit_device_fault_host_cam_on_all",
+      "value": "主持人已解除全体禁画"
+    },
+    {
+      "name": "roomkit_device_fault_host_chat_muted_all",
+      "value": "主持人已开启全体禁言"
+    },
+    {
+      "name": "roomkit_device_fault_host_chat_unmuted_all",
+      "value": "主持人已解除全体禁言"
+    },
+    {
+      "name": "roomkit_device_fault_host_muted_all",
+      "value": "主持人已开启全体静音"
+    },
+    {
+      "name": "roomkit_device_fault_host_share_everyone",
+      "value": "主持人已允许全员共享屏幕"
+    },
+    {
+      "name": "roomkit_device_fault_host_share_owner_only",
+      "value": "主持人已设置仅主持人/管理员可共享屏幕"
+    },
+    {
+      "name": "roomkit_device_fault_host_unmuted_all",
+      "value": "主持人已解除全体静音"
+    },
+    {
+      "name": "roomkit_device_fault_interrupted",
+      "value": "通话中，%s已暂停"
+    },
+    {
+      "name": "roomkit_device_fault_interrupted_blocked",
+      "value": "通话中，暂无法开启%s"
+    },
+    {
+      "name": "roomkit_device_fault_mobile_busy_body",
+      "value": "结束通话或关闭正在使用%s的应用后重试"
+    },
+    {
+      "name": "roomkit_device_fault_mobile_busy_title",
+      "value": "%s正被占用"
+    },
+    {
+      "name": "roomkit_device_fault_mobile_fail_body",
+      "value": "请稍后重试"
+    },
+    {
+      "name": "roomkit_device_fault_mobile_fail_restart_body",
+      "value": "请重启 App 后再试"
+    },
+    {
+      "name": "roomkit_device_fault_mobile_system_body",
+      "value": "需要在系统设置中允许本 App 访问%s，开启后返回即可使用"
+    },
+    {
+      "name": "roomkit_device_fault_mobile_system_title",
+      "value": "无法使用%s"
+    },
+    {
+      "name": "roomkit_device_fault_name_cam",
+      "value": "摄像头"
+    },
+    {
+      "name": "roomkit_device_fault_name_mic",
+      "value": "麦克风"
+    },
+    {
+      "name": "roomkit_device_fault_no_device_title",
+      "value": "未检测到%s"
+    },
+    {
+      "name": "roomkit_device_fault_not_now",
+      "value": "暂不开启"
+    },
+    {
+      "name": "roomkit_device_fault_open_settings_toast",
+      "value": "请在系统设置中开启权限后返回"
+    },
+    {
+      "name": "roomkit_device_fault_open_system_settings",
+      "value": "前往系统设置"
+    },
+    {
+      "name": "roomkit_device_fault_pane_cam",
+      "value": "摄像头"
+    },
+    {
+      "name": "roomkit_device_fault_pane_mic",
+      "value": "麦克风"
+    },
+    {
+      "name": "roomkit_device_fault_paused",
+      "value": "已暂停"
+    },
+    {
+      "name": "roomkit_device_fault_pre_hint",
+      "value": "未开启%s权限"
+    },
+    {
+      "name": "roomkit_device_fault_pre_hint_action",
+      "value": "去开启"
+    },
+    {
+      "name": "roomkit_device_fault_pre_hint_none",
+      "value": "未检测到%s"
+    },
+    {
+      "name": "roomkit_device_fault_resumed",
+      "value": "%s已恢复"
+    },
+    {
+      "name": "roomkit_device_fault_retry",
+      "value": "重试"
+    },
+    {
+      "name": "roomkit_device_fault_start_failed_title",
+      "value": "%s启动失败"
+    },
+    {
+      "name": "roomkit_device_flip_camera",
+      "value": "翻转摄像头"
+    },
+    {
+      "name": "roomkit_device_mic_close",
+      "value": "关闭麦克风"
+    },
+    {
+      "name": "roomkit_device_mic_no_device",
+      "value": "未检测到麦克风设备"
+    },
+    {
+      "name": "roomkit_device_mic_no_permission",
+      "value": "麦克风权限未开启，请在系统设置中允许访问麦克风"
+    },
+    {
+      "name": "roomkit_device_mic_occupied",
+      "value": "麦克风被其他应用占用，请关闭后重试"
+    },
+    {
+      "name": "roomkit_device_mic_open",
+      "value": "打开麦克风"
+    },
+    {
+      "name": "roomkit_device_mic_start_failed",
+      "value": "麦克风打开失败，请稍后重试"
+    },
+    {
+      "name": "roomkit_device_microphone",
+      "value": "麦克风"
+    },
+    {
+      "name": "roomkit_device_mirror",
+      "value": "画面镜像"
+    },
+    {
+      "name": "roomkit_device_mute",
+      "value": "静音"
+    },
+    {
+      "name": "roomkit_device_permission_hint",
+      "value": "浏览器会向你请求设备权限。"
+    },
+    {
+      "name": "roomkit_device_permission_join_with_audio",
+      "value": "加入后声音直接接入"
+    },
+    {
+      "name": "roomkit_device_permission_join_with_video",
+      "value": "加入后画面直接开启"
+    },
+    {
+      "name": "roomkit_device_permission_not_now",
+      "value": "先不打开，稍后再说"
+    },
+    {
+      "name": "roomkit_device_permission_privacy",
+      "value": "音视频数据仅本次会议使用，不做任何存储。"
+    },
+    {
+      "name": "roomkit_device_permission_title",
+      "value": "授权摄像头和麦克风"
+    },
+    {
+      "name": "roomkit_device_permission_use_cam_mic",
+      "value": "使用摄像头和麦克风"
+    },
+    {
+      "name": "roomkit_device_permission_use_camera",
+      "value": "使用摄像头"
+    },
+    {
+      "name": "roomkit_device_permission_use_mic",
+      "value": "使用麦克风"
+    },
+    {
+      "name": "roomkit_device_resolution",
+      "value": "分辨率"
+    },
+    {
+      "name": "roomkit_device_speaker",
+      "value": "扬声器"
+    },
+    {
+      "name": "roomkit_device_speaker_test",
+      "value": "扬声器测试"
+    },
+    {
+      "name": "roomkit_device_speaker_test_hint",
+      "value": "播放一段提示音"
+    },
+    {
+      "name": "roomkit_entry_failure_illegal_room_id",
+      "value": "会议号格式不正确，请检查后重试"
+    },
+    {
+      "name": "roomkit_entry_failure_illegal_room_name",
+      "value": "会议名称不合法，请修改后重试"
+    },
+    {
+      "name": "roomkit_entry_failure_password_required",
+      "value": "该会议需要密码才能进入"
+    },
+    {
+      "name": "roomkit_entry_failure_room_exists",
+      "value": "房间已存在，请重新创建"
+    },
+    {
+      "name": "roomkit_entry_failure_room_full",
+      "value": "会议人数已满，暂时无法加入"
+    },
+    {
+      "name": "roomkit_entry_failure_room_not_found",
+      "value": "会议不存在或已结束"
+    },
+    {
+      "name": "roomkit_entry_failure_sensitive_word",
+      "value": "内容包含敏感词，请修改后重试"
+    },
+    {
+      "name": "roomkit_entry_failure_wrong_password",
+      "value": "密码错误，请重新输入"
+    },
+    {
+      "name": "roomkit_error_default",
+      "value": "操作失败，请稍后重试"
+    },
+    {
+      "name": "roomkit_error_invalid_parameter",
+      "value": "请求参数错误，请稍后重试"
+    },
+    {
+      "name": "roomkit_error_not_logged_in",
+      "value": "未登录，请先登录"
+    },
+    {
+      "name": "roomkit_error_package",
+      "value": "功能未开通"
+    },
+    {
+      "name": "roomkit_error_server",
+      "value": "服务器异常，请稍后重试"
+    },
+    {
+      "name": "roomkit_error_too_frequent",
+      "value": "操作频繁，请稍后重试"
+    },
+    {
+      "name": "roomkit_foreground_service_running",
+      "value": "运行中"
+    },
+    {
+      "name": "roomkit_invitation_link",
+      "value": "会议链接"
+    },
+    {
+      "name": "roomkit_invitation_room_id",
+      "value": "会议号"
+    },
+    {
+      "name": "roomkit_invitation_room_name",
+      "value": "会议主题"
+    },
+    {
+      "name": "roomkit_invitation_time",
+      "value": "会议时间"
+    },
+    {
+      "name": "roomkit_join_password_placeholder",
+      "value": "请输入6位数字密码"
+    },
+    {
+      "name": "roomkit_layout_gallery_right",
+      "value": "右侧成员列表"
+    },
+    {
+      "name": "roomkit_layout_gallery_top",
+      "value": "顶部成员列表"
+    },
+    {
+      "name": "roomkit_layout_grid",
+      "value": "一屏九等分"
+    },
+    {
+      "name": "roomkit_layout_title",
+      "value": "视图布局"
+    },
+    {
+      "name": "roomkit_login_agreement_prefix",
+      "value": "登录即表示同意"
+    },
+    {
+      "name": "roomkit_login_and",
+      "value": "与"
+    },
+    {
+      "name": "roomkit_login_brand_line",
+      "value": "随时发起，或加入一场会议"
+    },
+    {
+      "name": "roomkit_login_code_placeholder",
+      "value": "请输入验证码"
+    },
+    {
+      "name": "roomkit_login_lead",
+      "value": "使用手机号或 UserID 继续"
+    },
+    {
+      "name": "roomkit_login_phone_number",
+      "value": "手机号"
+    },
+    {
+      "name": "roomkit_login_phone_number_placeholder",
+      "value": "请输入手机号"
+    },
+    {
+      "name": "roomkit_login_phone_verification",
+      "value": "手机验证码"
+    },
+    {
+      "name": "roomkit_login_privacy_policy",
+      "value": "隐私政策"
+    },
+    {
+      "name": "roomkit_login_send_code",
+      "value": "发送验证码"
+    },
+    {
+      "name": "roomkit_login_terms_of_service",
+      "value": "服务协议"
+    },
+    {
+      "name": "roomkit_login_user_id_placeholder",
+      "value": "请输入 UserID"
+    },
+    {
+      "name": "roomkit_login_user_name",
+      "value": "用户名"
+    },
+    {
+      "name": "roomkit_login_user_name_placeholder",
+      "value": "请输入 UserName"
+    },
+    {
+      "name": "roomkit_login_verification_code",
+      "value": "验证码"
+    },
+    {
+      "name": "roomkit_main_audio_route_earpiece",
+      "value": "听筒"
+    },
+    {
+      "name": "roomkit_main_audio_route_speaker",
+      "value": "扬声器"
+    },
+    {
+      "name": "roomkit_main_device_enabled_format",
+      "value": "%s已开启"
+    },
+    {
+      "name": "roomkit_main_device_name_camera",
+      "value": "摄像头"
+    },
+    {
+      "name": "roomkit_main_device_name_microphone",
+      "value": "麦克风"
+    },
+    {
+      "name": "roomkit_main_ended",
+      "value": "已结束会议"
+    },
+    {
+      "name": "roomkit_main_feature_coming",
+      "value": "功能建设中，敬请期待"
+    },
+    {
+      "name": "roomkit_main_leave_end",
+      "value": "结束会议"
+    },
+    {
+      "name": "roomkit_main_leave_self",
+      "value": "离开会议"
+    },
+    {
+      "name": "roomkit_main_left",
+      "value": "已离开会议"
+    },
+    {
+      "name": "roomkit_more_captions",
+      "value": "字幕"
+    },
+    {
+      "name": "roomkit_more_record",
+      "value": "录制"
+    },
+    {
+      "name": "roomkit_more_screen_share",
+      "value": "屏幕共享"
+    },
+    {
+      "name": "roomkit_network",
+      "value": "网络"
+    },
+    {
+      "name": "roomkit_network_disconnected",
+      "value": "已断开"
+    },
+    {
+      "name": "roomkit_network_fair",
+      "value": "一般"
+    },
+    {
+      "name": "roomkit_network_good",
+      "value": "良好"
+    },
+    {
+      "name": "roomkit_network_latency",
+      "value": "延迟"
+    },
+    {
+      "name": "roomkit_network_packet_loss",
+      "value": "丢包率"
+    },
+    {
+      "name": "roomkit_network_unit_ms",
+      "value": "ms"
+    },
+    {
+      "name": "roomkit_network_unit_percent",
+      "value": "\\%"
+    },
+    {
+      "name": "roomkit_network_weak",
+      "value": "较弱"
+    },
+    {
+      "name": "roomkit_participants_admin",
+      "value": "管理员"
+    },
+    {
+      "name": "roomkit_participants_admin_limit",
+      "value": "设为管理员失败，管理员人数已达上限"
+    },
+    {
+      "name": "roomkit_participants_admin_mark",
+      "value": "管"
+    },
+    {
+      "name": "roomkit_participants_all_chat_muted",
+      "value": "已开启全体禁言"
+    },
+    {
+      "name": "roomkit_participants_all_chat_unmuted",
+      "value": "已解除全体禁言"
+    },
+    {
+      "name": "roomkit_participants_audio_allow",
+      "value": "请求打开麦克风"
+    },
+    {
+      "name": "roomkit_participants_audio_disable",
+      "value": "关闭麦克风"
+    },
+    {
+      "name": "roomkit_participants_call",
+      "value": "呼叫"
+    },
+    {
+      "name": "roomkit_participants_call_all",
+      "value": "呼叫全部"
+    },
+    {
+      "name": "roomkit_participants_call_all_tip",
+      "value": "呼叫全部待进入成员"
+    },
+    {
+      "name": "roomkit_participants_call_started",
+      "value": "正在呼叫 %s"
+    },
+    {
+      "name": "roomkit_participants_calling",
+      "value": "呼叫中"
+    },
+    {
+      "name": "roomkit_participants_cam_close",
+      "value": "关闭摄像头"
+    },
+    {
+      "name": "roomkit_participants_cam_closed",
+      "value": "摄像头已关闭"
+    },
+    {
+      "name": "roomkit_participants_cam_off_all",
+      "value": "全体禁画"
+    },
+    {
+      "name": "roomkit_participants_cam_off_all_done",
+      "value": "已开启全体禁画"
+    },
+    {
+      "name": "roomkit_participants_cam_on_all",
+      "value": "解除全体禁画"
+    },
+    {
+      "name": "roomkit_participants_cam_on_all_done",
+      "value": "已解除全体禁画"
+    },
+    {
+      "name": "roomkit_participants_cam_open",
+      "value": "打开摄像头"
+    },
+    {
+      "name": "roomkit_participants_cam_opened",
+      "value": "摄像头已打开"
+    },
+    {
+      "name": "roomkit_participants_cam_requested",
+      "value": "已请求 %s 打开摄像头"
+    },
+    {
+      "name": "roomkit_participants_cam_stop_done",
+      "value": "已关闭 %s 的摄像头"
+    },
+    {
+      "name": "roomkit_participants_chat_mute",
+      "value": "禁言"
+    },
+    {
+      "name": "roomkit_participants_chat_muted",
+      "value": "已禁言 %s"
+    },
+    {
+      "name": "roomkit_participants_chat_unmute",
+      "value": "解除禁言"
+    },
+    {
+      "name": "roomkit_participants_chat_unmuted",
+      "value": "已解除 %s 禁言"
+    },
+    {
+      "name": "roomkit_participants_clear_search",
+      "value": "清空搜索"
+    },
+    {
+      "name": "roomkit_participants_confirm",
+      "value": "确定"
+    },
+    {
+      "name": "roomkit_participants_contact_empty",
+      "value": "暂无数据"
+    },
+    {
+      "name": "roomkit_participants_contact_invited",
+      "value": "已邀请"
+    },
+    {
+      "name": "roomkit_participants_empty",
+      "value": "暂无成员"
+    },
+    {
+      "name": "roomkit_participants_invite",
+      "value": "邀请"
+    },
+    {
+      "name": "roomkit_participants_invite_no_contacts",
+      "value": "请先选择联系人"
+    },
+    {
+      "name": "roomkit_participants_joined",
+      "value": "已进入"
+    },
+    {
+      "name": "roomkit_participants_joined_count",
+      "value": "已入会 (%s)"
+    },
+    {
+      "name": "roomkit_participants_kick",
+      "value": "踢出房间"
+    },
+    {
+      "name": "roomkit_participants_kick_confirm",
+      "value": "踢出"
+    },
+    {
+      "name": "roomkit_participants_kick_done",
+      "value": "已将 %s 踢出房间"
+    },
+    {
+      "name": "roomkit_participants_kick_message",
+      "value": "确定将 %s 踢出房间？"
+    },
+    {
+      "name": "roomkit_participants_me",
+      "value": "我"
+    },
+    {
+      "name": "roomkit_participants_mic_close",
+      "value": "关闭麦克风"
+    },
+    {
+      "name": "roomkit_participants_mic_closed",
+      "value": "麦克风已关闭"
+    },
+    {
+      "name": "roomkit_participants_mic_off_hint",
+      "value": "麦克风已关"
+    },
+    {
+      "name": "roomkit_participants_mic_on_hint",
+      "value": "麦克风已开"
+    },
+    {
+      "name": "roomkit_participants_mic_open",
+      "value": "打开麦克风"
+    },
+    {
+      "name": "roomkit_participants_mic_opened",
+      "value": "麦克风已打开"
+    },
+    {
+      "name": "roomkit_participants_mute_all",
+      "value": "全体静音"
+    },
+    {
+      "name": "roomkit_participants_mute_all_chat",
+      "value": "全体禁言"
+    },
+    {
+      "name": "roomkit_participants_mute_all_chat_done",
+      "value": "已开启全员禁言"
+    },
+    {
+      "name": "roomkit_participants_mute_all_done",
+      "value": "已开启全体静音"
+    },
+    {
+      "name": "roomkit_participants_mute_chat_done",
+      "value": "已禁言 %s"
+    },
+    {
+      "name": "roomkit_participants_mute_done",
+      "value": "已关闭 %s 的麦克风"
+    },
+    {
+      "name": "roomkit_participants_name_separator",
+      "value": "、"
+    },
+    {
+      "name": "roomkit_participants_no_answer",
+      "value": "对方未接通/暂不入会"
+    },
+    {
+      "name": "roomkit_participants_not_joined_count",
+      "value": "未入会 (%s)"
+    },
+    {
+      "name": "roomkit_participants_owner",
+      "value": "主持人"
+    },
+    {
+      "name": "roomkit_participants_owner_mark",
+      "value": "主"
+    },
+    {
+      "name": "roomkit_participants_panel",
+      "value": "参会者"
+    },
+    {
+      "name": "roomkit_participants_panel_count",
+      "value": "参会者（%s）"
+    },
+    {
+      "name": "roomkit_participants_pending",
+      "value": "待进入"
+    },
+    {
+      "name": "roomkit_participants_rename",
+      "value": "修改名称"
+    },
+    {
+      "name": "roomkit_participants_rename_desc",
+      "value": "其他参会者将看到这个显示名称"
+    },
+    {
+      "name": "roomkit_participants_rename_done",
+      "value": "名称修改成功"
+    },
+    {
+      "name": "roomkit_participants_rename_placeholder",
+      "value": "请输入用户名"
+    },
+    {
+      "name": "roomkit_participants_revoke_admin",
+      "value": "撤销管理员"
+    },
+    {
+      "name": "roomkit_participants_revoke_admin_done",
+      "value": "已将%s的管理员身份撤回"
+    },
+    {
+      "name": "roomkit_participants_search_empty",
+      "value": "未找到相关成员"
+    },
+    {
+      "name": "roomkit_participants_search_empty_desc",
+      "value": "没有与“%s”匹配的成员"
+    },
+    {
+      "name": "roomkit_participants_search_placeholder",
+      "value": "搜索"
+    },
+    {
+      "name": "roomkit_participants_set_admin",
+      "value": "设为管理员"
+    },
+    {
+      "name": "roomkit_participants_set_admin_done",
+      "value": "已将 %s 设为管理员"
+    },
+    {
+      "name": "roomkit_participants_share_everyone",
+      "value": "全体成员可共享屏幕"
+    },
+    {
+      "name": "roomkit_participants_share_everyone_done",
+      "value": "已允许全体成员共享屏幕"
+    },
+    {
+      "name": "roomkit_participants_share_owner_only",
+      "value": "仅主持人/管理员可共享屏幕"
+    },
+    {
+      "name": "roomkit_participants_share_owner_only_done",
+      "value": "已设为仅主持人/管理员可共享屏幕"
+    },
+    {
+      "name": "roomkit_participants_share_requested",
+      "value": "已请求 %s 开启屏幕共享"
+    },
+    {
+      "name": "roomkit_participants_share_stopped",
+      "value": "已停止 %s 的共享"
+    },
+    {
+      "name": "roomkit_participants_sharing",
+      "value": "共享中"
+    },
+    {
+      "name": "roomkit_participants_transfer_owner",
+      "value": "转交主持人"
+    },
+    {
+      "name": "roomkit_participants_transfer_owner_confirm",
+      "value": "转交"
+    },
+    {
+      "name": "roomkit_participants_transfer_owner_done",
+      "value": "已将主持人转交给 %s"
+    },
+    {
+      "name": "roomkit_participants_transfer_owner_message",
+      "value": "确定将主持人转交给 %s？转交后你将变为普通成员。"
+    },
+    {
+      "name": "roomkit_participants_unmute_all",
+      "value": "解除全体静音"
+    },
+    {
+      "name": "roomkit_participants_unmute_all_chat",
+      "value": "解除全体禁言"
+    },
+    {
+      "name": "roomkit_participants_unmute_all_chat_done",
+      "value": "已解除全员禁言"
+    },
+    {
+      "name": "roomkit_participants_unmute_all_done",
+      "value": "已解除全体静音"
+    },
+    {
+      "name": "roomkit_participants_unmute_chat_done",
+      "value": "已解除 %s 的禁言"
+    },
+    {
+      "name": "roomkit_participants_unmute_requested",
+      "value": "已请求 %s 打开麦克风"
+    },
+    {
+      "name": "roomkit_participants_video_allow",
+      "value": "请求打开摄像头"
+    },
+    {
+      "name": "roomkit_participants_video_disable",
+      "value": "关闭摄像头"
+    },
+    {
+      "name": "roomkit_participants_waiting_empty",
+      "value": "没有待进入的成员"
+    },
+    {
+      "name": "roomkit_pre_room_add_member",
+      "value": "添加"
+    },
+    {
+      "name": "roomkit_pre_room_agenda",
+      "value": "日程"
+    },
+    {
+      "name": "roomkit_pre_room_back",
+      "value": "返回"
+    },
+    {
+      "name": "roomkit_pre_room_camera_off",
+      "value": "摄像头未开启"
+    },
+    {
+      "name": "roomkit_pre_room_cancel_meeting",
+      "value": "取消会议"
+    },
+    {
+      "name": "roomkit_pre_room_copy_invite",
+      "value": "复制邀请"
+    },
+    {
+      "name": "roomkit_pre_room_create_sub",
+      "value": "立即开始"
+    },
+    {
+      "name": "roomkit_pre_room_create_title",
+      "value": "发起会议"
+    },
+    {
+      "name": "roomkit_pre_room_device_check",
+      "value": "设备检测"
+    },
+    {
+      "name": "roomkit_pre_room_edit_meeting",
+      "value": "修改会议"
+    },
+    {
+      "name": "roomkit_pre_room_edit_meeting_info",
+      "value": "修改会议信息"
+    },
+    {
+      "name": "roomkit_pre_room_edit_meeting_success",
+      "value": "修改会议信息成功"
+    },
+    {
+      "name": "roomkit_pre_room_enable_speaker",
+      "value": "开启扬声器"
+    },
+    {
+      "name": "roomkit_pre_room_enable_video",
+      "value": "开启视频"
+    },
+    {
+      "name": "roomkit_pre_room_entry_password",
+      "value": "入会密码"
+    },
+    {
+      "name": "roomkit_pre_room_invite_copied",
+      "value": "邀请信息已复制"
+    },
+    {
+      "name": "roomkit_pre_room_join",
+      "value": "加入会议"
+    },
+    {
+      "name": "roomkit_pre_room_join_sub",
+      "value": "输入会议号"
+    },
+    {
+      "name": "roomkit_pre_room_logged_in",
+      "value": "已登录"
+    },
+    {
+      "name": "roomkit_pre_room_login",
+      "value": "登录"
+    },
+    {
+      "name": "roomkit_pre_room_login_sign_up",
+      "value": "登录 / 注册"
+    },
+    {
+      "name": "roomkit_pre_room_meeting_name",
+      "value": "会议名称"
+    },
+    {
+      "name": "roomkit_pre_room_my_meeting",
+      "value": "我的会议"
+    },
+    {
+      "name": "roomkit_pre_room_or_join",
+      "value": "或者加入"
+    },
+    {
+      "name": "roomkit_pre_room_preview_region",
+      "value": "本地预览"
+    },
+    {
+      "name": "roomkit_pre_room_quick_meeting",
+      "value": "快速会议"
+    },
+    {
+      "name": "roomkit_pre_room_recent_meetings",
+      "value": "近期会议"
+    },
+    {
+      "name": "roomkit_pre_room_room_id_label",
+      "value": "会议号码"
+    },
+    {
+      "name": "roomkit_pre_room_room_id_placeholder",
+      "value": "输入会议号码"
+    },
+    {
+      "name": "roomkit_pre_room_save_meeting",
+      "value": "保存"
+    },
+    {
+      "name": "roomkit_pre_room_schedule_sub",
+      "value": "安排到日历"
+    },
+    {
+      "name": "roomkit_pre_room_schedule_title",
+      "value": "预约会议"
+    },
+    {
+      "name": "roomkit_room_chat_attachment",
+      "value": "附件"
+    },
+    {
+      "name": "roomkit_room_chat_delete",
+      "value": "删除"
+    },
+    {
+      "name": "roomkit_room_chat_delete_success",
+      "value": "已删除"
+    },
+    {
+      "name": "roomkit_room_chat_download",
+      "value": "下载"
+    },
+    {
+      "name": "roomkit_room_chat_emoji",
+      "value": "表情"
+    },
+    {
+      "name": "roomkit_room_chat_empty",
+      "value": "暂无消息"
+    },
+    {
+      "name": "roomkit_room_chat_empty_hint",
+      "value": "可以在这里和参会成员聊天"
+    },
+    {
+      "name": "roomkit_room_chat_file",
+      "value": "文件"
+    },
+    {
+      "name": "roomkit_room_chat_file_fallback",
+      "value": "文件"
+    },
+    {
+      "name": "roomkit_room_chat_image",
+      "value": "图片"
+    },
+    {
+      "name": "roomkit_room_chat_image_alt",
+      "value": "图片"
+    },
+    {
+      "name": "roomkit_room_chat_input_placeholder",
+      "value": "说点什么..."
+    },
+    {
+      "name": "roomkit_room_chat_muted_all_placeholder",
+      "value": "全员禁言中"
+    },
+    {
+      "name": "roomkit_room_chat_muted_placeholder",
+      "value": "你已被禁言"
+    },
+    {
+      "name": "roomkit_room_chat_panel",
+      "value": "会议聊天"
+    },
+    {
+      "name": "roomkit_room_chat_recall",
+      "value": "撤回"
+    },
+    {
+      "name": "roomkit_room_chat_recall_success",
+      "value": "已撤回"
+    },
+    {
+      "name": "roomkit_room_chat_recalled",
+      "value": "%s 撤回了一条消息"
+    },
+    {
+      "name": "roomkit_room_chat_reedit",
+      "value": "重新编辑"
+    },
+    {
+      "name": "roomkit_room_chat_resend_confirm_message",
+      "value": "确定重新发送这条消息?"
+    },
+    {
+      "name": "roomkit_room_chat_resent",
+      "value": "消息已重新发送"
+    },
+    {
+      "name": "roomkit_room_chat_retry",
+      "value": "重发"
+    },
+    {
+      "name": "roomkit_room_chat_send_failed",
+      "value": "发送失败"
+    },
+    {
+      "name": "roomkit_room_chat_sending",
+      "value": "发送中…"
+    },
+    {
+      "name": "roomkit_room_chat_title",
+      "value": "聊天"
+    },
+    {
+      "name": "roomkit_room_chat_unmuted_toast",
+      "value": "您已解除禁言"
+    },
+    {
+      "name": "roomkit_room_chat_video",
+      "value": "视频"
+    },
+    {
+      "name": "roomkit_room_chat_you_recalled",
+      "value": "你撤回了一条消息"
+    },
+    {
+      "name": "roomkit_room_common_back",
+      "value": "返回"
+    },
+    {
+      "name": "roomkit_room_common_cancel",
+      "value": "取消"
+    },
+    {
+      "name": "roomkit_room_common_close",
+      "value": "关闭"
+    },
+    {
+      "name": "roomkit_room_common_confirm",
+      "value": "确定"
+    },
+    {
+      "name": "roomkit_room_common_copied",
+      "value": "已复制"
+    },
+    {
+      "name": "roomkit_room_common_copy",
+      "value": "复制"
+    },
+    {
+      "name": "roomkit_room_common_copy_failed",
+      "value": "复制失败"
+    },
+    {
+      "name": "roomkit_room_common_got_it",
+      "value": "我知道了"
+    },
+    {
+      "name": "roomkit_room_common_notification",
+      "value": "通知"
+    },
+    {
+      "name": "roomkit_room_common_please_select",
+      "value": "请选择"
+    },
+    {
+      "name": "roomkit_room_end",
+      "value": "结束会议"
+    },
+    {
+      "name": "roomkit_room_end_hint",
+      "value": "所有人将退出"
+    },
+    {
+      "name": "roomkit_room_ended_by_host",
+      "value": "主持人已结束会议"
+    },
+    {
+      "name": "roomkit_room_ended_done",
+      "value": "已结束会议"
+    },
+    {
+      "name": "roomkit_room_entry_create_failed",
+      "value": "创建会议失败（{code}）"
+    },
+    {
+      "name": "roomkit_room_entry_failure_create",
+      "value": "创建会议失败"
+    },
+    {
+      "name": "roomkit_room_entry_failure_default",
+      "value": "请稍后重试"
+    },
+    {
+      "name": "roomkit_room_entry_failure_illegal_room_id",
+      "value": "会议号格式不正确，请检查后重试"
+    },
+    {
+      "name": "roomkit_room_entry_failure_illegal_room_name",
+      "value": "会议名称不合法，请修改后重试"
+    },
+    {
+      "name": "roomkit_room_entry_failure_invalid_room_id",
+      "value": "会议号无效，请检查后重试"
+    },
+    {
+      "name": "roomkit_room_entry_failure_room_exists",
+      "value": "房间已存在，请重新创建"
+    },
+    {
+      "name": "roomkit_room_entry_failure_room_full",
+      "value": "会议人数已满，暂时无法加入"
+    },
+    {
+      "name": "roomkit_room_entry_failure_room_not_found",
+      "value": "会议不存在或已结束"
+    },
+    {
+      "name": "roomkit_room_entry_failure_sensitive_word",
+      "value": "内容包含敏感词，请修改后重试"
+    },
+    {
+      "name": "roomkit_room_entry_failure_unknown",
+      "value": "操作失败，请稍后重试"
+    },
+    {
+      "name": "roomkit_room_entry_join",
+      "value": "加入"
+    },
+    {
+      "name": "roomkit_room_entry_join_failed",
+      "value": "加入会议失败"
+    },
+    {
+      "name": "roomkit_room_entry_joining",
+      "value": "正在进入会议"
+    },
+    {
+      "name": "roomkit_room_entry_password_title",
+      "value": "请输入会议密码"
+    },
+    {
+      "name": "roomkit_room_entry_wrong_password",
+      "value": "密码错误，请重新输入"
+    },
+    {
+      "name": "roomkit_room_error_common",
+      "value": "操作失败，请稍后重试"
+    },
+    {
+      "name": "roomkit_room_error_invalid_parameter",
+      "value": "请求参数错误，请稍后重试"
+    },
+    {
+      "name": "roomkit_room_error_not_logged_in",
+      "value": "未登录，请先登录"
+    },
+    {
+      "name": "roomkit_room_error_package",
+      "value": "功能未开通"
+    },
+    {
+      "name": "roomkit_room_error_server",
+      "value": "服务器异常，请稍后重试"
+    },
+    {
+      "name": "roomkit_room_error_too_frequent",
+      "value": "操作频繁，请稍后重试"
+    },
+    {
+      "name": "roomkit_room_error_with_reason",
+      "value": "%s，%s"
+    },
+    {
+      "name": "roomkit_room_error_with_retry",
+      "value": "%s，请稍后重试"
+    },
+    {
+      "name": "roomkit_room_fullscreen",
+      "value": "全屏"
+    },
+    {
+      "name": "roomkit_room_info_host",
+      "value": "主持人"
+    },
+    {
+      "name": "roomkit_room_info_invitation",
+      "value": "复制邀请信息"
+    },
+    {
+      "name": "roomkit_room_info_invitation_link",
+      "value": "链接：%s"
+    },
+    {
+      "name": "roomkit_room_info_invitation_password",
+      "value": "密码：%s"
+    },
+    {
+      "name": "roomkit_room_info_invitation_room_id",
+      "value": "会议号：%s"
+    },
+    {
+      "name": "roomkit_room_info_password",
+      "value": "密码"
+    },
+    {
+      "name": "roomkit_room_info_room_id",
+      "value": "会议号"
+    },
+    {
+      "name": "roomkit_room_info_name_you",
+      "value": "%s（我）"
+    },
+    {
+      "name": "roomkit_room_invite_accept_join",
+      "value": "接受并加入"
+    },
+    {
+      "name": "roomkit_room_invite_decline",
+      "value": "暂不加入"
+    },
+    {
+      "name": "roomkit_room_invite_invites_you",
+      "value": "邀请你加入会议"
+    },
+    {
+      "name": "roomkit_room_invite_timed_out",
+      "value": "邀请已超时"
+    },
+    {
+      "name": "roomkit_room_leave",
+      "value": "离开会议"
+    },
+    {
+      "name": "roomkit_room_leave_hint",
+      "value": "仅自己退出"
+    },
+    {
+      "name": "roomkit_room_left",
+      "value": "已离开会议"
+    },
+    {
+      "name": "roomkit_room_meeting_in_progress",
+      "value": "会议进行中"
+    },
+    {
+      "name": "roomkit_room_mini_restore",
+      "value": "返回主界面"
+    },
+    {
+      "name": "roomkit_room_mini_sharing",
+      "value": "屏幕共享中"
+    },
+    {
+      "name": "roomkit_room_more",
+      "value": "更多"
+    },
+    {
+      "name": "roomkit_room_notifications_admin_revoked",
+      "value": "您的管理员身份被收回"
+    },
+    {
+      "name": "roomkit_room_notifications_all_cameras_disabled",
+      "value": "已关闭所有成员视频，摄像头已禁用"
+    },
+    {
+      "name": "roomkit_room_notifications_all_cameras_enabled",
+      "value": "已允许成员开启视频"
+    },
+    {
+      "name": "roomkit_room_notifications_all_messages_disabled",
+      "value": "已禁止成员文字聊天"
+    },
+    {
+      "name": "roomkit_room_notifications_all_messages_enabled",
+      "value": "已允许成员文字聊天"
+    },
+    {
+      "name": "roomkit_room_notifications_all_microphones_disabled",
+      "value": "已静音所有成员，麦克风已禁用"
+    },
+    {
+      "name": "roomkit_room_notifications_all_microphones_enabled",
+      "value": "已允许成员开启麦克风"
+    },
+    {
+      "name": "roomkit_room_notifications_all_screen_shares_disabled",
+      "value": "已禁止成员屏幕共享"
+    },
+    {
+      "name": "roomkit_room_notifications_all_screen_shares_enabled",
+      "value": "已允许成员开启屏幕共享"
+    },
+    {
+      "name": "roomkit_room_notifications_become_admin",
+      "value": "您已成为管理员"
+    },
+    {
+      "name": "roomkit_room_notifications_become_owner",
+      "value": "您已成为主持人"
+    },
+    {
+      "name": "roomkit_room_notifications_camera",
+      "value": "摄像头"
+    },
+    {
+      "name": "roomkit_room_notifications_camera_closed",
+      "value": "%s已关闭您的摄像头"
+    },
+    {
+      "name": "roomkit_room_notifications_camera_invitation_received",
+      "value": "%s邀请您打开摄像头"
+    },
+    {
+      "name": "roomkit_room_notifications_connection_timeout",
+      "value": "网络连接超时，已退出会议"
+    },
+    {
+      "name": "roomkit_room_notifications_default_kicked_out",
+      "value": "您已被移出房间"
+    },
+    {
+      "name": "roomkit_room_notifications_device_request_rejected",
+      "value": "您的%s请求已被拒绝"
+    },
+    {
+      "name": "roomkit_room_notifications_invalid_status_on_reconnect",
+      "value": "房间已解散或您在离线期间已被移出"
+    },
+    {
+      "name": "roomkit_room_notifications_keep_mute",
+      "value": "保持关闭"
+    },
+    {
+      "name": "roomkit_room_notifications_keep_off",
+      "value": "保持关闭"
+    },
+    {
+      "name": "roomkit_room_notifications_kicked_by_admin",
+      "value": "您已被主持人移出房间"
+    },
+    {
+      "name": "roomkit_room_notifications_kicked_by_server",
+      "value": "您已被服务器移出房间"
+    },
+    {
+      "name": "roomkit_room_notifications_message_muted",
+      "value": "您已被禁止文字聊天"
+    },
+    {
+      "name": "roomkit_room_notifications_message_unmuted",
+      "value": "您已被允许文字聊天"
+    },
+    {
+      "name": "roomkit_room_notifications_microphone",
+      "value": "麦克风"
+    },
+    {
+      "name": "roomkit_room_notifications_microphone_closed",
+      "value": "%s已关闭您的麦克风"
+    },
+    {
+      "name": "roomkit_room_notifications_microphone_invitation_received",
+      "value": "%s邀请您开启麦克风"
+    },
+    {
+      "name": "roomkit_room_notifications_open_camera",
+      "value": "打开摄像头"
+    },
+    {
+      "name": "roomkit_room_notifications_open_microphone",
+      "value": "开启麦克风"
+    },
+    {
+      "name": "roomkit_room_notifications_open_screen_share",
+      "value": "开启屏幕共享"
+    },
+    {
+      "name": "roomkit_room_notifications_replaced_by_another_device",
+      "value": "您的账号已在其他设备登录"
+    },
+    {
+      "name": "roomkit_room_notifications_room_limit_exceeded",
+      "value": "房间人数已达上限，无法加入"
+    },
+    {
+      "name": "roomkit_room_notifications_screen_share",
+      "value": "屏幕共享"
+    },
+    {
+      "name": "roomkit_room_notifications_screen_share_closed",
+      "value": "%s已停止您的屏幕共享"
+    },
+    {
+      "name": "roomkit_room_notifications_screen_share_invitation_received",
+      "value": "%s邀请您开启屏幕共享"
+    },
+    {
+      "name": "roomkit_room_pip",
+      "value": "悬浮小窗"
+    },
+    {
+      "name": "roomkit_room_pip_off",
+      "value": "已关闭悬浮小窗"
+    },
+    {
+      "name": "roomkit_room_pip_on",
+      "value": "已开启悬浮小窗"
+    },
+    {
+      "name": "roomkit_room_rejoin",
+      "value": "重新入会"
+    },
+    {
+      "name": "roomkit_room_view_autoplay_cta",
+      "value": "点击任意位置继续"
+    },
+    {
+      "name": "roomkit_room_view_autoplay_desc",
+      "value": "浏览器需要一次点击才能播放视频流"
+    },
+    {
+      "name": "roomkit_room_view_autoplay_hint",
+      "value": "点击后所有参会者画面将自动恢复"
+    },
+    {
+      "name": "roomkit_room_view_autoplay_title",
+      "value": "点击页面继续播放"
+    },
+    {
+      "name": "roomkit_room_view_flip_camera",
+      "value": "翻转摄像头"
+    },
+    {
+      "name": "roomkit_room_view_me",
+      "value": "我"
+    },
+    {
+      "name": "roomkit_room_view_next_page",
+      "value": "下一页"
+    },
+    {
+      "name": "roomkit_room_view_page_number",
+      "value": "%d / %d"
+    },
+    {
+      "name": "roomkit_room_view_prev_page",
+      "value": "上一页"
+    },
+    {
+      "name": "roomkit_room_view_share_paused",
+      "value": "已暂停"
+    },
+    {
+      "name": "roomkit_room_view_sharing_by",
+      "value": "%s正在屏幕共享中"
+    },
+    {
+      "name": "roomkit_room_view_sharing_screen",
+      "value": "正在屏幕共享"
+    },
+    {
+      "name": "roomkit_schedule_attendee_count",
+      "value": "%s人"
+    },
+    {
+      "name": "roomkit_schedule_attendee_empty",
+      "value": "未找到相关联系人"
+    },
+    {
+      "name": "roomkit_schedule_attendee_search",
+      "value": "正在搜索中…"
+    },
+    {
+      "name": "roomkit_schedule_cal_fri",
+      "value": "五"
+    },
+    {
+      "name": "roomkit_schedule_cal_mon",
+      "value": "一"
+    },
+    {
+      "name": "roomkit_schedule_cal_sat",
+      "value": "六"
+    },
+    {
+      "name": "roomkit_schedule_cal_sun",
+      "value": "日"
+    },
+    {
+      "name": "roomkit_schedule_cal_thu",
+      "value": "四"
+    },
+    {
+      "name": "roomkit_schedule_cal_tue",
+      "value": "二"
+    },
+    {
+      "name": "roomkit_schedule_cal_wed",
+      "value": "三"
+    },
+    {
+      "name": "roomkit_schedule_cancel",
+      "value": "取消"
+    },
+    {
+      "name": "roomkit_schedule_cancel_confirm",
+      "value": "确定取消"
+    },
+    {
+      "name": "roomkit_schedule_cancel_room",
+      "value": "取消房间"
+    },
+    {
+      "name": "roomkit_schedule_cancel_room_desc",
+      "value": "取消后该预约会从日程里删掉，参会人也不能再加入。"
+    },
+    {
+      "name": "roomkit_schedule_cancel_think",
+      "value": "再想想"
+    },
+    {
+      "name": "roomkit_schedule_cancelled",
+      "value": "取消房间成功"
+    },
+    {
+      "name": "roomkit_schedule_clear_input",
+      "value": "清空"
+    },
+    {
+      "name": "roomkit_schedule_confirm",
+      "value": "预约"
+    },
+    {
+      "name": "roomkit_schedule_copy_link",
+      "value": "复制房间链接"
+    },
+    {
+      "name": "roomkit_schedule_copy_password",
+      "value": "复制房间密码"
+    },
+    {
+      "name": "roomkit_schedule_copy_room_id",
+      "value": "复制房间号"
+    },
+    {
+      "name": "roomkit_schedule_default_topic",
+      "value": "%s的临时房间"
+    },
+    {
+      "name": "roomkit_schedule_duration",
+      "value": "时长"
+    },
+    {
+      "name": "roomkit_schedule_duration_hour",
+      "value": "%s 小时"
+    },
+    {
+      "name": "roomkit_schedule_duration_hours",
+      "value": "%s 小时"
+    },
+    {
+      "name": "roomkit_schedule_duration_minutes",
+      "value": "%s 分钟"
+    },
+    {
+      "name": "roomkit_schedule_edit_room",
+      "value": "修改房间"
+    },
+    {
+      "name": "roomkit_schedule_edit_title",
+      "value": "修改房间"
+    },
+    {
+      "name": "roomkit_schedule_error_password",
+      "value": "会议密码须为 %s 位数字"
+    },
+    {
+      "name": "roomkit_schedule_error_topic",
+      "value": "会议主题须为 %s–%s 个字符"
+    },
+    {
+      "name": "roomkit_schedule_failure_create",
+      "value": "预约会议失败"
+    },
+    {
+      "name": "roomkit_schedule_failure_update",
+      "value": "修改会议失败"
+    },
+    {
+      "name": "roomkit_schedule_hour_unit",
+      "value": "时"
+    },
+    {
+      "name": "roomkit_schedule_meeting_cancelled",
+      "value": "取消会议成功"
+    },
+    {
+      "name": "roomkit_schedule_members",
+      "value": "成员管理"
+    },
+    {
+      "name": "roomkit_schedule_members_count",
+      "value": "%s 人"
+    },
+    {
+      "name": "roomkit_schedule_members_more",
+      "value": "等 %s 人"
+    },
+    {
+      "name": "roomkit_schedule_minute_unit",
+      "value": "分"
+    },
+    {
+      "name": "roomkit_schedule_mute_video",
+      "value": "全体禁画"
+    },
+    {
+      "name": "roomkit_schedule_name_sep",
+      "value": "、"
+    },
+    {
+      "name": "roomkit_schedule_option_mute_all",
+      "value": "全体静音"
+    },
+    {
+      "name": "roomkit_schedule_participants",
+      "value": "参与成员"
+    },
+    {
+      "name": "roomkit_schedule_participants_placeholder",
+      "value": "请输入成员名称"
+    },
+    {
+      "name": "roomkit_schedule_participants_title",
+      "value": "参与成员（%s）"
+    },
+    {
+      "name": "roomkit_schedule_password",
+      "value": "会议密码"
+    },
+    {
+      "name": "roomkit_schedule_password_hint",
+      "value": "请输入6位数字密码"
+    },
+    {
+      "name": "roomkit_schedule_pick_contacts",
+      "value": "选择联系人"
+    },
+    {
+      "name": "roomkit_schedule_room_password",
+      "value": "房间密码"
+    },
+    {
+      "name": "roomkit_schedule_save",
+      "value": "保存"
+    },
+    {
+      "name": "roomkit_schedule_security",
+      "value": "安全设置"
+    },
+    {
+      "name": "roomkit_schedule_share_attendees",
+      "value": "参会人"
+    },
+    {
+      "name": "roomkit_schedule_share_copy_all",
+      "value": "复制邀请信息"
+    },
+    {
+      "name": "roomkit_schedule_share_room_id",
+      "value": "房间号"
+    },
+    {
+      "name": "roomkit_schedule_share_room_name",
+      "value": "房间名称"
+    },
+    {
+      "name": "roomkit_schedule_share_title_detail",
+      "value": "会议详情"
+    },
+    {
+      "name": "roomkit_schedule_share_title_invite",
+      "value": "%s邀请您加入会议"
+    },
+    {
+      "name": "roomkit_schedule_share_title_invite_plain",
+      "value": "邀请您加入会议"
+    },
+    {
+      "name": "roomkit_schedule_share_title_success",
+      "value": "预定成功"
+    },
+    {
+      "name": "roomkit_schedule_show_password",
+      "value": "显示/隐藏密码"
+    },
+    {
+      "name": "roomkit_schedule_start",
+      "value": "开始"
+    },
+    {
+      "name": "roomkit_schedule_start_time",
+      "value": "开始时间"
+    },
+    {
+      "name": "roomkit_schedule_timezone",
+      "value": "时区"
+    },
+    {
+      "name": "roomkit_schedule_title",
+      "value": "预约会议"
+    },
+    {
+      "name": "roomkit_schedule_topic",
+      "value": "主题"
+    },
+    {
+      "name": "roomkit_schedule_topic_placeholder",
+      "value": "给会议起个名字…"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm01_00",
+      "value": "UTC-01:00 (亚速尔群岛)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm02_00",
+      "value": "UTC-02:00 (中大西洋)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm03_00",
+      "value": "UTC-03:00 (布宜诺斯艾利斯)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm04_00",
+      "value": "UTC-04:00 (哈利法克斯)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm05_00",
+      "value": "UTC-05:00 (纽约)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm06_00",
+      "value": "UTC-06:00 (芝加哥)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm07_00",
+      "value": "UTC-07:00 (丹佛)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm08_00",
+      "value": "UTC-08:00 (洛杉矶)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm09_00",
+      "value": "UTC-09:00 (阿拉斯加)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm10_00",
+      "value": "UTC-10:00 (夏威夷)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm11_00",
+      "value": "UTC-11:00 (萨摩亚)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcm12_00",
+      "value": "UTC-12:00 (贝克岛)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp00_00",
+      "value": "UTC+00:00 (伦敦)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp01_00",
+      "value": "UTC+01:00 (柏林)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp02_00",
+      "value": "UTC+02:00 (开罗)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp03_00",
+      "value": "UTC+03:00 (莫斯科)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp04_00",
+      "value": "UTC+04:00 (迪拜)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp05_00",
+      "value": "UTC+05:00 (卡拉奇)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp05_30",
+      "value": "UTC+05:30 (孟买)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp06_00",
+      "value": "UTC+06:00 (达卡)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp07_00",
+      "value": "UTC+07:00 (曼谷)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp08_00",
+      "value": "UTC+08:00 (北京)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp09_00",
+      "value": "UTC+09:00 (东京)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp10_00",
+      "value": "UTC+10:00 (悉尼)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp11_00",
+      "value": "UTC+11:00 (所罗门群岛)"
+    },
+    {
+      "name": "roomkit_schedule_tz_utcp12_00",
+      "value": "UTC+12:00 (奥克兰)"
+    },
+    {
+      "name": "roomkit_schedule_updated",
+      "value": "房间更新成功"
+    },
+    {
+      "name": "roomkit_schedule_view_detail",
+      "value": "查看详情"
+    },
+    {
+      "name": "roomkit_screen_share_all",
+      "value": "全部"
+    },
+    {
+      "name": "roomkit_screen_share_continue",
+      "value": "继续共享"
+    },
+    {
+      "name": "roomkit_screen_share_failure_failed",
+      "value": "屏幕共享失败，请稍后重试"
+    },
+    {
+      "name": "roomkit_screen_share_failure_owner_admin_only",
+      "value": "当前仅主持人/管理员可以共享屏幕"
+    },
+    {
+      "name": "roomkit_screen_share_failure_remotemsharing",
+      "value": "其他参会者正在共享屏幕"
+    },
+    {
+      "name": "roomkit_screen_share_failure_source_unavailable",
+      "value": "获取屏幕共享内容失败，请检查屏幕录制权限"
+    },
+    {
+      "name": "roomkit_screen_share_failure_unsupported",
+      "value": "屏幕共享失败，当前版本暂不支持"
+    },
+    {
+      "name": "roomkit_screen_share_go_share",
+      "value": "返回屏幕共享"
+    },
+    {
+      "name": "roomkit_screen_share_live",
+      "value": "共享中"
+    },
+    {
+      "name": "roomkit_screen_share_new",
+      "value": "新的共享"
+    },
+    {
+      "name": "roomkit_screen_share_owner_admin_only",
+      "value": "仅主持人/管理员可共享屏幕"
+    },
+    {
+      "name": "roomkit_screen_share_pause_share",
+      "value": "暂停共享"
+    },
+    {
+      "name": "roomkit_screen_share_paused",
+      "value": "已暂停共享"
+    },
+    {
+      "name": "roomkit_screen_share_pick_title",
+      "value": "选择共享内容"
+    },
+    {
+      "name": "roomkit_screen_share_resume_share",
+      "value": "继续共享"
+    },
+    {
+      "name": "roomkit_screen_share_resumed",
+      "value": "已恢复共享"
+    },
+    {
+      "name": "roomkit_screen_share_safety_message",
+      "value": "共享屏幕时可能会泄露短信验证码、密码等隐私信息，造成财产损失，请警惕各种诈骗行为。"
+    },
+    {
+      "name": "roomkit_screen_share_safety_title",
+      "value": "安全提醒"
+    },
+    {
+      "name": "roomkit_screen_share_screen",
+      "value": "屏幕"
+    },
+    {
+      "name": "roomkit_screen_share_screen1",
+      "value": "桌面1"
+    },
+    {
+      "name": "roomkit_screen_share_screen2",
+      "value": "桌面2"
+    },
+    {
+      "name": "roomkit_screen_share_share",
+      "value": "共享"
+    },
+    {
+      "name": "roomkit_screen_share_sharing",
+      "value": "正在共享屏幕"
+    },
+    {
+      "name": "roomkit_screen_share_sharing_phone",
+      "value": "正在共享手机屏幕"
+    },
+    {
+      "name": "roomkit_screen_share_sharing_phone_hint",
+      "value": "你已切换至应用外共享模式，手机上的所有画面将实时共享给参会者。"
+    },
+    {
+      "name": "roomkit_screen_share_start_confirm",
+      "value": "开始共享"
+    },
+    {
+      "name": "roomkit_screen_share_start_message",
+      "value": "确定开始共享屏幕？其他参会者将看到你的屏幕内容。"
+    },
+    {
+      "name": "roomkit_screen_share_start_title",
+      "value": "开始共享"
+    },
+    {
+      "name": "roomkit_screen_share_started",
+      "value": "已开始共享"
+    },
+    {
+      "name": "roomkit_screen_share_stop",
+      "value": "停止共享"
+    },
+    {
+      "name": "roomkit_screen_share_stop_confirm",
+      "value": "结束共享"
+    },
+    {
+      "name": "roomkit_screen_share_stop_message",
+      "value": "确定结束共享？其他参会者将无法继续看到你的共享内容。"
+    },
+    {
+      "name": "roomkit_screen_share_stop_title",
+      "value": "结束共享"
+    },
+    {
+      "name": "roomkit_screen_share_stopped",
+      "value": "你已停止共享"
+    },
+    {
+      "name": "roomkit_screen_share_tab_whiteboard",
+      "value": "白板"
+    },
+    {
+      "name": "roomkit_settings_audio_input",
+      "value": "输入"
+    },
+    {
+      "name": "roomkit_settings_audio_output",
+      "value": "输出"
+    },
+    {
+      "name": "roomkit_settings_audio_title",
+      "value": "音频设置"
+    },
+    {
+      "name": "roomkit_settings_camera",
+      "value": "摄像头"
+    },
+    {
+      "name": "roomkit_settings_camera_preview_unavailable",
+      "value": "摄像头预览未开启"
+    },
+    {
+      "name": "roomkit_settings_general_title",
+      "value": "通用"
+    },
+    {
+      "name": "roomkit_settings_group_general",
+      "value": "通用"
+    },
+    {
+      "name": "roomkit_settings_group_video",
+      "value": "视频"
+    },
+    {
+      "name": "roomkit_settings_language",
+      "value": "语言"
+    },
+    {
+      "name": "roomkit_settings_language_en_us",
+      "value": "English"
+    },
+    {
+      "name": "roomkit_settings_language_zh_cn",
+      "value": "简体中文"
+    },
+    {
+      "name": "roomkit_settings_mic_level",
+      "value": "音浪检测"
+    },
+    {
+      "name": "roomkit_settings_microphone",
+      "value": "麦克风"
+    },
+    {
+      "name": "roomkit_settings_mirror",
+      "value": "画面镜像"
+    },
+    {
+      "name": "roomkit_settings_mirror_desc",
+      "value": "开启后，你和其他人看到的画面都会镜像"
+    },
+    {
+      "name": "roomkit_settings_quality1080_p",
+      "value": "超清"
+    },
+    {
+      "name": "roomkit_settings_quality360_p",
+      "value": "流畅"
+    },
+    {
+      "name": "roomkit_settings_quality540_p",
+      "value": "标清"
+    },
+    {
+      "name": "roomkit_settings_quality720_p",
+      "value": "高清"
+    },
+    {
+      "name": "roomkit_settings_resolution",
+      "value": "分辨率"
+    },
+    {
+      "name": "roomkit_settings_resolution_desc",
+      "value": "发送分辨率"
+    },
+    {
+      "name": "roomkit_settings_share_system_audio",
+      "value": "同时共享电脑声音"
+    },
+    {
+      "name": "roomkit_settings_share_system_audio_desc",
+      "value": "共享时把电脑正在播放的声音一起发送给参会者"
+    },
+    {
+      "name": "roomkit_settings_share_title",
+      "value": "共享设置"
+    },
+    {
+      "name": "roomkit_settings_speaker",
+      "value": "扬声器"
+    },
+    {
+      "name": "roomkit_settings_speaker_test",
+      "value": "扬声器测试"
+    },
+    {
+      "name": "roomkit_settings_speaker_test_start",
+      "value": "测试"
+    },
+    {
+      "name": "roomkit_settings_speaker_test_stop",
+      "value": "停止"
+    },
+    {
+      "name": "roomkit_settings_tab_audio",
+      "value": "音频"
+    },
+    {
+      "name": "roomkit_settings_tab_general",
+      "value": "通用"
+    },
+    {
+      "name": "roomkit_settings_tab_share",
+      "value": "共享"
+    },
+    {
+      "name": "roomkit_settings_tab_video",
+      "value": "视频"
+    },
+    {
+      "name": "roomkit_settings_tab_video_effect",
+      "value": "背景与美颜"
+    },
+    {
+      "name": "roomkit_settings_theme",
+      "value": "主题"
+    },
+    {
+      "name": "roomkit_settings_theme_dark",
+      "value": "深色"
+    },
+    {
+      "name": "roomkit_settings_theme_light",
+      "value": "浅色"
+    },
+    {
+      "name": "roomkit_settings_theme_system",
+      "value": "跟随系统"
+    },
+    {
+      "name": "roomkit_settings_theme_to_dark",
+      "value": "切换到深色"
+    },
+    {
+      "name": "roomkit_settings_theme_to_light",
+      "value": "切换到浅色"
+    },
+    {
+      "name": "roomkit_settings_title",
+      "value": "设置"
+    },
+    {
+      "name": "roomkit_settings_video_effect_title",
+      "value": "背景与美颜"
+    },
+    {
+      "name": "roomkit_settings_video_title",
+      "value": "视频设置"
+    },
+    {
+      "name": "roomkit_transcription_close",
+      "value": "关闭文字转写"
+    },
+    {
+      "name": "roomkit_transcription_copied_all",
+      "value": "已复制 %s 条转写"
+    },
+    {
+      "name": "roomkit_transcription_copied_results",
+      "value": "已复制 %s 条搜索结果"
+    },
+    {
+      "name": "roomkit_transcription_copy_all",
+      "value": "复制全文"
+    },
+    {
+      "name": "roomkit_transcription_copy_results",
+      "value": "复制搜索结果"
+    },
+    {
+      "name": "roomkit_transcription_empty_hint",
+      "value": "发言后将自动显示在这里"
+    },
+    {
+      "name": "roomkit_transcription_no_match",
+      "value": "没有找到匹配的转写"
+    },
+    {
+      "name": "roomkit_transcription_off",
+      "value": "房间已关闭转录"
+    },
+    {
+      "name": "roomkit_transcription_on_for_room",
+      "value": "房间已开启转录"
+    },
+    {
+      "name": "roomkit_transcription_open",
+      "value": "显示文字转写"
+    },
+    {
+      "name": "roomkit_transcription_room_desc",
+      "value": "开启后全房间生效"
+    },
+    {
+      "name": "roomkit_transcription_room_title",
+      "value": "房间转录"
+    },
+    {
+      "name": "roomkit_transcription_search",
+      "value": "搜索"
+    },
+    {
+      "name": "roomkit_transcription_search_placeholder",
+      "value": "搜索转写内容"
+    },
+    {
+      "name": "roomkit_transcription_start",
+      "value": "开启转录"
+    },
+    {
+      "name": "roomkit_transcription_start_confirm",
+      "value": "开启"
+    },
+    {
+      "name": "roomkit_transcription_start_content",
+      "value": "开启后全房间生效，发言会转成文字，所有成员都可以查看实时字幕和文字转写。"
+    },
+    {
+      "name": "roomkit_transcription_start_show_mine",
+      "value": "同时显示我的字幕"
+    },
+    {
+      "name": "roomkit_transcription_start_title",
+      "value": "开启转录？"
+    },
+    {
+      "name": "roomkit_transcription_stop",
+      "value": "关闭转录"
+    },
+    {
+      "name": "roomkit_transcription_stop_confirm",
+      "value": "关闭"
+    },
+    {
+      "name": "roomkit_transcription_stop_content",
+      "value": "关闭后全房间生效，所有成员都将无法查看实时字幕，文字转写也不再更新，已有转写仍可查看。"
+    },
+    {
+      "name": "roomkit_transcription_stop_title",
+      "value": "关闭转录？"
+    },
+    {
+      "name": "roomkit_transcription_title",
+      "value": "文字转写"
+    },
+    {
+      "name": "roomkit_transcription_view_desc",
+      "value": "查看完整转写记录"
+    },
+    {
+      "name": "roomkit_transcription_wait_host",
+      "value": "主持人开启转录后可用"
+    },
+    {
+      "name": "roomkit_user_picker_back",
+      "value": "返回"
+    },
+    {
+      "name": "roomkit_user_picker_clear",
+      "value": "清空"
+    },
+    {
+      "name": "roomkit_user_picker_confirm_count",
+      "value": "确定 (%s)"
+    },
+    {
+      "name": "roomkit_user_picker_invite",
+      "value": "邀请"
+    },
+    {
+      "name": "roomkit_user_picker_invite_count",
+      "value": "邀请 (%s)"
+    },
+    {
+      "name": "roomkit_user_picker_people_unit",
+      "value": "人"
+    },
+    {
+      "name": "roomkit_user_picker_picked_empty",
+      "value": "从左侧选择联系人"
+    },
+    {
+      "name": "roomkit_user_picker_remove",
+      "value": "移除"
+    },
+    {
+      "name": "roomkit_user_picker_selected_count",
+      "value": "已选 %s 人"
+    },
+    {
+      "name": "roomkit_user_picker_title",
+      "value": "选择联系人"
+    },
+    {
+      "name": "roomkit_virtual_background_blurred",
+      "value": "模糊"
+    },
+    {
+      "name": "roomkit_virtual_background_close",
+      "value": "无"
+    },
+    {
+      "name": "roomkit_virtual_background_custom",
+      "value": "自定义"
+    },
+    {
+      "name": "roomkit_virtual_background_title",
+      "value": "虚拟背景"
+    },
+    {
+      "name": "roomkit_whiteboard_annotation",
+      "value": "批注"
+    },
+    {
+      "name": "roomkit_whiteboard_clear",
+      "value": "清除"
+    },
+    {
+      "name": "roomkit_whiteboard_clear_all_confirm_content",
+      "value": "所有参与者的批注清除后将无法恢复，是否继续？"
+    },
+    {
+      "name": "roomkit_whiteboard_clear_all_confirm_title",
+      "value": "确认清除所有批注"
+    },
+    {
+      "name": "roomkit_whiteboard_close",
+      "value": "关闭白板"
+    },
+    {
+      "name": "roomkit_whiteboard_close_confirm_content",
+      "value": "结束后白板内容将无法恢复，是否继续？"
+    },
+    {
+      "name": "roomkit_whiteboard_close_confirm_title",
+      "value": "确认结束白板"
+    },
+    {
+      "name": "roomkit_whiteboard_close_screen_share_first",
+      "value": "请先关闭屏幕共享"
+    },
+    {
+      "name": "roomkit_whiteboard_collapse",
+      "value": "收起"
+    },
+    {
+      "name": "roomkit_whiteboard_color",
+      "value": "颜色"
+    },
+    {
+      "name": "roomkit_whiteboard_dashed",
+      "value": "虚线"
+    },
+    {
+      "name": "roomkit_whiteboard_enter_text",
+      "value": "输入文字"
+    },
+    {
+      "name": "roomkit_whiteboard_line_type",
+      "value": "线条类型"
+    },
+    {
+      "name": "roomkit_whiteboard_object_eraser",
+      "value": "对象橡皮擦"
+    },
+    {
+      "name": "roomkit_whiteboard_open",
+      "value": "白板"
+    },
+    {
+      "name": "roomkit_whiteboard_opened",
+      "value": "已打开白板"
+    },
+    {
+      "name": "roomkit_whiteboard_pen_settings",
+      "value": "画笔设置"
+    },
+    {
+      "name": "roomkit_whiteboard_pixel_eraser",
+      "value": "像素橡皮擦"
+    },
+    {
+      "name": "roomkit_whiteboard_redo",
+      "value": "重做"
+    },
+    {
+      "name": "roomkit_whiteboard_save",
+      "value": "保存"
+    },
+    {
+      "name": "roomkit_whiteboard_shape_ellipse",
+      "value": "椭圆"
+    },
+    {
+      "name": "roomkit_whiteboard_shape_line",
+      "value": "直线"
+    },
+    {
+      "name": "roomkit_whiteboard_shape_rect",
+      "value": "矩形"
+    },
+    {
+      "name": "roomkit_whiteboard_shape_triangle",
+      "value": "三角形"
+    },
+    {
+      "name": "roomkit_whiteboard_solid",
+      "value": "实线"
+    },
+    {
+      "name": "roomkit_whiteboard_stroke_width",
+      "value": "线条粗细"
+    },
+    {
+      "name": "roomkit_whiteboard_tool_arrow",
+      "value": "箭头"
+    },
+    {
+      "name": "roomkit_whiteboard_tool_eraser",
+      "value": "橡皮擦"
+    },
+    {
+      "name": "roomkit_whiteboard_tool_laser",
+      "value": "激光笔"
+    },
+    {
+      "name": "roomkit_whiteboard_tool_pen",
+      "value": "画笔"
+    },
+    {
+      "name": "roomkit_whiteboard_tool_select",
+      "value": "选择"
+    },
+    {
+      "name": "roomkit_whiteboard_tool_shape",
+      "value": "形状"
+    },
+    {
+      "name": "roomkit_whiteboard_tool_text",
+      "value": "文字"
+    },
+    {
+      "name": "roomkit_whiteboard_undo",
+      "value": "撤销"
+    }
+  ]
+}

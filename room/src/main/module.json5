@@ -1,9 +1,0 @@
-{
-  "module": {
-    "name": "tuiroomkit",
-    "type": "har",
-    "deviceTypes": [
-      "default"
-    ]
-  }
-}

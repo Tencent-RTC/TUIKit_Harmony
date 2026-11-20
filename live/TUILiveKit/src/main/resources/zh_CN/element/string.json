@@ -1231,6 +1231,126 @@
     {
       "name": "tuilivekit_pusher_summary_duration_seconds",
       "value": "%1$d秒"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_title",
+      "value": "连线"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_invite_title",
+      "value": "邀请主播连线"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_empty",
+      "value": "暂无可邀请的主播"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_retry",
+      "value": "加载失败，点击重试"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_load_more",
+      "value": "加载更多"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_recommended",
+      "value": "推荐主播"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_mutual",
+      "value": "互关主播"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_following",
+      "value": "关注主播"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_connected",
+      "value": "已连线"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_cancel_invitation",
+      "value": "取消邀请"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_invite",
+      "value": "邀请连线"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_connected_with",
+      "value": "与 %s 连线中"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_connected_count",
+      "value": "%d 位主播连线中"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_end",
+      "value": "结束连线"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_invite_more",
+      "value": "寻找更多主播"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_duration",
+      "value": "连线中 %s"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_request_timeout",
+      "value": "连线邀请已超时"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_request_rejected",
+      "value": "对方拒绝了连线邀请"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_follow_query_failed",
+      "value": "关注关系获取失败，请刷新重试"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_interaction_title",
+      "value": "主播互动"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_incoming_mutual",
+      "value": "来自「互相关注」主播的连线邀请"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_incoming",
+      "value": "来自主播的连线邀请"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_reject_countdown",
+      "value": "拒绝（%ds）"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_accept",
+      "value": "接受"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_random_title",
+      "value": "随机连线"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_random_subtitle",
+      "value": "为你匹配合适的主播"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_random_button",
+      "value": "双人随机连线"
+    },
+    {
+      "name": "tuilivekit_pusher_cohost_random_developing",
+      "value": "随机连线正在开发中"
+    },
+    {
+      "name": "tuilivekit_player_cohost_connected",
+      "value": "连线中"
+    },
+    {
+      "name": "tuilivekit_common_back",
+      "value": "返回"
     }
   ]
 }

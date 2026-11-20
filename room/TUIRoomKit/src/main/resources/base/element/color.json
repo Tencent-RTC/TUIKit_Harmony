@@ -1,0 +1,196 @@
+{
+  "color": [
+    {
+      "name": "roomkit_accent",
+      "value": "#FF0071E3"
+    },
+    {
+      "name": "roomkit_accent_border",
+      "value": "#470071E3"
+    },
+    {
+      "name": "roomkit_accent_soft",
+      "value": "#240071E3"
+    },
+    {
+      "name": "roomkit_bg_canvas",
+      "value": "#FFF5F4F5"
+    },
+    {
+      "name": "roomkit_bg_hover",
+      "value": "#0F1C1B1C"
+    },
+    {
+      "name": "roomkit_bg_hover_strong",
+      "value": "#1A1C1B1C"
+    },
+    {
+      "name": "roomkit_bg_inverse",
+      "value": "#FF1C1B1C"
+    },
+    {
+      "name": "roomkit_bg_on_media",
+      "value": "#73000000"
+    },
+    {
+      "name": "roomkit_bg_page_indicator",
+      "value": "#6B000000"
+    },
+    {
+      "name": "roomkit_bg_popover_solid",
+      "value": "#FCFFFFFF"
+    },
+    {
+      "name": "roomkit_bg_press",
+      "value": "#1F1C1B1C"
+    },
+    {
+      "name": "roomkit_bg_press_on_media",
+      "value": "#3DFFFFFF"
+    },
+    {
+      "name": "roomkit_bg_share_placeholder",
+      "value": "#FFF4F4F4"
+    },
+    {
+      "name": "roomkit_bg_sheet",
+      "value": "#FAFFFFFF"
+    },
+    {
+      "name": "roomkit_bg_surface",
+      "value": "#FFFFFFFF"
+    },
+    {
+      "name": "roomkit_border",
+      "value": "#171C1B1C"
+    },
+    {
+      "name": "roomkit_border_strong",
+      "value": "#241C1B1C"
+    },
+    {
+      "name": "roomkit_danger",
+      "value": "#FFFF453A"
+    },
+    {
+      "name": "roomkit_danger_faint",
+      "value": "#14FF453A"
+    },
+    {
+      "name": "roomkit_danger_pressed",
+      "value": "#FFF23F35"
+    },
+    {
+      "name": "roomkit_danger_soft",
+      "value": "#24FF453A"
+    },
+    {
+      "name": "roomkit_danger_soft_strong",
+      "value": "#2EFF453A"
+    },
+    {
+      "name": "roomkit_dialog_nav_bar",
+      "value": "#A7A7A7"
+    },
+    {
+      "name": "roomkit_drag_handle",
+      "value": "#2E1C1B1C"
+    },
+    {
+      "name": "roomkit_fg_icon",
+      "value": "#FF3A393A"
+    },
+    {
+      "name": "roomkit_fg_on_accent",
+      "value": "#FFFFFFFF"
+    },
+    {
+      "name": "roomkit_fg_on_danger",
+      "value": "#FFFFFFFF"
+    },
+    {
+      "name": "roomkit_fg_on_media",
+      "value": "#FFFFFFFF"
+    },
+    {
+      "name": "roomkit_fg_on_media_muted",
+      "value": "#C7FFFFFF"
+    },
+    {
+      "name": "roomkit_fg_primary",
+      "value": "#FF1C1B1C"
+    },
+    {
+      "name": "roomkit_fg_secondary",
+      "value": "#FF636263"
+    },
+    {
+      "name": "roomkit_fg_tertiary",
+      "value": "#FF8E8D8E"
+    },
+    {
+      "name": "roomkit_info_line",
+      "value": "#0F1C1B1C"
+    },
+    {
+      "name": "roomkit_popup_border",
+      "value": "#1A1C1B1C"
+    },
+    {
+      "name": "roomkit_role_admin_bg",
+      "value": "#FFFFECCE"
+    },
+    {
+      "name": "roomkit_role_admin_fg",
+      "value": "#FF945C06"
+    },
+    {
+      "name": "roomkit_role_owner_bg",
+      "value": "#FFCCE3F9"
+    },
+    {
+      "name": "roomkit_role_owner_fg",
+      "value": "#FF0058B1"
+    },
+    {
+      "name": "roomkit_scrim",
+      "value": "#52141314"
+    },
+    {
+      "name": "roomkit_separator",
+      "value": "#381C1B1C"
+    },
+    {
+      "name": "roomkit_shadow_lg",
+      "value": "#1F000000"
+    },
+    {
+      "name": "roomkit_success",
+      "value": "#FF34C759"
+    },
+    {
+      "name": "roomkit_success_border",
+      "value": "#A634C759"
+    },
+    {
+      "name": "roomkit_success_soft",
+      "value": "#1F34C759"
+    },
+    {
+      "name": "roomkit_success_text",
+      "value": "#FF2DAB4A"
+    },
+    {
+      "name": "roomkit_toast_bg",
+      "value": "#C0000000"
+    },
+    {
+      "name": "roomkit_warning",
+      "value": "#FFFF9F0A"
+    },
+    {
+      "name": "roomkit_warning_soft",
+      "value": "#24FF9F0A"
+    }
+  ]
+}

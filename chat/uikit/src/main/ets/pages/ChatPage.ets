@@ -21,12 +21,14 @@ export struct ChatDialog {
   onUserClick?: (userID: string) => void;
   onChatHeaderClick?: (conversationID: string) => void;
   onSecurityReportClick?: () => void;
+  @Prop enableCalls: boolean = true;
   moreActionRedDotIDs?: string[];
   onMoreActionRedDotTap?: (actionID: string) => void;
 
   build() {
     ChatPage({
       conversationID: this.conversationID,
+      enableCalls: this.enableCalls,
       title: this.title,
       status: this.status,
       avatarUrl: this.avatarUrl,
@@ -83,6 +85,7 @@ export struct ChatPage {
   onSecurityReportClick?: () => void;
   // Which more-panel entries deserve a dot, and where to report a tap. The host
   // owns both, because only it knows what counts as "already seen".
+  @Prop enableCalls: boolean = true;
   moreActionRedDotIDs?: string[];
   onMoreActionRedDotTap?: (actionID: string) => void;
   dialogController?: CustomDialogController;
@@ -199,6 +202,8 @@ export struct ChatPage {
           conversationID: this.conversationID,
           config: new ChatMessageInputConfig({
             enableTyping: true,
+            isShowAudioCall: this.enableCalls,
+            isShowVideoCall: this.enableCalls,
             onTypingStatusChanged: (isTyping: boolean): void => {
               this.isPeerTyping = isTyping;
             },

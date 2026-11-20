@@ -1,20 +1,5 @@
 {
   "app": {
-    "signingConfigs": [
-      {
-        "name": "default",
-        "type": "HarmonyOS",
-        "material": {
-          "certpath": "/Users/mason/.ohos/config/default_application_cBNmGqZ5jh28dn70YZzZTTpCUpceOshtj4NmT5FzLog=.cer",
-          "keyAlias": "debugKey",
-          "keyPassword": "0000001A0611529CFEEFD8FD3C954B0AD061259A4DBB1A91D5D316BBB3CDBBEE1FFA9AC1D561C8601FB8",
-          "profile": "/Users/mason/.ohos/config/default_application_cBNmGqZ5jh28dn70YZzZTTpCUpceOshtj4NmT5FzLog=.p7b",
-          "signAlg": "SHA256withECDSA",
-          "storeFile": "/Users/mason/.ohos/config/default_application_cBNmGqZ5jh28dn70YZzZTTpCUpceOshtj4NmT5FzLog=.p12",
-          "storePassword": "0000001A6DF3F6A8CA4CBF1450E747E35A181F3C24FAA1D53BBE29AAFF67361984C0DD1C8E4067FEA1D2"
-        }
-      }
-    ],
     "products": [
       {
         "name": "default",

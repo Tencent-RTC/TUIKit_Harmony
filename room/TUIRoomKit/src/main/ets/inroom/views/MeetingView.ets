@@ -26,6 +26,7 @@ import { RoomToast } from '../../base/toast/RoomToast'
 import { RoomResources } from '../../base/util/RoomResources'
 import { RoomSafeArea } from '../../base/util/RoomSafeArea'
 import { getRoomUserDisplayName, getSenderName } from '../../base/util/DisplayName'
+import { RoomDataReporter } from '../../base/util/RoomDataReporter'
 import { RoomView } from '../features/roomview/RoomView'
 import { RoomDevicePermission } from '../../base/util/RoomDevicePermission'
 import { RoomScreenSharingPlaceholderView } from '../features/screenshare/RoomScreenSharingPlaceholderView'
@@ -74,6 +75,7 @@ export struct MeetingView {
   }
 
   private joinOrCreate(): void {
+    RoomDataReporter.reportComponent()
     this.isLoading = true
     const request = this.isCreate ?
       RoomStore.shared().createAndJoinRoom(this.roomID, RoomType.standard,

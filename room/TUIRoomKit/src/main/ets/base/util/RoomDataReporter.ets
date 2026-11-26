@@ -12,7 +12,7 @@ export class RoomDataReporter {
       'language': RoomDataReporter.languageArkTS,
     }
     const jsonObject: Record<string, Object> = {
-      'api': 'setFramework',
+      'api': 'LoginModule.setFramework',
       'params': params,
     }
     const jsonString: string = JSON.stringify(jsonObject)

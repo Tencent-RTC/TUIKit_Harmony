@@ -1,23 +1,20 @@
 import { RoomStore } from '@tencentcloud/atomicxcore'
 
 export class RoomDataReporter {
-  private static readonly frameworkNative: number = 1
-  private static readonly roomComponent: number = 18
-  private static readonly languageArkTS: number = 11
+  private static readonly framework: number = 1
+  private static readonly component: number = 18
+  private static readonly language: number = 11
 
   static reportComponent(): void {
     const params: Record<string, Object> = {
-      'framework': RoomDataReporter.frameworkNative,
-      'component': RoomDataReporter.roomComponent,
-      'language': RoomDataReporter.languageArkTS,
+      'framework': RoomDataReporter.framework,
+      'component': RoomDataReporter.component,
+      'language': RoomDataReporter.language,
     }
-    const jsonObject: Record<string, Object> = {
+    const payload: Record<string, Object> = {
       'api': 'LoginModule.setFramework',
       'params': params,
     }
-    const jsonString: string = JSON.stringify(jsonObject)
-    RoomStore.shared().callExperimentalAPI(jsonString).catch(() => {
-
-    })
+    RoomStore.shared().callExperimentalAPI(JSON.stringify(payload)).catch(() => undefined)
   }
 }

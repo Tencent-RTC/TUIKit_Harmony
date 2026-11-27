@@ -26,13 +26,15 @@ export struct RoomLeavePopoverView {
   @Builder
   popupContent() {
     Column() {
-      this.content()
+      Column() {
+        this.content()
+      }
+      .width(this.minWidth)
     }
     .padding(9)
-    .width(this.minWidth)
     .backgroundColor($r('app.color.roomkit_bg_popover_solid'))
-    .border({ width: 1, color: $r('app.color.roomkit_border_strong') })
-    .borderRadius(14)
+    .border({ width: 1, color: $r('app.color.roomkit_popup_border') })
+    .borderRadius(10)
   }
 
   build() {
@@ -42,12 +44,12 @@ export struct RoomLeavePopoverView {
     .bindPopup(this.isPresented, {
       builder: this.popupContent,
       placement: this.placement(),
-      offset: { x: 0, y: this.gap },
+      targetSpace: this.gap,
       mask: { color: Color.Transparent },
       popupColor: $r('app.color.roomkit_bg_popover_solid'),
       enableArrow: this.showsArrow,
-      radius: 14,
-      shadow: { radius: 8, color: $r('app.color.roomkit_border_strong'), offsetY: 4 },
+      radius: 10,
+      shadow: { radius: 12, color: $r('app.color.roomkit_shadow_lg'), offsetY: 8 },
       onStateChange: (event) => {
         if (!event.isVisible) {
           this.onClose?.()

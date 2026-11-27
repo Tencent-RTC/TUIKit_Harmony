@@ -1413,6 +1413,10 @@
       "value": "Image"
     },
     {
+      "name": "roomkit_room_chat_image_preview",
+      "value": "Image preview"
+    },
+    {
       "name": "roomkit_room_chat_input_placeholder",
       "value": "Say something..."
     },

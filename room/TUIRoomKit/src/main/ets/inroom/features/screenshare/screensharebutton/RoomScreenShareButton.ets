@@ -18,6 +18,7 @@ export struct RoomScreenShareButton {
   @State private isPressed: boolean = false
   @State private isConfirmPresented: boolean = false
   @State private confirmMode: RoomScreenShareConfirmMode = RoomScreenShareConfirmMode.START
+  onConfirmDismiss?: () => void
 
   aboutToAppear(): void {
     this.bindRoom()
@@ -69,7 +70,10 @@ export struct RoomScreenShareButton {
       RoomScreenShareConfirm({
         mode: this.confirmMode,
         isPresented: this.isConfirmPresented,
-        onDismiss: () => this.isConfirmPresented = false,
+        onDismiss: () => {
+          this.isConfirmPresented = false
+          this.onConfirmDismiss?.()
+        },
       })
     }
     .width(44)

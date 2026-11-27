@@ -191,6 +191,14 @@
     {
       "name": "roomkit_warning_soft",
       "value": "#24FF9F0A"
+    },
+    {
+      "name": "roomkit_chat_own_bubble",
+      "value": "#1F0071E3"
+    },
+    {
+      "name": "roomkit_chat_other_bubble",
+      "value": "#0A1C1B1C"
     }
   ]
 }

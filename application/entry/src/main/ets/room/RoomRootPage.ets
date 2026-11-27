@@ -1,28 +1,9 @@
-import { RoomSettingsPage } from 'tuiroomkit'
-import { RoomMainPage } from './RoomMainPage'
+import { CreateRoomOptions } from '@tencentcloud/atomicxcore'
+import { EnterRoomParams, MeetingView, RoomBehavior, RoomConnectConfig, RoomSettingsPage } from 'tuiroomkit'
 import { RoomHomePage } from './RoomHomePage'
 import { RoomJoinPage } from './RoomJoinPage'
 import { RoomPageTheme } from './RoomPageComponents'
 import { RoomQuickStartPage } from './RoomQuickStartPage'
-
-class MeetingRequest {
-  roomID: string
-  roomName: string
-  isCreate: boolean
-  microphoneOn: boolean
-  cameraOn: boolean
-  speakerOn: boolean
-
-  constructor(roomID: string, roomName: string, isCreate: boolean, microphoneOn: boolean, cameraOn: boolean,
-    speakerOn: boolean) {
-    this.roomID = roomID
-    this.roomName = roomName
-    this.isCreate = isCreate
-    this.microphoneOn = microphoneOn
-    this.cameraOn = cameraOn
-    this.speakerOn = speakerOn
-  }
-}
 
 @Component
 export struct RoomRootPage {
@@ -53,7 +34,7 @@ export struct RoomRootPage {
     this.onFullscreen(false)
   }
 
-  private openMeeting(request: MeetingRequest): void {
+  private openMeeting(request: EnterRoomParams): void {
     this.stack.pushPath({ name: 'meeting', param: request })
     this.onFullscreen(true)
   }
@@ -71,19 +52,20 @@ export struct RoomRootPage {
       if (name === 'quick') {
         RoomQuickStartPage({ active: this.active && this.quickActive, onBack: () => this.back(),
           onStart: (roomID: string, roomName: string, microphoneOn: boolean, cameraOn: boolean, speakerOn: boolean) => {
-            this.openMeeting(new MeetingRequest(roomID, roomName, true, microphoneOn, cameraOn, speakerOn))
+            this.openMeeting(new EnterRoomParams(roomID,
+              RoomBehavior.createAndJoinRoom(new CreateRoomOptions(roomName)),
+              new RoomConnectConfig(microphoneOn, cameraOn, speakerOn)))
           } })
       } else if (name === 'join') {
         RoomJoinPage({ active: this.active && this.joinActive, onBack: () => this.back(),
           onJoin: (roomID: string, microphoneOn: boolean, cameraOn: boolean, speakerOn: boolean) => {
-            this.openMeeting(new MeetingRequest(roomID, roomID, false, microphoneOn, cameraOn, speakerOn))
+            this.openMeeting(new EnterRoomParams(roomID, RoomBehavior.join,
+              new RoomConnectConfig(microphoneOn, cameraOn, speakerOn)))
           } })
       } else {
-        RoomMainPage({ roomID: (parameter as MeetingRequest).roomID, roomName: (parameter as MeetingRequest).roomName,
-          isCreate: (parameter as MeetingRequest).isCreate,
-          autoEnableMicrophone: (parameter as MeetingRequest).microphoneOn,
-          autoEnableCamera: (parameter as MeetingRequest).cameraOn,
-          autoEnableSpeaker: (parameter as MeetingRequest).speakerOn, onClose: () => this.closeMeeting() })
+        MeetingView({ roomID: (parameter as EnterRoomParams).roomID,
+          behavior: (parameter as EnterRoomParams).behavior, config: (parameter as EnterRoomParams).config,
+          onClose: () => this.closeMeeting() })
       }
     }
     .hideTitleBar(true)

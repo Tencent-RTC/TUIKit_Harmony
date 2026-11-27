@@ -12,7 +12,7 @@ enum RoomLeaveKind {
 export struct RoomLeaveRoomButton {
   @Prop @Watch('bindRoom') roomID: string = ''
   onLeaveOrEnd?: () => void
-  @State private participantState?: RoomParticipantState = undefined
+  @State @Watch('handleRoleChange') private participantState?: RoomParticipantState = undefined
   @State private isOpen: boolean = false
   @State private isPressed: boolean = false
   @State private isEndPressed: boolean = false
@@ -29,6 +29,10 @@ export struct RoomLeaveRoomButton {
   private bindRoom(): void {
     this.isOpen = false
     this.participantState = this.roomID.length > 0 ? RoomParticipantStore.create(this.roomID).state : undefined
+  }
+
+  private handleRoleChange(): void {
+    if (!this.isOwner()) this.isOpen = false
   }
 
   private isOwner(): boolean {
@@ -49,7 +53,9 @@ export struct RoomLeaveRoomButton {
       this.leave(RoomLeaveKind.SELF)
       return
     }
-    this.isOpen = !this.isOpen
+    animateTo({ duration: 200 }, () => {
+      this.isOpen = !this.isOpen
+    })
   }
 
   private menuItemColor(isDanger: boolean, kind: RoomLeaveKind): ResourceColor {
@@ -115,9 +121,10 @@ export struct RoomLeaveRoomButton {
     .backgroundColor(this.isOpen ? $r('app.color.roomkit_bg_press') :
       (this.isPressed ? $r('app.color.roomkit_danger_pressed') : $r('app.color.roomkit_danger')))
     .scale({ x: this.isPressed ? 0.97 : 1, y: this.isPressed ? 0.97 : 1 })
-    .animation({ duration: 80 })
     .onTouch((event: TouchEvent) => {
-      this.isPressed = event.type === TouchType.Down
+      animateTo({ duration: 80 }, () => {
+        this.isPressed = event.type === TouchType.Down
+      })
     })
     .onClick(() => this.handleTap())
   }

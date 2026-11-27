@@ -1,4 +1,5 @@
 import { common } from '@kit.AbilityKit'
+import { window } from '@kit.ArkUI'
 import {
   AudioRoute,
   CreateRoomOptions,
@@ -23,10 +24,10 @@ import { RoomDialog } from '../../base/dialog/RoomDialog'
 import { ErrorLocalized, ErrorRule } from '../../base/error/ErrorLocalized'
 import { RoomAVSessionManager } from '../../base/service/RoomAVSessionManager'
 import { RoomToast } from '../../base/toast/RoomToast'
+import { RoomDataReporter } from '../../base/util/RoomDataReporter'
 import { RoomResources } from '../../base/util/RoomResources'
 import { RoomSafeArea } from '../../base/util/RoomSafeArea'
 import { getRoomUserDisplayName, getSenderName } from '../../base/util/DisplayName'
-import { RoomDataReporter } from '../../base/util/RoomDataReporter'
 import { RoomView } from '../features/roomview/RoomView'
 import { RoomDevicePermission } from '../../base/util/RoomDevicePermission'
 import { RoomScreenSharingPlaceholderView } from '../features/screenshare/RoomScreenSharingPlaceholderView'
@@ -35,14 +36,48 @@ import { MeetingToolBar } from './MeetingToolBar'
 import { MeetingLoadingView } from './MeetingLoadingView'
 import { MeetingPasswordDialog } from './MeetingPasswordDialog'
 
+export class RoomBehavior {
+  static readonly join: RoomBehavior = new RoomBehavior()
+  readonly options?: CreateRoomOptions
+
+  private constructor(options?: CreateRoomOptions) {
+    this.options = options
+  }
+
+  static createAndJoinRoom(options: CreateRoomOptions): RoomBehavior {
+    return new RoomBehavior(options)
+  }
+}
+
+export class RoomConnectConfig {
+  readonly autoEnableMicrophone: boolean
+  readonly autoEnableCamera: boolean
+  readonly autoEnableSpeaker: boolean
+
+  constructor(autoEnableMicrophone: boolean, autoEnableCamera: boolean, autoEnableSpeaker: boolean) {
+    this.autoEnableMicrophone = autoEnableMicrophone
+    this.autoEnableCamera = autoEnableCamera
+    this.autoEnableSpeaker = autoEnableSpeaker
+  }
+}
+
+export class EnterRoomParams {
+  readonly roomID: string
+  readonly behavior: RoomBehavior
+  readonly config: RoomConnectConfig
+
+  constructor(roomID: string, behavior: RoomBehavior, config: RoomConnectConfig) {
+    this.roomID = roomID
+    this.behavior = behavior
+    this.config = config
+  }
+}
+
 @Component
 export struct MeetingView {
   @Prop roomID: string = ''
-  @Prop roomName: string = ''
-  @Prop isCreate: boolean = false
-  @Prop autoEnableMicrophone: boolean = false
-  @Prop autoEnableCamera: boolean = false
-  @Prop autoEnableSpeaker: boolean = false
+  @Prop behavior: RoomBehavior = RoomBehavior.join
+  @Prop config: RoomConnectConfig = new RoomConnectConfig(false, false, false)
   onClose?: () => void
   @State private roomState: RoomState = RoomStore.shared().state
   @State private participantState?: RoomParticipantState = undefined
@@ -55,6 +90,8 @@ export struct MeetingView {
   @State private latestInvitationDevice?: DeviceType = undefined
   private roomListener: RoomListener = new RoomListener()
   private participantListener: RoomParticipantListener = new RoomParticipantListener()
+  private keepScreenOn: boolean = false
+  private lastWindow?: window.Window
 
   aboutToAppear(): void {
     RoomSafeArea.observe()
@@ -63,6 +100,8 @@ export struct MeetingView {
     this.setupListeners()
     RoomStore.shared().addRoomListener(this.roomListener)
     participantStore.addRoomParticipantListener(this.participantListener)
+    this.enableKeepScreenOn()
+    RoomDataReporter.reportComponent()
     this.joinOrCreate()
   }
 
@@ -70,16 +109,41 @@ export struct MeetingView {
     RoomParticipantStore.create(this.roomID).removeRoomParticipantListener(this.participantListener)
     RoomStore.shared().removeRoomListener(this.roomListener)
     RoomSafeArea.stopObserving()
+    if (this.lastWindow) this.setWindowKeepScreenOn(this.lastWindow, false)
     const context = getContext(this) as common.UIAbilityContext
     RoomAVSessionManager.stop(context)
   }
 
+  private enableKeepScreenOn(): void {
+    const context = getContext(this) as common.UIAbilityContext
+    let resolvedWindow: window.Window | undefined = undefined
+    if (context) {
+      resolvedWindow = context.windowStage.getMainWindowSync()
+    }
+    if (!resolvedWindow) {
+      const lastWindow = window.getLastWindow(context)
+      if (!lastWindow) return
+      lastWindow.then((value: window.Window) => this.setWindowKeepScreenOn(value, true))
+        .catch(() => undefined)
+      return
+    }
+    this.setWindowKeepScreenOn(resolvedWindow, true)
+  }
+
+  private setWindowKeepScreenOn(windowInstance: window.Window, keepScreenOn: boolean): void {
+    if (this.keepScreenOn === keepScreenOn) return
+    windowInstance.setWindowKeepScreenOn(keepScreenOn).then(() => {
+      this.lastWindow = windowInstance
+      this.keepScreenOn = keepScreenOn
+    }).catch(() => undefined)
+  }
+
   private joinOrCreate(): void {
-    RoomDataReporter.reportComponent()
     this.isLoading = true
-    const request = this.isCreate ?
-      RoomStore.shared().createAndJoinRoom(this.roomID, RoomType.standard,
-        new CreateRoomOptions(this.roomName.length > 0 ? this.roomName : this.roomID)) :
+    const options = this.behavior.options
+    const isCreate = options !== undefined
+    const request = options !== undefined ?
+      RoomStore.shared().createAndJoinRoom(this.roomID, RoomType.standard, options) :
       RoomStore.shared().joinRoom(this.roomID, RoomType.standard)
     request.then(() => {
       this.isLoading = false
@@ -88,7 +152,7 @@ export struct MeetingView {
     }).catch((error: Error) => {
       this.isLoading = false
       const code = Number(Reflect.get(error, 'code') ?? -1)
-      if (!this.isCreate && (code === ErrorRule.PASSWORD_REQUIRED || code === ErrorRule.WRONG_PASSWORD)) {
+      if (!isCreate && (code === ErrorRule.PASSWORD_REQUIRED || code === ErrorRule.WRONG_PASSWORD)) {
         this.wrongPassword = code === ErrorRule.WRONG_PASSWORD
         this.isPasswordPresented = true
       } else {
@@ -126,9 +190,9 @@ export struct MeetingView {
 
   private async applyConnectConfig(): Promise<void> {
     const deviceStore = DeviceStore.shared()
-    deviceStore.setAudioRoute(this.autoEnableSpeaker ? AudioRoute.speakerphone : AudioRoute.earpiece)
+    deviceStore.setAudioRoute(this.config.autoEnableSpeaker ? AudioRoute.speakerphone : AudioRoute.earpiece)
     const context = getContext(this) as common.UIAbilityContext
-    if (this.autoEnableMicrophone && this.canOpenMicrophone()) {
+    if (this.config.autoEnableMicrophone && this.canOpenMicrophone()) {
       const granted = await RoomDevicePermission.requestMicrophonePermission(context)
       if (granted) {
         try {
@@ -140,7 +204,7 @@ export struct MeetingView {
         RoomToast.show(RoomResources.string('roomkit_device_mic_no_permission'))
       }
     }
-    if (this.autoEnableCamera && this.canOpenCamera()) {
+    if (this.config.autoEnableCamera && this.canOpenCamera()) {
       const granted = await RoomDevicePermission.requestCameraPermission(context)
       if (granted) {
         try {
@@ -253,10 +317,6 @@ export struct MeetingView {
     }
     this.participantListener.onDeviceInvitationCancelled = (invitation: DeviceRequestInfo) => this.clearInvitation(invitation)
     this.participantListener.onDeviceInvitationTimeout = (invitation: DeviceRequestInfo) => this.clearInvitation(invitation)
-    this.participantListener.onDeviceInvitationDeclined = (invitation: DeviceRequestInfo) => {
-      RoomToast.show(RoomResources.string('roomkit_room_notifications_device_request_rejected',
-        this.deviceName(invitation.device)))
-    }
   }
 
   private activeInvitation(): DeviceRequestInfo | undefined {

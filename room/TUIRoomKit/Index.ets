@@ -1,3 +1,4 @@
+export { MeetingView, EnterRoomParams, RoomBehavior, RoomConnectConfig } from './src/main/ets/inroom/views/MeetingView'
 export { RoomAvatar } from './src/main/ets/base/avatar/RoomAvatar'
 export { RoomDialog, RoomDialogVariant } from './src/main/ets/base/dialog/RoomDialog'
 export { ErrorLocalized, ErrorLevel, ErrorRule } from './src/main/ets/base/error/ErrorLocalized'
@@ -32,7 +33,6 @@ export { RoomLeaveRoomButton } from './src/main/ets/inroom/features/roominfo/lea
 export { RoomNetworkSignalView } from './src/main/ets/inroom/features/roominfo/localnetworkinfo/RoomNetworkSignalView'
 export { RoomNetworkInfoPopup } from './src/main/ets/inroom/features/roominfo/localnetworkinfo/RoomNetworkInfoPopup'
 export { MeetingLoadingView } from './src/main/ets/inroom/views/MeetingLoadingView.ets'
-export { MeetingView } from './src/main/ets/inroom/views/MeetingView'
 export { MeetingPasswordDialog } from './src/main/ets/inroom/views/MeetingPasswordDialog'
 export { MeetingToolBar } from './src/main/ets/inroom/views/MeetingToolBar'
 export { MeetingTopBar } from './src/main/ets/inroom/views/MeetingTopBar'

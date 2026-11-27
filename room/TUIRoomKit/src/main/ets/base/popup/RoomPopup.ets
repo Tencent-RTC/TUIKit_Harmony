@@ -20,6 +20,7 @@ export struct RoomPopup {
   @Prop panelBorderWidth: number = 1
   @Prop panelBorderColor: ResourceColor = $r('app.color.roomkit_popup_border')
   @Prop showsHandleBar: boolean = true
+  @Prop dismissKeyboardOnTouch: boolean = true
   onDismiss?: (reason: RoomPopupDismissReason) => void
   @BuilderParam content: () => void
   @State private isShowing: boolean = false
@@ -163,7 +164,7 @@ export struct RoomPopup {
         .borderRadius({ topLeft: 16, topRight: 16 })
         .translate({ y: this.offsetY })
         .onTouch((event: TouchEvent) => {
-          if (event.type === TouchType.Down) {
+          if (this.dismissKeyboardOnTouch && event.type === TouchType.Down) {
             inputMethod.getController().stopInputSession()
           }
         })

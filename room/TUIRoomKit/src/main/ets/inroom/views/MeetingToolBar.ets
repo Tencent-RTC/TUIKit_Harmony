@@ -1,3 +1,4 @@
+import { RoomChatButton } from '../features/chat/chatbutton/RoomChatButton'
 import { ParticipantRole, RoomParticipantState, RoomParticipantStore } from '@tencentcloud/atomicxcore'
 import { RoomMicButton } from '../features/device/micbutton/RoomMicButton'
 import { RoomCameraButton } from '../features/device/camerabutton/RoomCameraButton'
@@ -40,20 +41,16 @@ export struct MeetingToolBar {
       RoomCameraButton({ roomID: this.roomID })
       RoomSpeakerButton()
       RoomParticipantButton({ roomID: this.roomID })
-      RoomScreenShareButton({ roomID: this.roomID })
-      if (this.hasRecording()) {
-        Column({ space: 3 }) {
-          Image(RoomResources.image('roomkit_icon_more')).width(20).height(20)
-        }
-        .width(44)
-        .height(44)
-        .justifyContent(FlexAlign.Center)
-        .backgroundColor($r('app.color.roomkit_bg_hover'))
-        .borderRadius(22)
-        .onClick(() => this.isMorePresented = true)
-      } else {
-        RoomSettingsButton({ onShowSettings: () => this.isSettingsVisible = true })
+      RoomChatButton({ roomID: this.roomID })
+      Column({ space: 3 }) {
+        Image(RoomResources.image('roomkit_icon_more')).width(20).height(20)
       }
+      .width(44)
+      .height(44)
+      .justifyContent(FlexAlign.Center)
+      .backgroundColor($r('app.color.roomkit_bg_hover'))
+      .borderRadius(22)
+      .onClick(() => this.isMorePresented = true)
       RoomPopup({
         isPresented: this.isMorePresented,
         contentHeight: RoomPopupContentHeight.AUTO,
@@ -61,19 +58,30 @@ export struct MeetingToolBar {
       }) {
         Row() {
           Column() {
-            RoomRecordingButton({
+            RoomScreenShareButton({
               roomID: this.roomID,
-              showsTitle: true,
-              onRequestDismiss: () => this.isMorePresented = false,
-              onRequestConfirm: (mode: CloudRecordingConfirmMode) => {
-                this.recordingConfirmMode = mode
-                this.isRecordingConfirmPresented = true
-              },
+              onConfirmDismiss: () => this.isMorePresented = false,
             })
           }
           .layoutWeight(1)
           .alignItems(HorizontalAlign.Start)
           .padding({ left: 2, right: 2, top: 10, bottom: 10 })
+          if (this.hasRecording()) {
+            Column() {
+              RoomRecordingButton({
+                roomID: this.roomID,
+                showsTitle: true,
+                onRequestDismiss: () => this.isMorePresented = false,
+                onRequestConfirm: (mode: CloudRecordingConfirmMode) => {
+                  this.recordingConfirmMode = mode
+                  this.isRecordingConfirmPresented = true
+                },
+              })
+            }
+            .layoutWeight(1)
+            .alignItems(HorizontalAlign.Start)
+            .padding({ left: 2, right: 2, top: 10, bottom: 10 })
+          }
           Column() {
             RoomSettingsButton({
               showsTitle: true,
@@ -85,7 +93,9 @@ export struct MeetingToolBar {
           .alignItems(HorizontalAlign.Start)
           .padding({ left: 2, right: 2, top: 10, bottom: 10 })
           Blank().layoutWeight(1)
-          Blank().layoutWeight(1)
+          if (!this.hasRecording()) {
+            Blank().layoutWeight(1)
+          }
         }
         .width('100%')
         .alignItems(VerticalAlign.Center)

@@ -1413,6 +1413,10 @@
       "value": "图片"
     },
     {
+      "name": "roomkit_room_chat_image_preview",
+      "value": "图片预览"
+    },
+    {
       "name": "roomkit_room_chat_input_placeholder",
       "value": "说点什么..."
     },

@@ -1,5 +1,7 @@
 export { LiveListView } from './src/main/ets/livelist/LiveListView'
 export { PlayerView, PlayerViewController, PlayerStatus } from './src/main/ets/player/PlayerView'
+export { FloatingPlayerManager, FloatingPlayerHost, PlayerPageRoute } from './src/main/ets/player/floating/FloatingPlayerManager'
+export { PlayerPage } from './src/main/ets/player/floating/PlayerPage'
 export { PusherView } from './src/main/ets/pusher/PusherView'
 export { LiveToast } from './src/main/ets/common/theme/LiveToastView'
 export { KeyMetrics } from './src/main/ets/common/KeyMetrics'

@@ -1,0 +1,31 @@
+import { Context } from '@ohos.abilityAccessCtrl';
+import { u17, c18 } from "./d2";
+import { s19 } from "./h2";
+export declare function q19(context: Context): PusherAppletProxy;
+export declare function r19(b20: PusherAppletProxy): void;
+export interface PusherAppletProxy {
+    init(properties: c18): u17;
+    updateProperties(properties: c18): u17;
+    uninit(): u17;
+    setObserver(observer: s19): void;
+    setRenderView(view: string): u17;
+    startPush(): u17;
+    stopPush(): u17;
+    pausePush(): u17;
+    resumePush(): u17;
+    isPushing(): boolean;
+    startPreview(): u17;
+    stopPreview(): u17;
+    toggleTorch(): u17;
+    snapshot(needCompresse: boolean): u17;
+    playBGM(bgmPath: string, startTime: number, endTime: number): u17;
+    stopBGM(): u17;
+    pauseBGM(): u17;
+    resumeBGM(): u17;
+    setBGMVolume(volume: number): u17;
+    setMICVolume(volume: number): u17;
+    sendMessage(message: string): u17;
+    setFocusPosition(x: number, y: number): u17;
+    setZoom(ratio: number): u17;
+    getMaxZoom(): number;
+}

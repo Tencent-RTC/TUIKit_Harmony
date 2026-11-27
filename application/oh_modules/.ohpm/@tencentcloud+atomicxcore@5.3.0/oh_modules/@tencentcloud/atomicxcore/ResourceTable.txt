@@ -1,0 +1,2 @@
+string module_desc 0x01000000
+string page_show 0x01000001

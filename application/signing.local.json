@@ -1,0 +1,20 @@
+{
+  "signingConfigs": [
+    {
+      "name": "default",
+      "type": "HarmonyOS",
+      "material": {
+        "certpath": "/Users/xanderzhao/.ohos/config/default_application_2VZVxAb9t9O9uSvFlgUyfVJr8HvQkyAToeBLc82_ALQ=.cer",
+        "keyAlias": "debugKey",
+        "keyPassword": "0000001B83983710C598E10F1B7C8BC7395DB73316FE72A50A252288B13A1D2D0AABF7A75FF2DCB0B41FA9",
+        "profile": "/Users/xanderzhao/.ohos/config/default_application_2VZVxAb9t9O9uSvFlgUyfVJr8HvQkyAToeBLc82_ALQ=.p7b",
+        "signAlg": "SHA256withECDSA",
+        "storeFile": "/Users/xanderzhao/.ohos/config/default_application_2VZVxAb9t9O9uSvFlgUyfVJr8HvQkyAToeBLc82_ALQ=.p12",
+        "storePassword": "0000001B64207E1DA7051410A46D1DED50D74DB33DB2625A1C5425CF4F74D4264020857D0107EB74C8EA04"
+      }
+    }
+  ],
+  "products": {
+    "default": "default"
+  }
+}

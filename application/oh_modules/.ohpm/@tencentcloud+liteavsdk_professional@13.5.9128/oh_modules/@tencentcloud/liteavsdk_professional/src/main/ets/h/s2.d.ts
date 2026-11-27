@@ -1,0 +1,37 @@
+import { Context } from '@ohos.abilityAccessCtrl';
+import { V2TXLivePlayer } from "./l2";
+import { V2TXLivePlayerObserver } from "./m2";
+import { V2TXLiveRotation, V2TXLiveFillMode, V2TXLiveLocalRecordingParams } from "./o2";
+export declare class V2TXLivePlayerImpl implements V2TXLivePlayer {
+    private observer;
+    static createV2TXLivePlayer(context?: Context): V2TXLivePlayer;
+    static releaseV2TXLivePlayer(j21?: V2TXLivePlayer): void;
+    private v2txliveplayer;
+    private constructor();
+    destroy(): void;
+    private callNativeMethod;
+    setObserver(observer: V2TXLivePlayerObserver): void;
+    setRenderView(i21: string): number;
+    setRenderRotation(rotation: V2TXLiveRotation): number;
+    setRenderFillMode(mode: V2TXLiveFillMode): number;
+    setRenderMirrorMode(enable: boolean): number;
+    startPlay(url: string): number;
+    stopPlay(): number;
+    isPlaying(): number;
+    pauseAudio(): number;
+    resumeAudio(): number;
+    pauseVideo(): number;
+    resumeVideo(): number;
+    setPlayoutVolume(volume: number): number;
+    setCacheParams(g21: number, h21: number): number;
+    switchStream(f21: string): number;
+    enableVolumeEvaluation(e21: number): number;
+    snapshot(): number;
+    enableReceiveSeiMessage(enable: boolean, payloadType: number): number;
+    showDebugView(isShow: boolean): void;
+    setProperty(key: string, value: Object): number;
+    startLocalRecording(params: V2TXLiveLocalRecordingParams): number;
+    stopLocalRecording(): void;
+    private emit;
+    private initObserver;
+}

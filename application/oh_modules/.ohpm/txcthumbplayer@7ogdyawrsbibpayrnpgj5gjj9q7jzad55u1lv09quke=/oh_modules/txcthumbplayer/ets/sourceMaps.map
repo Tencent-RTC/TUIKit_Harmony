@@ -1,0 +1,23 @@
+{
+  "txcthumbplayer|txcthumbplayer|1.0.0-alpha.1|build/default/generated/profile/default/ModuleInfo.js": {
+    "version": 3,
+    "file": "ModuleInfo.ts",
+    "sources": [
+      "thumbplayer/build/default/generated/profile/default/ModuleInfo.ts"
+    ],
+    "names": [],
+    "mappings": "AACA,CAAa,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA;AACb,CAAA,CAAA,CAAA,CAAA,CAAA,CAAM,CAAC,CAAM,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAe,CAAW,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAwB,EAAE,CAAA,CAAA;AACjE,CAAA,CAAA,CAAA,CAAA,CAAA,CAAM,CAAC,CAAM,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAe,CAAW,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAA,CAAwB,EAAE,CAAA,CAAA;",
+    "entry-package-info": "txcthumbplayer|1.0.0-alpha.1"
+  },
+  "txcthumbplayer|txcthumbplayer|1.0.0-alpha.1|Index.ts": {
+    "version": 3,
+    "file": "Index.ts",
+    "sourceRoot": "",
+    "sources": [
+      "thumbplayer/Index.ts"
+    ],
+    "names": [],
+    "mappings": "OAAO,KAAK,eAAe;;cAElB,WAAW,QAAQ,uCAAuC;cAC1D,UAAU,QAAQ,sCAAsC;cACxD,aAAa,QAAQ,yCAAyC;cAC9D,QAAQ,EAAE,YAAY,QAAQ,oCAAoC;cAClE,UAAU,QAAQ,sCAAsC;cACxD,cAAc,QAAQ,0CAA0C;cAChE,YAAY,QAAQ,wCAAwC;cAC5D,YAAY,QAAQ,wCAAwC;cAC5D,mBAAmB,EAAE,mBAAmB,QAAQ,kDAAkD;cAClG,UAAU,QAAQ,0CAA0C;cAC5D,kBAAkB,QAAQ,8CAA8C;cACxE,iCAAiC,QAAQ,wCAAwC;cACjF,eAAe,QAAQ,gDAAgD;cACvE,aAAa,QAAQ,yCAAyC;cAC9D,kBAAkB,QAAQ,8CAA8C",
+    "entry-package-info": "txcthumbplayer|1.0.0-alpha.1"
+  }
+}

@@ -1,0 +1,32 @@
+import { TPDataTransportNativeEvent } from '../native/TPDataTransportNative';
+import { TPDataTransportTaskListener } from '../api/TPDataTransportTaskListener';
+import { TPDataTransportPreloadTaskListener } from '../api/ITPDataTransportPreloadTaskMgr';
+import { TPDataTransportOfflineTaskListener } from '../api/ITPDataTransportOfflineTaskMgr';
+import { TPDataTransportCommonInfoListener } from '../api/ITPDataTransportCommonInfoListener';
+export declare class TPDataTransportTaskListenerMgr {
+    private static _instance;
+    private logger;
+    private nativeCallback;
+    private taskListenerMgr;
+    private preloadTaskListenerMgr;
+    private offlineTaskListenerMgr;
+    private commonInfoListener;
+    private constructor();
+    static getInstance(): TPDataTransportTaskListenerMgr;
+    setCommonInfoListener(commonInfoListener: TPDataTransportCommonInfoListener): void;
+    handleNativeEvent(nativeEvent: TPDataTransportNativeEvent): void | Promise<void>;
+    handleProgressEvent(nativeEvent: TPDataTransportNativeEvent): void;
+    handleFinishEvent(nativeEvent: TPDataTransportNativeEvent): void;
+    handleErrorEvent(nativeEvent: TPDataTransportNativeEvent): void;
+    handleCommonEvent(nativeEvent: TPDataTransportNativeEvent): Promise<void>;
+    addTaskListener(taskId: number, taskListener: TPDataTransportTaskListener): void;
+    addPreloadTaskListener(taskId: number, preloadTaskListener: TPDataTransportPreloadTaskListener): void;
+    addOfflineTaskListener(taskId: number, offlineTaskListener: TPDataTransportOfflineTaskListener): void;
+    removeTaskListener(taskId: number, taskListener: TPDataTransportTaskListener): void;
+    removePreloadTaskListener(taskId: number, preloadTaskListener: TPDataTransportPreloadTaskListener): void;
+    removeOfflineTaskListener(taskId: number, offlineTaskListener: TPDataTransportOfflineTaskListener): void;
+    removeTaskListenerAll(taskId: number): void;
+    removePreloadTaskListenerAll(taskId: number): void;
+    removeOfflineTaskListenerAll(taskId: number): void;
+    updatePlayInfo(): Promise<void>;
+}

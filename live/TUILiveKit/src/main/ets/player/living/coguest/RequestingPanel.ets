@@ -1,3 +1,4 @@
+import { abilityAccessCtrl, common, Permissions } from '@kit.AbilityKit'
 import { CoGuestStore, LiveInfo } from '@tencentcloud/atomicxcore'
 import { LiveKitErrorText } from '../../../common/LiveKitErrorText'
 import { LiveKitResources } from '../../../common/LiveKitResources'
@@ -6,6 +7,17 @@ import { BottomSheetView } from '../../../common/theme/BottomSheetView'
 import { rgba, white } from '../../../common/theme/LiveTheme'
 import { LiveToast } from '../../../common/theme/LiveToastView'
 import { CoGuestIconController, CoGuestStatus } from './CoGuestIcon'
+
+const mediaPermissions: Permissions[] = ['ohos.permission.CAMERA', 'ohos.permission.MICROPHONE']
+let permissionRequestID = 0
+
+function requestMediaPermissions(): Promise<boolean> {
+  const context = getContext() as common.UIAbilityContext
+  return abilityAccessCtrl.createAtManager().requestPermissionsFromUser(context, mediaPermissions)
+    .then((result) => result.authResults.length === mediaPermissions.length &&
+      result.authResults.every((granted: number) => granted === 0))
+    .catch(() => false)
+}
 
 const applyErrorMessageKeys: Map<number, string> = new Map([
   [100004, 'tuilivekit.player.coguest.error.room_not_exist'],
@@ -23,17 +35,28 @@ export function applyForSeat(controller: CoGuestIconController, requestVideo: bo
   if (controller.uiState !== CoGuestStatus.idle || liveID.length === 0) {
     return
   }
-  controller.openCameraAfterAccept = requestVideo
-  const extraInfo = requestVideo ? '{"mediaType":"video"}' : '{"mediaType":"audio"}'
-  CoGuestStore.create(liveID).applyForSeat(-1, 0, extraInfo).catch((error: Error) => {
-    controller.openCameraAfterAccept = false
-    const code = LiveKitErrorText.code(error)
-    LiveKitLog.error(`[PlayerCoGuest] applyForSeat failed: code=${code}, message=${error.message}`)
-    LiveToast.show(LiveKitResources.localizedString(applyErrorMessageKeys.get(code) ??
-      'tuilivekit.player.coguest.error.apply_failed'))
-    controller.updateUiState(CoGuestStatus.idle)
+  const requestID = ++permissionRequestID
+  requestMediaPermissions().then((granted: boolean) => {
+    if (requestID !== permissionRequestID || controller.uiState !== CoGuestStatus.idle ||
+      (controller.liveInfo?.liveID ?? '') !== liveID) {
+      return
+    }
+    if (!granted) {
+      LiveKitLog.warn('[PlayerCoGuest] applyForSeat cancelled: media permissions denied')
+      return
+    }
+    controller.openCameraAfterAccept = requestVideo
+    const extraInfo = requestVideo ? '{"mediaType":"video"}' : '{"mediaType":"audio"}'
+    CoGuestStore.create(liveID).applyForSeat(-1, 0, extraInfo).catch((error: Error) => {
+      controller.openCameraAfterAccept = false
+      const code = LiveKitErrorText.code(error)
+      LiveKitLog.error(`[PlayerCoGuest] applyForSeat failed: code=${code}, message=${error.message}`)
+      LiveToast.show(LiveKitResources.localizedString(applyErrorMessageKeys.get(code) ??
+        'tuilivekit.player.coguest.error.apply_failed'))
+      controller.updateUiState(CoGuestStatus.idle)
+    })
+    controller.updateUiState(CoGuestStatus.requesting)
   })
-  controller.updateUiState(CoGuestStatus.requesting)
 }
 
 @Component
@@ -55,9 +78,29 @@ export struct RequestingPanel {
     if (this.controller.uiState !== CoGuestStatus.requesting || liveID.length === 0) {
       return
     }
+    permissionRequestID++
     CoGuestStore.create(liveID).cancelApplication().then(() => this.controller.openCameraAfterAccept = false).catch(() => {
     })
     this.controller.updateUiState(CoGuestStatus.idle)
+  }
+
+  private requestVideoSettings(): void {
+    if (this.controller.uiState !== CoGuestStatus.idle || this.liveInfo.liveID.length === 0) {
+      return
+    }
+    const requestID = ++permissionRequestID
+    const liveID = this.liveInfo.liveID
+    requestMediaPermissions().then((granted: boolean) => {
+      if (requestID !== permissionRequestID || this.controller.uiState !== CoGuestStatus.idle ||
+        this.liveInfo.liveID !== liveID) {
+        return
+      }
+      if (!granted) {
+        LiveKitLog.warn('[PlayerCoGuest] video settings cancelled: media permissions denied')
+        return
+      }
+      this.onRequestSettings?.()
+    })
   }
 
   build() {
@@ -117,11 +160,7 @@ export struct RequestingPanel {
               .layoutWeight(1)
               .height('100%')
               .padding({ left: 20 })
-              .onClick(() => {
-                if (this.controller.uiState === CoGuestStatus.idle) {
-                  this.onRequestSettings?.()
-                }
-              })
+              .onClick(() => this.requestVideoSettings())
           }
           .width('100%')
           .height(40)

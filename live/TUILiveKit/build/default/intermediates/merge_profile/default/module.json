@@ -1,0 +1,28 @@
+{
+	"app": {
+		"bundleName": "com.tencent.uikit.application",
+		"debug": true,
+		"versionCode": 1000000,
+		"versionName": "1.0.0",
+		"minAPIVersion": 60000020,
+		"targetAPIVersion": 60000020,
+		"apiReleaseType": "Release",
+		"targetMinorAPIVersion": 0,
+		"targetPatchAPIVersion": 0,
+		"compileSdkVersion": "6.1.1.125",
+		"compileSdkType": "HarmonyOS",
+		"appEnvironments": [],
+		"bundleType": "app",
+		"buildMode": "debug"
+	},
+	"module": {
+		"name": "tuilivekit",
+		"type": "har",
+		"deviceTypes": [
+			"phone",
+			"tablet"
+		],
+		"packageName": "tuilivekit",
+		"installationFree": false
+	}
+}

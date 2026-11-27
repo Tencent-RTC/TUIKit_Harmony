@@ -75,8 +75,9 @@ export class PlayerViewController {
 @Component
 export struct PlayerView {
   controller: PlayerViewController = new PlayerViewController()
+  @Prop isPageActive: boolean = true
 
   build() {
-    PlayerViewImpl({ controller: this.controller.impl })
+    PlayerViewImpl({ controller: this.controller.impl, isPageActive: this.isPageActive })
   }
 }

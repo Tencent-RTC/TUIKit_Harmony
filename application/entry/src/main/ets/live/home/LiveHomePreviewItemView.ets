@@ -8,7 +8,7 @@ export struct LiveHomePreviewItemView {
   @Prop viewportHeight: number = 1
   @Prop showPreview: boolean = true
   @Prop coverUntilJoined: boolean = false
-  onEnter: (session: LiveHomePlaybackSession) => void = () => {}
+  onEnterPlayerPage: (session: LiveHomePlaybackSession) => void = () => {}
   onMounted: (session: LiveHomePlaybackSession) => void = () => {}
   onUnmounted: (session: LiveHomePlaybackSession) => void = () => {}
   @StorageProp('tuilivekit.safeArea.top') private safeTop: number = 0
@@ -43,7 +43,7 @@ export struct LiveHomePreviewItemView {
             Button($r('app.string.app_join')).height(46).width(226).constraintSize({ maxWidth: '100%' })
               .fontSize(17).fontWeight(600).fontColor(Color.White).backgroundColor('#24FFFFFF')
               .borderRadius(23).border({ width: 1, color: '#4DFFFFFF' }).alignSelf(ItemAlign.Center)
-              .enabled(!this.session.joining).margin({ bottom: 27 }).onClick(() => this.onEnter(this.session))
+              .enabled(!this.session.joining).margin({ bottom: 27 }).onClick(() => this.onEnterPlayerPage(this.session))
             Text($r('app.string.app_live_now')).fontSize(12).fontColor(Color.White).height(24)
               .padding({ left: 8, right: 8 }).backgroundColor('#E83B67').borderRadius(6).margin({ bottom: 11 })
             Text(this.session.info.liveOwner.userName || $r('app.string.app_unknown_host'))
@@ -57,7 +57,7 @@ export struct LiveHomePreviewItemView {
           }.width('100%').alignItems(HorizontalAlign.Start).padding({ left: 20, right: 20, bottom: 19 })
             .position({ x: 0, y: this.viewportHeight - 220 })
         }.width('100%').height(this.viewportHeight)
-          .onClick(() => this.onEnter(this.session))
+          .onClick(() => this.onEnterPlayerPage(this.session))
       }
     }.width('100%').height(this.viewportHeight).clip(true).backgroundColor('#29364A')
   }

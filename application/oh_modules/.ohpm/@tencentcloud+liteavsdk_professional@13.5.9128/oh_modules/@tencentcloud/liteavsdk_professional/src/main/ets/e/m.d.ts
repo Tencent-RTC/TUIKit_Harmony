@@ -1,0 +1,30 @@
+import { TXAudioEffectManager, TXMusicPreloadObserver, TXMusicPlayObserver, TXVoiceReverbType, TXVoiceChangerType, AudioMusicParam } from "./l";
+export declare class TXAudioEffectManagerImpl implements TXAudioEffectManager {
+    constructor(instance: number);
+    destroy(): void;
+    enableVoiceEarMonitor(enable: boolean): void;
+    setVoiceEarMonitorVolume(volume: number): void;
+    setVoiceReverbType(type: TXVoiceReverbType): void;
+    setVoiceChangerType(type: TXVoiceChangerType): void;
+    setVoiceCaptureVolume(volume: number): void;
+    setVoicePitch(pitch: number): void;
+    setMusicObserver(c1: number, observer: TXMusicPlayObserver): void;
+    startPlayMusic(b1: object): void;
+    stopPlayMusic(id: number): void;
+    pausePlayMusic(id: number): void;
+    resumePlayMusic(id: number): void;
+    setAllMusicVolume(id: number): void;
+    setMusicPublishVolume(id: number, volume: number): void;
+    setMusicPlayoutVolume(id: number, volume: number): void;
+    setMusicPitch(id: number, pitch: number): void;
+    setMusicSpeedRate(id: number, a1: number): void;
+    getMusicCurrentPosInMS(id: number): number;
+    getMusicDurationInMS(path: string): number;
+    seekMusicToPosInTime(id: number, u: number): void;
+    setMusicScratchSpeedRate(id: number, t: number): void;
+    setPreloadObserver(observer: TXMusicPreloadObserver): void;
+    preloadMusic(o: AudioMusicParam): void;
+    getMusicTrackCount(id: number): number;
+    setMusicTrack(id: number, m: number): void;
+    private audioEffectManager;
+}

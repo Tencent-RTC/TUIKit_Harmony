@@ -1,0 +1,169 @@
+{
+  "authorization": "2026-11-16 用户允许复用品牌与个人页素材，以及既有Ardot同源开播/关闭导出；2026-11-17 用户要求同步迁移 Room 图片资源",
+  "assets": [
+    {
+      "target": "entry/src/main/resources/base/media/default_avatar.png",
+      "source": [
+        "ios/application/App-UIKit/Assets.xcassets/default_avatar.imageset/default_avatar@3x.png",
+        "flutter/application/assets/default_avatar.png"
+      ],
+      "width": 96,
+      "height": 96,
+      "sha256": "d5172ab82f36b7ad533ef09b7e4c094893fe66d3e09951a35192f922a613e7be"
+    },
+    {
+      "target": "entry/src/main/resources/base/media/mine_bg.png",
+      "source": [
+        "ios/application/App-UIKit/Assets.xcassets/mine_bg_icon.imageset/mine_bg_icon@3x.png",
+        "flutter/application/assets/mine_bg.png"
+      ],
+      "width": 1125,
+      "height": 600,
+      "sha256": "be402656fde9c58b9b72a25bb83238290e355fd46e191a5c94c24a9db33ed0a8"
+    },
+    {
+      "target": "entry/src/main/resources/base/media/mine_settings.png",
+      "source": [
+        "ios/application/App-UIKit/Assets.xcassets/mine_setting.imageset/mine_settings.png",
+        "ios/application/App-UIKit/Assets.xcassets/mine_setting.imageset/mine_settings@2x.png",
+        "ios/application/App-UIKit/Assets.xcassets/mine_setting.imageset/mine_settings@3x.png",
+        "flutter/application/assets/mine_settings.png"
+      ],
+      "width": 200,
+      "height": 200,
+      "sha256": "15dcb5d7ab3e5095ab56700f97da9c4390b4e9078ce591655e3db1bbd5b3d170"
+    },
+    {
+      "target": "entry/src/main/resources/base/media/tencent_cloud.png",
+      "source": [
+        "ios/application/App-UIKit/Assets.xcassets/tencent_cloud.imageset/tencent_cloud.png",
+        "flutter/application/assets/tencent_cloud.png"
+      ],
+      "width": 128,
+      "height": 128,
+      "sha256": "9d11c6973c3feaa9ab2744db8474c8e3471691050b2bf6b283e955afa82022de"
+    },
+    {
+      "target": "entry/src/main/resources/base/media/mine_log.png",
+      "source": [
+        "ios/application/App-UIKit/Assets.xcassets/mine_log.imageset/mine_log.png",
+        "ios/application/App-UIKit/Assets.xcassets/mine_log.imageset/mine_log@3x.png",
+        "ios/application/App-UIKit/Assets.xcassets/mine_log.imageset/mine_log@2x.png",
+        "flutter/application/assets/mine_log.png"
+      ],
+      "width": 200,
+      "height": 200,
+      "sha256": "86c986fbc0fa79e4c9fbcca3f2a8a53e6d7e4af80ee04e2edc7a365956d5991d"
+    },
+    {
+      "target": "entry/src/main/resources/base/media/mine_detail.png",
+      "source": [
+        "ios/application/App-UIKit/Assets.xcassets/mine_detail.imageset/main_mine_detail@3x.png",
+        "flutter/application/assets/mine_detail.png"
+      ],
+      "width": 48,
+      "height": 48,
+      "sha256": "99f31f079cc6a61bea85d5535f11bbb294be6d792b22c14a493b5a138f77853c"
+    },
+    {
+      "target": "entry/src/main/resources/base/media/home_live_close.png",
+      "source": [
+        "flutter/application/assets/home_live_close.png"
+      ],
+      "width": 45,
+      "height": 45,
+      "sha256": "38ac32429424cc5e78967c6030f76212508379ed4e21cfdaae196577930f30f7"
+    },
+    {
+      "target": "entry/src/main/resources/base/media/mine_back.png",
+      "source": [
+        "ios/application/App-UIKit/Assets.xcassets/mine_goback.imageset/back@3x.png",
+        "flutter/application/assets/mine_back.png"
+      ],
+      "width": 54,
+      "height": 54,
+      "sha256": "4cf902f39590c61ebd366a9cf9b078d1bc4a7942a9d39c04d10060cc7a1c7b07"
+    },
+    {
+      "target": "entry/src/main/resources/base/media/home_live_start.png",
+      "source": [
+        "flutter/application/assets/home_live_start.png"
+      ],
+      "width": 54,
+      "height": 54,
+      "sha256": "c5e4a9b79f7125a776d66039a3700c7139256ec9cbff195785fce982546165fd"
+    },
+    {
+      "target": "AppScope/resources/base/media/app_uikit_icon.png",
+      "source": [
+        "ios/application/App-UIKit/Assets.xcassets/AppIcon.appiconset/Icon-60@3x.png"
+      ],
+      "width": 180,
+      "height": 180,
+      "sha256": "844c7588b953974f59050164d11f4839a26573788cf965104381bc521401c080"
+    },
+    {
+      "target": "entry/src/main/resources/base/media/roomkit_icon_back.svg",
+      "source": [
+        "ios/room/RoomKitAccess/RoomKitAccess/Assets.xcassets/roomkit_icon_back.imageset/roomkit_icon_back.svg"
+      ],
+      "width": 22,
+      "height": 22,
+      "sha256": "f34ff808a870755bd83b25ec3b79c70973767361fdc98fec86ee8644a1dfa6aa"
+    },
+    {
+      "target": "entry/src/main/resources/base/media/roomkit_icon_calendar_white.svg",
+      "source": [
+        "ios/room/RoomKitAccess/RoomKitAccess/Assets.xcassets/roomkit_icon_calendar_white.imageset/roomkit_icon_calendar_white.svg"
+      ],
+      "width": 16,
+      "height": 16,
+      "sha256": "cf71d2709a4de22c9daf0b2156a30f6e031e855dcd524e4342355cac86462346"
+    },
+    {
+      "target": "entry/src/main/resources/base/media/roomkit_icon_plus_accent.svg",
+      "source": [
+        "ios/room/RoomKitAccess/RoomKitAccess/Assets.xcassets/roomkit_icon_plus_accent.imageset/roomkit_icon_plus_accent.svg"
+      ],
+      "width": 6,
+      "height": 6,
+      "sha256": "bd397b61c4c26a881e9ef5d9f64dfaf4dd64b1264ae1718e2363fb1cf37974c6"
+    },
+    {
+      "target": "entry/src/main/resources/base/media/roomkit_icon_quick_meeting_white.svg",
+      "source": [
+        "ios/room/RoomKitAccess/RoomKitAccess/Assets.xcassets/roomkit_icon_quick_meeting_white.imageset/roomkit_icon_quick_meeting_white.svg"
+      ],
+      "width": 22,
+      "height": 22,
+      "sha256": "3ca283e70181874059514bfaf9eea5d16ffd8db6c2c517b38ecbd3fdd12b9006"
+    },
+    {
+      "target": "entry/src/main/resources/base/media/roomkit_illustration_agenda_empty.svg",
+      "source": [
+        "ios/room/RoomKitAccess/RoomKitAccess/Assets.xcassets/roomkit_illustration_agenda_empty.imageset/roomkit_illustration_agenda_empty.svg"
+      ],
+      "width": 280,
+      "height": 140,
+      "sha256": "07084dfce03d28875f9c3cce3d8d5b5cec9c090bbc8b3f04421cc4b8885a71f4"
+    },
+    {
+      "target": "entry/src/main/resources/base/media/roomkit_image_login_art.svg",
+      "source": [
+        "ios/room/RoomKitAccess/RoomKitAccess/Assets.xcassets/roomkit_image_login_art.imageset/roomkit_image_login_art.svg"
+      ],
+      "width": 228,
+      "height": 108,
+      "sha256": "6b60553e7d1724c2e9dd1a513eaeed7254ae0da2c4e393b9e8b46081a2111ed7"
+    },
+    {
+      "target": "entry/src/main/resources/base/media/roomkit_image_login_logo.svg",
+      "source": [
+        "ios/room/RoomKitAccess/RoomKitAccess/Assets.xcassets/roomkit_image_login_logo.imageset/roomkit_image_login_logo.svg"
+      ],
+      "width": 28,
+      "height": 21,
+      "sha256": "273df761fb7f3d5ffe445ba5349db7899dcafecba27799adc80ce8c65bb455aa"
+    }
+  ]
+}

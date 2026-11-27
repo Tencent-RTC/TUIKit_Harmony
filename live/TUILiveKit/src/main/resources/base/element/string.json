@@ -1,6 +1,14 @@
 {
   "string": [
     {
+      "name": "tuilivekit_player_floating_play",
+      "value": "Mini player"
+    },
+    {
+      "name": "tuilivekit_player_floating_failed",
+      "value": "Unable to start mini player. Please try again when watching without co-guesting on a supported device."
+    },
+    {
       "name": "live_loading",
       "value": "Loading…"
     },
@@ -95,6 +103,10 @@
     {
       "name": "tuilivekit_comment_friendly_placeholder",
       "value": "Keep the conversation friendly"
+    },
+    {
+      "name": "tuilivekit_comment_emoji_frequently",
+      "value": "Frequently used"
     },
     {
       "name": "tuilivekit_comment_cancel",

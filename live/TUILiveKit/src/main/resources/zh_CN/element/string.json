@@ -1,6 +1,14 @@
 {
   "string": [
     {
+      "name": "tuilivekit_player_floating_play",
+      "value": "小窗播放"
+    },
+    {
+      "name": "tuilivekit_player_floating_failed",
+      "value": "暂时无法启动小窗，请在支持画中画的设备上退出连麦后重试"
+    },
+    {
       "name": "live_loading",
       "value": "加载中…"
     },
@@ -95,6 +103,10 @@
     {
       "name": "tuilivekit_comment_friendly_placeholder",
       "value": "友善发言，文明互动"
+    },
+    {
+      "name": "tuilivekit_comment_emoji_frequently",
+      "value": "常用表情"
     },
     {
       "name": "tuilivekit_comment_cancel",

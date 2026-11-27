@@ -232,9 +232,11 @@ export class PusherLivingViewController {
   }
 
   updateSettings(settings: PusherSettingsState): void {
-    if (this.settings.isMirrorEnabled !== settings.isMirrorEnabled || this.settings.isMuted !== settings.isMuted ||
+    if (this.settings.isMirrorEnabled !== settings.isMirrorEnabled ||
+      this.settings.isFrontCamera !== settings.isFrontCamera || this.settings.isMuted !== settings.isMuted ||
       this.settings.captureVolume !== settings.captureVolume) {
-      this.settings = new PusherSettingsState(settings.isMirrorEnabled, settings.isMuted, settings.captureVolume)
+      this.settings = new PusherSettingsState(settings.isMirrorEnabled, settings.isFrontCamera, settings.isMuted,
+        settings.captureVolume)
     }
   }
 
@@ -659,7 +661,6 @@ export struct PusherLivingView {
   @ObjectLink controller: PusherLivingViewController
   @StorageProp(LiveKitSafeArea.topKey) safeTop: number = 0
   @StorageProp(LiveKitSafeArea.bottomKey) @Watch('onSafeBottomChanged') safeBottom: number = 0
-  @StorageProp(LiveKitSafeArea.keyboardKey) keyboardHeight: number = 0
   @State @Watch('onAudienceCountChanged') private audienceSDKState: LiveAudienceState = new LiveAudienceState()
   private commentTop: number = 0
   private commentBottom: number = 0
@@ -690,12 +691,12 @@ export struct PusherLivingView {
   }
 
   @State private composerHeight: number = 36
+  @State private composerBottomOffset: number = 0
 
   private onSafeBottomChanged(): void { this.controller.updateSafeBottom(this.safeBottom) }
   private messageListBottom(): number {
     return this.controller.isCommentComposerPresented ?
-      Math.max(this.keyboardHeight, this.safeBottom) + 4 + this.composerHeight + 6 :
-      this.toolbarHeight() + 14
+      this.composerBottomOffset + this.composerHeight + 6 : this.toolbarHeight() + 14
   }
 
   build() {
@@ -785,7 +786,10 @@ export struct PusherLivingView {
         isPresented: this.controller.isCommentComposerPresented,
         resetToken: this.controller.commentResetToken,
         onSend: (text: string) => this.controller.sendComment(text),
-        onHeightChanged: (height: number) => this.composerHeight = height,
+        onHeightChanged: (height: number, bottomOffset: number) => {
+          this.composerHeight = height
+          this.composerBottomOffset = bottomOffset
+        },
         onDismiss: () => this.controller.dismissCommentComposer(),
       })
       PusherMusicView({

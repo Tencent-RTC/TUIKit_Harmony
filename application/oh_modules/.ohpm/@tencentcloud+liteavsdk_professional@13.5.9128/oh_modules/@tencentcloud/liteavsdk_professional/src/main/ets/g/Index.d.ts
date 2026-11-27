@@ -1,0 +1,10 @@
+export { getTRTCShareInstance, destroyTRTCShareInstance, TRTCCloud } from "./w2";
+export { TRTCCloudCallback, ITRTCVideoRenderCallback, ITRTCVideoFrameCallback, ITRTCAudioFrameCallback } from "./x2";
+export * from "./y2";
+export * from "./z2";
+export * from "./a3";
+export * from "../e/l";
+export * from "../e/p";
+export * from "../e/n";
+export * from "../g/b3";
+export * from "../g/c3";

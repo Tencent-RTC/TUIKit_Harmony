@@ -1,0 +1,51 @@
+export declare class CommonConstants {
+    static readonly LONG_AUDIO_CODEC_ID = 100;
+    static readonly LONG_AUDIO_BIT_RATE = 101;
+    static readonly LONG_AUDIO_PROFILE = 102;
+    static readonly LONG_AUDIO_CHANNEL_NUM = 103;
+    static readonly LONG_VIDEO_CODEC_ID = 201;
+    static readonly LONG_VIDEO_BIT_RATE = 202;
+    static readonly LONG_VIDEO_PROFILE = 203;
+    static readonly LONG_VIDEO_LEVEL = 204;
+    static readonly LONG_VIDEO_ROTATION = 205;
+    static readonly LONG_VIDEO_FRAME_RATE = 206;
+    static readonly LONG_VIDEO_DECODE_FRAME_COUNT = 208;
+    static readonly LONG_VIDEO_RENDER_FRAME_COUNT = 209;
+    static readonly LONG_AV_BIT_RATE = 301;
+    static readonly LONG_AV_CACHED_BYTES = 302;
+    static readonly LONG_AV_TCP_SPEED = 303;
+    static readonly PLAYER_OPTION_PARAM_MODULE_TYPE = "PARAM_MODULE_TYPE";
+    static readonly STATE_ERROR = -1;
+    static readonly STATE_IDLE = 0;
+    static readonly STATE_PREPARING = 1;
+    static readonly STATE_PREPARED = 2;
+    static readonly STATE_PLAYING = 3;
+    static readonly STATE_PAUSED = 4;
+    static readonly STATE_PLAYBACK_COMPLETED = 5;
+    static readonly TXC_DRM_KEY_URL = "TXC_DRM_KEY_URL";
+    static readonly TXC_DRM_PROVISION_URL = "TXC_DRM_PROVISION_URL";
+    static readonly TXC_DRM_ENABLE = "TXC_DRM_ENABLE";
+    static readonly TXC_DRM_SIMPLE_AES_URL = "TXC_DRM_SIMPLE_AES_URL";
+    /**
+     * 媒资类型
+     */
+    static readonly MEDIA_TYPE_AUTO = 0;
+    static readonly MEDIA_TYPE_HLS_VOD = 1;
+    static readonly MEDIA_TYPE_HLS_LIVE = 2;
+    static readonly MEDIA_TYPE_FILE_VOD = 3;
+    static readonly MEDIA_TYPE_DASH_VOD = 4;
+    static readonly DEFAULT_COM_PROVISION_URL = "aHR0cHM6Ly93d3cuZ29vZ2xlYXBpcy5jb20vY2VydGlmaWNhdGVwcm92aXNpb25pbmcvdjEvZGV2aWNlY2VydGlmaWNhdGVzL2NyZWF0ZT9rZXk9QUl6YVN5Qi01T0xLVHgyaVU1bWtvMThEZmR3SzU2MTFKSWpiVWhF";
+    static readonly DEFAULT_CN_PROVISION_URL = "aHR0cHM6Ly93d3cuZ29vZ2xlYXBpcy5jbi9jZXJ0aWZpY2F0ZXByb3Zpc2lvbmluZy92MS9kZXZpY2VjZXJ0aWZpY2F0ZXMvY3JlYXRlP2tleT1BSXphU3lCLTVPTEtUeDJpVTVta28xOERmZHdLNTYxMUpJamJVaEU=";
+    static readonly KEY_EXTRA = "extra";
+    static readonly KEY_SUPPORT_HEVC = "support_hevc";
+    static readonly INDEX_AUTO = -1;
+    static readonly INITIAL_BITRATE_INDEX_VALUE = -1000;
+    static readonly VIDEO_RESOLUTION_320_240 = "320x240";
+    static readonly VIDEO_RESOLUTION_480_360 = "480x360";
+    static readonly VIDEO_RESOLUTION_640_480 = "640x480";
+    static readonly VIDEO_RESOLUTION_960_540 = "960x540";
+    static readonly VIDEO_RESOLUTION_1280_720 = "1280x720";
+    static readonly VIDEO_RESOLUTION_1920_1080 = "1920x1080";
+    static readonly VIDEO_RESOLUTION_2560_1440 = "2560x1440";
+    static readonly VIDEO_RESOLUTION_3840_2160 = "3840x2160";
+}

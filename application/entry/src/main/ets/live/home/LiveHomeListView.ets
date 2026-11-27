@@ -5,9 +5,22 @@ import { LiveHomeItemView } from './LiveHomeItemView'
 @Component
 export struct LiveHomeListView {
   store: LiveHomeListStore = new LiveHomeListStore()
-  @Prop state: LiveHomeListState = new LiveHomeListState()
-  onSelect: (info: LiveInfo, area: Area) => void = () => {}
+  @Prop @Watch('stateChanged') state: LiveHomeListState = new LiveHomeListState()
+  onSelect: (info: LiveInfo) => void = () => {}
+  onFirstVisibleID: (liveID: string) => void = () => {}
   @State private containerWidth: number = 0
+  @State private firstVisibleIndex: number = 0
+
+  aboutToAppear(): void { this.emitFirstVisibleID() }
+
+  private stateChanged(): void { this.emitFirstVisibleID() }
+
+  private firstVisibleID(): string {
+    const info = this.state.items[this.firstVisibleIndex]
+    return info?.liveID ?? ''
+  }
+
+  private emitFirstVisibleID(): void { this.onFirstVisibleID(this.firstVisibleID()) }
 
   build() {
     Stack() {
@@ -31,6 +44,8 @@ export struct LiveHomeListView {
         }.columnsTemplate('1fr 1fr').columnsGap(10).rowsGap(12).padding(12)
           .width('100%').height('100%').edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
           .onScrollIndex((start: number, end: number) => {
+            this.firstVisibleIndex = start
+            this.emitFirstVisibleID()
             if (end >= this.state.items.length - 2) { this.store.loadMore() }
           })
       }.onRefreshing(() => this.store.refresh())

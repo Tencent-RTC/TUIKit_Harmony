@@ -22,21 +22,29 @@ hvigor.afterNodeEvaluate(node => {
     context.setBuildProfileOpt(profile);
     return;
   }
+  const shared = profile.app.signingConfigs ?? [];
+  let localProducts: Record<string, string> = {};
   const localPath = path.join(context.getProjectPath(), 'signing.local.json');
-  if (!fs.existsSync(localPath)) {
+  if (fs.existsSync(localPath)) {
+    const local = JSON.parse(fs.readFileSync(localPath, 'utf8')) as LocalSigning;
+    if (!Array.isArray(local.signingConfigs) || !local.products) {
+      throw new Error('signing.local.json must contain signingConfigs and products. See README.md.');
+    }
+    localProducts = local.products;
+    profile.app.signingConfigs = shared.concat(local.signingConfigs.filter(config =>
+      !shared.some(existing => existing.name === config.name)));
+  }
+  const signingConfigs = profile.app.signingConfigs ?? [];
+  if (signingConfigs.length === 0) {
     return;
   }
-  const local = JSON.parse(fs.readFileSync(localPath, 'utf8')) as LocalSigning;
-  if (!Array.isArray(local.signingConfigs) || !local.products) {
-    throw new Error('signing.local.json must contain signingConfigs and products. See README.md.');
-  }
-  const shared = profile.app.signingConfigs ?? [];
-  profile.app.signingConfigs = shared.concat(local.signingConfigs.filter(config =>
-    !shared.some(existing => existing.name === config.name)));
   profile.app.products?.forEach(product => {
-    const signingName = product.signingConfig ?? local.products[product.name];
+    const signingName = product.signingConfig ??
+      shared.find(config => config.name === localProducts[product.name])?.name ??
+      shared[0]?.name ??
+      localProducts[product.name];
     if (signingName) {
-      if (!profile.app.signingConfigs?.some(config => config.name === signingName)) {
+      if (!signingConfigs.some(config => config.name === signingName)) {
         throw new Error(`No signing configuration found for product ${product.name}.`);
       }
       product.signingConfig = signingName;

@@ -1,5 +1,6 @@
 import { common } from '@kit.AbilityKit'
 import { promptAction } from '@kit.ArkUI'
+import { FloatingPlayerManager, PlayerPage, PlayerPageRoute } from 'tuilivekit'
 import { LoginController, LoginPhase } from './login/LoginController'
 import { LoginView } from './login/LoginView'
 import { RegisterView } from './register/RegisterView'
@@ -17,6 +18,7 @@ struct AppCoordinator {
   @State private loading: boolean = false
   @State private fullscreen: boolean = false
   @State private liveJoining: boolean = false
+  @State private playerPageVisible: boolean = false
   @State private pusherVisible: boolean = false
   @State private pusherLiveID: string = ''
   private deferInvalidation: boolean = false
@@ -26,6 +28,8 @@ struct AppCoordinator {
   private mineBack?: () => boolean
   private liveBack?: () => boolean
   private roomBack?: () => boolean
+  private navigationStack: NavPathStack = new NavPathStack()
+  private unbindFloatingHost?: () => void
   @StorageProp('tuilivekit.safeArea.top') private safeTop: number = 0
   @StorageProp('tuilivekit.safeArea.bottom') private safeBottom: number = 0
   private controller: LoginController = new LoginController()
@@ -36,6 +40,7 @@ struct AppCoordinator {
       if (!(this.deferInvalidation && this.pusherVisible && phase === LoginPhase.login)) {
         if (phase === LoginPhase.home && this.phase !== LoginPhase.home) { this.selectedTab = 1 }
         if (phase !== LoginPhase.home) {
+          this.resetPlayerNavigation()
           this.fullscreen = false
           this.pusherVisible = false
           this.liveJoining = false
@@ -47,11 +52,20 @@ struct AppCoordinator {
       if (error.length > 0) { promptAction.showToast({ message: error }) }
     }
     this.controller.attach(getContext(this) as common.UIAbilityContext)
+    this.unbindFloatingHost = FloatingPlayerManager.bindNavigation(this.navigationStack,
+      () => this.phase === LoginPhase.home && this.selectedTab === 1 && !this.pusherVisible && !this.liveJoining,
+      'player', (visible: boolean) => this.playerPageVisible = visible)
   }
 
-  aboutToDisappear(): void { this.controller.detach() }
+  aboutToDisappear(): void {
+    this.unbindFloatingHost?.()
+    this.unbindFloatingHost = undefined
+    this.navigationStack.clear(false)
+    this.controller.detach()
+  }
 
   onBackPress(): boolean {
+    if (this.navigationStack.size() > 0) { return false }
     if (this.phase === LoginPhase.register) { this.controller.cancelRegistration(); return true }
     if (this.pusherVisible) {
       const context = getContext(this) as common.UIAbilityContext
@@ -70,14 +84,47 @@ struct AppCoordinator {
     context.eventHub.emit('app.uikit.lightContent', this.phase === LoginPhase.home && this.selectedTab === 1)
   }
 
+  private resetPlayerNavigation(): void {
+    FloatingPlayerManager.invalidateNavigation()
+    FloatingPlayerManager.release().catch((error: Error) => promptAction.showToast({ message: error.message }))
+    this.navigationStack.clear(false)
+    this.playerPageVisible = false
+  }
+
+  private showLogin(): void {
+    this.resetPlayerNavigation()
+    this.fullscreen = false
+    this.liveJoining = false
+    this.pusherVisible = false
+    this.pusherLiveID = ''
+    this.deferInvalidation = false
+    this.controller.logout().catch((error: Error) => {
+      this.phase = LoginPhase.login
+      this.loading = false
+      this.publishStyle()
+      promptAction.showToast({ message: error.message })
+    })
+  }
+
+  private enterPlayerPage(liveID: string, autoEnterRoom: boolean = true): void {
+    if (this.phase !== LoginPhase.home || this.pusherVisible || this.liveJoining) { return }
+    this.playerPageVisible = true
+    FloatingPlayerManager.enterPlayerPage(liveID, autoEnterRoom).then(() => {
+      if (this.navigationStack.size() === 0) { this.playerPageVisible = false }
+    }).catch((error: Error) => {
+      this.playerPageVisible = false
+      promptAction.showToast({ message: error.message })
+    })
+  }
+
   @Builder roomContent(active: boolean) {
     RoomRootPage({ active: active, onFullscreen: (fullscreen: boolean) => this.fullscreen = fullscreen,
       onBackReady: (handler: (() => boolean) | undefined) => this.roomBack = handler })
   }
 
   @Builder liveContent(active: boolean) {
-    LiveHomeView({ active: active && !this.pusherVisible, onFullscreen: (fullscreen: boolean) => this.fullscreen = fullscreen,
-      onJoining: (joining: boolean) => this.liveJoining = joining,
+    LiveHomeView({ active: active && !this.pusherVisible && !this.playerPageVisible,
+      onEnterPlayerPage: (liveID: string) => this.enterPlayerPage(liveID, true),
       onBackReady: (handler: (() => boolean) | undefined) => this.liveBack = handler,
       onStart: () => {
         if (this.phase !== LoginPhase.home || this.pusherVisible || this.liveJoining) { return }
@@ -97,35 +144,50 @@ struct AppCoordinator {
       onBackReady: (handler: (() => boolean) | undefined) => this.mineBack = handler })
   }
 
+  @Builder navigationDestination(name: string, param: Object) {
+    if (name === 'player') {
+      PlayerPage({ route: param as PlayerPageRoute, onLoginRequired: () => this.showLogin() })
+    }
+  }
+
   build() {
-    Stack() {
-      if (this.phase === LoginPhase.login) {
-        LoginView({ initialUserID: this.controller.userID, automatic: this.controller.automatic, loading: this.loading,
-          onLogin: (userID: string) => this.controller.login(userID),
-          onAutomatic: (value: boolean) => this.controller.setAutomatic(value) })
-      } else if (this.phase === LoginPhase.register) {
-        RegisterView({ loading: this.loading, onBack: () => this.controller.cancelRegistration(), onRegister: (name: string) => this.controller.register(name) })
-      } else {
-        HomeView({ fullscreen: $fullscreen, profileStyle: this.profileStyle,
-          roomContent: (active: boolean): void => this.roomContent(active),
-          liveContent: (active: boolean): void => this.liveContent(active), interactionEnabled: !this.liveJoining,
-          messageContent: (): void => this.messageContent(), mineContent: (): void => this.mineContent(), onTab: (index: number) => { this.selectedTab = index; this.publishStyle() } })
-        if (this.pusherVisible) {
-          PusherViewController({ liveID: this.pusherLiveID, onExit: () => {
-            this.pusherVisible = false
-            this.fullscreen = false
-            if (this.deferInvalidation) {
-              this.deferInvalidation = false
-              this.phase = LoginPhase.login
-            }
-          } })
+    Navigation(this.navigationStack) {
+      Stack() {
+        if (this.phase === LoginPhase.login) {
+          LoginView({ initialUserID: this.controller.userID, automatic: this.controller.automatic, loading: this.loading,
+            onLogin: (userID: string) => this.controller.login(userID),
+            onAutomatic: (value: boolean) => this.controller.setAutomatic(value) })
+        } else if (this.phase === LoginPhase.register) {
+          RegisterView({ loading: this.loading, onBack: () => this.controller.cancelRegistration(), onRegister: (name: string) => this.controller.register(name) })
+        } else {
+          HomeView({ fullscreen: $fullscreen, profileStyle: this.profileStyle,
+            roomContent: (active: boolean): void => this.roomContent(active),
+            liveContent: (active: boolean): void => this.liveContent(active),
+            interactionEnabled: !this.liveJoining && !this.playerPageVisible,
+            messageContent: (): void => this.messageContent(), mineContent: (): void => this.mineContent(), onTab: (index: number) => { this.selectedTab = index; this.publishStyle() } })
+          if (this.pusherVisible) {
+            PusherViewController({ liveID: this.pusherLiveID, onExit: () => {
+              this.pusherVisible = false
+              this.fullscreen = false
+              if (this.deferInvalidation) {
+                this.deferInvalidation = false
+                this.phase = LoginPhase.login
+              }
+            } })
+          }
         }
-      }
-    }.width('100%').height('100%')
-      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-      .padding({ top: this.phase === LoginPhase.home ? 0 : this.safeTop,
-        bottom: this.phase === LoginPhase.home ? 0 : this.safeBottom })
-      .backgroundColor(Color.White)
-    // Login and registration use the system keyboard avoidance; no local keyboard offset is applied.
+      }.width('100%').height('100%')
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+        .padding({ top: this.phase === LoginPhase.home ? 0 : this.safeTop,
+          bottom: this.phase === LoginPhase.home ? 0 : this.safeBottom })
+        .backgroundColor(Color.White)
+      // Login and registration use the system keyboard avoidance; no local keyboard offset is applied.
+    }
+    .hideTitleBar(true)
+    .hideToolBar(true)
+    .mode(NavigationMode.Stack)
+    .navDestination(this.navigationDestination)
+    .width('100%')
+    .height('100%')
   }
 }

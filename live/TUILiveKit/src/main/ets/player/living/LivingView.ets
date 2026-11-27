@@ -12,6 +12,8 @@ import { LikeAnimationController, LikeAnimationView } from '../../common/like/Li
 import { LiveUIState, LiveUIStore } from '../../common/like/LiveUIStore'
 import { LiveKitResources, LiveKitSafeArea } from '../../common/LiveKitResources'
 import { LiveToast } from '../../common/theme/LiveToastView'
+import { dismissAllBottomSheets } from '../../common/theme/BottomSheetView'
+import { MorePanel } from './more/MorePanel'
 import { rgba, white } from '../../common/theme/LiveTheme'
 import { AudienceListPanel } from './audience/AudienceListPanel'
 import { AudienceView } from './audience/AudienceView'
@@ -29,6 +31,8 @@ const messageBottomSpacing: number = 14
 @Observed
 export class LivingViewController {
   onToast?: (message: string) => void
+  onFloatingWindowRequested?: (uiContext: UIContext) => void
+  isFloatingPanelPresented: boolean = false
   readonly coGuest: CoGuestIconController = new CoGuestIconController()
   readonly likeAnimation: LikeAnimationController = new LikeAnimationController()
   giftDisplay?: GiftDisplayController
@@ -54,6 +58,8 @@ export class LivingViewController {
   messageContentHeight: number = 0
   isCommentComposerPresented: boolean = false
   commentResetToken: number = 0
+  commentStartsWithEmoji: boolean = false
+  commentModeRequestToken: number = 0
   isGiftPanelPresented: boolean = false
   isAudienceListPresented: boolean = false
   isGiftPanelAbove: boolean = false
@@ -198,6 +204,7 @@ export class LivingViewController {
     this.dismissCommentComposer()
     this.isGiftPanelPresented = false
     this.isAudienceListPresented = false
+    this.isFloatingPanelPresented = false
   }
 
   dismissCommentComposer(): void {
@@ -205,13 +212,15 @@ export class LivingViewController {
     this.updateInteractionLayout()
   }
 
-  presentCommentComposer(): void {
+  presentCommentComposer(showEmojiPanel: boolean = false): void {
     if (this.commentStore.isSelfMessageBanned()) {
       LiveToast.show(BarrageUIStore.sendErrorMessage(10017))
       return
     }
     this.isAudienceListPresented = false
     this.isGiftPanelPresented = false
+    this.commentStartsWithEmoji = showEmojiPanel
+    this.commentModeRequestToken++
     if (this.isCommentComposerPresented) return
     const layout = this.interactionLayout
     this.composerCommentHeight = Math.min(layout.commentHeight,
@@ -348,14 +357,38 @@ export struct LivingView {
   @ObjectLink coGuest: CoGuestIconController
   @StorageProp(LiveKitSafeArea.topKey) safeTop: number = 0
   @StorageProp(LiveKitSafeArea.bottomKey) @Watch('updateLikeButtonCenter') safeBottom: number = 0
-  @StorageProp(LiveKitSafeArea.keyboardKey) keyboardHeight: number = 0
   @State private viewHeight: number = 0
   @State private composerHeight: number = 36
+  @State private composerBottomOffset: number = 0
   @State private commentScale: number = 1
   @State private giftScale: number = 1
   @State private likeScale: number = 1
+  @State private moreScale: number = 1
+  private isMounted: boolean = false
+  private floatingRequest: number = 0
   private likeLayerWidth: number = 0
   private likeLayerHeight: number = 0
+
+  aboutToAppear(): void {
+    this.isMounted = true
+  }
+
+  aboutToDisappear(): void {
+    this.isMounted = false
+    this.floatingRequest++
+  }
+
+  private startFloating(): void {
+    if (!this.isMounted || !this.controller.isFloatingPanelPresented || !this.showBusiness()) return
+    const liveID = this.controller.liveInfo?.liveID
+    const request = ++this.floatingRequest
+    this.controller.isFloatingPanelPresented = false
+    dismissAllBottomSheets(() => {
+      if (!this.isMounted || request !== this.floatingRequest || liveID !== this.controller.liveInfo?.liveID ||
+        !this.showBusiness()) return
+      this.controller.onFloatingWindowRequested?.(this.getUIContext())
+    })
+  }
 
   private updateLikeButtonCenter(): void {
     if (this.likeLayerWidth <= 0 || this.likeLayerHeight <= 0) {
@@ -397,7 +430,7 @@ export struct LivingView {
 
   private onSafeBottomChanged(): void { this.controller.updateSafeBottom(this.safeBottom) }
   private messageListBottom(): number {
-    return this.controller.isCommentComposerPresented ? Math.max(this.keyboardHeight, this.safeBottom) + 4 + this.composerHeight + 6 :
+    return this.controller.isCommentComposerPresented ? this.composerBottomOffset + this.composerHeight + 6 :
       this.controller.normalMessageBottom
   }
 
@@ -424,25 +457,41 @@ export struct LivingView {
   @Builder
   bottomBar() {
     Row({ space: 8.5 }) {
-      Text(LiveKitResources.localizedString('tuilivekit.player.comment_placeholder'))
-        .fontSize(12.5)
-        .fontColor(white(0.50))
-        .maxLines(1)
-        .layoutWeight(1)
-        .height(39)
-        .padding({ left: 15, right: 15 })
-        .borderRadius(19.5)
-        .borderWidth(1)
-        .borderColor(white(0.06))
-        .backgroundColor(rgba(0.04, 0.04, 0.06, 0.18))
-        .shadow({ radius: 3, color: 'rgba(0,0,0,0.2)' })
-        .scale({ x: this.commentScale, y: this.commentScale })
-        .accessibilityText(LiveKitResources.localizedString('tuilivekit.player.comment'))
-        .onTouch((event: TouchEvent) => this.animatePress(event, 0.99, (scale: number) => this.commentScale = scale))
-        .onClick(() => this.controller.presentCommentComposer())
+      Stack({ alignContent: Alignment.End }) {
+        Text(LiveKitResources.localizedString('tuilivekit.player.comment_placeholder'))
+          .fontSize(12.5)
+          .fontColor(white(0.50))
+          .maxLines(1)
+          .width('100%')
+          .height(39)
+          .padding({ left: 15, right: 48 })
+          .borderRadius(19.5)
+          .borderWidth(1)
+          .borderColor(white(0.06))
+          .backgroundColor(rgba(0.04, 0.04, 0.06, 0.18))
+          .shadow({ radius: 3, color: 'rgba(0,0,0,0.2)' })
+          .accessibilityText(LiveKitResources.localizedString('tuilivekit.player.comment'))
+          .onClick(() => this.controller.presentCommentComposer())
+        Image(LiveKitResources.image('livekit_comment_emoji'))
+          .width(28)
+          .height(28)
+          .objectFit(ImageFit.Contain)
+          .margin({ right: 10 })
+          .accessibilityText(LiveKitResources.localizedString('tuilivekit.player.comment'))
+          .onClick(() => this.controller.presentCommentComposer(true))
+      }
+      .layoutWeight(1)
+      .height(39)
+      .scale({ x: this.commentScale, y: this.commentScale })
+      .onTouch((event: TouchEvent) => this.animatePress(event, 0.99, (scale: number) => this.commentScale = scale))
       CoGuestIcon({ controller: this.coGuest })
       this.barButton('livekit_player_gift', 'tuilivekit.player.gift', this.giftScale,
         (scale: number) => this.giftScale = scale, () => this.controller.presentGiftSendPanel())
+      this.barButton('livekit_player_floating', 'tuilivekit.player.floating_play', this.moreScale,
+        (scale: number) => this.moreScale = scale, () => {
+          this.controller.dismissInteractionOverlays()
+          this.controller.isFloatingPanelPresented = true
+        })
       this.barButton('livekit_player_like', 'tuilivekit.player.like', this.likeScale,
         (scale: number) => this.likeScale = scale, () => this.controller.sendLikeFromButton(this.buttonLikeOrigin()))
     }
@@ -537,6 +586,12 @@ export struct LivingView {
           .accessibilityText(LiveKitResources.localizedString('tuilivekit.player.restore_controls_accessibility'))
           .onClick(() => this.controller.setCleanScreen(false, true, this.getUIContext()))
       }
+      MorePanel({
+        isPresented: this.controller.isFloatingPanelPresented,
+        onDismiss: () => this.controller.isFloatingPanelPresented = false,
+        onStart: () => this.startFloating(),
+      })
+        .zIndex(3)
       if (this.controller.giftDisplay !== undefined && !this.controller.isCleanScreen) {
         GiftDisplayView({ controller: this.controller.giftDisplay, safeAreaBottom: this.safeBottom,
           noticeBottom: this.viewHeight - this.controller.interactionLayout.giftNoticeBottom,
@@ -547,8 +602,13 @@ export struct LivingView {
       BarrageInputView({
         isPresented: this.controller.isCommentComposerPresented,
         resetToken: this.controller.commentResetToken,
+        initialEmojiMode: this.controller.commentStartsWithEmoji,
+        modeRequestToken: this.controller.commentModeRequestToken,
         onSend: (text: string) => this.controller.sendComment(text),
-        onHeightChanged: (height: number) => this.composerHeight = height,
+        onHeightChanged: (height: number, bottomOffset: number) => {
+          this.composerHeight = height
+          this.composerBottomOffset = bottomOffset
+        },
         onDismiss: () => this.controller.dismissCommentComposer(),
       })
         .zIndex(1)

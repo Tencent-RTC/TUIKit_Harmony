@@ -299,8 +299,8 @@ export struct PusherView {
 
   private updateSettings(): void {
     const settings = this.presentationState.settings
-    this.presentationState.settings = new PusherSettingsState(settings.isMirrorEnabled, settings.isMuted,
-      settings.captureVolume)
+    this.presentationState.settings = new PusherSettingsState(settings.isMirrorEnabled, settings.isFrontCamera,
+      settings.isMuted, settings.captureVolume)
     if (this.phase === Phase.living) {
       this.livingController.updateSettings(this.presentationState.settings)
     }
@@ -355,7 +355,7 @@ export struct PusherView {
         (this.didInitializePreviewSettings ? DeviceStore.shared().state.isFrontCamera : true)
       if (!this.didInitializePreviewSettings) {
         this.didInitializePreviewSettings = true
-        DeviceStore.shared().switchMirror(MirrorType.enable)
+        DeviceStore.shared().switchMirror(MirrorType.auto)
         this.presentationState.settings.isMirrorEnabled = true
         this.updateSettings()
       }
@@ -464,7 +464,9 @@ export struct PusherView {
   }
 
   private switchCamera(): void {
-    DeviceStore.shared().switchCamera(!DeviceStore.shared().state.isFrontCamera)
+    const isFront = !DeviceStore.shared().state.isFrontCamera
+    DeviceStore.shared().switchMirror(isFront ? MirrorType.enable : MirrorType.disable)
+    DeviceStore.shared().switchCamera(isFront)
   }
 
   private refreshSettings(): void {
@@ -474,7 +476,11 @@ export struct PusherView {
   }
 
   private toggleMirror(): void {
-    const enabled = DeviceStore.shared().state.localMirrorType !== MirrorType.disable
+    const deviceState = DeviceStore.shared().state
+    if (!deviceState.isFrontCamera) {
+      return
+    }
+    const enabled = this.isMirrorEnabled(deviceState)
     DeviceStore.shared().switchMirror(enabled ? MirrorType.disable : MirrorType.enable)
     this.presentationState.settings.isMirrorEnabled = !enabled
     this.updateSettings()
@@ -860,9 +866,16 @@ export struct PusherView {
     this.isEndingLive = false
   }
 
+  private isMirrorEnabled(deviceState: DeviceState): boolean {
+    if (deviceState.localMirrorType === MirrorType.auto) {
+      return deviceState.isFrontCamera
+    }
+    return deviceState.localMirrorType === MirrorType.enable
+  }
+
   private makeSettingsState(): PusherSettingsState {
     const deviceState = DeviceStore.shared().state
-    return new PusherSettingsState(deviceState.localMirrorType !== MirrorType.disable,
+    return new PusherSettingsState(this.isMirrorEnabled(deviceState), deviceState.isFrontCamera,
       this.presentationState.settings.isMuted, deviceState.captureVolume)
   }
 
@@ -905,6 +918,12 @@ export struct PusherView {
       return
     }
     this.videoController.updateLocalCameraStatus(this.deviceState.cameraStatus)
+    const settings = this.makeSettingsState()
+    if (settings.isMirrorEnabled !== this.presentationState.settings.isMirrorEnabled ||
+      settings.isFrontCamera !== this.presentationState.settings.isFrontCamera) {
+      this.presentationState.settings = settings
+      this.updateSettings()
+    }
     this.applyDeviceStatus(this.makeDeviceStatusState(this.deviceState))
   }
 

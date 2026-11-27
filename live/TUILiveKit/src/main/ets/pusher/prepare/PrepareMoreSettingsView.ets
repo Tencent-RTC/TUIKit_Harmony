@@ -28,6 +28,8 @@ export struct PrepareMoreSettingsView {
           assetName: this.settings.isMirrorEnabled ? 'livekit_settings_mirror_on' : 'livekit_settings_mirror_off',
           onTap: () => this.actionHandler?.toggleMirror(),
         })
+          .enabled(this.settings.isFrontCamera)
+          .opacity(this.settings.isFrontCamera ? 1 : 0.46)
           .layoutWeight(1)
         PusherSettingsItemView({
           title: LiveKitResources.localizedString('tuilivekit.pusher.audio_effects'),

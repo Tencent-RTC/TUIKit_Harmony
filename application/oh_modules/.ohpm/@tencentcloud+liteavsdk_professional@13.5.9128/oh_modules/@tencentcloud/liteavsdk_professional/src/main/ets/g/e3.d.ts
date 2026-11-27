@@ -1,0 +1,32 @@
+import { v10, u10, a11, t10, b11, x10, w10, z10 } from "../h1/i1";
+import { q10, r10 } from "../h1/m1";
+type s10 = string;
+export declare class b22 implements b11 {
+    private nativeSession;
+    private q22;
+    constructor();
+    destroy(): void;
+    addListener(listener: a11): void;
+    removeListener(listener: a11): void;
+    callDevice(deviceId: q10, callType: t10): void;
+    hangup(): void;
+    startRemoteView(o22: x10, p22: s10): void;
+    stopRemoteView(n22: x10): void;
+    openMicrophone(): void;
+    closeMicrophone(): void;
+    openCamera(camera: w10, m22: s10): void;
+    closeCamera(): void;
+    switchCamera(camera: w10): void;
+    selectAudioPlaybackDevice(device: v10): void;
+    onError: (code: r10, msg: string) => void;
+    c11: (mediaType: t10) => void;
+    d11: (mediaType: t10, reason: u10) => void;
+    e11: (callUser: x10) => void;
+    f11: (callUser: x10) => void;
+    g11: (callUser: x10) => void;
+    h11: (callUser: x10) => void;
+    i11: (callUser: x10, available: boolean) => void;
+    j11: (callUser: x10, available: boolean) => void;
+    k11: (localQuality: z10, remoteQualityList: z10[]) => void;
+}
+export {};

@@ -1,0 +1,33 @@
+import BasicData from './BasicData';
+import ArrayList from "@ohos.util.ArrayList";
+export default class BasicDataSource<T extends BasicData> implements IDataSource {
+    protected dataSet: ArrayList<T>;
+    private listeners;
+    private comparator?;
+    setComparator(comparator: (o1: T, o2: T) => number): void;
+    totalCount(): number;
+    isEmpty(): boolean;
+    getData(index: number): T | null;
+    getIndex(data: T | string): number;
+    setData(dataList: T[] | ArrayList<T>): void;
+    getAllData(): T[];
+    addData(dataList: T[] | ArrayList<T>, replaceIfPresent?: boolean): void;
+    insertData(index: number, dataList: T[] | ArrayList<T>, replaceIfPresent?: boolean): void;
+    changedData(dataList: T[] | ArrayList<T>, addIfNotPresent?: boolean): void;
+    deleteData(dataList: T[] | ArrayList<T>): void;
+    deleteDataByID(dataList: string[] | ArrayList<string>): void;
+    deleteDataByIndex(index: number): void;
+    clear(): void;
+    lastData(): T | undefined;
+    firstData(): T | undefined;
+    registerDataChangeListener(listener: DataChangeListener): void;
+    unregisterDataChangeListener(listener: DataChangeListener): void;
+    notifyDataReload(): void;
+    notifyDataAdd(index: number): void;
+    notifyDataChange(index: number): void;
+    notifyDataDelete(index: number): void;
+    notifyDataMove(from: number, to: number): void;
+    private sortDataSet;
+    private getReplaceData;
+    private addAndChangeData;
+}

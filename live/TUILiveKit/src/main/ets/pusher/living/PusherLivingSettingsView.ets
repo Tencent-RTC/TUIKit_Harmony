@@ -11,13 +11,16 @@ class SettingItem {
   iconWidth: number
   iconHeight: number
   action: () => void
+  isEnabled: boolean
 
-  constructor(titleKey: string, assetName: string, iconWidth: number, iconHeight: number, action: () => void) {
+  constructor(titleKey: string, assetName: string, iconWidth: number, iconHeight: number, action: () => void,
+    isEnabled: boolean = true) {
     this.titleKey = titleKey
     this.assetName = assetName
     this.iconWidth = iconWidth
     this.iconHeight = iconHeight
     this.action = action
+    this.isEnabled = isEnabled
   }
 }
 
@@ -72,7 +75,8 @@ export struct PusherLivingSettingsView {
         new SettingItem('tuilivekit.pusher.beautify', 'livekit_living_setting_beauty', 18.05, 16.3,
           () => this.animateDismiss(this.onShowBeauty)),
         new SettingItem('tuilivekit.pusher.mirror', this.settings.isMirrorEnabled ? 'livekit_settings_mirror_on' :
-          'livekit_settings_mirror_off', 21, 22, () => this.settingsActionHandler?.toggleMirror()),
+          'livekit_settings_mirror_off', 21, 22, () => this.settingsActionHandler?.toggleMirror(),
+          this.settings.isFrontCamera),
         new SettingItem('tuilivekit.pusher.audio_effects', 'livekit_living_setting_audio', 18.1, 18.6,
           () => this.showsAudio = true),
       ]
@@ -95,6 +99,8 @@ export struct PusherLivingSettingsView {
           showsIconBackground: item.iconWidth !== 44,
           onTap: item.action,
         })
+          .enabled(item.isEnabled)
+          .opacity(item.isEnabled ? 1 : 0.46)
           .layoutWeight(1)
       }, (item: SettingItem) => item.titleKey + item.assetName)
       ForEach(Array.from<number>({ length: 5 - this.items(section).length }), () => {

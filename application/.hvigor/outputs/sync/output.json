@@ -1,0 +1,494 @@
+{
+  "version": 1,
+  "ohos-module-entry": {
+    "SELECT_TARGET": "default",
+    "MODULE_BUILD_DIR": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/entry/build",
+    "TARGETS": {
+      "default": {
+        "SOURCE_ROOT": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/entry/src/main",
+        "RESOURCES_PATH": [
+          "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/entry/src/main/resources"
+        ],
+        "BUILD_PATH": {
+          "OUTPUT_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/entry/build/default/outputs/default",
+          "INTERMEDIA_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/entry/build/default/intermediates",
+          "JS_ASSETS_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/entry/build/default/intermediates/loader_out/default",
+          "JS_LITE_ASSETS_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/entry/build/default/intermediates/loader_out_lite/default",
+          "RES_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/entry/build/default/intermediates/res/default",
+          "RES_PROFILE_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/entry/build/default/intermediates/res/default/resources/base/profile",
+          "ETS_SUPER_VISUAL_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/entry/build/default/cache/default/default@CompileArkTS/esmodule",
+          "JS_SUPER_VISUAL_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/entry/build/default/cache/default/default@CompileJS/jsbundle",
+          "WORKER_LOADER": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/entry/build/default/intermediates/loader/default/loader.json",
+          "MANIFEST_JSON": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/entry/build/default/intermediates/manifest/default",
+          "OUTPUT_METADATA_JSON": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/entry/build/default/intermediates/hap_metadata/default/output_metadata.json",
+          "SOURCE_MAP_DIR": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/entry/build/default/intermediates/source_map/default"
+        },
+        "BUILD_OPTION": {
+          "debuggable": true
+        }
+      }
+    },
+    "BUILD_OPTION": {
+      "default-default": {
+        "debuggable": true,
+        "copyFrom": "default",
+        "strictMode": {
+          "caseSensitiveCheck": true,
+          "useNormalizedOHMUrl": true
+        }
+      }
+    },
+    "BUILD_PROFILE_OPT": {
+      "apiType": "stageMode",
+      "buildOption": {},
+      "targets": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    "BUILD_CACHE_DIR": ""
+  },
+  "ohos-module-tuilivekit": {
+    "SELECT_TARGET": "default",
+    "MODULE_BUILD_DIR": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live/TUILiveKit/build",
+    "TARGETS": {
+      "default": {
+        "SOURCE_ROOT": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live/TUILiveKit/src/main",
+        "RESOURCES_PATH": [
+          "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live/TUILiveKit/src/main/resources"
+        ],
+        "BUILD_PATH": {
+          "OUTPUT_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live/TUILiveKit/build/default/outputs/default",
+          "INTERMEDIA_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live/TUILiveKit/build/default/intermediates",
+          "JS_ASSETS_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live/TUILiveKit/build/default/intermediates/loader_out/default",
+          "JS_LITE_ASSETS_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live/TUILiveKit/build/default/intermediates/loader_out_lite/default",
+          "RES_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live/TUILiveKit/build/default/intermediates/res/default",
+          "RES_PROFILE_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live/TUILiveKit/build/default/intermediates/res/default/resources/base/profile",
+          "ETS_SUPER_VISUAL_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live/TUILiveKit/build/default/cache/default/default@HarCompileArkTS/esmodule",
+          "JS_SUPER_VISUAL_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live/TUILiveKit/build/default/cache/default/default@HarCompileJS/jsbundle",
+          "WORKER_LOADER": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live/TUILiveKit/build/default/intermediates/loader/default/loader.json",
+          "MANIFEST_JSON": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live/TUILiveKit/build/default/intermediates/manifest/default",
+          "OUTPUT_METADATA_JSON": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live/TUILiveKit/build/default/intermediates/hap_metadata/default/output_metadata.json",
+          "SOURCE_MAP_DIR": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live/TUILiveKit/build/default/intermediates/source_map/default"
+        },
+        "BUILD_OPTION": {
+          "debuggable": true
+        }
+      }
+    },
+    "BUILD_OPTION": {
+      "default-default": {
+        "debuggable": true,
+        "copyFrom": "default",
+        "strictMode": {
+          "caseSensitiveCheck": true,
+          "useNormalizedOHMUrl": true
+        }
+      }
+    },
+    "BUILD_PROFILE_OPT": {
+      "apiType": "stageMode",
+      "buildOption": {},
+      "targets": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    "BUILD_CACHE_DIR": ""
+  },
+  "ohos-module-tuiroomkit": {
+    "SELECT_TARGET": "default",
+    "MODULE_BUILD_DIR": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room/TUIRoomKit/build",
+    "TARGETS": {
+      "default": {
+        "SOURCE_ROOT": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room/TUIRoomKit/src/main",
+        "RESOURCES_PATH": [
+          "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room/TUIRoomKit/src/main/resources"
+        ],
+        "BUILD_PATH": {
+          "OUTPUT_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room/TUIRoomKit/build/default/outputs/default",
+          "INTERMEDIA_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room/TUIRoomKit/build/default/intermediates",
+          "JS_ASSETS_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room/TUIRoomKit/build/default/intermediates/loader_out/default",
+          "JS_LITE_ASSETS_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room/TUIRoomKit/build/default/intermediates/loader_out_lite/default",
+          "RES_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room/TUIRoomKit/build/default/intermediates/res/default",
+          "RES_PROFILE_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room/TUIRoomKit/build/default/intermediates/res/default/resources/base/profile",
+          "ETS_SUPER_VISUAL_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room/TUIRoomKit/build/default/cache/default/default@HarCompileArkTS/esmodule",
+          "JS_SUPER_VISUAL_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room/TUIRoomKit/build/default/cache/default/default@HarCompileJS/jsbundle",
+          "WORKER_LOADER": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room/TUIRoomKit/build/default/intermediates/loader/default/loader.json",
+          "MANIFEST_JSON": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room/TUIRoomKit/build/default/intermediates/manifest/default",
+          "OUTPUT_METADATA_JSON": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room/TUIRoomKit/build/default/intermediates/hap_metadata/default/output_metadata.json",
+          "SOURCE_MAP_DIR": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room/TUIRoomKit/build/default/intermediates/source_map/default"
+        },
+        "BUILD_OPTION": {
+          "debuggable": true
+        }
+      }
+    },
+    "BUILD_OPTION": {
+      "default-default": {
+        "debuggable": true,
+        "copyFrom": "default",
+        "strictMode": {
+          "caseSensitiveCheck": true,
+          "useNormalizedOHMUrl": true
+        }
+      }
+    },
+    "BUILD_PROFILE_OPT": {
+      "apiType": "stageMode",
+      "buildOption": {},
+      "targets": [
+        {
+          "name": "default"
+        }
+      ]
+    },
+    "BUILD_CACHE_DIR": ""
+  },
+  "ohos-module-chatuikit": {
+    "SELECT_TARGET": "default",
+    "MODULE_BUILD_DIR": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build",
+    "TARGETS": {
+      "default": {
+        "SOURCE_ROOT": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/src/main",
+        "RESOURCES_PATH": [
+          "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/src/main/resources"
+        ],
+        "BUILD_PATH": {
+          "OUTPUT_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/outputs/default",
+          "INTERMEDIA_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates",
+          "JS_ASSETS_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates/loader_out/default",
+          "JS_LITE_ASSETS_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates/loader_out_lite/default",
+          "RES_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates/res/default",
+          "RES_PROFILE_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates/res/default/resources/base/profile",
+          "ETS_SUPER_VISUAL_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/cache/default/default@HarCompileArkTS/esmodule",
+          "JS_SUPER_VISUAL_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/cache/default/default@HarCompileJS/jsbundle",
+          "WORKER_LOADER": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates/loader/default/loader.json",
+          "MANIFEST_JSON": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates/manifest/default",
+          "OUTPUT_METADATA_JSON": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates/hap_metadata/default/output_metadata.json",
+          "SOURCE_MAP_DIR": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates/source_map/default"
+        },
+        "BUILD_OPTION": {
+          "debuggable": true
+        }
+      },
+      "ohosTest": {
+        "SOURCE_ROOT": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/src/ohosTest",
+        "RESOURCES_PATH": [
+          "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/src/ohosTest/resources"
+        ],
+        "BUILD_PATH": {
+          "OUTPUT_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/outputs/ohosTest",
+          "INTERMEDIA_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates",
+          "JS_ASSETS_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates/loader_out/ohosTest",
+          "JS_LITE_ASSETS_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates/loader_out_lite/ohosTest",
+          "RES_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates/res/ohosTest",
+          "RES_PROFILE_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates/res/ohosTest/resources/base/profile",
+          "ETS_SUPER_VISUAL_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/cache/ohosTest/ohosTest@OhosTestCompileArkTS/esmodule",
+          "JS_SUPER_VISUAL_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/cache/ohosTest/ohosTest@OhosTestCompileJS/jsbundle",
+          "WORKER_LOADER": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates/loader/ohosTest/loader.json",
+          "MANIFEST_JSON": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates/manifest/ohosTest",
+          "OUTPUT_METADATA_JSON": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates/hap_metadata/ohosTest/output_metadata.json",
+          "SOURCE_MAP_DIR": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit/build/default/intermediates/source_map/ohosTest"
+        },
+        "BUILD_OPTION": {
+          "debuggable": true
+        }
+      }
+    },
+    "BUILD_OPTION": {
+      "default-default": {
+        "debuggable": true,
+        "copyFrom": "default",
+        "strictMode": {
+          "caseSensitiveCheck": true,
+          "useNormalizedOHMUrl": true
+        },
+        "name": "debug"
+      }
+    },
+    "BUILD_PROFILE_OPT": {
+      "apiType": "stageMode",
+      "buildOption": {},
+      "buildOptionSet": [
+        {
+          "name": "release",
+          "arkOptions": {
+            "obfuscation": {
+              "ruleOptions": {
+                "enable": false,
+                "files": [
+                  "./obfuscation-rules.txt"
+                ]
+              },
+              "consumerFiles": [
+                "./consumer-rules.txt"
+              ]
+            }
+          }
+        },
+        {
+          "name": "default"
+        },
+        {
+          "name": "debug"
+        }
+      ],
+      "targets": [
+        {
+          "name": "default"
+        },
+        {
+          "name": "ohosTest"
+        }
+      ]
+    },
+    "BUILD_CACHE_DIR": ""
+  },
+  "ohos-module-atomic_x": {
+    "SELECT_TARGET": "default",
+    "MODULE_BUILD_DIR": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build",
+    "TARGETS": {
+      "default": {
+        "SOURCE_ROOT": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/src/main",
+        "RESOURCES_PATH": [
+          "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/src/main/resources"
+        ],
+        "BUILD_PATH": {
+          "OUTPUT_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/outputs/default",
+          "INTERMEDIA_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates",
+          "JS_ASSETS_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates/loader_out/default",
+          "JS_LITE_ASSETS_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates/loader_out_lite/default",
+          "RES_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates/res/default",
+          "RES_PROFILE_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates/res/default/resources/base/profile",
+          "ETS_SUPER_VISUAL_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/cache/default/default@HarCompileArkTS/esmodule",
+          "JS_SUPER_VISUAL_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/cache/default/default@HarCompileJS/jsbundle",
+          "WORKER_LOADER": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates/loader/default/loader.json",
+          "MANIFEST_JSON": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates/manifest/default",
+          "OUTPUT_METADATA_JSON": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates/hap_metadata/default/output_metadata.json",
+          "SOURCE_MAP_DIR": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates/source_map/default"
+        },
+        "BUILD_OPTION": {
+          "debuggable": true
+        }
+      },
+      "ohosTest": {
+        "SOURCE_ROOT": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/src/ohosTest",
+        "RESOURCES_PATH": [
+          "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/src/ohosTest/resources"
+        ],
+        "BUILD_PATH": {
+          "OUTPUT_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/outputs/ohosTest",
+          "INTERMEDIA_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates",
+          "JS_ASSETS_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates/loader_out/ohosTest",
+          "JS_LITE_ASSETS_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates/loader_out_lite/ohosTest",
+          "RES_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates/res/ohosTest",
+          "RES_PROFILE_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates/res/ohosTest/resources/base/profile",
+          "ETS_SUPER_VISUAL_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/cache/ohosTest/ohosTest@OhosTestCompileArkTS/esmodule",
+          "JS_SUPER_VISUAL_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/cache/ohosTest/ohosTest@OhosTestCompileJS/jsbundle",
+          "WORKER_LOADER": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates/loader/ohosTest/loader.json",
+          "MANIFEST_JSON": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates/manifest/ohosTest",
+          "OUTPUT_METADATA_JSON": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates/hap_metadata/ohosTest/output_metadata.json",
+          "SOURCE_MAP_DIR": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x/build/default/intermediates/source_map/ohosTest"
+        },
+        "BUILD_OPTION": {
+          "debuggable": true
+        }
+      }
+    },
+    "BUILD_OPTION": {
+      "default-default": {
+        "debuggable": true,
+        "copyFrom": "default",
+        "strictMode": {
+          "caseSensitiveCheck": true,
+          "useNormalizedOHMUrl": true
+        },
+        "externalNativeOptions": {
+          "path": "./src/main/cpp/CMakeLists.txt",
+          "arguments": "-DOHOS_STL=c++_static",
+          "cppFlags": "",
+          "abiFilters": [
+            "arm64-v8a"
+          ]
+        },
+        "name": "debug"
+      }
+    },
+    "BUILD_PROFILE_OPT": {
+      "apiType": "stageMode",
+      "buildOption": {
+        "externalNativeOptions": {
+          "path": "./src/main/cpp/CMakeLists.txt",
+          "arguments": "-DOHOS_STL=c++_static",
+          "cppFlags": "",
+          "abiFilters": [
+            "arm64-v8a"
+          ]
+        }
+      },
+      "buildOptionSet": [
+        {
+          "name": "release",
+          "arkOptions": {
+            "obfuscation": {
+              "ruleOptions": {
+                "enable": false,
+                "files": [
+                  "./obfuscation-rules.txt"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "name": "default"
+        },
+        {
+          "name": "debug"
+        }
+      ],
+      "targets": [
+        {
+          "name": "default"
+        },
+        {
+          "name": "ohosTest"
+        }
+      ]
+    },
+    "BUILD_CACHE_DIR": ""
+  },
+  "ohos-project": {
+    "SELECT_PRODUCT_NAME": "default",
+    "MODULE_BUILD_DIR": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/build",
+    "BUNDLE_NAME": "com.tencent.uikit.application",
+    "VERSION_CODE": 1000000,
+    "VERSION_NAME": "1.0.0",
+    "BUILD_PATH": {
+      "OUTPUT_PATH": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/build/outputs/default"
+    },
+    "MODULES": [
+      {
+        "name": "entry",
+        "srcPath": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application/entry",
+        "targets": [
+          {
+            "name": "default",
+            "applyToProducts": [
+              "default"
+            ]
+          }
+        ],
+        "belongProjectPath": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application"
+      },
+      {
+        "name": "tuilivekit",
+        "srcPath": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live/TUILiveKit",
+        "belongProjectPath": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live"
+      },
+      {
+        "name": "tuiroomkit",
+        "srcPath": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room/TUIRoomKit",
+        "belongProjectPath": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room"
+      },
+      {
+        "name": "chatuikit",
+        "srcPath": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat/uikit",
+        "belongProjectPath": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat"
+      },
+      {
+        "name": "atomic_x",
+        "srcPath": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/atomic_x",
+        "belongProjectPath": "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony"
+      }
+    ],
+    "PROFILE_OPT": {
+      "app": {
+        "signingConfigs": [
+          {
+            "name": "default",
+            "type": "HarmonyOS",
+            "material": {
+              "certpath": "/Users/xanderzhao/.ohos/config/default_application_2VZVxAb9t9O9uSvFlgUyfVJr8HvQkyAToeBLc82_ALQ=.cer",
+              "keyAlias": "debugKey",
+              "keyPassword": "0000001B83983710C598E10F1B7C8BC7395DB73316FE72A50A252288B13A1D2D0AABF7A75FF2DCB0B41FA9",
+              "profile": "/Users/xanderzhao/.ohos/config/default_application_2VZVxAb9t9O9uSvFlgUyfVJr8HvQkyAToeBLc82_ALQ=.p7b",
+              "signAlg": "SHA256withECDSA",
+              "storeFile": "/Users/xanderzhao/.ohos/config/default_application_2VZVxAb9t9O9uSvFlgUyfVJr8HvQkyAToeBLc82_ALQ=.p12",
+              "storePassword": "0000001B64207E1DA7051410A46D1DED50D74DB33DB2625A1C5425CF4F74D4264020857D0107EB74C8EA04"
+            }
+          }
+        ],
+        "products": [
+          {
+            "name": "default",
+            "targetSdkVersion": "6.0.0(20)",
+            "compatibleSdkVersion": "6.0.0(20)",
+            "runtimeOS": "HarmonyOS",
+            "buildOption": {
+              "strictMode": {
+                "caseSensitiveCheck": true,
+                "useNormalizedOHMUrl": true
+              }
+            },
+            "signingConfig": "default"
+          }
+        ],
+        "buildModeSet": [
+          {
+            "name": "debug"
+          },
+          {
+            "name": "release"
+          }
+        ]
+      },
+      "modules": [
+        {
+          "name": "entry",
+          "srcPath": "./entry",
+          "targets": [
+            {
+              "name": "default",
+              "applyToProducts": [
+                "default"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "tuilivekit",
+          "srcPath": "../live/TUILiveKit"
+        },
+        {
+          "name": "tuiroomkit",
+          "srcPath": "../room/TUIRoomKit"
+        },
+        {
+          "name": "chatuikit",
+          "srcPath": "../chat/uikit"
+        },
+        {
+          "name": "atomic_x",
+          "srcPath": "../atomic_x"
+        }
+      ]
+    },
+    "CONFIG_PROPERTIES": {
+      "enableSignTask": true,
+      "skipNativeIncremental": false,
+      "hvigor.keepDependency": true
+    },
+    "OVERALL_PROJECT_PATHS": [
+      "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/application",
+      "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/live",
+      "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/room",
+      "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony/chat",
+      "/Users/xanderzhao/project/github/tencent/TUIKit_Harmony"
+    ],
+    "BUILD_CACHE_DIR": ""
+  }
+}

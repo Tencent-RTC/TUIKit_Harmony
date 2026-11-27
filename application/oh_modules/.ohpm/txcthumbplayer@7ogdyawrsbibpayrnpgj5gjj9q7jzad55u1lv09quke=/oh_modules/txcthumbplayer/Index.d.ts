@@ -1,0 +1,17 @@
+export * as ThumbPlayerNAPI from 'libTXCThumbPlayer.so';
+export * from 'txcdownloadproxy';
+export { TPErrorType } from "./src/main/ets/api/common/TPErrorType";
+export { TPOnInfoID } from './src/main/ets/api/common/TPOnInfoID';
+export { TPPlayerState } from './src/main/ets/api/common/TPPlayerState';
+export { TPResult, TPResultBase } from './src/main/ets/api/common/TPResult';
+export { TPSeekMode } from './src/main/ets/api/common/TPSeekMode';
+export { TPVideoGravity } from './src/main/ets/api/common/TPVideoGravity';
+export { TPOptionalID } from './src/main/ets/api/common/TPOptionalID';
+export { TPPropertyID } from './src/main/ets/api/common/TPPropertyID';
+export { TPSubtitleParamFlag, TPSubtitleFontStyle } from './src/main/ets/api/common/TPSubtitleRenderParams';
+export { TPLogLevel } from './src/main/ets/api/common/ITPLogCallback';
+export { TPVideoDecoderType } from './src/main/ets/api/common/TPVideoDecoderType';
+export { TPAssetParamKeyObjectPreferredKey } from './src/main/ets/api/asset/ITPMediaAsset';
+export { TPAssetParamKey } from './src/main/ets/api/asset/ITPMediaAssetParamMap';
+export { TPPixelFormat } from "./src/main/ets/api/common/TPPixelFormat";
+export { TPSubtitleDataType } from './src/main/ets/api/common/TPSubtitleDataType';

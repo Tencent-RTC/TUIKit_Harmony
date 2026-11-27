@@ -1,0 +1,36 @@
+import { Context } from "@ohos.abilityAccessCtrl";
+import { b11 } from "../h1/i1";
+import { q11 } from "../h1/j1";
+import { c12 } from "../h1/k1";
+import { q12, p12, n12, o12 } from "../h1/l1";
+import { q10, r10, z11 } from "../h1/m1";
+import { i12 } from "../h1/n1";
+import { j12 } from "../h1/o1";
+export declare class h12 implements q12 {
+    private nativeEngine;
+    private q22;
+    private deviceManager;
+    private t23;
+    private u23;
+    private v23;
+    private static w23;
+    static b13(context?: Context): q12;
+    private constructor();
+    destroy(): void;
+    addListener(listener: p12): void;
+    removeListener(listener: p12): void;
+    login(r23: string, userId: string, s23: o12): void;
+    logout(): void;
+    getLoginUserInfo(): z11 | null;
+    x12(): i12 | null;
+    getDeviceManager(): c12 | null;
+    y12(): b11 | null;
+    z12(): j12 | null;
+    private isEmpty;
+    a13(deviceId: q10): q11 | null;
+    s12: () => void;
+    t12: (errCode: r10, errMsg: string) => void;
+    u12: () => void;
+    v12: () => void;
+    w12: (pushMessage: n12) => void;
+}

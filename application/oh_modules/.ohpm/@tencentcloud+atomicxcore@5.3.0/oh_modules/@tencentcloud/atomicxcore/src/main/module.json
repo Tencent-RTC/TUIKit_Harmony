@@ -1,0 +1,34 @@
+{
+	"app": {
+		"bundleName": "com.example.ohos",
+		"debug": false,
+		"versionCode": 1000000,
+		"versionName": "1.0.0",
+		"minAPIVersion": 50002014,
+		"targetAPIVersion": 60000020,
+		"apiReleaseType": "Release",
+		"targetMinorAPIVersion": 0,
+		"targetPatchAPIVersion": 0,
+		"compileSdkVersion": "6.0.0.47",
+		"compileSdkType": "HarmonyOS",
+		"appEnvironments": [],
+		"bundleType": "app",
+		"buildMode": "release"
+	},
+	"module": {
+		"name": "atomicxcore",
+		"type": "har",
+		"description": "$string:module_desc",
+		"deviceTypes": [
+			"default",
+			"tablet",
+			"2in1",
+			"phone"
+		],
+		"packageName": "@tencentcloud/atomicxcore",
+		"installationFree": false,
+		"virtualMachine": "ark12.0.6.0",
+		"compileMode": "esmodule",
+		"dependencies": []
+	}
+}

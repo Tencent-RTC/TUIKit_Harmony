@@ -1,0 +1,344 @@
+{
+  "HVIGOR": {
+    "IS_INCREMENTAL": true,
+    "IS_DAEMON": true,
+    "IS_PARALLEL": true,
+    "IS_HVIGORFILE_TYPE_CHECK": false,
+    "IS_EXECUTION_OHPM_BY_HVIGOR": false,
+    "BUILD_ANALYSIS_MODE": "normal",
+    "TASK_TIME": {
+      "923fe53966c6cd9343e11af776cd4b05be315ea4b200b02e4d5dfb0f929b73bf": {
+        "clean": 1507541,
+        "init": 253083,
+        "PreBuild": 116555417,
+        "CreateModuleInfo": 557042,
+        "GenerateMetadata": 1877916,
+        "PreCheckSyscap": 239792,
+        "GeneratePkgSdkInfo": 2308375,
+        "ProcessIntegratedHsp": 429875,
+        "SyscapTransform": 593042,
+        "CreateBuildProfile": 746292,
+        "MergeProfile": 9998083,
+        "MakePackInfo": 1311209,
+        "GeneratePkgContextInfo": 19023958,
+        "ProcessProfile": 91241875,
+        "ProcessRouterMap": 2885417,
+        "ProcessShareConfig": 1826209,
+        "ProcessStartupConfig": 5592708,
+        "ProcessResource": 1925959,
+        "GenerateLoaderJson": 20126083,
+        "ConfigureCmake": 151041,
+        "CompileResource": 462384167,
+        "BuildNativeWithCmake": 125958,
+        "BuildJS": 1259708,
+        "BuildNativeWithNinja": 605875,
+        "ProcessLibs": 607657250,
+        "DoNativeStrip": 3003840708,
+        "CacheNativeLibs": 230131666,
+        "CompileArkTS": 35901975583,
+        "GeneratePkgModuleJson": 3232458,
+        "ProcessCompiledResources": 586042,
+        "PackageHap": 984138416,
+        "PackingCheck": 9319709,
+        "SignHap": 1607508417,
+        "CollectDebugSymbol": 492833,
+        "assembleHap": 136166
+      },
+      "d2b3fe49b3eade7a983fca3bd361b0d160ab88106f66026e4ed8bef44295ac44": {
+        "clean": 216959,
+        "init": 105875,
+        "PreBuild": 37405583,
+        "CreateHarBuildProfile": 2107125,
+        "ConfigureCmake": 268916,
+        "MergeProfile": 3238625,
+        "BuildNativeWithCmake": 146792,
+        "BuildNativeWithNinja": 581791,
+        "ProcessLibs": 2015167,
+        "DoNativeStrip": 1195583
+      },
+      "59381ca91bc97f99e99f82a20855b890ed37898bac9b2da31d6b456a144fcb0d": {
+        "clean": 3401167,
+        "init": 101541,
+        "PreBuild": 10632375,
+        "CreateHarBuildProfile": 2549458,
+        "ConfigureCmake": 603583,
+        "MergeProfile": 7651875,
+        "BuildNativeWithCmake": 89417,
+        "BuildNativeWithNinja": 365750,
+        "ProcessLibs": 945292,
+        "DoNativeStrip": 810833
+      },
+      "0ca50f2e7fe0f7d14f84ae3fc23f477f4b4d2968f0e364b82129ece1b3b11225": {
+        "clean": 3527000,
+        "init": 110209,
+        "PreBuild": 7446667,
+        "CreateHarBuildProfile": 585583,
+        "MergeProfile": 1525333,
+        "ConfigureCmake": 151625,
+        "BuildNativeWithCmake": 129167,
+        "BuildNativeWithNinja": 519916,
+        "ProcessLibs": 1221958,
+        "DoNativeStrip": 827917
+      },
+      "17ad87e1d2ab58fcc6bc18dd2ef473b9c274b7df06de774c128ba174e3c128b1": {
+        "clean": 66747292,
+        "init": 114667,
+        "PreBuild": 5763709,
+        "CreateHarBuildProfile": 1467208,
+        "ConfigureCmake": 24499792,
+        "MergeProfile": 2644208,
+        "BuildNativeWithCmake": 2749608542,
+        "BuildNativeWithNinja": 1054903583,
+        "ProcessLibs": 13989667,
+        "DoNativeStrip": 59700125
+      },
+      "APP": {
+        "clean": 197750,
+        "init": 129750
+      }
+    },
+    "CUSTOM_TASK_TIME": {},
+    "CUSTOM_PLUGIN_TIME": {},
+    "APIS": [
+      "afterNodeEvaluate",
+      "getContext",
+      "getBuildProfileOpt",
+      "getProjectPath",
+      "setBuildProfileOpt",
+      "getProperty"
+    ],
+    "CONFIG_EXPERIMENT": {
+      "ENABLE_MODULE_SKIP": false,
+      "ENABLE_CPP_FUNCTION_LEVEL_INCREMENTAL": false
+    },
+    "CONFIG_PROPERTIES": {},
+    "TOTAL_TIME": 42334371833,
+    "BUILD_ID": "202611271809401750"
+  },
+  "HVIGOR_OHOS_PLUGIN": {
+    "MODULES": [
+      {
+        "MODULE_NAME": "923fe53966c6cd9343e11af776cd4b05be315ea4b200b02e4d5dfb0f929b73bf",
+        "API_TYPE": "stageMode",
+        "INCLUDE_IN_BUILD": true,
+        "IS_COMMAND_LINE_ENTRY_MODULE": true,
+        "BUILD_OPTION": [
+          {
+            "path": "debuggable",
+            "traceValue": true,
+            "value": true
+          },
+          {
+            "path": "copyFrom",
+            "traceValue": false,
+            "value": ""
+          },
+          {
+            "path": "strictMode",
+            "traceValue": false,
+            "value": ""
+          },
+          {
+            "path": "strictMode.caseSensitiveCheck",
+            "traceValue": true,
+            "value": true
+          },
+          {
+            "path": "strictMode.useNormalizedOHMUrl",
+            "traceValue": true,
+            "value": true
+          }
+        ],
+        "PACKAGE_JSON": [],
+        "MODULE_TYPE": "entry",
+        "INCREMENTAL_TASKS": {
+          "COMPILE_ARKTS": false
+        },
+        "IS_INCREMENTAL_MODULE": false
+      },
+      {
+        "MODULE_NAME": "d2b3fe49b3eade7a983fca3bd361b0d160ab88106f66026e4ed8bef44295ac44",
+        "API_TYPE": "stageMode",
+        "INCLUDE_IN_BUILD": true,
+        "IS_COMMAND_LINE_ENTRY_MODULE": false,
+        "BUILD_OPTION": [
+          {
+            "path": "debuggable",
+            "traceValue": true,
+            "value": true
+          },
+          {
+            "path": "copyFrom",
+            "traceValue": false,
+            "value": ""
+          },
+          {
+            "path": "strictMode",
+            "traceValue": false,
+            "value": ""
+          },
+          {
+            "path": "strictMode.caseSensitiveCheck",
+            "traceValue": true,
+            "value": true
+          },
+          {
+            "path": "strictMode.useNormalizedOHMUrl",
+            "traceValue": true,
+            "value": true
+          }
+        ],
+        "PACKAGE_JSON": [],
+        "MODULE_TYPE": "har",
+        "IS_BYTE_CODE_HAR": true,
+        "IS_INCREMENTAL_MODULE": true
+      },
+      {
+        "MODULE_NAME": "59381ca91bc97f99e99f82a20855b890ed37898bac9b2da31d6b456a144fcb0d",
+        "API_TYPE": "stageMode",
+        "INCLUDE_IN_BUILD": true,
+        "IS_COMMAND_LINE_ENTRY_MODULE": false,
+        "BUILD_OPTION": [
+          {
+            "path": "debuggable",
+            "traceValue": true,
+            "value": true
+          },
+          {
+            "path": "copyFrom",
+            "traceValue": false,
+            "value": ""
+          },
+          {
+            "path": "strictMode",
+            "traceValue": false,
+            "value": ""
+          },
+          {
+            "path": "strictMode.caseSensitiveCheck",
+            "traceValue": true,
+            "value": true
+          },
+          {
+            "path": "strictMode.useNormalizedOHMUrl",
+            "traceValue": true,
+            "value": true
+          }
+        ],
+        "PACKAGE_JSON": [],
+        "MODULE_TYPE": "har",
+        "IS_BYTE_CODE_HAR": true,
+        "IS_INCREMENTAL_MODULE": true
+      },
+      {
+        "MODULE_NAME": "0ca50f2e7fe0f7d14f84ae3fc23f477f4b4d2968f0e364b82129ece1b3b11225",
+        "API_TYPE": "stageMode",
+        "INCLUDE_IN_BUILD": true,
+        "IS_COMMAND_LINE_ENTRY_MODULE": false,
+        "BUILD_OPTION": [
+          {
+            "path": "debuggable",
+            "traceValue": true,
+            "value": true
+          },
+          {
+            "path": "copyFrom",
+            "traceValue": false,
+            "value": ""
+          },
+          {
+            "path": "strictMode",
+            "traceValue": false,
+            "value": ""
+          },
+          {
+            "path": "strictMode.caseSensitiveCheck",
+            "traceValue": true,
+            "value": true
+          },
+          {
+            "path": "strictMode.useNormalizedOHMUrl",
+            "traceValue": true,
+            "value": true
+          }
+        ],
+        "PACKAGE_JSON": [],
+        "MODULE_TYPE": "har",
+        "IS_BYTE_CODE_HAR": true,
+        "IS_INCREMENTAL_MODULE": true
+      },
+      {
+        "MODULE_NAME": "17ad87e1d2ab58fcc6bc18dd2ef473b9c274b7df06de774c128ba174e3c128b1",
+        "API_TYPE": "stageMode",
+        "INCLUDE_IN_BUILD": true,
+        "IS_COMMAND_LINE_ENTRY_MODULE": false,
+        "BUILD_OPTION": [
+          {
+            "path": "debuggable",
+            "traceValue": true,
+            "value": true
+          },
+          {
+            "path": "copyFrom",
+            "traceValue": false,
+            "value": ""
+          },
+          {
+            "path": "strictMode",
+            "traceValue": false,
+            "value": ""
+          },
+          {
+            "path": "strictMode.caseSensitiveCheck",
+            "traceValue": true,
+            "value": true
+          },
+          {
+            "path": "strictMode.useNormalizedOHMUrl",
+            "traceValue": true,
+            "value": true
+          },
+          {
+            "path": "externalNativeOptions",
+            "traceValue": false,
+            "value": ""
+          },
+          {
+            "path": "externalNativeOptions.path",
+            "traceValue": false,
+            "value": ""
+          },
+          {
+            "path": "externalNativeOptions.arguments",
+            "traceValue": false,
+            "value": ""
+          },
+          {
+            "path": "externalNativeOptions.cppFlags",
+            "traceValue": false,
+            "value": ""
+          },
+          {
+            "path": "externalNativeOptions.abiFilters",
+            "traceValue": true,
+            "value": [
+              "arm64-v8a"
+            ]
+          }
+        ],
+        "PACKAGE_JSON": [],
+        "MODULE_TYPE": "har",
+        "IS_BYTE_CODE_HAR": true,
+        "INCREMENTAL_TASKS": {
+          "BUILD_NATIVE_WITH_CMAKE": false
+        },
+        "IS_INCREMENTAL_MODULE": false
+      }
+    ],
+    "NATIVE_COMPILER": "Default",
+    "IS_FULL_BUILD": true,
+    "PACKAGE_JSON": [],
+    "BUILD_MODE": "debug",
+    "USE_NORMALIZED_OHMURL": true
+  }
+}

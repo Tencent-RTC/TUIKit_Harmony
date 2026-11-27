@@ -3,8 +3,7 @@ import { LiveInfo } from '@tencentcloud/atomicxcore'
 @Component
 export struct LiveHomeItemView {
   @Prop @Watch('infoChanged') info: LiveInfo = new LiveInfo()
-  onSelect: (info: LiveInfo, area: Area) => void = () => {}
-  private area?: Area
+  onSelect: (info: LiveInfo) => void = () => {}
   @State private coverFailed: boolean = false
 
   private infoChanged(): void { this.coverFailed = false }
@@ -40,7 +39,6 @@ export struct LiveHomeItemView {
         }
       }.width('100%').padding(8)
     }.width('100%').height('100%').backgroundColor('#29364A').borderRadius(8).clip(true)
-      .onAreaChange((old: Area, area: Area) => this.area = area)
-      .onClick(() => { if (this.area !== undefined) { this.onSelect(this.info, this.area) } })
+      .onClick(() => this.onSelect(this.info))
   }
 }

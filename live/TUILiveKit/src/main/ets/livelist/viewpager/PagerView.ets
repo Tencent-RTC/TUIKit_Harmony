@@ -14,6 +14,10 @@ const loadMoreThreshold: number = 2
 @Component
 export struct PagerView {
   initialLiveID: string = ''
+  autoEnterRoom: boolean = false
+  floatingRestoreID: string = ''
+  @Prop isPageActive: boolean = true
+  canEnterFloating?: () => boolean
   @Prop @Watch('setData') liveList: LiveInfo[] = []
   onClose?: () => void
   onLoadMore?: () => void
@@ -31,8 +35,13 @@ export struct PagerView {
   private currentPageCell?: PageCell
   private slidingInPageCell?: PageCell
   private slidingOutPageCell?: PageCell
+  private isMounted: boolean = false
+  private initialTask: number = -1
+  private swipeDisabledByFloating: boolean = false
 
   aboutToAppear(): void {
+    this.isMounted = true
+    this.swipeBehavior = this.autoEnterRoom ? SwipeBehavior.autoEnterRoom : SwipeBehavior.previewOnly
     this.prependInitialLiveIDIfNeeded()
     this.setData()
   }
@@ -42,6 +51,7 @@ export struct PagerView {
   }
 
   private setData(): void {
+    if (!this.isMounted) return
     const merged = this.mergeWithInitialLiveID(this.deduplicated(this.liveList))
     if (merged.length === 0 && this.initialLiveID.length > 0) {
       return
@@ -62,7 +72,12 @@ export struct PagerView {
   }
 
   onDetached(): void {
+    this.isMounted = false
+    clearTimeout(this.initialTask)
     this.pageCache.forEach((pageCell: PageCell) => pageCell.stopAndLeaveChannel())
+    this.pageCache.clear()
+    this.currentItemID = undefined
+    this.swipeDisabledByFloating = false
     this.currentPageCell = undefined
     this.slidingInPageCell = undefined
     this.slidingOutPageCell = undefined
@@ -82,7 +97,15 @@ export struct PagerView {
     const pageCell = new PageCell(liveInfo, () => this.swipeBehavior, () => this.handleCloseClicked(),
       () => this.handleJoinClicked(), (cell: PageCell) => this.handleDidSlideIn(cell),
       (cell: PageCell) => this.handleDidSlideOut(cell), () => this.handleJoinChannelStart(),
-      (cell: PageCell, info?: LiveInfo) => this.handleJoinChannelResult(cell, info))
+      (cell: PageCell, info?: LiveInfo) => this.handleJoinChannelResult(cell, info),
+      liveInfo.liveID === this.initialLiveID ? this.floatingRestoreID : '',
+      () => this.isMounted && this.isPageActive && (this.canEnterFloating?.() ?? true) &&
+        this.currentItemID === liveInfo.liveID && !this.didEmitWillSlideOut,
+      (pending: boolean) => {
+        if (!this.isMounted) return
+        this.swipeDisabledByFloating = pending
+        this.updateSwipeEnabled()
+      })
     this.logFeed('onCreatePlayerView', pageCell)
     return pageCell
   }
@@ -171,7 +194,8 @@ export struct PagerView {
     }
     this.currentItemID = itemID
     this.currentIndex = 0
-    setTimeout(() => {
+    this.initialTask = setTimeout(() => {
+      if (!this.isMounted || this.currentItemID !== itemID) return
       this.notifyWillSlideIn(itemID)
       this.notifyDidSlideIn(itemID)
     }, 0)
@@ -195,7 +219,7 @@ export struct PagerView {
   }
 
   private updateSwipeEnabled(): void {
-    this.isUserInputEnabled = !(this.swipeDisabledByJoin || this.swipeDisabledByCoGuest)
+    this.isUserInputEnabled = !(this.swipeDisabledByJoin || this.swipeDisabledByCoGuest || this.swipeDisabledByFloating)
   }
 
   private handleDidSlideIn(pageCell: PageCell): void {
@@ -230,6 +254,7 @@ export struct PagerView {
   }
 
   private handleJoinChannelResult(pageCell: PageCell, liveInfo?: LiveInfo): void {
+    if (!this.isMounted || this.pageCache.get(pageCell.liveID) !== pageCell) return
     this.swipeDisabledByJoin = false
     this.updateSwipeEnabled()
     if (liveInfo === undefined || pageCell.liveID !== liveInfo.liveID || this.pageCache.get(liveInfo.liveID) !== pageCell) {
@@ -353,7 +378,7 @@ export struct PagerView {
   build() {
     Swiper() {
       ForEach(this.dataList, (liveInfo: LiveInfo) => {
-        PlayerView({ controller: this.pageCellFor(liveInfo).playerView })
+        PlayerView({ controller: this.pageCellFor(liveInfo).playerView, isPageActive: this.isPageActive })
       }, (liveInfo: LiveInfo) => liveInfo.liveID)
     }
     .vertical(true)

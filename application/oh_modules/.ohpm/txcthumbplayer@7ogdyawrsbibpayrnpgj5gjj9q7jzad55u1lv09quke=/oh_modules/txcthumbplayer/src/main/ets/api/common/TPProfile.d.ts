@@ -1,0 +1,130 @@
+/*
+ *  Copyright 1998-2024 Tencent Inc. All rights reserved.
+ *  This file and proprietary source code may only be used
+ *  and distributed under the Tencent Video Player Core Group Agreement.
+ */
+
+/**
+ * 音视频编码的profile定义. 相关值务必和内核的TPCodecParameters或者tp2_profile.h文件中的定义保持一致
+ *
+ * @author harleyxwang
+ * @date 2024/03/18
+ */
+export const enum TPProfile {
+  // common
+  UNKNOWN = -99,
+  RESERVED = -100,
+  // aac
+  AAC_MAIN = 0,
+  AAC_LOW = 1,
+  AAC_SSR = 2,
+  AAC_LTP = 3,
+  AAC_HE = 4,
+  AAC_HE_V2 = 28,
+  AAC_LD = 22,
+  AAC_ELD = 38,
+  MPEG2_AAC_LOW = 128,
+  MPEG2_AAC_HE = 131,
+  // dnx
+  DNXHD = 0,
+  DNXHR_LB = 1,
+  DNXHR_SQ = 2,
+  DNXHR_HQ = 3,
+  DNXHR_HQX = 4,
+  DNXHR_444 = 5,
+  // dts
+  DTS = 20,
+  DTS_ES = 30,
+  DTS_9624 = 40,
+  DTS_HD_HRA = 50,
+  DTS_HD_MA = 60,
+  DTS_EXPRESS = 70,
+  // mpeg2
+  MPEG2_422 = 0,
+  MPEG2_HIGH = 1,
+  MPEG2_SS = 2,
+  MPEG2_SNR_SCALABLE = 3,
+  MPEG2_MAIN = 4,
+  MPEG2_SIMPLE = 5,
+  // h264
+  H264_CONSTRAINED = (1 << 9),  // 8+1; constraintSet1Flag
+  H264_INTRA = (1 << 11),       // 8+3; constraintSet3Flag
+  H264_BASELINE = 66,
+  H264_CONSTRAINED_BASELINE = (66 | H264_CONSTRAINED),
+  H264_MAIN = 77,
+  H264_EXTENDED = 88,
+  H264_HIGH = 100,
+  H264_HIGH_10 = 110,
+  H264_HIGH_10_INTRA = (110 | H264_INTRA),
+  H264_MULTIVIEW_HIGH = 118,
+  H264_HIGH_422 = 122,
+  H264_HIGH_422_INTRA = (122 | H264_INTRA),
+  H264_STEREO_HIGH = 128,
+  H264_HIGH_444 = 144,
+  H264_HIGH_444_PREDICTIVE = 244,
+  H264_HIGH_444_INTRA = (244 | H264_INTRA),
+  H264_CAVLC_444 = 44,
+  // vc1
+  VC1_SIMPLE = 0,
+  VC1_MAIN = 1,
+  VC1_COMPLEX = 2,
+  VC1_ADVANCED = 3,
+  // mpeg4
+  MPEG4_SIMPLE = 0,
+  MPEG4_SIMPLE_SCALABLE = 1,
+  MPEG4_CORE = 2,
+  MPEG4_MAIN = 3,
+  MPEG4_N_BIT = 4,
+  MPEG4_SCALABLE_TEXTURE = 5,
+  MPEG4_SIMPLE_FACE_ANIMATION = 6,
+  MPEG4_BASIC_ANIMATED_TEXTURE = 7,
+  MPEG4_HYBRID = 8,
+  MPEG4_ADVANCED_REAL_TIME = 9,
+  MPEG4_CORE_SCALABLE = 10,
+  MPEG4_ADVANCED_CODING = 11,
+  MPEG4_ADVANCED_CORE = 12,
+  MPEG4_ADVANCED_SCALABLE_TEXTURE = 13,
+  MPEG4_SIMPLE_STUDIO = 14,
+  MPEG4_ADVANCED_SIMPLE = 15,
+  // jpeg2000
+  JPEG2000_CSTREAM_RESTRICTION_0 = 1,
+  JPEG2000_CSTREAM_RESTRICTION_1 = 2,
+  JPEG2000_CSTREAM_NO_RESTRICTION = 32768,
+  JPEG2000_DCINEMA_2K = 3,
+  JPEG2000_DCINEMA_4K = 4,
+  // vp9
+  VP9_0 = 0,
+  VP9_1 = 1,
+  VP9_2 = 2,
+  VP9_3 = 3,
+  // hevc
+  HEVC_MAIN = 1,
+  HEVC_MAIN_10 = 2,
+  HEVC_MAIN_STILL_PICTURE = 3,
+  HEVC_REXT = 4,
+  // av1
+  AV1_MAIN = 0,
+  AV1_HIGH = 1,
+  AV1_PROFESSIONAL = 2,
+  // vvc
+  VVC_MAIN_10 = 1,
+  VVC_MAIN_10_STILL_PICTURE = 65,
+  VVC_MAIN_10_444 = 33,
+  VVC_MAIN_10_444_STILL_PICTURE = 97,
+  VVC_MULTILAYER_MAIN_10 = 17,
+  VVC_MULTILAYER_MAIN_10_444 = 49,
+  // mjpeg
+  MJPEG_HUFFMAN_BASELINE_DCT = 0xc0,
+  MJPEG_HUFFMAN_EXTENDED_SEQUENTIAL_DCT = 0xc1,
+  MJPEG_HUFFMAN_PROGRESSIVE_DCT = 0xc2,
+  MJPEG_HUFFMAN_LOSSLESS = 0xc3,
+  MJPEG_JPEG_LS = 0xf7,
+  // sbc
+  SBC_MSBC = 1,
+  // dolby vision
+  DOLBY_VISION_5 = 5,
+  DOLBY_VISION_8 = 8,
+  // AVS3
+  AVS3_MAIN = 1,
+  AVS3_MAIN_10 = 2,
+}

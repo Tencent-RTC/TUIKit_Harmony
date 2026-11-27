@@ -6,6 +6,7 @@ import { LiveGiftBarrage } from '../gift/GiftBarrageStore'
 import { LiveKitResources } from '../LiveKitResources'
 import { LevelBadgeTier } from '../theme/LevelBadgeView'
 import { LiveTheme, rgba, white } from '../theme/LiveTheme'
+import { BarrageEmojiConverter, BarrageEmojiSegment } from './emoji/BarrageEmojiConverter'
 
 export const defaultWidthRatio: number = 0.8
 
@@ -65,8 +66,8 @@ export class LiveCommentRowStyle {
 }
 
 function displayContent(raw: string): string {
-  const characters = Array.from(raw)
-  return characters.length > 200 ? characters.slice(0, 200).join('') + '...' : raw
+  const content = BarrageEmojiConverter.visiblePrefix(raw, 200)
+  return content === raw ? raw : content + '...'
 }
 
 function senderName(barrage: LiveGiftBarrage): string {
@@ -123,6 +124,7 @@ struct CommentContentView {
   cache: CommentBadgeCache = new CommentBadgeCache()
   @State private levelImage: image.PixelMap | undefined = undefined
   @State private hostImage: image.PixelMap | undefined = undefined
+  @State private failedEmojiTokens: string[] = []
   private isMounted: boolean = false
   private badgeRequest: number = 0
   private badgeRetryTasks: number[] = []
@@ -149,7 +151,7 @@ struct CommentContentView {
             .margin({ right: 4 }).verticalAlign(ImageSpanAlignment.CENTER)
         }
         Span(`${LiveCommentRowStyle.displayUserName(message.userName)}：`).fontColor(LiveTheme.Color.nickname)
-        Span(displayContent(message.content)).fontColor(white(0.94))
+        this.commentContent(displayContent(message.content))
       }
     }
     .fontSize(LiveCommentRowStyle.fontSize)
@@ -164,6 +166,29 @@ struct CommentContentView {
     .backgroundColor(LiveCommentRowStyle.background)
     .borderRadius(LiveCommentRowStyle.cornerRadius)
     .accessibilityText(`${message.userName}：${displayContent(message.content)}`)
+  }
+
+  @Builder
+  commentContent(content: string) {
+    ForEach(BarrageEmojiConverter.parse(content), (segment: BarrageEmojiSegment) => {
+      if (segment.emoji === undefined) {
+        Span(segment.text).fontColor(white(0.94))
+      } else if (this.failedEmojiTokens.includes(segment.emoji.token)) {
+        Span(segment.emoji.token).fontColor(white(0.94))
+      } else {
+        ImageSpan(LiveKitResources.image(segment.emoji.assetName))
+          .width(18)
+          .height(18)
+          .objectFit(ImageFit.Contain)
+          .verticalAlign(ImageSpanAlignment.CENTER)
+          .onError(() => {
+            const token = segment.emoji?.token ?? ''
+            if (token.length > 0 && !this.failedEmojiTokens.includes(token)) {
+              this.failedEmojiTokens = this.failedEmojiTokens.concat([token])
+            }
+          })
+      }
+    }, (segment: BarrageEmojiSegment, index: number) => `${index}:${segment.emoji?.token ?? segment.text}`)
   }
 
   @Builder
@@ -227,6 +252,7 @@ struct CommentContentView {
   }
 
   private onMessageChanged(): void {
+    this.failedEmojiTokens = []
     if (this.isMounted) this.loadBadges()
   }
 

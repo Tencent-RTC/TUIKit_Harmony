@@ -1,7 +1,7 @@
 import { LiveInfo, LoginStore } from '@tencentcloud/atomicxcore'
 import { promptAction } from '@kit.ArkUI'
 import { util } from '@kit.ArkTS'
-import { PlayerStatus, PlayerViewController } from 'tuilivekit'
+import { FloatingPlayerManager, PlayerStatus, PlayerViewController } from 'tuilivekit'
 import { LiveHomeListState, LiveHomeListStore } from './LiveHomeListStore'
 import { LiveHomePreviewItemView } from './LiveHomePreviewItemView'
 
@@ -49,6 +49,7 @@ export struct LiveHomePreviewView {
   onRoomChanged: (fullscreen: boolean) => void = () => {}
   onClose: () => void = () => {}
   onJoining: (joining: boolean) => void = () => {}
+  onEnterPlayerPage: (liveID: string) => void = () => {}
   @StorageProp('tuilivekit.safeArea.top') private safeTop: number = 0
   @StorageProp('app.active') @Watch('updatePlayback') private appActive: boolean = true
   @State private currentIndex: number = 0
@@ -57,6 +58,7 @@ export struct LiveHomePreviewView {
   @State private pending: number = 0
   @State private firstJoined: boolean = false
   private sessions: Map<string, LiveHomePlaybackSession> = new Map<string, LiveHomePlaybackSession>()
+  private unbindFloatingDismiss?: () => void
   private appeared: boolean = false
   private closing: boolean = false
   private selectedID: string = ''
@@ -69,11 +71,22 @@ export struct LiveHomePreviewView {
     this.closing = false
     this.automatic = this.direct
     this.selectedID = this.initialLiveID
+    this.unbindFloatingDismiss = FloatingPlayerManager.addFloatingDismissListener((liveID: string) => {
+      if (!this.appeared || this.closing || !this.active || !this.appActive) return
+      const current = this.state.items[this.currentIndex]
+      if (current?.liveID !== liveID) return
+      const session = this.sessions.get(liveID)
+      const status = session?.status
+      if (status === PlayerStatus.playing || status === PlayerStatus.inRoom || status === PlayerStatus.coGuest) return
+      this.updatePlayback()
+    })
     this.rowsChanged()
   }
 
   aboutToDisappear(): void {
     this.appeared = false
+    this.unbindFloatingDismiss?.()
+    this.unbindFloatingDismiss = undefined
     this.sessions.forEach((session: LiveHomePlaybackSession) => session.release())
     this.sessions.clear()
   }
@@ -116,7 +129,7 @@ export struct LiveHomePreviewView {
   }
 
   private activateController(session: LiveHomePlaybackSession): void {
-    if (session.controller !== undefined) { return }
+    if (session.controller !== undefined || FloatingPlayerManager.isFloating(session.info.liveID)) { return }
     const controller = new PlayerViewController()
     controller.joinLiveEntranceEnabled = false
     controller.setLiveInfo(session.info)
@@ -152,6 +165,11 @@ export struct LiveHomePreviewView {
         if (!session.mounted) { this.sessions.delete(liveID) }
         return
       }
+      if (FloatingPlayerManager.isFloating(liveID)) {
+        session.controller?.setVolume(0)
+        if (session.controller !== undefined) { session.release() }
+        return
+      }
       if (this.active && this.appActive && session.mounted) {
         this.activateController(session)
         session.controller?.setVolume(isCurrent ? 100 : 0)
@@ -170,6 +188,7 @@ export struct LiveHomePreviewView {
 
   private enter(session: LiveHomePlaybackSession): void {
     if (!this.active || !this.appActive || this.pending > 0 || session.joining || session.retired ||
+      FloatingPlayerManager.isFloating(session.info.liveID) ||
       session.info.liveID !== this.selectedID || session.status === PlayerStatus.end ||
       session.status === PlayerStatus.inRoom || session.status === PlayerStatus.coGuest || session.joinBlocked) { return }
     if (session.info.liveOwner.userID === LoginStore.shared().state.loginUserInfo?.userID) {
@@ -239,7 +258,7 @@ export struct LiveHomePreviewView {
               viewportHeight: Math.max(1, this.canvasHeight - (this.automatic || this.direct ? 0 : this.bottomInset)),
               showPreview: !this.automatic && !this.direct,
               coverUntilJoined: this.direct && !this.firstJoined,
-              onEnter: (session: LiveHomePlaybackSession) => this.enter(session),
+              onEnterPlayerPage: (session: LiveHomePlaybackSession) => this.onEnterPlayerPage(session.info.liveID),
               onMounted: (session: LiveHomePlaybackSession) => this.mounted(session),
               onUnmounted: (session: LiveHomePlaybackSession) => this.unmounted(session) })
           }, (info: LiveInfo) => info.liveID)

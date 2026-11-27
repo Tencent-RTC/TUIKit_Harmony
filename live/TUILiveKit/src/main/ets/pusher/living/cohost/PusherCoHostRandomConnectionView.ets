@@ -1,5 +1,3 @@
-import accessibility from '@ohos.accessibility'
-import { deviceInfo } from '@kit.BasicServicesKit'
 import { AnimatorResult, curves } from '@kit.ArkUI'
 import { image } from '@kit.ImageKit'
 import { LiveKitResources } from '../../../common/LiveKitResources'
@@ -72,7 +70,6 @@ struct CoHostRadar {
   @Prop @Watch('updateAnimation') active: boolean = false
   @Prop hostAvatar: string = ''
   @Prop @Watch('updateURLs') candidates: CoHostUser[] = []
-  @State private reduceMotion: boolean = false
   @State private elapsed: number = 0
   @State private urls: string[] = []
   private scanAnimator?: AnimatorResult
@@ -86,21 +83,13 @@ struct CoHostRadar {
   private readonly saturations: number[] = [0.55, 1, 1, 1, 0.65, 0.65]
   private readonly brightnesses: number[] = [0.8, 1.2, 1.08, 1.08, 0.85, 0.85]
   private readonly scales: number[] = [0.72, 1.08, 1, 1, 0.96, 0.96]
-  private readonly motionChanged: (enabled: boolean) => void = (enabled: boolean) => {
-    this.getUIContext().runScopedTask(() => { this.reduceMotion = enabled; this.updateAnimation() })
-  }
   aboutToAppear(): void {
     this.randomize()
     this.updateURLs()
-    if (deviceInfo.sdkApiVersion >= 23) {
-      this.reduceMotion = accessibility.isAnimationReduceEnabledSync()
-      accessibility.onAnimationReduceStateChange(this.motionChanged)
-    }
   }
   aboutToDisappear(): void {
     this.stop()
     this.laidOut = false
-    if (deviceInfo.sdkApiVersion >= 23) accessibility.offAnimationReduceStateChange(this.motionChanged)
   }
   private stop(): void {
     clearTimeout(this.startTask)
@@ -110,9 +99,9 @@ struct CoHostRadar {
   }
   private updateAnimation(): void {
     this.stop()
-    if (!this.active || !this.laidOut || this.reduceMotion) return
+    if (!this.active || !this.laidOut) return
     this.startTask = setTimeout(() => {
-      if (!this.active || !this.laidOut || this.reduceMotion) return
+      if (!this.active || !this.laidOut) return
       const animation = this.getUIContext().createAnimator({ duration: 33600, iterations: -1,
         easing: 'linear', begin: 0, end: 33600, fill: 'forwards', delay: 0, direction: 'normal' })
       this.scanAnimator = animation
@@ -186,22 +175,20 @@ struct CoHostRadar {
   build() {
     Stack({ alignContent: Alignment.TopStart }) {
       if (this.active) {
-        if (!this.reduceMotion) {
-          this.pulse(0)
-          this.pulse(1)
-          CoHostRadarSweep({ angle: this.elapsed % 4800 / 4800 * 360 })
-            .position({ x: -12, y: -59 })
-        }
+        this.pulse(0)
+        this.pulse(1)
+        CoHostRadarSweep({ angle: this.elapsed % 4800 / 4800 * 360 })
+          .position({ x: -12, y: -59 })
         ForEach(this.points, (point: RadarPoint, index: number) => {
           Image(this.urls[index] || LiveKitResources.image('livekit_livelist_default_avatar'))
             .alt(LiveKitResources.image('livekit_livelist_default_avatar')).objectFit(ImageFit.Cover)
             .width(point.size).height(point.size).borderRadius(point.size / 2).clip(true)
             .position({ x: point.x - point.size / 2, y: point.y - point.size / 2 })
-            .opacity(this.reduceMotion ? 0.8 : this.value(this.peerTime(point), this.opacities))
-            .scale({ x: this.reduceMotion ? 1 : this.value(this.peerTime(point), this.scales),
-              y: this.reduceMotion ? 1 : this.value(this.peerTime(point), this.scales) })
-            .saturate(this.reduceMotion ? 1 : this.value(this.peerTime(point), this.saturations))
-            .brightness(this.reduceMotion ? 1 : this.value(this.peerTime(point), this.brightnesses))
+            .opacity(this.value(this.peerTime(point), this.opacities))
+            .scale({ x: this.value(this.peerTime(point), this.scales),
+              y: this.value(this.peerTime(point), this.scales) })
+            .saturate(this.value(this.peerTime(point), this.saturations))
+            .brightness(this.value(this.peerTime(point), this.brightnesses))
         }, (point: RadarPoint) => `${point.x}:${point.y}`)
         Image(this.hostAvatar || LiveKitResources.image('livekit_livelist_default_avatar'))
           .alt(LiveKitResources.image('livekit_livelist_default_avatar')).objectFit(ImageFit.Cover)

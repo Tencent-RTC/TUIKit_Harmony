@@ -1,6 +1,7 @@
 import { ApplicationStateChangeCallback, common } from '@kit.AbilityKit'
 import { util } from '@kit.ArkTS'
 import {
+  AtomicLiveView,
   AtomicPlayer,
   CoGuestStore,
   DeviceStatus,
@@ -50,6 +51,7 @@ class PendingJoin {
 export class PlayerViewImplController {
   onCloseClicked?: () => void
   onJoinLiveClicked?: () => void
+  onFloatingWindowRequested?: (uiContext: UIContext) => void
   readonly videoView: PlayerVideoViewController = new PlayerVideoViewController()
   readonly overlayView: LivingViewController = new LivingViewController()
   status: PlayerStatus = PlayerStatus.idle
@@ -77,7 +79,44 @@ export class PlayerViewImplController {
   private readonly screenAwakeOwner: string = util.generateRandomUUID(true)
   private isAttached: boolean = false
   private isAppActive: boolean = true
+  private isPageActive: boolean = true
+  private isFloating: boolean = false
+  private uiOwner: number = 0
   private applicationStateCallback?: ApplicationStateChangeCallback
+
+  get canEnterFloating(): boolean {
+    return this.isAttached && this.isAppActive && this.isPageActive && !this.isFloating && !this.isClosing &&
+      this.joiningLiveID === undefined && this.isJoinedChannel && this.playingLiveID === this.liveID &&
+      this.status === PlayerStatus.inRoom && this.overlayView.coGuest.uiState === CoGuestStatus.idle &&
+      !this.overlayView.isCleanScreen
+  }
+
+  setVideoView(view: AtomicLiveView = this.videoView.coreView): void {
+    this.player.setView(view)
+  }
+
+  beginFloating(): void {
+    this.isFloating = true
+    this.deactivateRoomFeatures()
+    this.overlayView.deactivateCoGuest()
+    this.overlayView.dismissInteractionOverlays(true)
+  }
+
+  resumeFloating(): void {
+    this.isFloating = false
+    this.entranceEnabled = false
+  }
+
+  releaseFloating(): void {
+    this.isFloating = false
+    this.uiOwner++
+    this.detach()
+    this.stopPlay()
+    this.leaveChannelSilently()
+    this.onCloseClicked = undefined
+    this.onJoinLiveClicked = undefined
+    this.onFloatingWindowRequested = undefined
+  }
 
   get joinLiveEntranceEnabled(): boolean {
     return this.entranceEnabled
@@ -97,7 +136,15 @@ export class PlayerViewImplController {
     return () => this.statusListeners.delete(listener)
   }
 
-  attach(): void {
+  attach(): number {
+    const owner = ++this.uiOwner
+    if (this.playingLiveID !== undefined) this.player.setView(this.videoView.coreView)
+    if (this.isJoinedChannel && this.liveInfo !== undefined) {
+      this.overlayView.updateLiveInfo(this.liveInfo)
+      this.overlayView.setJoinedChannel(true)
+      this.activateRoomFeatures(this.liveInfo.liveID)
+    }
+    this.overlayView.onFloatingWindowRequested = (uiContext: UIContext) => this.onFloatingWindowRequested?.(uiContext)
     this.overlayView.videoSeatRegions = () => this.videoView.unitAdapter.seatRegions()
     this.videoView.unitAdapter.onGeometryChanged = () => {
       const connected = this.videoView.unitAdapter.isCoHostConnected
@@ -106,7 +153,7 @@ export class PlayerViewImplController {
       this.overlayView.updateInteractionLayout()
     }
     if (this.isAttached) {
-      return
+      return owner
     }
     this.isAttached = true
     this.updateScreenAwake()
@@ -118,6 +165,7 @@ export class PlayerViewImplController {
     this.overlayView.onCoGuestUiStateChanged = (state: CoGuestStatus) => this.handleCoGuestUiState(state)
     this.playerListener.liveEnded = (reason: EndedReason) => this.handleLiveEnded()
     this.playerListener.kickedOut = (reason: KickedOutReason, message: string) => this.handleKickedOut(reason)
+    this.player.removeListener(this.playerListener)
     this.player.addListener(this.playerListener)
     const callback: ApplicationStateChangeCallback = {
       onApplicationForeground: () => {
@@ -136,9 +184,12 @@ export class PlayerViewImplController {
     getContext().getApplicationContext().on('applicationStateChange', callback)
     this.restoreCaptureIfNeeded()
     this.restoreMicrophoneIfNeeded()
+    return owner
   }
 
-  detach(): void {
+  detach(owner?: number): void {
+    if (owner !== undefined && owner !== this.uiOwner) return
+    this.overlayView.onFloatingWindowRequested = undefined
     this.overlayView.videoSeatRegions = undefined
     this.videoView.unitAdapter.onGeometryChanged = undefined
     this.videoView.unitAdapter.clearGeometry()
@@ -146,9 +197,11 @@ export class PlayerViewImplController {
     this.overlayView.isCoHostConnected = false
     this.isAttached = false
     this.updateScreenAwake()
-    this.player.removeListener(this.playerListener)
-    this.playerListener.liveEnded = undefined
-    this.playerListener.kickedOut = undefined
+    if (!this.isFloating) {
+      this.player.removeListener(this.playerListener)
+      this.playerListener.liveEnded = undefined
+      this.playerListener.kickedOut = undefined
+    }
     this.overlayView.onToast = undefined
     this.overlayView.onCoGuestUiStateChanged = undefined
     if (this.applicationStateCallback !== undefined) {
@@ -476,10 +529,15 @@ export class PlayerViewImplController {
     }
   }
 
+  setPageActive(active: boolean): void {
+    this.isPageActive = active
+    this.updateScreenAwake()
+  }
+
   private updateScreenAwake(): void {
     const playing = this.status === PlayerStatus.playing || this.status === PlayerStatus.inRoom ||
       this.status === PlayerStatus.coGuest
-    LiveScreenAwake.setEnabled(this.screenAwakeOwner, this.isAttached && this.isAppActive && playing,
+    LiveScreenAwake.setEnabled(this.screenAwakeOwner, this.isAttached && this.isAppActive && this.isPageActive && playing,
       getContext() as common.UIAbilityContext)
   }
 
@@ -546,15 +604,22 @@ export class PlayerViewImplController {
 @Component
 export struct PlayerViewImpl {
   @ObjectLink controller: PlayerViewImplController
+  @Prop @Watch('onPageActiveChanged') isPageActive: boolean = true
   @StorageProp(LiveKitSafeArea.topKey) safeTop: number = 0
+  private uiOwner: number = 0
+
+  private onPageActiveChanged(): void {
+    this.controller.setPageActive(this.isPageActive)
+  }
 
   aboutToAppear(): void {
     LiveKitSafeArea.observe()
-    this.controller.attach()
+    this.onPageActiveChanged()
+    this.uiOwner = this.controller.attach()
   }
 
   aboutToDisappear(): void {
-    this.controller.detach()
+    this.controller.detach(this.uiOwner)
   }
 
   private showsEntrance(): boolean {

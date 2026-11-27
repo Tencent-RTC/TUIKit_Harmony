@@ -60,7 +60,8 @@ export struct SettingsPanel {
   }
 
   @Builder
-  settingCap(iconName: string, iconWidth: number, iconHeight: number, title: string, action: () => void) {
+  settingCap(iconName: string, iconWidth: number, iconHeight: number, title: string,
+    requiresFrontCamera: boolean, action: () => void) {
     Column({ space: 8 }) {
       Stack() {
         Image(LiveKitResources.image(iconName)).width(iconWidth).height(iconHeight).objectFit(ImageFit.Contain)
@@ -73,7 +74,25 @@ export struct SettingsPanel {
     }
     .width(60)
     .height(76)
+    .enabled(!requiresFrontCamera || this.deviceState.isFrontCamera)
+    .opacity((!requiresFrontCamera || this.deviceState.isFrontCamera) ? 1 : 0.46)
     .onClick(() => this.debouncedClick.perform(title, action))
+  }
+
+  private toggleMirror(): void {
+    if (!this.deviceState.isFrontCamera) {
+      return
+    }
+    DeviceStore.shared().switchMirror(this.deviceState.localMirrorType !== MirrorType.disable ?
+      MirrorType.disable : MirrorType.enable)
+  }
+
+  private flipCamera(): void {
+    const nextFront = !this.deviceState.isFrontCamera
+    if (!nextFront && this.deviceState.localMirrorType !== MirrorType.disable) {
+      DeviceStore.shared().switchMirror(MirrorType.disable)
+    }
+    DeviceStore.shared().switchCamera(nextFront)
   }
 
   build() {
@@ -129,13 +148,12 @@ export struct SettingsPanel {
           }
           Row() {
             this.settingCap('livekit_living_setting_beauty', 18.05, 16.3,
-              LiveKitResources.localizedString('tuilivekit.pusher.beautify'), () => this.isBeautyPresented = true)
+              LiveKitResources.localizedString('tuilivekit.pusher.beautify'), false, () => this.isBeautyPresented = true)
             this.settingCap(this.deviceState.localMirrorType !== MirrorType.disable ? 'livekit_settings_mirror_on' :
               'livekit_settings_mirror_off', 21, 22, LiveKitResources.localizedString('tuilivekit.pusher.mirror'),
-              () => DeviceStore.shared().switchMirror(this.deviceState.localMirrorType !== MirrorType.disable ?
-                MirrorType.disable : MirrorType.enable))
+              true, () => this.toggleMirror())
             this.settingCap('livekit_living_setting_flip', 21, 18.5, LiveKitResources.localizedString('tuilivekit.pusher.flip_camera'),
-              () => DeviceStore.shared().switchCamera(!this.deviceState.isFrontCamera))
+              false, () => this.flipCamera())
           }
           .width('100%')
           .height(76)
